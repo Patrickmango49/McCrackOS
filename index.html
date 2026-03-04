@@ -3,10 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>McCrackOS</title>
+<title>McCrackOS v2</title>
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;}
+
 body{
     height:100vh;
     overflow:hidden;
@@ -14,33 +15,44 @@ body{
     color:white;
 }
 
-/* Boot Screen */
+/* Boot */
 #boot{
     position:fixed;
     inset:0;
-    background:#000;
+    background:black;
     display:flex;
+    flex-direction:column;
     align-items:center;
     justify-content:center;
-    font-size:3rem;
+    font-size:2.5rem;
     letter-spacing:2px;
 }
+.loader{
+    margin-top:20px;
+    width:40px;
+    height:40px;
+    border:4px solid #333;
+    border-top:4px solid white;
+    border-radius:50%;
+    animation:spin 1s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
 
 /* Login */
 #login{
     position:fixed;
     inset:0;
-    backdrop-filter:blur(20px);
-    background:rgba(0,0,0,.6);
     display:none;
     align-items:center;
     justify-content:center;
+    backdrop-filter:blur(20px);
+    background:rgba(0,0,0,.6);
 }
 .login-box{
     background:rgba(255,255,255,.1);
+    backdrop-filter:blur(20px);
     padding:40px;
     border-radius:20px;
-    backdrop-filter:blur(20px);
     display:flex;
     flex-direction:column;
     gap:15px;
@@ -50,21 +62,46 @@ body{
     padding:10px;
     border:none;
     border-radius:10px;
-    outline:none;
 }
 .login-box button{
     padding:10px;
     border:none;
     border-radius:10px;
-    background:white;
     cursor:pointer;
+}
+
+/* Top Bar */
+#topbar{
+    position:absolute;
+    top:0;
+    left:0;
+    right:0;
+    height:40px;
+    background:rgba(255,255,255,.08);
+    backdrop-filter:blur(20px);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 20px;
+    font-size:.9rem;
 }
 
 /* Desktop */
 #desktop{
     position:absolute;
-    inset:0;
+    inset:40px 0 0 0;
     display:none;
+}
+
+/* Desktop Icons */
+.icon{
+    width:80px;
+    text-align:center;
+    cursor:pointer;
+    margin:20px;
+}
+.icon div{
+    font-size:40px;
 }
 
 /* Dock */
@@ -80,20 +117,8 @@ body{
     backdrop-filter:blur(20px);
     border-radius:30px;
 }
-.dock-item{
-    width:50px;
-    height:50px;
-    border-radius:15px;
-    background:rgba(255,255,255,.2);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    cursor:pointer;
-    transition:.2s;
-}
-.dock-item:hover{transform:scale(1.2);}
 
-/* Window */
+/* Windows */
 .window{
     position:absolute;
     width:500px;
@@ -101,45 +126,56 @@ body{
     background:rgba(255,255,255,.08);
     backdrop-filter:blur(20px);
     border-radius:20px;
-    overflow:hidden;
     display:flex;
     flex-direction:column;
+    overflow:hidden;
+    animation:fadeIn .2s ease;
 }
+@keyframes fadeIn{from{opacity:0;transform:scale(.95);}to{opacity:1;}}
 .window-header{
-    padding:10px;
+    padding:8px 10px;
     background:rgba(255,255,255,.1);
     cursor:move;
     display:flex;
     justify-content:space-between;
 }
-.window-body{
-    flex:1;
-    padding:10px;
-    overflow:auto;
+.window-body{flex:1;padding:10px;overflow:auto;}
+.window-buttons span{
+    margin-left:10px;
+    cursor:pointer;
 }
 
-/* Clock */
-#clock{
+/* Spotlight */
+#spotlight{
     position:absolute;
-    top:20px;
-    right:20px;
+    top:80px;
+    left:50%;
+    transform:translateX(-50%);
+    width:400px;
     background:rgba(255,255,255,.1);
-    padding:10px 20px;
-    border-radius:20px;
     backdrop-filter:blur(20px);
+    padding:20px;
+    border-radius:20px;
+    display:none;
+}
+#spotlight input{
+    width:100%;
+    padding:10px;
+    border:none;
+    border-radius:10px;
 }
 
-/* Context Menu */
+/* Context */
 #contextMenu{
     position:absolute;
     background:rgba(255,255,255,.1);
     backdrop-filter:blur(20px);
-    border-radius:15px;
     padding:10px;
+    border-radius:15px;
     display:none;
 }
 #contextMenu div{
-    padding:8px 15px;
+    padding:5px 15px;
     cursor:pointer;
 }
 #contextMenu div:hover{
@@ -149,26 +185,46 @@ body{
 </head>
 <body>
 
-<div id="boot">McCrackOS</div>
+<div id="boot">
+    McCrackOS
+    <div class="loader"></div>
+</div>
 
 <div id="login">
     <div class="login-box">
-        <input type="text" id="username" placeholder="Enter Username">
+        <input id="username" placeholder="Username">
         <input type="password" placeholder="Password (optional)">
         <button onclick="enterOS()">Login</button>
     </div>
 </div>
 
+<div id="topbar">
+    <div>McCrackOS</div>
+    <div id="userDisplay"></div>
+</div>
+
 <div id="desktop">
-    <div id="clock"></div>
-    <div id="dock">
-        <div class="dock-item" onclick="openNotepad()">📝</div>
-        <div class="dock-item" onclick="openBrowser()">🌐</div>
-        <div class="dock-item" onclick="openTerminal()">⌨️</div>
-        <div class="dock-item" onclick="openSettings()">⚙️</div>
-        <div class="dock-item" onclick="openStore()">🛒</div>
-        <div class="dock-item" onclick="openTrash()">🗑️</div>
+    <div class="icon" ondblclick="openNotepad()">
+        <div>📝</div>
+        Notepad
     </div>
+    <div class="icon" ondblclick="openBrowser()">
+        <div>🌐</div>
+        Browser
+    </div>
+    <div class="icon" ondblclick="openTerminal()">
+        <div>⌨️</div>
+        Terminal
+    </div>
+
+    <div id="dock">
+        🔍
+    </div>
+</div>
+
+<div id="spotlight">
+    <input placeholder="Search apps..." oninput="searchApp(this.value)">
+    <div id="searchResults"></div>
 </div>
 
 <div id="contextMenu">
@@ -176,40 +232,44 @@ body{
 </div>
 
 <script>
-/* Boot → Login */
+let z=1;
+
+/* Boot */
 setTimeout(()=>{
     document.getElementById("boot").style.display="none";
     document.getElementById("login").style.display="flex";
 },2000);
 
 function enterOS(){
+    const name=document.getElementById("username").value || "User";
+    localStorage.setItem("mcUser",name);
+    document.getElementById("userDisplay").innerText=name;
     document.getElementById("login").style.display="none";
     document.getElementById("desktop").style.display="block";
 }
 
-/* Clock */
-setInterval(()=>{
-    document.getElementById("clock").innerText=new Date().toLocaleTimeString();
-},1000);
-
-/* Window Creator */
+/* Window System */
 function createWindow(title,content){
     const win=document.createElement("div");
     win.className="window";
-    win.style.top=Math.random()*200+50+"px";
-    win.style.left=Math.random()*200+50+"px";
+    win.style.top=Math.random()*200+80+"px";
+    win.style.left=Math.random()*200+100+"px";
+    win.style.zIndex=z++;
     win.innerHTML=`
         <div class="window-header">
             <span>${title}</span>
-            <span style="cursor:pointer" onclick="this.closest('.window').remove()">✖</span>
+            <div class="window-buttons">
+                <span onclick="this.closest('.window').style.display='none'">–</span>
+                <span onclick="this.closest('.window').remove()">✖</span>
+            </div>
         </div>
         <div class="window-body">${content}</div>
     `;
     document.body.appendChild(win);
     drag(win);
+    win.onclick=()=>win.style.zIndex=z++;
 }
 
-/* Drag */
 function drag(el){
     const header=el.querySelector(".window-header");
     header.onmousedown=function(e){
@@ -235,7 +295,7 @@ function openNotepad(){
 
 function openBrowser(){
     createWindow("Browser",
-        `<input type="text" placeholder="Enter URL" style="width:100%;padding:5px;"
+        `<input placeholder="Enter URL" style="width:100%;padding:5px;"
         onkeydown="if(event.key==='Enter'){this.nextElementSibling.src=this.value}">
         <iframe style="width:100%;height:90%;border:none;"></iframe>`
     );
@@ -243,43 +303,42 @@ function openBrowser(){
 
 function openTerminal(){
     createWindow("Terminal",
-        `<div id="termOutput"></div>
-        <input type="text" placeholder="type help" style="width:100%;background:black;color:lime;border:none;padding:5px;"
-        onkeydown="if(event.key==='Enter'){runCommand(this)}">`
+        `<div id="termOut"></div>
+        <input style="width:100%;background:black;color:lime;border:none;padding:5px;"
+        onkeydown="if(event.key==='Enter'){runCmd(this)}" placeholder="help">`
     );
 }
 
-function runCommand(input){
-    const cmd=input.value;
+function runCmd(input){
     const out=input.previousElementSibling;
-    if(cmd==="help") out.innerHTML+="<div>Commands: help, about, clear</div>";
-    else if(cmd==="about") out.innerHTML+="<div>McCrackOS v1.0</div>";
+    const cmd=input.value;
+    if(cmd==="help") out.innerHTML+="<div>help, about, user, clear</div>";
+    else if(cmd==="about") out.innerHTML+="<div>McCrackOS v2</div>";
+    else if(cmd==="user") out.innerHTML+="<div>"+localStorage.getItem("mcUser")+"</div>";
     else if(cmd==="clear") out.innerHTML="";
     else out.innerHTML+="<div>Unknown command</div>";
     input.value="";
 }
 
-function openSettings(){
-    createWindow("Settings",
-        `<button onclick="document.body.style.background='linear-gradient(135deg,#1e1e2f,#2c2c3e)'">Dark</button>
-         <button onclick="document.body.style.background='linear-gradient(135deg,#e3e3e3,#bdbdbd)'">Light</button>`
-    );
+/* Spotlight */
+document.addEventListener("keydown",e=>{
+    if(e.ctrlKey && e.key==="k"){
+        document.getElementById("spotlight").style.display="block";
+    }
+});
+function searchApp(val){
+    const res=document.getElementById("searchResults");
+    res.innerHTML="";
+    if(val.toLowerCase().includes("note"))
+        res.innerHTML+="<div onclick='openNotepad()'>Notepad</div>";
+    if(val.toLowerCase().includes("term"))
+        res.innerHTML+="<div onclick='openTerminal()'>Terminal</div>";
+    if(val.toLowerCase().includes("browser"))
+        res.innerHTML+="<div onclick='openBrowser()'>Browser</div>";
 }
 
-function openStore(){
-    createWindow("App Store",
-        `<div>Coming Soon...</div>`
-    );
-}
-
-function openTrash(){
-    createWindow("Trash",
-        `<div>Trash is empty.</div>`
-    );
-}
-
-/* Context Menu */
-document.addEventListener("contextmenu",function(e){
+/* Context */
+document.addEventListener("contextmenu",e=>{
     e.preventDefault();
     const menu=document.getElementById("contextMenu");
     menu.style.display="block";
