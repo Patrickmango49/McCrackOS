@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>McCrackOS V7.1 - Ultimate Hybrid</title>
+<title>McCrackOS V7.2 - Final Edition</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 :root {
@@ -43,8 +43,6 @@ body {
 .icon:hover { background: rgba(255,255,255,0.1); }
 .icon div { font-size: 40px; pointer-events: none; }
 .icon span { font-size: 0.8rem; margin-top: 5px; pointer-events: none; }
-.pin-btn { position: absolute; top: 2px; right: 2px; font-size: 10px; opacity: 0; background: #333; padding: 2px; border-radius: 4px; }
-.icon:hover .pin-btn { opacity: 1; }
 
 /* --- Taskbar --- */
 #taskbar { 
@@ -54,14 +52,13 @@ body {
     border-top: 1px solid rgba(255,255,255,0.1);
 }
 #task-left { display: flex; align-items: center; gap: 8px; flex: 1; }
-#task-center { display: flex; align-items: center; gap: 10px; justify-content: flex-end; flex: 3; } /* Apps to the right */
+#task-center { display: flex; align-items: center; gap: 10px; justify-content: flex-end; flex: 3; }
 
 .task-item { 
     padding: 8px 14px; background: rgba(255,255,255,0.05); border-radius: 6px; 
     cursor: pointer; border: 1px solid rgba(255,255,255,0.1); font-size: 0.85rem;
     display: flex; align-items: center; gap: 8px; transition: 0.2s;
 }
-.task-item:hover { background: rgba(255,255,255,0.15); }
 
 /* --- Widgets --- */
 #widgets { display: flex; align-items: center; gap: 15px; margin-left: 15px; padding-left: 15px; border-left: 1px solid #333; }
@@ -75,20 +72,19 @@ body {
     box-shadow: 0 25px 60px rgba(0,0,0,0.7); z-index: 100;
 }
 .window-header { background: #1a1a1a; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; cursor: move; user-select: none; }
-.window-body { flex: 1; overflow: auto; background: #000; position: relative; padding: 10px; }
+.window-body { flex: 1; overflow: auto; background: #000; position: relative; }
 .window-buttons span { margin-left: 12px; cursor: pointer; font-size: 1.1rem; }
-.resizer { width: 16px; height: 16px; position: absolute; right: 0; bottom: 0; cursor: nwse-resize; z-index: 20; background: linear-gradient(135deg, transparent 50%, #444 50%); }
+.resizer { width: 16px; height: 16px; position: absolute; right: 0; bottom: 0; cursor: nwse-resize; z-index: 20; }
 
-/* --- App Specific UI --- */
-iframe { width: 100%; height: 100%; border: none; background: white; border-radius: 4px; }
+/* UI Helpers */
+iframe { width: 100%; height: 100%; border: none; background: white; }
 button { background: #222; color: white; border: 1px solid #444; padding: 6px 12px; border-radius: 5px; cursor: pointer; margin: 3px; }
-button:hover { background: #333; }
 input, textarea { background: #111; color: white; border: 1px solid #333; padding: 10px; border-radius: 6px; }
 </style>
 </head>
 <body>
 
-<div id="boot">McCrackOS V7.1<div class="loader"></div></div>
+<div id="boot">McCrackOS V7.2<div class="loader"></div></div>
 
 <div id="login">
     <div class="login-box">
@@ -104,8 +100,7 @@ input, textarea { background: #111; color: white; border: 1px solid #333; paddin
 
 <div id="taskbar">
     <div id="task-left">
-        <div class="task-item" style="background:var(--accent)" onclick="alert('McCrackOS V7.1\nStatus: Online')">🔘</div>
-        <div id="pinned-apps" style="display: flex; gap: 5px;"></div>
+        <div class="task-item" style="background:var(--accent)" onclick="alert('McCrackOS V7.2 - Stable')">💠</div>
     </div>
     <div id="task-center"></div>
     <div id="widgets">
@@ -124,77 +119,75 @@ let state = {
     user: localStorage.getItem("mcUser") || "User",
     pass: localStorage.getItem("mcPass") || "1234",
     bg: localStorage.getItem("mcBG") || "linear-gradient(135deg, #000, #111)",
-    pinned: JSON.parse(localStorage.getItem("mcPinned")) || ["Browser", "Settings"],
+    installed: JSON.parse(localStorage.getItem("mcApps")) || ["Notepad", "Browser", "Terminal", "Files", "Store", "Settings"],
     icons: JSON.parse(localStorage.getItem("mcIcons")) || [
         {id: 'Notepad', x: 30, y: 30},
         {id: 'Browser', x: 30, y: 150},
         {id: 'Terminal', x: 30, y: 270},
         {id: 'Files', x: 130, y: 30},
         {id: 'Store', x: 130, y: 150},
-        {id: 'Settings', x: 130, y: 270},
-        {id: 'Calculator', x: 230, y: 30}
+        {id: 'Settings', x: 130, y: 270}
     ],
     running: {}
 };
 
-/** APP REGISTRY (Combined V5 + V7) **/
+/** APP REGISTRY **/
 const Registry = {
-    Notepad: { icon: "📝", content: () => `<textarea style="width:100%;height:100%;background:transparent;color:white;border:none;outline:none;" oninput="localStorage.setItem('note',this.value)">${localStorage.getItem("note")||""}</textarea>` },
+    Notepad: { icon: "📝", content: () => `<textarea style="width:100%;height:100%;background:transparent;color:white;padding:15px;border:none;outline:none;" oninput="localStorage.setItem('note',this.value)">${localStorage.getItem("note")||""}</textarea>` },
     
-    Browser: { icon: "🌐", content: () => `
-        <input id="urlBar" placeholder="https://example.com" style="width:calc(100% - 100px);margin-bottom:10px;" onkeydown="if(event.key==='Enter'){this.nextElementSibling.src=this.value}">
-        <button onclick="this.previousElementSibling.dispatchEvent(new KeyboardEvent('keydown',{'key':'Enter'}))">Go</button>
-        <iframe src="https://siuuu.pagostepeapulco.gob.mx/"></iframe>` },
+    Browser: { icon: "🌐", content: () => `<iframe src="https://siuuu.pagostepeapulco.gob.mx/"></iframe>` },
     
-    Terminal: { icon: "⌨️", content: () => `<div id="out" style="font-family:monospace;color:#0f0;margin-bottom:10px;">McCrackOS Terminal... type 'help'</div><input onkeydown="if(event.key==='Enter'){cmd(this)}" placeholder=">_" style="width:100%;background:black;border:none;color:#0f0;outline:none;font-family:monospace;">` },
+    Terminal: { icon: "⌨️", content: () => `<div id="out" style="font-family:monospace;color:#0f0;padding:10px;">McCrackOS Terminal...</div><input onkeydown="if(event.key==='Enter'){cmd(this)}" placeholder=">_" style="width:100%;background:black;border:none;color:#0f0;outline:none;padding:10px;font-family:monospace;">` },
     
-    Files: { icon: "📁", content: () => `
-        <h3>File Explorer</h3><hr><br>
-        <button onclick="triggerPCFiles()">📂 Open PC File System</button><br><br>
-        <p>📁 Documents</p><p>📁 Downloads</p><p>📁 Pictures</p>` },
+    Files: { icon: "📁", content: () => `<div style="padding:20px;"><h3>Files</h3><hr><br><p>📁 Documents</p><p>📁 Downloads</p><p>📁 Pictures</p><br><button onclick="triggerPCFiles()">Access Local Drive</button></div>` },
     
-    Calculator: { icon: "🧮", content: () => `
-        <input id="calcIn" style="width:100%;font-size:1.5rem;text-align:right;"><br>
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);margin-top:10px;">
-            <button onclick="calc()">=</button>
-            <button onclick="calcIn.value=''">C</button>
-        </div>
-        <h2 id="calcOut" style="text-align:center;margin-top:20px;"></h2>` },
-
-    Store: { icon: "🛒", content: () => `<h3>App Store</h3><p>McCrackChat and McCrackSites available for pin.</p><button onclick="alert('App installed to desktop')">Refresh</button>` },
+    Store: { icon: "🛒", content: () => `
+        <div style="padding:20px;">
+            <h3>App Store</h3><br>
+            <button onclick="installApp('Calculator', '🧮')">Install Calculator</button><br>
+            <button onclick="installApp('McCrackChat', '💬')">Install McCrack Chat</button><br>
+            <button onclick="installApp('McCrackSites', '🌍')">Install McCrack Sites</button>
+        </div>` 
+    },
 
     Settings: { icon: "⚙️", content: () => `
-        <div style="padding:10px;">
-            <h4>Appearance</h4><br>
-            <button onclick="setBG('#000')">Pure Black</button>
+        <div style="padding:20px;">
+            <h4>Personalization</h4><br>
             <button onclick="setBG('linear-gradient(135deg,#000,#111)')">Dark Gradient</button>
-            <button onclick="setBG('linear-gradient(135deg,#111,#222)')">Soft Dark</button><br><br>
-            <p>Custom Hex:</p>
-            <input type="color" onchange="setBG(this.value)">
-            <hr style="margin:15px 0;border:0;border-top:1px solid #333;">
+            <button onclick="setBG('#000')">Pure Black</button><br><br>
+            <p>Upload Wallpaper:</p>
+            <input type="file" accept="image/*" onchange="uploadBG(this)">
+            <hr style="margin:20px 0; border:0; border-top:1px solid #333;">
             <h4>Security</h4><br>
             <input type="password" id="passSet" placeholder="New Password">
             <button onclick="savePass()">Update Password</button>
-        </div>` },
+        </div>` 
+    },
     
-    McCrackChat: { icon: "💬", content: () => `<iframe src="https://patrickmango49.github.io/McCrack-Chat/"></iframe>` },
+    Calculator: { icon: "🧮", content: () => `<div style="padding:20px;"><input id="calcIn" style="width:100%;"><button onclick="calc()">=</button><h2 id="calcOut"></h2></div>` },
+
+    McCrackChat: { icon: "💬", content: () => `
+        <div id="loader" style="position:absolute; inset:0; z-index:999; background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://i.imgur.com/70OvshH.png') center/cover no-repeat; display:flex; flex-direction:column; justify-content:center; align-items:center; color:white;">
+            <div style="width:50px; height:50px; border:5px solid #555; border-top:5px solid white; border-radius:50%; animation: spin 1s linear infinite;"></div>
+            <p style="margin-top:15px; opacity:.85;">Loading Chat…</p>
+        </div>
+        <iframe src="https://patrickmango49.github.io/McCrack-Chat/" style="width:100%;height:100%;"></iframe>
+        <script>setTimeout(() => { document.getElementById('loader')?.remove(); }, 4000);</script>` 
+    },
+
     McCrackSites: { icon: "🌍", content: () => `<iframe src="https://sites.google.com/view/mccrack12/"></iframe>` }
 };
 
-/** BOOT & LOGIN **/
+/** SYSTEM INITIALIZATION **/
 window.onload = () => {
     applyState();
-    startSystem();
-    initBattery();
-};
-
-function startSystem() {
     setTimeout(() => {
         document.getElementById('boot').style.display = 'none';
         document.getElementById('login').style.display = 'flex';
     }, 2000);
     setInterval(updateClock, 1000);
-}
+    initBattery();
+};
 
 function enterOS() {
     const u = document.getElementById('username').value;
@@ -205,73 +198,57 @@ function enterOS() {
         document.getElementById('login').style.display = 'none';
         document.getElementById('desktop').style.display = 'block';
     } else {
-        document.getElementById('login-err').innerText = "Incorrect Password. (Default is 1234)";
+        document.getElementById('login-err').innerText = "Incorrect credentials.";
     }
 }
 
-/** DESKTOP & TASKBAR **/
 function applyState() {
     document.body.style.background = state.bg;
     renderDesktop();
-    renderPinned();
 }
 
+/** DESKTOP & APPS **/
 function renderDesktop() {
     const desk = document.getElementById('desktop');
     desk.innerHTML = "";
-    state.icons.forEach(app => {
+    state.installed.forEach(appId => {
+        const appData = state.icons.find(i => i.id === appId) || {id: appId, x: 230, y: 30};
         const div = document.createElement('div');
         div.className = 'icon';
-        div.style.left = app.x + 'px';
-        div.style.top = app.y + 'px';
-        div.innerHTML = `
-            <div class="pin-btn" onclick="togglePin('${app.id}', event)">${state.pinned.includes(app.id) ? '📍' : '📌'}</div>
-            <div>${Registry[app.id].icon}</div>
-            <span>${app.id}</span>`;
-        div.ondblclick = () => openApp(app.id);
-        makeDraggableIcon(div, app);
+        div.style.left = appData.x + 'px';
+        div.style.top = appData.y + 'px';
+        div.innerHTML = `<div>${Registry[appId].icon}</div><span>${appId}</span>`;
+        div.ondblclick = () => openApp(appId);
+        makeDraggableIcon(div, appData);
         desk.appendChild(div);
     });
 }
 
-function renderPinned() {
-    const pinBox = document.getElementById('pinned-apps');
-    pinBox.innerHTML = "";
-    state.pinned.forEach(id => {
-        const p = document.createElement('div');
-        p.className = 'task-item';
-        p.style.background = 'transparent';
-        p.innerHTML = Registry[id].icon;
-        p.onclick = () => openApp(id);
-        pinBox.appendChild(p);
-    });
+function installApp(id, icon) {
+    if(!state.installed.includes(id)) {
+        state.installed.push(id);
+        state.icons.push({id: id, x: 230, y: 150});
+        localStorage.setItem("mcApps", JSON.stringify(state.installed));
+        localStorage.setItem("mcIcons", JSON.stringify(state.icons));
+        renderDesktop();
+        alert(id + " Installed!");
+    } else {
+        alert("App already installed.");
+    }
 }
 
-function updateTaskbar() {
-    const center = document.getElementById('task-center');
-    center.innerHTML = "";
-    Object.keys(state.running).forEach(id => {
-        const t = document.createElement('div');
-        t.className = 'task-item';
-        t.innerHTML = `${Registry[id].icon} ${id}`;
-        t.onclick = () => focusApp(id);
-        center.appendChild(t);
-    });
-}
-
-/** WINDOW LOGIC **/
 function openApp(id) {
     if (state.running[id]) { focusApp(id); return; }
     const win = document.createElement('div');
     win.className = 'window';
-    win.style.width = '600px'; win.style.height = '400px';
-    win.style.left = '200px'; win.style.top = '100px';
+    win.style.width = '700px'; win.style.height = '450px';
+    win.style.left = '100px'; win.style.top = '50px';
     win.style.zIndex = ++state.z;
     win.innerHTML = `
         <div class="window-header">
             <span>${id}</span>
             <div class="window-buttons">
-                <span onclick="minimizeApp('${id}')">_</span>
+                <span onclick="this.closest('.window').style.display='none'">_</span>
                 <span onclick="closeApp('${id}')">×</span>
             </div>
         </div>
@@ -295,9 +272,19 @@ function closeApp(id) {
     updateTaskbar();
 }
 
-function minimizeApp(id) { state.running[id].style.display = 'none'; }
+function updateTaskbar() {
+    const center = document.getElementById('task-center');
+    center.innerHTML = "";
+    Object.keys(state.running).forEach(id => {
+        const t = document.createElement('div');
+        t.className = 'task-item';
+        t.innerHTML = `${Registry[id].icon} ${id}`;
+        t.onclick = () => focusApp(id);
+        center.appendChild(t);
+    });
+}
 
-/** DRAG & RESIZE **/
+/** INTERACTION LOGIC **/
 function makeDraggableIcon(el, data) {
     el.onmousedown = (e) => {
         let ox = e.clientX - el.offsetLeft;
@@ -330,8 +317,8 @@ function makeDraggableWin(win) {
 function makeResizableWin(win) {
     win.querySelector('.resizer').onmousedown = (e) => {
         e.preventDefault();
-        let sx = e.clientX; let sy = e.clientY;
-        let sw = win.offsetWidth; let sh = win.offsetHeight;
+        let sx = e.clientX, sy = e.clientY;
+        let sw = win.offsetWidth, sh = win.offsetHeight;
         document.onmousemove = (e) => {
             win.style.width = (sw + (e.clientX - sx)) + 'px';
             win.style.height = (sh + (e.clientY - sy)) + 'px';
@@ -343,8 +330,7 @@ function makeResizableWin(win) {
 /** SYSTEM UTILS **/
 function updateClock() {
     const d = new Date();
-    let h = d.getHours();
-    let m = d.getMinutes();
+    let h = d.getHours(), m = d.getMinutes();
     let ampm = h >= 12 ? 'PM' : 'AM';
     h = h % 12 || 12;
     document.getElementById('time-val').innerText = `${h}:${m < 10 ? '0'+m : m} ${ampm}`;
@@ -352,35 +338,18 @@ function updateClock() {
 }
 
 function setBG(val) {
-    state.bg = val;
-    document.body.style.background = val;
-    localStorage.setItem("mcBG", val);
+    state.bg = (val.startsWith('http') || val.startsWith('data')) ? `url(${val})` : val;
+    document.body.style.background = state.bg;
+    document.body.style.backgroundSize = "cover";
+    localStorage.setItem("mcBG", state.bg);
 }
 
-function togglePin(id, e) {
-    e.stopPropagation();
-    if(state.pinned.includes(id)) state.pinned = state.pinned.filter(p => p !== id);
-    else state.pinned.push(id);
-    localStorage.setItem("mcPinned", JSON.stringify(state.pinned));
-    renderPinned();
-    renderDesktop();
-}
-
-function cmd(input){
-    let out = document.getElementById('out');
-    let c = input.value.trim().toLowerCase();
-    if(c==="help") out.innerHTML+="help, about, user, clear<br>";
-    else if(c==="about") out.innerHTML+="McCrackOS Hybrid V7.1<br>";
-    else if(c==="user") out.innerHTML+=state.user+"<br>";
-    else if(c==="clear") out.innerHTML="";
-    else out.innerHTML+="Unknown command: "+c+"<br>";
-    input.value="";
-}
-
-function calc(){
-    try {
-        document.getElementById('calcOut').innerText = eval(document.getElementById('calcIn').value);
-    } catch { document.getElementById('calcOut').innerText = "Error"; }
+function uploadBG(input) {
+    if (input.files && input.files[0]) {
+        let reader = new FileReader();
+        reader.onload = (e) => { setBG(e.target.result); };
+        reader.readAsDataURL(input.files[0]);
+    }
 }
 
 function savePass() {
@@ -388,10 +357,21 @@ function savePass() {
     if(p) { state.pass = p; localStorage.setItem("mcPass", p); alert("Password Saved!"); }
 }
 
+function calc(){
+    try { document.getElementById('calcOut').innerText = eval(document.getElementById('calcIn').value); }
+    catch { document.getElementById('calcOut').innerText = "Error"; }
+}
+
+function cmd(input){
+    let c = input.value.trim().toLowerCase();
+    if(c==="clear") input.previousElementSibling.innerHTML = "";
+    else input.previousElementSibling.innerHTML += c + "...<br>";
+    input.value = "";
+}
+
 function triggerPCFiles() {
     const input = document.createElement('input');
     input.type = 'file';
-    input.onchange = e => alert("PC File Linked: " + e.target.files[0].name);
     input.click();
 }
 
@@ -404,5 +384,9 @@ function initBattery() {
     }
 }
 </script>
+
+<style>
+@keyframes spin { from {transform: rotate(0deg);} to {transform: rotate(360deg);} }
+</style>
 </body>
 </html>
