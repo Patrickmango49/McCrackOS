@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>McCrackOS v3</title>
+<title>McCrackOS v4</title>
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;}
@@ -13,14 +13,13 @@ body{
     overflow:hidden;
     background:#000;
     color:white;
-    transition:background .3s ease;
 }
 
 /* Boot */
 #boot{
     position:fixed;
     inset:0;
-    background:black;
+    background:#000;
     display:flex;
     flex-direction:column;
     align-items:center;
@@ -45,13 +44,12 @@ body{
     display:none;
     align-items:center;
     justify-content:center;
-    backdrop-filter:blur(20px);
-    background:rgba(0,0,0,.8);
+    background:rgba(0,0,0,.9);
 }
 .login-box{
-    background:rgba(255,255,255,.05);
+    background:#111;
     padding:40px;
-    border-radius:20px;
+    border-radius:15px;
     display:flex;
     flex-direction:column;
     gap:15px;
@@ -60,14 +58,14 @@ body{
 .login-box input{
     padding:10px;
     border:none;
-    border-radius:10px;
-    background:#111;
+    border-radius:8px;
+    background:#222;
     color:white;
 }
 .login-box button{
     padding:10px;
     border:none;
-    border-radius:10px;
+    border-radius:8px;
     cursor:pointer;
 }
 
@@ -78,12 +76,12 @@ body{
     left:0;
     right:0;
     height:40px;
-    background:rgba(255,255,255,.05);
-    backdrop-filter:blur(20px);
+    background:#111;
     display:flex;
     align-items:center;
     justify-content:space-between;
     padding:0 20px;
+    font-size:.9rem;
 }
 
 /* Desktop */
@@ -92,8 +90,6 @@ body{
     inset:40px 0 0 0;
     display:none;
 }
-
-/* Icons */
 #icons{
     display:grid;
     grid-template-columns:repeat(auto-fill,80px);
@@ -104,48 +100,39 @@ body{
     text-align:center;
     cursor:pointer;
 }
-.icon div{
-    font-size:40px;
-}
+.icon div{font-size:36px;}
 
-/* Windows */
+/* Window */
 .window{
     position:absolute;
     width:500px;
     height:350px;
-    background:rgba(255,255,255,.05);
-    backdrop-filter:blur(20px);
-    border-radius:15px;
+    background:#111;
+    border-radius:12px;
     display:flex;
     flex-direction:column;
     overflow:hidden;
-    animation:fade .2s ease;
 }
-@keyframes fade{from{opacity:0;transform:scale(.95);}to{opacity:1;}}
 .window-header{
+    background:#1a1a1a;
     padding:8px 10px;
-    background:rgba(255,255,255,.08);
     display:flex;
     justify-content:space-between;
     cursor:move;
 }
-.window-body{flex:1;padding:10px;overflow:auto;}
-
-/* Context */
-#contextMenu{
-    position:absolute;
-    background:rgba(255,255,255,.05);
-    backdrop-filter:blur(20px);
+.window-body{
+    flex:1;
     padding:10px;
-    border-radius:10px;
-    display:none;
+    overflow:auto;
+    background:#000;
 }
-#contextMenu div{
-    padding:5px 15px;
+.window button{
+    background:#222;
+    color:white;
+    border:none;
+    padding:5px 8px;
+    border-radius:5px;
     cursor:pointer;
-}
-#contextMenu div:hover{
-    background:rgba(255,255,255,.1);
 }
 </style>
 </head>
@@ -168,7 +155,7 @@ body{
     <div>McCrackOS</div>
     <div>
         <span id="userDisplay"></span> |
-        <span onclick="lockOS()" style="cursor:pointer;">Lock</span>
+        <span style="cursor:pointer;" onclick="lockOS()">Lock</span>
     </div>
 </div>
 
@@ -176,26 +163,151 @@ body{
     <div id="icons"></div>
 </div>
 
-<div id="contextMenu">
-    <div onclick="location.reload()">Refresh</div>
-    <div onclick="changeWallpaper()">Change Wallpaper</div>
-</div>
-
 <script>
-let z=1;
-let apps={
-    Notepad:{icon:"📝",open:openNotepad},
-    Browser:{icon:"🌐",open:openBrowser},
-    Terminal:{icon:"⌨️",open:openTerminal},
-    Documents:{icon:"📁",open:openDocs},
-    Store:{icon:"🛒",open:openStore}
+let zIndexCounter = 1;
+let installedApps = JSON.parse(localStorage.getItem("mcApps")) || ["Notepad","Browser","Terminal","Files","Store"];
+
+const appRegistry = {
+
+Notepad: {
+    icon:"📝",
+    open: function(){
+        createWindow("Notepad",`
+            <textarea style="width:100%;height:100%;background:#000;color:white;border:none;outline:none;"
+            oninput="localStorage.setItem('mcNote',this.value)">
+            ${localStorage.getItem("mcNote")||""}
+            </textarea>
+        `);
+    }
+},
+
+Browser:{
+    icon:"🌐",
+    open:function(){
+        createWindow("Browser",`
+            <input placeholder="https://example.com"
+            style="width:100%;padding:5px;background:#111;color:white;border:none;"
+            onkeydown="if(event.key==='Enter'){this.nextElementSibling.src=this.value}">
+            <iframe style="width:100%;height:90%;border:none;"></iframe>
+        `);
+    }
+},
+
+Terminal:{
+    icon:"⌨️",
+    open:function(){
+        createWindow("Terminal",`
+            <div id="termOut"></div>
+            <input style="width:100%;background:#000;color:lime;border:none;padding:5px;"
+            onkeydown="if(event.key==='Enter'){runCommand(this)}"
+            placeholder="help">
+        `);
+    }
+},
+
+Files:{
+    icon:"📁",
+    open:function(){
+        createWindow("Files",`
+            <div>Documents</div>
+            <div>Downloads</div>
+            <div>Pictures</div>
+        `);
+    }
+},
+
+Store:{
+    icon:"🛒",
+    open:function(){
+        createWindow("App Store",`
+            <button onclick="installApp('Calculator')">Install Calculator</button>
+        `);
+    }
+},
+
+Calculator:{
+    icon:"🧮",
+    open:function(){
+        createWindow("Calculator",`
+            <input id="calcInput" style="width:100%;padding:5px;background:#111;color:white;border:none;">
+            <button onclick="calculate()">=</button>
+            <div id="calcResult"></div>
+        `);
+    }
+}
+
 };
 
-/* Boot */
-setTimeout(()=>{
-    boot.style.display="none";
-    login.style.display="flex";
-},2000);
+function installApp(name){
+    if(!installedApps.includes(name)){
+        installedApps.push(name);
+        localStorage.setItem("mcApps",JSON.stringify(installedApps));
+        renderDesktop();
+    }
+}
+
+function renderDesktop(){
+    icons.innerHTML="";
+    installedApps.forEach(app=>{
+        let iconDiv=document.createElement("div");
+        iconDiv.className="icon";
+        iconDiv.innerHTML=`<div>${appRegistry[app].icon}</div>${app}`;
+        iconDiv.ondblclick=appRegistry[app].open;
+        icons.appendChild(iconDiv);
+    });
+}
+
+function createWindow(title,content){
+    let win=document.createElement("div");
+    win.className="window";
+    win.style.top=Math.random()*200+80+"px";
+    win.style.left=Math.random()*200+100+"px";
+    win.style.zIndex=zIndexCounter++;
+    win.innerHTML=`
+        <div class="window-header">
+            <span>${title}</span>
+            <span style="cursor:pointer;" onclick="this.closest('.window').remove()">✖</span>
+        </div>
+        <div class="window-body">${content}</div>
+    `;
+    document.body.appendChild(win);
+    makeDraggable(win);
+    win.onclick=()=>win.style.zIndex=zIndexCounter++;
+}
+
+function makeDraggable(win){
+    const header=win.querySelector(".window-header");
+    header.onmousedown=function(e){
+        let offsetX=e.clientX-win.offsetLeft;
+        let offsetY=e.clientY-win.offsetTop;
+        document.onmousemove=function(e){
+            win.style.left=e.clientX-offsetX+"px";
+            win.style.top=e.clientY-offsetY+"px";
+        }
+        document.onmouseup=function(){
+            document.onmousemove=null;
+        }
+    }
+}
+
+function runCommand(input){
+    const out=input.previousElementSibling;
+    const cmd=input.value.trim();
+    if(cmd==="help") out.innerHTML+="<div>help, about, user, clear</div>";
+    else if(cmd==="about") out.innerHTML+="<div>McCrackOS v4 Functional Build</div>";
+    else if(cmd==="user") out.innerHTML+="<div>"+localStorage.getItem("mcUser")+"</div>";
+    else if(cmd==="clear") out.innerHTML="";
+    else out.innerHTML+="<div>Unknown command</div>";
+    input.value="";
+}
+
+function calculate(){
+    try{
+        calcResult.innerText=eval(calcInput.value);
+    }catch{
+        calcResult.innerText="Error";
+    }
+}
 
 function enterOS(){
     let name=username.value||"User";
@@ -203,7 +315,7 @@ function enterOS(){
     userDisplay.innerText=name;
     login.style.display="none";
     desktop.style.display="block";
-    renderIcons();
+    renderDesktop();
 }
 
 function lockOS(){
@@ -211,135 +323,10 @@ function lockOS(){
     login.style.display="flex";
 }
 
-/* Desktop Icons */
-function renderIcons(){
-    icons.innerHTML="";
-    Object.keys(apps).forEach(app=>{
-        let div=document.createElement("div");
-        div.className="icon";
-        div.innerHTML=`<div>${apps[app].icon}</div>${app}`;
-        div.ondblclick=apps[app].open;
-        icons.appendChild(div);
-    });
-}
-
-/* Window System */
-function createWindow(title,content){
-    let win=document.createElement("div");
-    win.className="window";
-    win.style.top=Math.random()*200+80+"px";
-    win.style.left=Math.random()*200+100+"px";
-    win.style.zIndex=z++;
-    win.innerHTML=`
-        <div class="window-header">
-            <span>${title}</span>
-            <span>
-                <span onclick="snapLeft(this)">🡸</span>
-                <span onclick="snapRight(this)">🡺</span>
-                <span onclick="this.closest('.window').remove()">✖</span>
-            </span>
-        </div>
-        <div class="window-body">${content}</div>
-    `;
-    document.body.appendChild(win);
-    drag(win);
-    win.onclick=()=>win.style.zIndex=z++;
-}
-
-function drag(el){
-    let header=el.querySelector(".window-header");
-    header.onmousedown=e=>{
-        let ox=e.clientX-el.offsetLeft;
-        let oy=e.clientY-el.offsetTop;
-        document.onmousemove=e=>{
-            el.style.left=e.clientX-ox+"px";
-            el.style.top=e.clientY-oy+"px";
-        };
-        document.onmouseup=()=>document.onmousemove=null;
-    };
-}
-
-function snapLeft(btn){
-    let win=btn.closest(".window");
-    win.style.left="0px";
-    win.style.top="40px";
-    win.style.width="50%";
-    win.style.height="calc(100% - 40px)";
-}
-function snapRight(btn){
-    let win=btn.closest(".window");
-    win.style.left="50%";
-    win.style.top="40px";
-    win.style.width="50%";
-    win.style.height="calc(100% - 40px)";
-}
-
-/* Apps */
-function openNotepad(){
-    createWindow("Notepad",
-        `<textarea style="width:100%;height:100%;background:black;color:white;border:none;outline:none;"
-        oninput="localStorage.setItem('note',this.value)">${localStorage.getItem('note')||""}</textarea>`
-    );
-}
-function openBrowser(){
-    createWindow("Browser",
-        `<input placeholder="Enter URL" style="width:100%;padding:5px;background:#111;color:white;border:none;"
-        onkeydown="if(event.key==='Enter'){this.nextElementSibling.src=this.value}">
-        <iframe style="width:100%;height:90%;border:none;"></iframe>`
-    );
-}
-function openTerminal(){
-    createWindow("Terminal",
-        `<div id="out"></div>
-        <input style="width:100%;background:black;color:lime;border:none;padding:5px;"
-        onkeydown="if(event.key==='Enter'){cmd(this)}" placeholder="help">`
-    );
-}
-function cmd(input){
-    let out=input.previousElementSibling;
-    let c=input.value;
-    if(c==="help") out.innerHTML+="<div>help, about, user, clear</div>";
-    else if(c==="about") out.innerHTML+="<div>McCrackOS v3</div>";
-    else if(c==="user") out.innerHTML+="<div>"+localStorage.getItem("mcUser")+"</div>";
-    else if(c==="clear") out.innerHTML="";
-    else out.innerHTML+="<div>Unknown command</div>";
-    input.value="";
-}
-
-function openDocs(){
-    createWindow("Documents","<div>Your files will appear here soon.</div>");
-}
-
-function openStore(){
-    createWindow("App Store",
-        `<button onclick="installApp('Calculator','🧮')">Install Calculator</button>`
-    );
-}
-
-function installApp(name,icon){
-    apps[name]={icon:icon,open:()=>createWindow(name,"<div>"+name+" App</div>")};
-    renderIcons();
-    alert(name+" installed!");
-}
-
-/* Wallpaper */
-function changeWallpaper(){
-    let options=[
-        "#000",
-        "linear-gradient(135deg,#000,#111)",
-        "linear-gradient(135deg,#000,#1a1a1a)"
-    ];
-    document.body.style.background=options[Math.floor(Math.random()*options.length)];
-}
-
-/* Context */
-document.addEventListener("contextmenu",e=>{
-    e.preventDefault();
-    contextMenu.style.display="block";
-    contextMenu.style.left=e.pageX+"px";
-    contextMenu.style.top=e.pageY+"px";
-});
-document.addEventListener("click",()=>contextMenu.style.display="none");
+setTimeout(()=>{
+    boot.style.display="none";
+    login.style.display="flex";
+},2000);
 </script>
 
 </body>
