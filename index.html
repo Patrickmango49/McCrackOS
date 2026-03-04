@@ -2,97 +2,90 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>McCrackOS V7.2 - Final Edition</title>
+<title>McCrackOS V7.3</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 :root {
     --bg-blur: blur(15px);
-    --panel-bg: rgba(15, 15, 15, 0.85);
+    --panel-bg: rgba(15, 15, 15, 0.9);
     --accent: #0078d4;
-    --win-border: 1px solid #444;
+    --win-border: 1px solid #333;
 }
-*{margin:0;padding:0;box-sizing:border-box;font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;}
+*{margin:0;padding:0;box-sizing:border-box;font-family: 'Segoe UI', sans-serif;}
 
 body {
     height: 100vh;
     overflow: hidden;
-    background: linear-gradient(135deg, #000, #111);
+    background: #000;
     background-size: cover;
     background-position: center;
     color: white;
-    transition: background 0.4s ease;
+    transition: background 0.5s ease;
 }
 
-/* --- System Screens --- */
-#boot { position: fixed; inset: 0; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 2.5rem; z-index: 5000; }
-.loader { margin-top: 20px; width: 40px; height: 40px; border: 4px solid #222; border-top: 4px solid white; border-radius: 50%; animation: spin 1s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
+/* Screens */
+#boot { position: fixed; inset: 0; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
+#login { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.85); backdrop-filter: var(--bg-blur); z-index: 9000; }
+.login-box { background: #111; padding: 40px; border-radius: 12px; width: 320px; border: var(--win-border); text-align: center; }
 
-#login { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.9); backdrop-filter: var(--bg-blur); z-index: 4000; }
-.login-box { background: #111; padding: 40px; border-radius: 15px; display: flex; flex-direction: column; gap: 15px; width: 320px; border: var(--win-border); box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
-.login-box input { padding: 12px; background: #222; border: 1px solid #333; border-radius: 8px; color: white; outline: none; }
-.login-box button { padding: 12px; border: none; border-radius: 8px; cursor: pointer; background: var(--accent); color: white; font-weight: bold; }
-
-/* --- Desktop --- */
-#desktop { position: absolute; inset: 0 0 60px 0; display: none; padding: 20px; z-index: 10; }
+/* Desktop */
+#desktop { position: absolute; inset: 0 0 60px 0; display: none; z-index: 10; padding: 20px; }
 .icon { 
     position: absolute; width: 85px; height: 95px; 
     display: flex; flex-direction: column; align-items: center; justify-content: center; 
-    cursor: pointer; text-align: center; border-radius: 10px; transition: background 0.2s;
+    cursor: pointer; border-radius: 8px; 
 }
 .icon:hover { background: rgba(255,255,255,0.1); }
-.icon div { font-size: 40px; pointer-events: none; }
-.icon span { font-size: 0.8rem; margin-top: 5px; pointer-events: none; }
+.icon div { font-size: 40px; }
+.icon span { font-size: 0.8rem; margin-top: 4px; text-shadow: 0 2px 4px black; }
 
-/* --- Taskbar --- */
+/* Taskbar */
 #taskbar { 
     position: absolute; bottom: 0; left: 0; right: 0; height: 60px; 
     background: var(--panel-bg); backdrop-filter: var(--bg-blur);
-    display: flex; align-items: center; padding: 0 20px; z-index: 1000;
+    display: flex; align-items: center; padding: 0 20px; z-index: 8000;
     border-top: 1px solid rgba(255,255,255,0.1);
 }
-#task-left { display: flex; align-items: center; gap: 8px; flex: 1; }
-#task-center { display: flex; align-items: center; gap: 10px; justify-content: flex-end; flex: 3; }
+#task-center { display: flex; align-items: center; gap: 10px; justify-content: flex-end; flex: 1; }
+.task-item { padding: 8px 15px; background: #222; border-radius: 6px; cursor: pointer; font-size: 0.85rem; border: 1px solid #444; }
 
-.task-item { 
-    padding: 8px 14px; background: rgba(255,255,255,0.05); border-radius: 6px; 
-    cursor: pointer; border: 1px solid rgba(255,255,255,0.1); font-size: 0.85rem;
-    display: flex; align-items: center; gap: 8px; transition: 0.2s;
-}
-
-/* --- Widgets --- */
-#widgets { display: flex; align-items: center; gap: 15px; margin-left: 15px; padding-left: 15px; border-left: 1px solid #333; }
-.widget-clock { font-size: 0.85rem; text-align: right; min-width: 80px; }
-
-/* --- Windows --- */
+/* Window */
 .window { 
-    position: absolute; min-width: 320px; min-height: 200px; 
-    background: #111; border-radius: 12px; border: var(--win-border); 
+    position: absolute; min-width: 300px; min-height: 200px; 
+    background: #0a0a0a; border-radius: 10px; border: var(--win-border); 
     display: flex; flex-direction: column; overflow: hidden; 
-    box-shadow: 0 25px 60px rgba(0,0,0,0.7); z-index: 100;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.8);
 }
-.window-header { background: #1a1a1a; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; cursor: move; user-select: none; }
-.window-body { flex: 1; overflow: auto; background: #000; position: relative; }
-.window-buttons span { margin-left: 12px; cursor: pointer; font-size: 1.1rem; }
-.resizer { width: 16px; height: 16px; position: absolute; right: 0; bottom: 0; cursor: nwse-resize; z-index: 20; }
+.window-header { background: #151515; padding: 10px 15px; display: flex; justify-content: space-between; cursor: move; }
+.window-body { flex: 1; position: relative; background: #000; overflow: auto; }
+.resizer { width: 15px; height: 15px; position: absolute; right: 0; bottom: 0; cursor: nwse-resize; }
 
-/* UI Helpers */
-iframe { width: 100%; height: 100%; border: none; background: white; }
-button { background: #222; color: white; border: 1px solid #444; padding: 6px 12px; border-radius: 5px; cursor: pointer; margin: 3px; }
-input, textarea { background: #111; color: white; border: 1px solid #333; padding: 10px; border-radius: 6px; }
+/* Music Player Style */
+.music-player { padding: 20px; text-align: center; }
+.visualizer { display: flex; justify-content: center; align-items: flex-end; gap: 3px; height: 50px; margin: 20px 0; }
+.bar { width: 4px; background: var(--accent); animation: bounce 1s ease-in-out infinite alternate; }
+@keyframes bounce { from { height: 5px; } to { height: 40px; } }
+
+/* Inputs */
+input { background: #1a1a1a; color: white; border: 1px solid #333; padding: 8px; border-radius: 4px; margin-bottom: 10px; }
+button { background: #333; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; margin: 2px; }
+button:hover { background: #444; }
 </style>
 </head>
-<body>
+<body id="os-body">
 
-<div id="boot">McCrackOS V7.2<div class="loader"></div></div>
+<div id="boot">
+    <h1>McCrackOS</h1>
+    <div style="margin-top:20px; width:30px; height:30px; border:3px solid #333; border-top-color:#fff; border-radius:50%; animation: spin 1s linear infinite;"></div>
+</div>
 
 <div id="login">
     <div class="login-box">
-        <h2 style="text-align:center">User Login</h2>
-        <input type="text" id="username" placeholder="Username">
-        <input type="password" id="password" placeholder="Password">
-        <button onclick="enterOS()">Enter System</button>
-        <p id="login-err" style="color:#ff4d4d; font-size:0.75rem; text-align:center;"></p>
+        <h2>Welcome</h2><br>
+        <input type="text" id="userIn" placeholder="Username" value="Admin">
+        <input type="password" id="passIn" placeholder="Password">
+        <button onclick="enterOS()">Sign In</button>
+        <p id="err" style="color:red; font-size:12px; margin-top:10px;"></p>
     </div>
 </div>
 
@@ -100,170 +93,115 @@ input, textarea { background: #111; color: white; border: 1px solid #333; paddin
 
 <div id="taskbar">
     <div id="task-left">
-        <div class="task-item" style="background:var(--accent)" onclick="alert('McCrackOS V7.2 - Stable')">💠</div>
+        <button onclick="alert('McCrackOS V7.3 Active')">💠</button>
     </div>
     <div id="task-center"></div>
-    <div id="widgets">
-        <div class="widget-clock">
-            <div id="time-val"></div>
-            <div id="date-val" style="font-size: 0.65rem; opacity: 0.5;"></div>
-        </div>
-        <div id="battery-val" style="font-size: 0.75rem;">🔋 --%</div>
+    <div style="margin-left:15px; text-align:right; font-size:13px;">
+        <div id="clock"></div>
+        <div id="battery" style="opacity:0.6; font-size:10px;">🔋 --%</div>
     </div>
 </div>
 
 <script>
-/** CORE STATE **/
 let state = {
     z: 100,
-    user: localStorage.getItem("mcUser") || "User",
     pass: localStorage.getItem("mcPass") || "1234",
     bg: localStorage.getItem("mcBG") || "linear-gradient(135deg, #000, #111)",
-    installed: JSON.parse(localStorage.getItem("mcApps")) || ["Notepad", "Browser", "Terminal", "Files", "Store", "Settings"],
+    installed: JSON.parse(localStorage.getItem("mcApps")) || ["Notepad", "Browser", "Terminal", "Files", "Store", "Settings", "Music"],
     icons: JSON.parse(localStorage.getItem("mcIcons")) || [
-        {id: 'Notepad', x: 30, y: 30},
-        {id: 'Browser', x: 30, y: 150},
-        {id: 'Terminal', x: 30, y: 270},
-        {id: 'Files', x: 130, y: 30},
-        {id: 'Store', x: 130, y: 150},
-        {id: 'Settings', x: 130, y: 270}
+        {id: 'Notepad', x: 20, y: 20}, {id: 'Browser', x: 20, y: 130}, 
+        {id: 'Terminal', x: 20, y: 240}, {id: 'Files', x: 120, y: 20}, 
+        {id: 'Store', x: 120, y: 130}, {id: 'Settings', x: 120, y: 240},
+        {id: 'Music', x: 220, y: 20}
     ],
     running: {}
 };
 
-/** APP REGISTRY **/
 const Registry = {
-    Notepad: { icon: "📝", content: () => `<textarea style="width:100%;height:100%;background:transparent;color:white;padding:15px;border:none;outline:none;" oninput="localStorage.setItem('note',this.value)">${localStorage.getItem("note")||""}</textarea>` },
-    
-    Browser: { icon: "🌐", content: () => `<iframe src="https://siuuu.pagostepeapulco.gob.mx/"></iframe>` },
-    
-    Terminal: { icon: "⌨️", content: () => `<div id="out" style="font-family:monospace;color:#0f0;padding:10px;">McCrackOS Terminal...</div><input onkeydown="if(event.key==='Enter'){cmd(this)}" placeholder=">_" style="width:100%;background:black;border:none;color:#0f0;outline:none;padding:10px;font-family:monospace;">` },
-    
-    Files: { icon: "📁", content: () => `<div style="padding:20px;"><h3>Files</h3><hr><br><p>📁 Documents</p><p>📁 Downloads</p><p>📁 Pictures</p><br><button onclick="triggerPCFiles()">Access Local Drive</button></div>` },
-    
-    Store: { icon: "🛒", content: () => `
-        <div style="padding:20px;">
-            <h3>App Store</h3><br>
-            <button onclick="installApp('Calculator', '🧮')">Install Calculator</button><br>
-            <button onclick="installApp('McCrackChat', '💬')">Install McCrack Chat</button><br>
-            <button onclick="installApp('McCrackSites', '🌍')">Install McCrack Sites</button>
-        </div>` 
-    },
-
+    Notepad: { icon: "📝", content: () => `<textarea style="width:100%;height:100%;background:transparent;color:white;padding:15px;border:none;outline:none;resize:none;">${localStorage.getItem("note")||""}</textarea>` },
+    Browser: { icon: "🌐", content: () => `<iframe src="https://siuuu.pagostepeapulco.gob.mx/" style="width:100%;height:100%;border:none;background:white;"></iframe>` },
+    Terminal: { icon: "⌨️", content: () => `<div style="padding:15px;color:#0f0;font-family:monospace;">System Terminal Ready...<br>>_</div>` },
+    Files: { icon: "📁", content: () => `<div style="padding:20px;"><h3>File Explorer</h3><hr><br><button onclick="alert('PC Files Linked')">Open C:/Drive</button></div>` },
+    Store: { icon: "🛒", content: () => `<div style="padding:20px;"><h3>Store</h3><button onclick="installApp('Calculator')">Install Calc</button><button onclick="installApp('McCrackChat')">Install Chat</button></div>` },
     Settings: { icon: "⚙️", content: () => `
         <div style="padding:20px;">
-            <h4>Personalization</h4><br>
-            <button onclick="setBG('linear-gradient(135deg,#000,#111)')">Dark Gradient</button>
-            <button onclick="setBG('#000')">Pure Black</button><br><br>
-            <p>Upload Wallpaper:</p>
+            <h4>Settings</h4><br>
+            <p>Wallpaper:</p>
             <input type="file" accept="image/*" onchange="uploadBG(this)">
-            <hr style="margin:20px 0; border:0; border-top:1px solid #333;">
-            <h4>Security</h4><br>
-            <input type="password" id="passSet" placeholder="New Password">
-            <button onclick="savePass()">Update Password</button>
-        </div>` 
-    },
-    
-    Calculator: { icon: "🧮", content: () => `<div style="padding:20px;"><input id="calcIn" style="width:100%;"><button onclick="calc()">=</button><h2 id="calcOut"></h2></div>` },
-
-    McCrackChat: { icon: "💬", content: () => `
-        <div id="loader" style="position:absolute; inset:0; z-index:999; background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://i.imgur.com/70OvshH.png') center/cover no-repeat; display:flex; flex-direction:column; justify-content:center; align-items:center; color:white;">
-            <div style="width:50px; height:50px; border:5px solid #555; border-top:5px solid white; border-radius:50%; animation: spin 1s linear infinite;"></div>
-            <p style="margin-top:15px; opacity:.85;">Loading Chat…</p>
-        </div>
-        <iframe src="https://patrickmango49.github.io/McCrack-Chat/" style="width:100%;height:100%;"></iframe>
-        <script>setTimeout(() => { document.getElementById('loader')?.remove(); }, 4000);</script>` 
-    },
-
-    McCrackSites: { icon: "🌍", content: () => `<iframe src="https://sites.google.com/view/mccrack12/"></iframe>` }
+            <button onclick="setBG('linear-gradient(135deg,#000,#111)')">Reset BG</button>
+            <hr style="margin:15px 0; border-top:1px solid #333;">
+            <input type="password" id="newPass" placeholder="New Password">
+            <button onclick="savePass()">Set Password</button>
+        </div>` },
+    Music: { icon: "🎵", content: () => `
+        <div class="music-player">
+            <h4>McCrack Music</h4>
+            <div class="visualizer">
+                <div class="bar" style="animation-delay:0.1s"></div>
+                <div class="bar" style="animation-delay:0.3s"></div>
+                <div class="bar" style="animation-delay:0.2s"></div>
+                <div class="bar" style="animation-delay:0.5s"></div>
+            </div>
+            <p id="track">Now Playing: Cyberpunk_Synth.mp3</p><br>
+            <button onclick="alert('Playing...')">▶</button>
+            <button onclick="alert('Paused')">⏸</button>
+        </div>` },
+    Calculator: { icon: "🧮", content: () => `<div style="padding:20px;"><input id="cIn" style="width:100%"><button onclick="calc()">=</button><h2 id="cOut"></h2></div>` },
+    McCrackChat: { icon: "💬", content: () => `<iframe src="https://patrickmango49.github.io/McCrack-Chat/" style="width:100%;height:100%;border:none;"></iframe>` }
 };
 
-/** SYSTEM INITIALIZATION **/
 window.onload = () => {
-    applyState();
+    document.getElementById('os-body').style.background = state.bg;
     setTimeout(() => {
         document.getElementById('boot').style.display = 'none';
         document.getElementById('login').style.display = 'flex';
-    }, 2000);
-    setInterval(updateClock, 1000);
-    initBattery();
+    }, 1500);
+    startClock();
 };
 
 function enterOS() {
-    const u = document.getElementById('username').value;
-    const p = document.getElementById('password').value;
-    if(u && p === state.pass) {
-        state.user = u;
-        localStorage.setItem("mcUser", u);
+    const p = document.getElementById('passIn').value;
+    if(p === state.pass) {
         document.getElementById('login').style.display = 'none';
         document.getElementById('desktop').style.display = 'block';
+        renderDesktop();
     } else {
-        document.getElementById('login-err').innerText = "Incorrect credentials.";
+        document.getElementById('err').innerText = "Wrong Password (Hint: 1234)";
     }
 }
 
-function applyState() {
-    document.body.style.background = state.bg;
-    renderDesktop();
-}
-
-/** DESKTOP & APPS **/
 function renderDesktop() {
-    const desk = document.getElementById('desktop');
-    desk.innerHTML = "";
-    state.installed.forEach(appId => {
-        const appData = state.icons.find(i => i.id === appId) || {id: appId, x: 230, y: 30};
-        const div = document.createElement('div');
-        div.className = 'icon';
-        div.style.left = appData.x + 'px';
-        div.style.top = appData.y + 'px';
-        div.innerHTML = `<div>${Registry[appId].icon}</div><span>${appId}</span>`;
-        div.ondblclick = () => openApp(appId);
-        makeDraggableIcon(div, appData);
-        desk.appendChild(div);
+    const d = document.getElementById('desktop');
+    d.innerHTML = "";
+    state.installed.forEach(id => {
+        const appData = state.icons.find(i => i.id === id) || {id, x:220, y:20};
+        const el = document.createElement('div');
+        el.className = 'icon';
+        el.style.left = appData.x + 'px';
+        el.style.top = appData.y + 'px';
+        el.innerHTML = `<div>${Registry[id].icon}</div><span>${id}</span>`;
+        el.ondblclick = () => openApp(id);
+        dragIcon(el, appData);
+        d.appendChild(el);
     });
 }
 
-function installApp(id, icon) {
-    if(!state.installed.includes(id)) {
-        state.installed.push(id);
-        state.icons.push({id: id, x: 230, y: 150});
-        localStorage.setItem("mcApps", JSON.stringify(state.installed));
-        localStorage.setItem("mcIcons", JSON.stringify(state.icons));
-        renderDesktop();
-        alert(id + " Installed!");
-    } else {
-        alert("App already installed.");
-    }
-}
-
 function openApp(id) {
-    if (state.running[id]) { focusApp(id); return; }
+    if(state.running[id]) { focusApp(id); return; }
     const win = document.createElement('div');
     win.className = 'window';
-    win.style.width = '700px'; win.style.height = '450px';
-    win.style.left = '100px'; win.style.top = '50px';
+    win.style.width = '600px'; win.style.height = '400px';
+    win.style.left = '150px'; win.style.top = '100px';
     win.style.zIndex = ++state.z;
     win.innerHTML = `
-        <div class="window-header">
-            <span>${id}</span>
-            <div class="window-buttons">
-                <span onclick="this.closest('.window').style.display='none'">_</span>
-                <span onclick="closeApp('${id}')">×</span>
-            </div>
-        </div>
+        <div class="window-header"><span>${id}</span><div onclick="closeApp('${id}')" style="cursor:pointer">×</div></div>
         <div class="window-body">${Registry[id].content()}</div>
         <div class="resizer"></div>`;
     document.body.appendChild(win);
     state.running[id] = win;
-    makeDraggableWin(win);
-    makeResizableWin(win);
+    dragWin(win);
+    resizeWin(win);
     updateTaskbar();
-}
-
-function focusApp(id) {
-    state.running[id].style.display = 'flex';
-    state.running[id].style.zIndex = ++state.z;
 }
 
 function closeApp(id) {
@@ -272,121 +210,94 @@ function closeApp(id) {
     updateTaskbar();
 }
 
+function focusApp(id) {
+    state.running[id].style.display = 'flex';
+    state.running[id].style.zIndex = ++state.z;
+}
+
 function updateTaskbar() {
-    const center = document.getElementById('task-center');
-    center.innerHTML = "";
+    const tc = document.getElementById('task-center');
+    tc.innerHTML = "";
     Object.keys(state.running).forEach(id => {
-        const t = document.createElement('div');
-        t.className = 'task-item';
-        t.innerHTML = `${Registry[id].icon} ${id}`;
-        t.onclick = () => focusApp(id);
-        center.appendChild(t);
+        const btn = document.createElement('div');
+        btn.className = 'task-item';
+        btn.innerText = id;
+        btn.onclick = () => focusApp(id);
+        tc.appendChild(btn);
     });
 }
 
-/** INTERACTION LOGIC **/
-function makeDraggableIcon(el, data) {
+/** DRAG & RESIZE **/
+function dragIcon(el, data) {
     el.onmousedown = (e) => {
-        let ox = e.clientX - el.offsetLeft;
-        let oy = e.clientY - el.offsetTop;
+        let ox = e.clientX - el.offsetLeft, oy = e.clientY - el.offsetTop;
         document.onmousemove = (e) => {
-            el.style.left = (e.clientX - ox) + 'px';
-            el.style.top = (e.clientY - oy) + 'px';
+            el.style.left = (e.clientX - ox) + 'px'; el.style.top = (e.clientY - oy) + 'px';
             data.x = e.clientX - ox; data.y = e.clientY - oy;
         };
-        document.onmouseup = () => { 
-            document.onmousemove = null; 
-            localStorage.setItem("mcIcons", JSON.stringify(state.icons));
-        };
+        document.onmouseup = () => { document.onmousemove = null; localStorage.setItem("mcIcons", JSON.stringify(state.icons)); };
     };
 }
 
-function makeDraggableWin(win) {
+function dragWin(win) {
     win.querySelector('.window-header').onmousedown = (e) => {
         win.style.zIndex = ++state.z;
-        let ox = e.clientX - win.offsetLeft;
-        let oy = e.clientY - win.offsetTop;
-        document.onmousemove = (e) => {
-            win.style.left = (e.clientX - ox) + 'px';
-            win.style.top = (e.clientY - oy) + 'px';
-        };
+        let ox = e.clientX - win.offsetLeft, oy = e.clientY - win.offsetTop;
+        document.onmousemove = (e) => { win.style.left = (e.clientX - ox) + 'px'; win.style.top = (e.clientY - oy) + 'px'; };
         document.onmouseup = () => document.onmousemove = null;
     };
 }
 
-function makeResizableWin(win) {
+function resizeWin(win) {
     win.querySelector('.resizer').onmousedown = (e) => {
-        e.preventDefault();
-        let sx = e.clientX, sy = e.clientY;
-        let sw = win.offsetWidth, sh = win.offsetHeight;
-        document.onmousemove = (e) => {
-            win.style.width = (sw + (e.clientX - sx)) + 'px';
-            win.style.height = (sh + (e.clientY - sy)) + 'px';
-        };
+        let sw = win.offsetWidth, sh = win.offsetHeight, sx = e.clientX, sy = e.clientY;
+        document.onmousemove = (e) => { win.style.width = (sw + (e.clientX - sx)) + 'px'; win.style.height = (sh + (e.clientY - sy)) + 'px'; };
         document.onmouseup = () => document.onmousemove = null;
     };
 }
 
-/** SYSTEM UTILS **/
-function updateClock() {
-    const d = new Date();
-    let h = d.getHours(), m = d.getMinutes();
-    let ampm = h >= 12 ? 'PM' : 'AM';
-    h = h % 12 || 12;
-    document.getElementById('time-val').innerText = `${h}:${m < 10 ? '0'+m : m} ${ampm}`;
-    document.getElementById('date-val').innerText = d.toLocaleDateString();
-}
-
-function setBG(val) {
-    state.bg = (val.startsWith('http') || val.startsWith('data')) ? `url(${val})` : val;
-    document.body.style.background = state.bg;
-    document.body.style.backgroundSize = "cover";
-    localStorage.setItem("mcBG", state.bg);
+/** HELPERS **/
+function startClock() {
+    setInterval(() => {
+        let d = new Date();
+        let h = d.getHours() % 12 || 12;
+        let m = d.getMinutes().toString().padStart(2, '0');
+        let ap = d.getHours() >= 12 ? 'PM' : 'AM';
+        document.getElementById('clock').innerText = `${h}:${m} ${ap}`;
+    }, 1000);
 }
 
 function uploadBG(input) {
-    if (input.files && input.files[0]) {
-        let reader = new FileReader();
-        reader.onload = (e) => { setBG(e.target.result); };
-        reader.readAsDataURL(input.files[0]);
+    if(input.files[0]) {
+        let r = new FileReader();
+        r.onload = (e) => { 
+            state.bg = `url(${e.target.result})`; 
+            document.getElementById('os-body').style.background = state.bg;
+            localStorage.setItem("mcBG", state.bg);
+        };
+        r.readAsDataURL(input.files[0]);
     }
+}
+
+function setBG(v) {
+    state.bg = v;
+    document.getElementById('os-body').style.background = v;
+    localStorage.setItem("mcBG", v);
 }
 
 function savePass() {
-    const p = document.getElementById('passSet').value;
-    if(p) { state.pass = p; localStorage.setItem("mcPass", p); alert("Password Saved!"); }
+    let p = document.getElementById('newPass').value;
+    if(p) { state.pass = p; localStorage.setItem("mcPass", p); alert("Password Updated"); }
 }
 
-function calc(){
-    try { document.getElementById('calcOut').innerText = eval(document.getElementById('calcIn').value); }
-    catch { document.getElementById('calcOut').innerText = "Error"; }
-}
-
-function cmd(input){
-    let c = input.value.trim().toLowerCase();
-    if(c==="clear") input.previousElementSibling.innerHTML = "";
-    else input.previousElementSibling.innerHTML += c + "...<br>";
-    input.value = "";
-}
-
-function triggerPCFiles() {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.click();
-}
-
-function initBattery() {
-    if(navigator.getBattery) {
-        navigator.getBattery().then(bat => {
-            const update = () => document.getElementById('battery-val').innerText = `🔋 ${Math.round(bat.level * 100)}%`;
-            update(); bat.onlevelchange = update;
-        });
+function installApp(id) {
+    if(!state.installed.includes(id)) {
+        state.installed.push(id);
+        localStorage.setItem("mcApps", JSON.stringify(state.installed));
+        renderDesktop();
     }
 }
 </script>
-
-<style>
-@keyframes spin { from {transform: rotate(0deg);} to {transform: rotate(360deg);} }
-</style>
+<style> @keyframes spin { to {transform: rotate(360deg);} } </style>
 </body>
 </html>
