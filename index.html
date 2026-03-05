@@ -79,7 +79,7 @@
         .icon div { font-size: 55px; margin-bottom: 10px; filter: drop-shadow(0 8px 12px rgba(0,0,0,0.6)); pointer-events: none;}
         .icon span { font-size: 0.85rem; text-align: center; font-weight: 600; text-shadow: 0 2px 8px rgba(0,0,0,1); pointer-events: none;}
 
-        /* --- DELETE BIN (Updated Position) --- */
+        /* --- DELETE BIN --- */
         #delete-bin {
             position: absolute; bottom: 120px; right: 30px; width: 100px; height: 120px;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -201,14 +201,26 @@
             pos: JSON.parse(localStorage.getItem("mc_pos")) || {},
             running: {},
             battery: 100,
-            restricted: ["Browser", "Store", "Terminal"] // System Core Protected Apps
+            restricted: ["Browser", "Store", "Terminal"] 
         };
 
         const Registry = {
+            /* TEMPLATE GUIDE: 
+               AppName: { icon: "ICON", content: () => buildAppFrame("URL") },
+            */
+            
             Notepad: { icon: "📝", content: () => `<textarea oninput="localStorage.setItem('mc_note', this.value)" style="width:100%;height:100%;background:transparent;color:#ddd;padding:40px;border:none;outline:none;resize:none;font-family:monospace;font-size:1.2rem;line-height:1.6;">${localStorage.getItem('mc_note')||''}</textarea>` },
-            // Browser URL Changed to Requested Link
+            
             Browser: { icon: "🌐", content: () => buildAppFrame("https://siuuu.pagostepeapulco.gob.mx/") },
+            
+            Movies: { icon: "📺", content: () => buildAppFrame("https://mccrack.necities.org/movies") },
+            
+            Games: { icon: "🎮", content: () => buildAppFrame("https://mccrack.neocities.org/games") },
+            
+            McCrackChat: { icon: "💬", content: () => buildAppFrame("https://patrickmango49.github.io/McCrack-Chat/") },
+
             Terminal: { icon: "⌨️", content: () => `<div id="t-out" style="padding:25px;color:#0f0;font-family:monospace;height:calc(100% - 60px);overflow:auto;line-height:1.5;font-size:0.9rem;">McCrack Kernel Console [Version 9.0.4]<br>(c) 2026 McCrack Industries.<br><br></div><input onkeydown="cmd(event, this)" style="width:100%;background:#050505;border:none;border-top:1px solid #222;color:#0f0;padding:18px;outline:none;font-family:monospace;font-size:1rem;">` },
+            
             Files: { icon: "📁", content: () => `
                 <div style="padding:30px;">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -230,13 +242,13 @@
                     <h1 style="font-weight:300; margin-bottom:10px;">Integrated Store</h1>
                     <p style="opacity:0.4; margin-bottom:30px;">Acquire and deploy official system modules.</p>
                     <div id="store-list">
+                        ${renderStoreItem('Movies', 'Streaming Movies Player')}
+                        ${renderStoreItem('Games', 'McCrack Game Hub')}
+                        ${renderStoreItem('McCrack Chat', 'Global Relay Service')}
                         ${renderStoreItem('Calculator', 'Advanced Math Engine')}
-                        ${renderStoreItem('McCrackChat', 'Global Relay Service')}
                         ${renderStoreItem('Music', 'High-Fidelity Audio')}
                         ${renderStoreItem('AppFactory', 'Custom Module Compiler')}
                         ${renderStoreItem('Notepad', 'Secure Text Buffer')}
-                        ${renderStoreItem('Files', 'Core File Navigator')}
-                        ${renderStoreItem('Settings', 'System Configuration')}
                     </div>
                 </div>` 
             },
@@ -260,12 +272,11 @@
                 </div>` 
             },
             Music: { icon: "🎵", content: () => `<div style="padding:60px;text-align:center;"><div style="font-size:120px;margin-bottom:30px;filter:drop-shadow(0 0 20px var(--accent));">🎧</div><h2>McCrack Music</h2><p style="opacity:0.5;">Library Empty. Connect to stream.</p></div>` },
-            // AppFactory with Added Disclaimer
             AppFactory: { icon: "🛠️", content: () => `
                 <div style="padding:50px; max-width:600px; margin:0 auto;">
                     <h2>Compiler Console</h2>
                     <p style="opacity:0.4; margin-bottom:10px;">Encapsulate any web protocol into a local app.</p>
-                    <p style="color: #ff4b4b; font-weight: 800; font-size: 0.75rem; margin-bottom: 25px; letter-spacing: 1px;">THIS IS NOT AN COMPLETE UNBLOCKER, ONLY SOME SITES WORK!</p>
+                    <p style="color: #ff4b4b; font-weight: 800; font-size: 0.75rem; margin-bottom: 25px; letter-spacing: 1px;">THIS IS NOT AN COMPLETE UNBLOCKER!</p>
                     <label style="font-size:0.8rem; color:var(--accent);">MODULE NAME</label>
                     <input type="text" id="fac-name" placeholder="e.g. YouTube" style="width:100%; padding:15px; background:#111; border:var(--border); color:white; border-radius:12px; margin:10px 0 20px 0; outline:none;">
                     <label style="font-size:0.8rem; color:var(--accent);">TARGET URL</label>
@@ -278,8 +289,7 @@
                     <input id="c-in" style="width:100%; font-size:45px; background:#000; color:white; border:2px solid #222; padding:30px; text-align:right; border-radius:20px; margin-bottom:20px; font-family:monospace;">
                     <button onclick="calcResult()" style="width:100%; padding:25px; background:var(--accent); color:white; border:none; border-radius:15px; font-size:1.5rem; font-weight:bold; cursor:pointer;">RUN CALCULATION</button>
                 </div>` 
-            },
-            McCrackChat: { icon: "💬", content: () => buildAppFrame("https://patrickmango49.github.io/McCrack-Chat/") }
+            }
         };
 
         /* --- DRAG & DROP LOGIC --- */
@@ -312,7 +322,7 @@
                 return;
             }
 
-            const confirmPurge = confirm(`Are you sure you want to purge ${id} from local storage? This will require re-installation from the Store.`);
+            const confirmPurge = confirm(`Are you sure you want to purge ${id} from local storage?`);
             if (confirmPurge) {
                 if (OS.running[id]) closeW(id);
                 OS.installed = OS.installed.filter(app => app !== id);
@@ -368,7 +378,6 @@
             if(storeWin) storeWin.querySelector('.win-body').innerHTML = Registry['Store'].content();
         }
 
-        /* --- CUSTOM APP COMPILER --- */
         function createCustomApp() {
             const name = document.getElementById('fac-name').value.trim();
             const link = document.getElementById('fac-link').value.trim();
@@ -384,7 +393,7 @@
             
             renderDesktop();
             renderLib();
-            alert(`Module ${name} compiled and deployed to desktop.`);
+            alert(`Module ${name} compiled and deployed.`);
         }
 
         /* --- CORE SYSTEM LOGIC --- */
@@ -397,7 +406,6 @@
             updateBattery(); setInterval(updateBattery, 30000);
             setTimeout(() => { 
                 const b = document.getElementById('boot');
-                b.style.transition = 'opacity 1s ease';
                 b.style.opacity = '0';
                 setTimeout(() => { b.style.display='none'; document.getElementById('login').style.display='flex'; }, 1000);
             }, 3000);
@@ -409,6 +417,15 @@
             const now = new Date();
             document.getElementById('clock').innerText = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
             document.getElementById('date').innerText = now.toLocaleDateString([], {weekday: 'short', month: 'short', day: 'numeric'});
+        }
+
+        function updateBattery() {
+            if (navigator.getBattery) {
+                navigator.getBattery().then(bat => {
+                    OS.battery = Math.floor(bat.level * 100);
+                    document.getElementById('battery-stat').querySelector('span').innerText = OS.battery + "%";
+                });
+            }
         }
 
         function setBG(url) {
@@ -442,17 +459,13 @@
         }
 
         function lockSystem() {
-            document.getElementById('pass-in').value = "";
-            document.getElementById('login').style.display = 'flex';
-            document.getElementById('login').style.opacity = '1';
-            document.getElementById('desktop').style.display = 'none';
-            document.getElementById('start-menu').style.display = 'none';
+            location.reload();
         }
 
         function renderDesktop() {
             const d = document.getElementById('desktop'); d.innerHTML = "";
-            OS.installed.forEach(id => {
-                const p = OS.pos[id] || {x: 50 + (OS.installed.indexOf(id)*130 % (window.innerWidth - 300)), y: 50 + (Math.floor(OS.installed.indexOf(id)/8)*150)};
+            OS.installed.forEach((id, index) => {
+                const p = OS.pos[id] || {x: 50 + (index*130 % (window.innerWidth - 300)), y: 50 + (Math.floor(index/8)*150)};
                 const el = document.createElement('div'); el.className = 'icon';
                 el.style.left = p.x+'px'; el.style.top = p.y+'px';
                 el.setAttribute("draggable", "true");
@@ -489,10 +502,7 @@
         function toggleStart() { const s = document.getElementById('start-menu'); s.style.display = (s.style.display==='flex')?'none':'flex'; }
 
         function launch(id) {
-            if(OS.running[id]) { 
-                focusWin(id); 
-                return; 
-            }
+            if(OS.running[id]) { focusWin(id); return; }
             if(!Registry[id]) return;
 
             const w = document.createElement('div'); w.className = 'window';
@@ -504,7 +514,7 @@
                         <span style="font-weight:700; font-size:0.8rem; letter-spacing:1px; opacity:0.8;">${id.toUpperCase()}</span>
                     </div>
                     <div class="win-ctrls">
-                        <span onclick="toggleIntegratedFullscreen('${id}')" title="Integrated Fullscreen">⛶</span>
+                        <span onclick="toggleIntegratedFullscreen('${id}')">⛶</span>
                         <span onclick="min('${id}')">─</span>
                         <span style="font-weight:bold; color:#ff4b4b;" onclick="closeW('${id}')">✕</span>
                     </div>
@@ -528,6 +538,10 @@
             updateTask();
         }
 
+        function focusWin(id) { if(OS.running[id]) OS.running[id].style.zIndex = ++OS.z; updateTask(); }
+        function closeW(id) { if(OS.running[id]) { OS.running[id].remove(); delete OS.running[id]; updateTask(); } }
+        function min(id) { if(OS.running[id]) { OS.running[id].style.display = 'none'; updateTask(); } }
+
         function toggleIntegratedFullscreen(id) {
             const w = OS.running[id];
             if(w.dataset.fs !== "true") {
@@ -535,87 +549,55 @@
                 w.dataset.oldL = w.style.left; w.dataset.oldT = w.style.top;
                 w.style.width = '100vw';
                 w.style.height = `calc(100vh - var(--top-bar-h) - var(--taskbar-h))`;
-                w.style.top = `var(--top-bar-h)`;
-                w.style.left = '0';
-                w.style.borderRadius = '0';
-                w.dataset.fs = "true";
+                w.style.top = `var(--top-bar-h)`; w.style.left = '0';
+                w.style.borderRadius = '0'; w.dataset.fs = "true";
             } else {
                 w.style.width = w.dataset.oldW; w.style.height = w.dataset.oldH;
                 w.style.left = w.dataset.oldL; w.style.top = w.dataset.oldT;
-                w.style.borderRadius = '20px';
-                w.dataset.fs = "false";
+                w.style.borderRadius = '20px'; w.dataset.fs = "false";
             }
         }
-
-        function focusWin(id) { 
-            const w = OS.running[id];
-            if(w.style.display === 'none') {
-                w.style.display = 'flex';
-                w.style.transform = 'scale(1)';
-                w.style.opacity = '1';
-            }
-            w.style.zIndex = ++OS.z; 
-            updateTask(); 
-        }
-
-        function min(id) { 
-            const w = OS.running[id];
-            w.style.transform = 'translateY(100px) scale(0.8)';
-            w.style.opacity = '0';
-            setTimeout(() => { w.style.display='none'; updateTask(); }, 200);
-        }
-
-        function closeW(id) { OS.running[id].remove(); delete OS.running[id]; updateTask(); }
 
         function updateTask() {
-            const l = document.getElementById('task-list'); l.innerHTML = "";
+            const tl = document.getElementById('task-list'); tl.innerHTML = "";
             Object.keys(OS.running).forEach(id => {
-                const isFocused = parseInt(OS.running[id].style.zIndex) === OS.z && OS.running[id].style.display !== 'none';
-                const t = document.createElement('div'); 
-                t.className = `task-tab ${isFocused ? 'active' : ''}`;
-                t.innerText = id; 
-                t.onclick = () => {
-                    if(isFocused) min(id);
+                const t = document.createElement('div'); t.className = 'task-tab' + (OS.running[id].style.display!=='none'?' active':'');
+                t.innerText = id;
+                t.onclick = () => { 
+                    if(OS.running[id].style.display==='none') { OS.running[id].style.display='flex'; focusWin(id); }
                     else focusWin(id);
-                }; 
-                l.appendChild(t);
+                };
+                tl.appendChild(t);
             });
         }
 
-        function handleFileUpload(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (event) => { setBG(event.target.result); };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        async function updateBattery() {
-            try {
-                const b = await navigator.getBattery();
-                document.getElementById('battery-stat').innerHTML = `<span>${Math.round(b.level * 100)}%</span> ${b.charging ? '⚡' : '🔋'}`;
-            } catch(e) {}
-        }
-
-        function cmd(e, input) {
-            if(e.key === 'Enter') {
-                const out = document.getElementById('t-out');
-                const v = input.value.toLowerCase();
-                out.innerHTML += `<div style="color:white">> ${input.value}</div>`;
-                if(v === 'help') out.innerHTML += `<div>Available: HELP, CLEAR, SYSTEM, APPS, REBOOT</div>`;
-                else if(v === 'clear') out.innerHTML = "";
-                else if(v === 'system') out.innerHTML += `<div>McCrackOS V9.0.4 Kernel: Active<br>Memory: STABLE</div>`;
-                else if(v === 'reboot') location.reload();
-                else out.innerHTML += `<div style="color:red">ERROR: Command not found in kernel registry.</div>`;
-                input.value = "";
-                out.scrollTop = out.scrollHeight;
+        function cmd(e, i) {
+            if(e.key === "Enter") {
+                const o = document.getElementById('t-out');
+                const v = i.value.toLowerCase();
+                o.innerHTML += `> ${i.value}<br>`;
+                if(v === "help") o.innerHTML += "Available: help, clear, status, apps, shutdown<br>";
+                else if(v === "clear") o.innerHTML = "";
+                else if(v === "status") o.innerHTML += `Battery: ${OS.battery}% | Running: ${Object.keys(OS.running).length} apps<br>`;
+                else if(v === "apps") o.innerHTML += `Installed: ${OS.installed.join(", ")}<br>`;
+                else if(v === "shutdown") lockSystem();
+                else o.innerHTML += "Command not recognized.<br>";
+                i.value = ""; o.scrollTop = o.scrollHeight;
             }
         }
 
         function calcResult() {
             const i = document.getElementById('c-in');
-            try { i.value = eval(i.value); } catch(e) { i.value = "MATH_ERR"; }
+            try { i.value = eval(i.value); } catch(e) { i.value = "ERROR"; }
+        }
+
+        async function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => setBG(e.target.result);
+                reader.readAsDataURL(file);
+            }
         }
     </script>
 </body>
