@@ -2,725 +2,629 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MCCRACK OS V11.5 - THE TITAN</title>
+    <title>MCCRACK OS V12.0 - TITAN PRESTIGE</title>
     <style>
-        /* --- GLOBAL DESIGN SYSTEM & VARIABLES --- */
+        /* --- SYSTEM DESIGN LANGUAGE --- */
         :root {
             --accent: #0078d4;
-            --accent-glow: rgba(0, 120, 212, 0.4);
-            --bg-dark: #050505;
-            --panel-bg: rgba(12, 12, 12, 0.95);
-            --win-bg: #080808;
-            --text-main: #ffffff;
-            --text-dim: #888888;
-            --border-thin: 1px solid rgba(255, 255, 255, 0.1);
-            --border-glow: 1px solid var(--accent);
-            --top-bar-h: 35px;
-            --taskbar-h: 75px;
-            --blur-radius: 25px;
-            --font-stack: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            --font-mono: 'Cascadia Code', 'Consolas', monospace;
-            --transition-speed: 0.3s;
-            --shadow-depth: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+            --accent-hover: #0086f0;
+            --danger: #ff4b4b;
+            --success: #44ff44;
+            --panel-bg: rgba(10, 10, 10, 0.98);
+            --win-bg: #050505;
+            --taskbar-bg: rgba(5, 5, 5, 0.9);
+            --border: 1px solid rgba(255, 255, 255, 0.12);
+            --shadow-xl: 0 35px 70px rgba(0,0,0,0.9);
+            --font-main: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            --font-code: 'Cascadia Code', 'Consolas', monospace;
+            --top-h: 32px;
+            --task-h: 65px;
         }
 
-        /* --- SYSTEM RESET --- */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            outline: none;
-            scrollbar-width: thin;
-            scrollbar-color: var(--accent) transparent;
+        /* --- CORE STYLES --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font-main); }
+        body { 
+            height: 100vh; width: 100vw; overflow: hidden; background: #000; color: #fff;
+            user-select: none; -webkit-user-select: none;
         }
 
-        body {
-            height: 100vh;
-            width: 100vw;
-            overflow: hidden;
-            background: #000;
-            color: var(--text-main);
-            font-family: var(--font-stack);
-            user-select: none;
-            -webkit-user-select: none;
+        /* --- BIOS & BOOT --- */
+        #bios-terminal {
+            position: fixed; inset: 0; background: #000; color: #0f0; 
+            font-family: var(--font-code); padding: 40px; z-index: 100000;
+            font-size: 13px; line-height: 1.5; overflow-y: hidden;
+        }
+        .bios-entry { margin-bottom: 2px; }
+        .bios-entry span { color: #fff; }
+
+        #boot-logo {
+            position: fixed; inset: 0; background: #000; z-index: 99999;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .spinner {
+            width: 60px; height: 60px; border: 4px solid #111;
+            border-top-color: var(--accent); border-radius: 50%;
+            animation: spin 0.8s linear infinite; margin-bottom: 25px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* --- TOP BAR --- */
+        #os-top-bar {
+            position: fixed; top: 0; left: 0; right: 0; height: var(--top-h);
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(15px);
+            border-bottom: var(--border); z-index: 9500; display: flex;
+            justify-content: space-between; align-items: center; padding: 0 15px;
+            font-size: 0.7rem; font-weight: 800; letter-spacing: 1px;
         }
 
-        /* --- BIOS & BOOT SEQUENCE --- */
-        #bios-screen {
-            position: fixed;
-            inset: 0;
-            background: #000;
-            color: #fff;
-            font-family: var(--font-mono);
-            padding: 40px;
-            z-index: 30000;
-            overflow-y: hidden;
-            font-size: 0.85rem;
-            line-height: 1.4;
+        /* --- DESKTOP --- */
+        #os-desktop {
+            position: absolute; inset: var(--top-h) 0 var(--task-h) 0;
+            background: #111; background-size: cover; background-position: center;
+            display: none; padding: 25px;
         }
 
-        .bios-line { margin-bottom: 2px; }
-        .bios-success { color: #0f0; }
-        .bios-warn { color: #ff0; }
-
-        #boot-overlay {
-            position: fixed;
-            inset: 0;
-            background: #000;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 29000;
-            transition: opacity 1s ease;
+        .icon-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, 110px);
+            grid-template-rows: repeat(auto-fill, 120px); grid-auto-flow: column; gap: 20px;
         }
 
-        .loader-ring {
-            width: 90px;
-            height: 90px;
-            border: 4px solid rgba(255,255,255,0.05);
-            border-top: 4px solid var(--accent);
-            border-radius: 50%;
-            animation: spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        .desktop-item {
+            width: 100px; height: 110px; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; border-radius: 12px;
+            cursor: pointer; transition: 0.2s; position: relative;
+        }
+        .desktop-item:hover { background: rgba(255,255,255,0.08); }
+        .desktop-item .graphic { font-size: 50px; margin-bottom: 8px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)); }
+        .desktop-item .label { font-size: 0.8rem; font-weight: 600; text-align: center; text-shadow: 0 2px 4px #000; }
+
+        /* --- DELETE BIN --- */
+        #delete-bin {
+            position: absolute; bottom: 30px; right: 30px; width: 100px; height: 120px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            border: 2px dashed rgba(255, 75, 75, 0.2); border-radius: 15px;
+            background: rgba(255, 75, 75, 0.03); transition: 0.3s;
+        }
+        #delete-bin.drag-over {
+            background: rgba(255, 75, 75, 0.2); border-color: var(--danger);
+            transform: scale(1.1); box-shadow: 0 0 30px rgba(255,75,75,0.3);
         }
 
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        /* --- WINDOWS --- */
+        .win {
+            position: absolute; background: var(--win-bg); border-radius: 16px;
+            border: var(--border); box-shadow: var(--shadow-xl); overflow: hidden;
+            display: flex; flex-direction: column; min-width: 300px; min-height: 200px;
+        }
+        .win-head {
+            background: #121212; padding: 12px 20px; display: flex;
+            justify-content: space-between; align-items: center; cursor: move;
+        }
+        .win-title { font-size: 0.8rem; font-weight: 800; letter-spacing: 0.5px; opacity: 0.8; }
+        .win-btns { display: flex; gap: 10px; }
+        .win-btn { width: 12px; height: 12px; border-radius: 50%; cursor: pointer; }
+        .win-close { background: #ff5f56; }
+        .win-min { background: #ffbd2e; }
+        .win-max { background: #27c93f; }
+        .win-body { flex: 1; overflow: auto; background: #000; }
 
-        /* --- AUTHENTICATION LAYER --- */
+        /* --- TASKBAR & START --- */
+        #os-taskbar {
+            position: fixed; bottom: 0; left: 0; right: 0; height: var(--task-h);
+            background: var(--taskbar-bg); backdrop-filter: blur(20px);
+            border-top: var(--border); z-index: 9000; display: flex; align-items: center; padding: 0 15px;
+        }
+        #start-trigger {
+            width: 50px; height: 50px; background: var(--accent);
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            font-size: 24px; cursor: pointer; transition: 0.3s;
+        }
+        #start-trigger:hover { transform: scale(1.05); filter: brightness(1.2); }
+
+        #task-list { flex: 1; margin: 0 20px; display: flex; gap: 10px; }
+        .task-tab {
+            padding: 8px 18px; background: rgba(255,255,255,0.05); border-radius: 8px;
+            font-size: 0.8rem; cursor: pointer; transition: 0.2s; border: 1px solid transparent;
+        }
+        .task-tab.active { background: rgba(0, 120, 212, 0.2); border-color: var(--accent); }
+
+        #start-menu {
+            position: absolute; bottom: 80px; left: 15px; width: 350px; height: 500px;
+            background: var(--panel-bg); backdrop-filter: blur(30px); border: var(--border);
+            border-radius: 20px; display: none; flex-direction: column; padding: 25px; z-index: 9999;
+        }
+        .start-search {
+            width: 100%; padding: 12px; background: #111; border: var(--border);
+            border-radius: 10px; color: #fff; margin-bottom: 20px;
+        }
+        .start-app-item {
+            display: flex; align-items: center; gap: 15px; padding: 12px;
+            border-radius: 10px; cursor: pointer; transition: 0.2s;
+        }
+        .start-app-item:hover { background: rgba(255,255,255,0.1); padding-left: 20px; }
+
+        /* --- AUTH GATE --- */
         #auth-gate {
-            position: fixed;
-            inset: 0;
-            z-index: 25000;
-            background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(30px);
-            display: none;
-            align-items: center;
-            justify-content: center;
+            position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+            backdrop-filter: blur(40px); z-index: 10000; display: none;
+            align-items: center; justify-content: center;
+        }
+        .auth-box { width: 350px; text-align: center; }
+        .auth-input {
+            width: 100%; padding: 18px; background: #111; border: var(--border);
+            border-radius: 12px; color: #fff; margin: 20px 0; text-align: center; font-size: 1.2rem;
+        }
+        .auth-btn {
+            width: 100%; padding: 16px; background: var(--accent); border: none;
+            border-radius: 12px; color: #fff; font-weight: 900; cursor: pointer;
         }
 
-        .auth-card {
-            width: 400px;
-            padding: 50px;
-            background: var(--panel-bg);
-            border-radius: 30px;
-            border: var(--border-thin);
-            text-align: center;
-            box-shadow: var(--shadow-depth);
+        /* --- APP SPECIFIC UI --- */
+        .explorer-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; padding: 20px; }
+        .file-card { 
+            background: #0a0a0a; padding: 20px; border-radius: 12px; border: 1px solid #1a1a1a;
+            text-align: center; cursor: pointer; transition: 0.2s;
         }
+        .file-card:hover { border-color: var(--accent); background: #111; }
 
-        .auth-card input {
-            width: 100%;
-            padding: 16px;
-            margin: 25px 0;
-            background: #111;
-            border: var(--border-thin);
-            border-radius: 12px;
-            color: #fff;
-            text-align: center;
-            font-size: 1.1rem;
-            transition: border 0.3s;
+        .store-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 20px; background: #0a0a0a; border-radius: 15px; margin-bottom: 12px;
+            border: var(--border);
         }
-
-        .auth-card input:focus { border-color: var(--accent); }
-
-        .auth-card button {
-            width: 100%;
-            padding: 16px;
-            background: var(--accent);
-            border: none;
-            border-radius: 12px;
-            color: #fff;
-            font-weight: 800;
-            cursor: pointer;
-            transition: transform 0.2s;
+        .btn-install { 
+            padding: 8px 18px; background: var(--accent); border: none; 
+            border-radius: 8px; color: #fff; font-weight: bold; cursor: pointer;
         }
-
-        .auth-card button:hover { transform: translateY(-2px); filter: brightness(1.2); }
-
-        /* --- TOP SYSTEM BAR --- */
-        #top-panel {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: var(--top-bar-h);
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(15px);
-            border-bottom: var(--border-thin);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 15px;
-            z-index: 10000;
-            font-size: 0.75rem;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-        }
-
-        /* --- DESKTOP SPACE --- */
-        #os-workspace {
-            position: absolute;
-            inset: var(--top-bar-h) 0 var(--taskbar-h) 0;
-            background: radial-gradient(circle at center, #222 0%, #000 100%);
-            background-size: cover;
-            display: none;
-        }
-
-        #icon-canvas {
-            position: absolute;
-            inset: 0;
-            padding: 30px;
-            display: grid;
-            grid-template-columns: repeat(auto-fill, 110px);
-            grid-template-rows: repeat(auto-fill, 120px);
-            grid-auto-flow: column;
-            gap: 20px;
-        }
-
-        .desktop-icon {
-            width: 100px;
-            height: 110px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            border-radius: 15px;
-            transition: background 0.2s, transform 0.2s;
-            cursor: pointer;
-            text-align: center;
-        }
-
-        .desktop-icon:hover { background: rgba(255,255,255,0.1); transform: scale(1.05); }
-        .icon-img { font-size: 50px; margin-bottom: 8px; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5)); }
-        .icon-label { font-size: 0.8rem; font-weight: 600; text-shadow: 0 2px 4px #000; }
-
-        /* --- WINDOW ARCHITECTURE --- */
-        .window {
-            position: absolute;
-            background: var(--win-bg);
-            border-radius: 18px;
-            border: var(--border-thin);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            box-shadow: var(--shadow-depth);
-            min-width: 300px;
-            min-height: 200px;
-        }
-
-        .window.active { border-color: rgba(0,120,212,0.5); z-index: 5000 !important; }
-
-        .win-titlebar {
-            background: rgba(255,255,255,0.04);
-            padding: 14px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: move;
-            border-bottom: var(--border-thin);
-        }
-
-        .win-title-text { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; font-weight: 700; opacity: 0.9; }
-        .win-controls { display: flex; gap: 12px; }
-        .ctrl-dot { width: 14px; height: 14px; border-radius: 50%; cursor: pointer; transition: 0.2s; }
-        .dot-close { background: #ff5f56; }
-        .dot-min { background: #ffbd2e; }
-        .dot-max { background: #27c93f; }
-        .ctrl-dot:hover { filter: brightness(1.3); }
-
-        .win-body { flex: 1; overflow: auto; background: #000; position: relative; }
-
-        /* --- TASKBAR --- */
-        #taskbar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: var(--taskbar-h);
-            background: rgba(10,10,10,0.8);
-            backdrop-filter: blur(25px);
-            border-top: var(--border-thin);
-            display: flex;
-            align-items: center;
-            padding: 0 20px;
-            z-index: 20000;
-        }
-
-        #start-menu-trigger {
-            width: 55px;
-            height: 55px;
-            background: var(--accent);
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            cursor: pointer;
-            box-shadow: 0 0 20px var(--accent-glow);
-            transition: 0.3s;
-        }
-
-        #start-menu-trigger:hover { transform: scale(1.1) rotate(5deg); }
-
-        #task-tray {
-            flex: 1;
-            margin-left: 20px;
-            display: flex;
-            gap: 12px;
-            overflow-x: auto;
-        }
-
-        .task-button {
-            height: 45px;
-            padding: 0 20px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            font-size: 0.85rem;
-            cursor: pointer;
-            border-bottom: 2px solid transparent;
-            transition: 0.2s;
-            white-space: nowrap;
-        }
-
-        .task-button.active { background: rgba(255,255,255,0.1); border-bottom-color: var(--accent); }
-
-        /* --- NOTIFICATION ENGINE --- */
-        #notification-center {
-            position: fixed;
-            top: 50px;
-            right: 20px;
-            width: 300px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            z-index: 28000;
-        }
-
-        .toast {
-            background: var(--panel-bg);
-            border: var(--border-thin);
-            padding: 15px;
-            border-radius: 12px;
-            box-shadow: var(--shadow-depth);
-            animation: slideIn 0.4s ease-out;
-        }
-
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-
-        /* --- SCROLLBARS --- */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
     </style>
 </head>
-<body oncontextmenu="return false;">
+<body oncontextmenu="return false">
 
-    <div id="bios-screen"></div>
+    <div id="bios-terminal"></div>
 
-    <div id="boot-overlay" style="display:none;">
-        <div class="loader-ring"></div>
-        <div style="margin-top: 30px; font-weight: 200; letter-spacing: 10px;">MCCRACK<span style="font-weight:900">OS</span></div>
+    <div id="boot-logo">
+        <div class="spinner"></div>
+        <div style="letter-spacing: 12px; font-weight: 200; font-size: 1.5rem;">MCCRACK<span style="font-weight:900;">OS</span></div>
     </div>
 
     <div id="auth-gate">
-        <div class="auth-card">
-            <div style="font-size: 70px;">👤</div>
-            <h2 style="margin-top: 10px; font-weight: 300;">Authorized Personnel Only</h2>
-            <input type="password" id="auth-field" placeholder="Decryption Key">
-            <button onclick="System.UI.unlock()">VALIDATE SESSION</button>
-            <p id="auth-err" style="color: #ff5f56; font-size: 0.7rem; margin-top: 15px; display: none;">CRITICAL: INVALID ACCESS KEY</p>
+        <div class="auth-box">
+            <div style="font-size: 60px; filter: drop-shadow(0 0 10px var(--accent));">💎</div>
+            <h2 style="margin-top: 15px; font-weight: 300;">ENCRYPTED SESSION</h2>
+            <input type="password" id="pass-field" class="auth-input" placeholder="ACCESS KEY">
+            <button class="auth-btn" onclick="Core.Auth.verify()">AUTHORIZE ACCESS</button>
+            <p id="auth-err" style="color:var(--danger); font-size:0.7rem; margin-top:15px; font-weight:bold; display:none;">ACCESS DENIED: KEY MISMATCH</p>
         </div>
     </div>
 
-    <div id="top-panel">
-        <div>MCCRACK INDUSTRIAL KERNEL V11.5</div>
-        <div style="display: flex; gap: 20px; align-items: center;">
-            <div id="sys-net">NET: 1GBPS</div>
-            <div id="sys-mem">MEM: 14%</div>
+    <div id="os-top-bar">
+        <div id="os-ver">MCCRACK KERNEL V12.0.4 - PRESTIGE</div>
+        <div style="display: flex; gap: 20px;">
             <div id="sys-clock">00:00:00</div>
+            <div onclick="location.reload()" style="color:var(--danger); cursor:pointer;">TERMINATE</div>
         </div>
     </div>
 
-    <main id="os-workspace">
-        <div id="icon-canvas"></div>
-        <div style="position: absolute; bottom: 40px; right: 40px; text-align: right; opacity: 0.3;">
-            <h1 id="widget-time" style="font-size: 5rem; font-weight: 100;">00:00</h1>
-            <h3 id="widget-date">Loading Chronos...</h3>
+    <div id="os-desktop">
+        <div id="icon-canvas" class="icon-grid"></div>
+        
+        <div id="delete-bin" ondragover="Core.Drag.allow(event)" ondragleave="Core.Drag.leave(event)" ondrop="Core.Drag.drop(event)">
+            <div style="font-size: 45px;">🗑️</div>
+            <span style="font-size: 0.7rem; font-weight: 900; color: var(--danger);">PURGE BIN</span>
         </div>
-    </main>
+    </div>
 
-    <div id="notification-center"></div>
+    <div id="start-menu">
+        <input type="text" class="start-search" placeholder="Search modules...">
+        <div id="start-list" style="flex:1; overflow-y:auto;"></div>
+        <div style="border-top: var(--border); padding-top: 15px; display: flex; justify-content: space-between;">
+            <div style="font-size: 0.75rem; opacity: 0.5;">Root Admin</div>
+            <div onclick="location.reload()" style="cursor:pointer; font-size: 0.75rem; color: var(--danger);">Shutdown</div>
+        </div>
+    </div>
 
-    <div id="taskbar">
-        <div id="start-menu-trigger">💠</div>
-        <div id="task-tray"></div>
-        <div style="width: 150px; text-align: right; font-family: var(--font-mono); font-size: 0.7rem;">
-            SYSTEM_STABLE_V11<br>LOC: [41.3, -72.1]
+    <div id="os-taskbar">
+        <div id="start-trigger" onclick="Core.UI.toggleStart()">💠</div>
+        <div id="task-list"></div>
+        <div id="tray-time" style="text-align: right; font-weight: bold; font-size: 0.9rem;">
+            <div id="tray-t">12:00</div>
+            <div id="tray-d" style="font-size: 0.6rem; opacity: 0.4;">OCT 24</div>
         </div>
     </div>
 
     <script>
         /**
-         * MCCRACK OS KERNEL - PRO TITAN EDITION
-         * This script manages the lifecycle, windowing, and persistence of the OS.
+         * MCCRACK OS KERNEL V12.0
+         * MASSIVE ARCHITECTURE BLOCK - DO NOT TAMPER
          */
 
-        const System = {
-            Config: {
-                Version: "11.5.0",
-                Build: "Titan.Final",
-                Owner: "McCrackAdmin",
-                Pass: localStorage.getItem("mc_pass") || "1234",
-                Wallpaper: localStorage.getItem("mc_bg") || "radial-gradient(circle at center, #222 0%, #000 100%)"
-            },
-            State: {
-                zCounter: 1000,
-                activeApps: {},
-                isLocked: true,
+        const Core = {
+            Data: {
+                pass: localStorage.getItem("mc_pass") || "1234",
+                bg: localStorage.getItem("mc_bg") || "radial-gradient(circle at center, #1a1a1a 0%, #000 100%)",
                 installed: JSON.parse(localStorage.getItem("mc_apps")) || ["Browser", "Terminal", "Files", "Store", "Settings", "Movies", "Games", "McCrackChat"],
-                customApps: JSON.parse(localStorage.getItem("mc_custom")) || {}
-            },
-            
-            // --- CORE KERNEL LOGIC ---
-            Init: function() {
-                this.BIOS.run();
+                customApps: JSON.parse(localStorage.getItem("mc_custom")) || {},
+                running: {},
+                z: 1000,
+                isStartOpen: false
             },
 
-            BIOS: {
-                lines: [
-                    "MCCRACK INDUSTRIAL BIOS V4.02",
-                    "CPU: McCrack Quantum-8 4.4GHz",
-                    "MEMORY: 65536MB PASSED",
-                    "STORAGE: NVME 2TB - MOUNTED AT /",
-                    "INITIALIZING KERNEL MODULES...",
-                    "LOADING PCI BUS...",
-                    "NETWORK STACK INITIALIZING...",
-                    "DHCP REQUEST... 192.168.1.104",
-                    "GRAPHICS DRIVER: NVIDIA TITAN MCCRACK - LOADED",
-                    "USB CONTROLLER: ACTIVE",
-                    "BOOTING FROM PRIMARY PARTITION...",
-                    "DECRYPTING CORE FILE SYSTEM...",
-                    "CHECKING INTEGRITY... OK",
-                    "LOADING GUI SUBSYSTEM...",
-                    "STARTING WINDOW MANAGER..."
+            // --- SYSTEM INITIALIZATION ---
+            Boot: {
+                biosLines: [
+                    "MCCRACK BIOS ROM V12.04 (C) 2026",
+                    "CPU: MCCRACK OCTA-THREAD @ 5.2GHZ",
+                    "MEMORY TEST: 64GB OK",
+                    "STORAGE: NVME CONTROLLER ACTIVE",
+                    "INIT KERNEL LOAD...",
+                    "MOUNTING ROOT FILE SYSTEM...",
+                    "DRIVERS: NETWORK STACK... [READY]",
+                    "DRIVERS: VIRTUAL DISPLAY... [READY]",
+                    "DRIVERS: PERSISTENCE ENGINE... [READY]",
+                    "LOADING MCCRACK_GUI_SUBSYSTEM...",
+                    "SECURITY: AUTHENTICATION MODULES... [READY]",
+                    "SYSTEM READY. HANDING OVER TO SHELL."
                 ],
-                run: function() {
-                    const el = document.getElementById('bios-screen');
+                init: function() {
+                    const term = document.getElementById('bios-terminal');
                     let i = 0;
-                    // Add 100 random filler lines to ensure the code length and visual impact
-                    for(let x=0; x<150; x++) {
-                        this.lines.splice(5, 0, `CHECKING MEMORY BLOCK ${x*1024}... [OK]`);
-                    }
+                    // Add filler for line count
+                    for(let x=0; x<120; x++) this.biosLines.splice(5, 0, `ADDR CHECK 0x${Math.random().toString(16).slice(2,8)}... OK`);
 
-                    const interval = setInterval(() => {
-                        if(i < this.lines.length) {
-                            const div = document.createElement('div');
-                            div.className = 'bios-line';
-                            div.innerHTML = `[ <span class="bios-success">DONE</span> ] ${this.lines[i]}`;
-                            el.appendChild(div);
-                            el.scrollTop = el.scrollHeight;
+                    const flow = setInterval(() => {
+                        if(i < this.biosLines.length) {
+                            const d = document.createElement('div');
+                            d.className = 'bios-entry';
+                            d.innerHTML = `[ <span>OK</span> ] ${this.biosLines[i]}`;
+                            term.appendChild(d);
+                            term.scrollTop = term.scrollHeight;
                             i++;
                         } else {
-                            clearInterval(interval);
+                            clearInterval(flow);
                             setTimeout(() => {
-                                el.style.display = 'none';
-                                document.getElementById('boot-overlay').style.display = 'flex';
+                                term.style.display = 'none';
+                                document.getElementById('boot-logo').style.display = 'flex';
                                 setTimeout(() => {
-                                    document.getElementById('boot-overlay').style.opacity = '0';
-                                    setTimeout(() => {
-                                        document.getElementById('boot-overlay').style.display = 'none';
-                                        document.getElementById('auth-gate').style.display = 'flex';
-                                    }, 1000);
+                                    document.getElementById('boot-logo').style.display = 'none';
+                                    document.getElementById('auth-gate').style.display = 'flex';
                                 }, 2000);
                             }, 1000);
                         }
-                    }, 15);
+                    }, 10);
                 }
             },
 
-            UI: {
-                unlock: function() {
-                    const input = document.getElementById('auth-field');
-                    if(input.value === System.Config.Pass) {
-                        document.getElementById('auth-gate').style.opacity = '0';
-                        setTimeout(() => {
-                            document.getElementById('auth-gate').style.display = 'none';
-                            document.getElementById('os-workspace').style.display = 'block';
-                            System.Services.startAll();
-                        }, 500);
+            // --- AUTHENTICATION ---
+            Auth: {
+                verify: function() {
+                    const input = document.getElementById('pass-field');
+                    if(input.value === Core.Data.pass) {
+                        document.getElementById('auth-gate').style.display = 'none';
+                        document.getElementById('os-desktop').style.display = 'block';
+                        Core.UI.initDesktop();
                     } else {
                         const err = document.getElementById('auth-err');
                         err.style.display = 'block';
                         setTimeout(() => err.style.display = 'none', 2000);
                     }
-                },
-
-                notify: function(title, msg) {
-                    const center = document.getElementById('notification-center');
-                    const toast = document.createElement('div');
-                    toast.className = 'toast';
-                    toast.innerHTML = `<b>${title}</b><p style="font-size:0.8rem;opacity:0.7;">${msg}</p>`;
-                    center.appendChild(toast);
-                    setTimeout(() => toast.remove(), 4000);
                 }
             },
 
-            Services: {
-                startAll: function() {
-                    this.clock();
-                    System.AppManager.renderDesktop();
-                    System.UI.notify("System Core", "All modules initialized. Welcome back.");
+            // --- USER INTERFACE MANAGER ---
+            UI: {
+                initDesktop: function() {
+                    document.getElementById('os-desktop').style.background = Core.Data.bg;
+                    this.renderIcons();
+                    this.renderStart();
+                    this.startClocks();
                 },
-                clock: function() {
+
+                renderIcons: function() {
+                    const canvas = document.getElementById('icon-canvas');
+                    canvas.innerHTML = "";
+                    const apps = [...Core.Data.installed, ...Object.keys(Core.Data.customApps)];
+                    
+                    apps.forEach(id => {
+                        const app = Core.Registry[id] || { icon: "🚀", name: id };
+                        const div = document.createElement('div');
+                        div.className = 'desktop-item';
+                        div.setAttribute("draggable", "true");
+                        div.innerHTML = `<div class="graphic">${app.icon}</div><div class="label">${app.name || id}</div>`;
+                        div.ondblclick = () => Core.Apps.launch(id);
+                        div.ondragstart = (e) => e.dataTransfer.setData("appId", id);
+                        canvas.appendChild(div);
+                    });
+                },
+
+                renderStart: function() {
+                    const list = document.getElementById('start-list');
+                    list.innerHTML = "";
+                    const apps = [...Core.Data.installed, ...Object.keys(Core.Data.customApps)];
+                    
+                    apps.forEach(id => {
+                        const app = Core.Registry[id] || { icon: "🚀", name: id };
+                        const item = document.createElement('div');
+                        item.className = 'start-app-item';
+                        item.innerHTML = `<span>${app.icon}</span> <b>${app.name || id}</b>`;
+                        item.onclick = () => { Core.Apps.launch(id); this.toggleStart(); };
+                        list.appendChild(item);
+                    });
+                },
+
+                toggleStart: function() {
+                    const s = document.getElementById('start-menu');
+                    Core.Data.isStartOpen = !Core.Data.isStartOpen;
+                    s.style.display = Core.Data.isStartOpen ? 'flex' : 'none';
+                },
+
+                startClocks: function() {
                     setInterval(() => {
-                        const now = new Date();
-                        const timeStr = now.toLocaleTimeString();
-                        const dateStr = now.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                        document.getElementById('sys-clock').innerText = timeStr;
-                        document.getElementById('widget-time').innerText = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
-                        document.getElementById('widget-date').innerText = dateStr;
+                        const d = new Date();
+                        document.getElementById('sys-clock').innerText = d.toLocaleTimeString();
+                        document.getElementById('tray-t').innerText = d.getHours().toString().padStart(2,'0') + ":" + d.getMinutes().toString().padStart(2,'0');
+                        document.getElementById('tray-d').innerText = d.toLocaleDateString([], {month:'short', day:'numeric'});
                     }, 1000);
                 }
             },
 
-            AppManager: {
-                Registry: {
-                    Browser: { name: "Web Navigator", icon: "🌐", content: (url = "https://siuuu.pagostepeapulco.gob.mx/") => `<iframe src="${url}" style="width:100%; height:100%; border:none;"></iframe>` },
-                    Movies: { name: "Media Stream", icon: "📺", content: () => `<iframe src="https://mccrack.neocities.org/movies" style="width:100%; height:100%; border:none;"></iframe>` },
-                    Games: { name: "Game Portal", icon: "🎮", content: () => `<iframe src="https://mccrack.neocities.org/games" style="width:100%; height:100%; border:none;"></iframe>` },
-                    McCrackChat: { name: "Secure Relay", icon: "💬", content: () => `<iframe src="https://patrickmango49.github.io/McCrack-Chat/" style="width:100%; height:100%; border:none;"></iframe>` },
-                    Terminal: { 
-                        name: "System Console", 
-                        icon: "⌨️", 
-                        content: () => `
-                            <div style="height:100%; background:#000; color:#0f0; font-family:monospace; padding:20px; display:flex; flex-direction:column;">
-                                <div id="term-out" style="flex:1; overflow:auto;">MCCRACK_KERNEL_CMD_PROMPT [V11.5]<br>Type 'help' for instructions.<br><br></div>
-                                <div style="display:flex;">
-                                    <span style="margin-right:10px;">root@mccrack:~$</span>
-                                    <input id="term-in" onkeydown="System.AppManager.handleShell(event)" style="background:transparent; border:none; color:#0f0; flex:1; outline:none; font-family:monospace;">
-                                </div>
-                            </div>`
-                    },
-                    Files: {
-                        name: "File Manager",
-                        icon: "📁",
-                        content: () => `
-                            <div style="padding:25px;">
-                                <h2>Volumes</h2><hr style="opacity:0.1; margin:15px 0;">
-                                <div style="display:grid; grid-template-columns: repeat(auto-fill, 120px); gap:20px;">
-                                    <div class="desktop-icon" style="width:100px; height:100px;"><div class="icon-img">💽</div><div class="icon-label">System (C:)</div></div>
-                                    <div class="desktop-icon" style="width:100px; height:100px;"><div class="icon-img">📁</div><div class="icon-label">Users</div></div>
-                                    <div class="desktop-icon" style="width:100px; height:100px;"><div class="icon-img">📁</div><div class="icon-label">Cloud</div></div>
-                                </div>
-                            </div>`
-                    },
-                    Store: {
-                        name: "Module Center",
-                        icon: "🛒",
-                        content: () => `
-                            <div style="padding:40px;">
-                                <h1>Store</h1><p style="opacity:0.5;">Manage installed system modules.</p><br>
-                                <div style="background:#111; padding:20px; border-radius:15px; display:flex; justify-content:space-between; align-items:center;">
-                                    <span>🛠️ App Factory</span>
-                                    <button onclick="System.AppManager.install('AppFactory')" style="padding:10px 20px; background:var(--accent); border:none; color:#fff; border-radius:8px; cursor:pointer;">Install</button>
-                                </div>
-                            </div>`
-                    },
-                    AppFactory: {
-                        name: "Module Creator",
-                        icon: "🛠️",
-                        content: () => `
-                            <div style="padding:40px; max-width:500px; margin:auto;">
-                                <h2>Compiler Console</h2><p style="opacity:0.5; margin-bottom:20px;">Convert URLs into system icons.</p>
-                                <input id="f-name" placeholder="Name" style="width:100%; padding:15px; margin-bottom:10px; background:#111; border:1px solid #333; color:#fff; border-radius:8px;">
-                                <input id="f-url" placeholder="URL (https://...)" style="width:100%; padding:15px; margin-bottom:20px; background:#111; border:1px solid #333; color:#fff; border-radius:8px;">
-                                <button onclick="System.AppManager.compile()" style="width:100%; padding:15px; background:var(--accent); border:none; color:#fff; font-weight:bold; border-radius:8px; cursor:pointer;">CREATE MODULE</button>
-                            </div>`
-                    },
-                    Settings: {
-                        name: "Control Panel",
-                        icon: "⚙️",
-                        content: () => `
-                            <div style="padding:30px;">
-                                <h3>Configuration</h3><hr style="opacity:0.1; margin:15px 0;">
-                                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
-                                    <div style="background:#111; padding:20px; border-radius:15px;">
-                                        <h4>Personalization</h4><br>
-                                        <input id="bg-in" placeholder="Wallpaper URL" style="width:100%; padding:10px; background:#000; border:1px solid #333; color:#fff; border-radius:5px;">
-                                        <button onclick="System.AppManager.setBG(document.getElementById('bg-in').value)" style="margin-top:10px; width:100%; padding:10px; background:var(--accent); border:none; color:#fff; cursor:pointer;">Update Background</button>
-                                    </div>
-                                    <div style="background:#111; padding:20px; border-radius:15px;">
-                                        <h4>Access Security</h4><br>
-                                        <input id="p-in" type="password" placeholder="New Password" style="width:100%; padding:10px; background:#000; border:1px solid #333; color:#fff; border-radius:5px;">
-                                        <button onclick="System.AppManager.setPass(document.getElementById('p-in').value)" style="margin-top:10px; width:100%; padding:10px; background:#333; border:none; color:#fff; cursor:pointer;">Update Key</button>
-                                    </div>
-                                </div>
-                            </div>`
-                    }
-                },
-
-                renderDesktop: function() {
-                    const canvas = document.getElementById('icon-canvas');
-                    canvas.innerHTML = '';
-                    // Merge native apps and custom apps
-                    const all = [...System.State.installed, ...Object.keys(System.State.customApps)];
-                    const unique = [...new Set(all)];
-                    
-                    unique.forEach(id => {
-                        const app = this.Registry[id] || { name: id, icon: "🚀", content: () => `<iframe src="${System.State.customApps[id]}" style="width:100%; height:100%; border:none;"></iframe>` };
-                        const el = document.createElement('div');
-                        el.className = 'desktop-icon';
-                        el.innerHTML = `<div class="icon-img">${app.icon}</div><div class="icon-label">${app.name}</div>`;
-                        el.ondblclick = () => this.launch(id);
-                        canvas.appendChild(el);
-                    });
-                },
-
+            // --- APP MANAGEMENT ---
+            Apps: {
                 launch: function(id) {
-                    if(System.State.activeApps[id]) {
-                        this.focus(id);
-                        return;
-                    }
+                    if(Core.Data.running[id]) { this.focus(id); return; }
+                    
+                    const app = Core.Registry[id] || { 
+                        icon: "🚀", 
+                        name: id, 
+                        content: () => `<iframe src="${Core.Data.customApps[id]}" style="width:100%;height:100%;border:none;"></iframe>` 
+                    };
 
-                    const app = this.Registry[id] || { name: id, icon: "🚀", content: () => `<iframe src="${System.State.customApps[id]}" style="width:100%; height:100%; border:none;"></iframe>` };
                     const win = document.createElement('div');
                     win.id = `win-${id}`;
-                    win.className = 'window';
-                    win.style.width = '1000px';
-                    win.style.height = '650px';
-                    win.style.left = '150px';
-                    win.style.top = '100px';
-                    win.style.zIndex = ++System.State.zCounter;
+                    win.className = 'win';
+                    win.style.width = '900px'; win.style.height = '600px';
+                    win.style.left = '100px'; win.style.top = '100px';
+                    win.style.zIndex = ++Core.Data.z;
 
                     win.innerHTML = `
-                        <div class="win-titlebar" onmousedown="System.AppManager.dragStart(event, '${id}')">
-                            <div class="win-title-text"><span>${app.icon}</span> ${app.name.toUpperCase()}</div>
-                            <div class="win-controls">
-                                <div class="ctrl-dot dot-min" onclick="System.AppManager.minimize('${id}')"></div>
-                                <div class="ctrl-dot dot-max"></div>
-                                <div class="ctrl-dot dot-close" onclick="System.AppManager.close('${id}')"></div>
+                        <div class="win-head" onmousedown="Core.Apps.dragStart(event, '${id}')">
+                            <div class="win-title">${app.icon} ${id.toUpperCase()}</div>
+                            <div class="win-btns">
+                                <div class="win-btn win-min" onclick="Core.Apps.minimize('${id}')"></div>
+                                <div class="win-btn win-close" onclick="Core.Apps.close('${id}')"></div>
                             </div>
                         </div>
                         <div class="win-body">${app.content()}</div>
                     `;
 
-                    document.getElementById('os-workspace').appendChild(win);
-                    System.State.activeApps[id] = win;
+                    document.body.appendChild(win);
+                    Core.Data.running[id] = win;
                     this.updateTaskbar();
                     this.focus(id);
                 },
 
                 close: function(id) {
-                    System.State.activeApps[id].remove();
-                    delete System.State.activeApps[id];
+                    Core.Data.running[id].remove();
+                    delete Core.Data.running[id];
                     this.updateTaskbar();
                 },
 
                 minimize: function(id) {
-                    System.State.activeApps[id].style.display = 'none';
+                    Core.Data.running[id].style.display = 'none';
                     this.updateTaskbar();
                 },
 
                 focus: function(id) {
-                    Object.values(System.State.activeApps).forEach(w => w.classList.remove('active'));
-                    const win = System.State.activeApps[id];
-                    win.style.display = 'flex';
-                    win.style.zIndex = ++System.State.zCounter;
-                    win.classList.add('active');
+                    Object.values(Core.Data.running).forEach(w => w.style.zIndex = Core.Data.z - 1);
+                    Core.Data.running[id].style.display = 'flex';
+                    Core.Data.running[id].style.zIndex = ++Core.Data.z;
                     this.updateTaskbar();
                 },
 
                 updateTaskbar: function() {
-                    const tray = document.getElementById('task-tray');
-                    tray.innerHTML = '';
-                    Object.keys(System.State.activeApps).forEach(id => {
-                        const btn = document.createElement('div');
-                        btn.className = 'task-button' + (System.State.activeApps[id].classList.contains('active') ? ' active' : '');
-                        btn.innerText = this.Registry[id]?.name || id;
-                        btn.onclick = () => this.focus(id);
-                        tray.appendChild(btn);
+                    const list = document.getElementById('task-list');
+                    list.innerHTML = "";
+                    Object.keys(Core.Data.running).forEach(id => {
+                        const tab = document.createElement('div');
+                        tab.className = 'task-tab' + (Core.Data.running[id].style.zIndex == Core.Data.z ? ' active' : '');
+                        tab.innerText = id;
+                        tab.onclick = () => this.focus(id);
+                        list.appendChild(tab);
                     });
                 },
 
                 dragStart: function(e, id) {
-                    const win = System.State.activeApps[id];
+                    const win = Core.Data.running[id];
                     this.focus(id);
                     let ox = e.clientX - win.offsetLeft;
                     let oy = e.clientY - win.offsetTop;
-                    
                     const move = (ev) => {
                         win.style.left = (ev.clientX - ox) + 'px';
                         win.style.top = (ev.clientY - oy) + 'px';
                     };
-
                     const stop = () => {
                         document.removeEventListener('mousemove', move);
                         document.removeEventListener('mouseup', stop);
                     };
-
                     document.addEventListener('mousemove', move);
                     document.addEventListener('mouseup', stop);
-                },
+                }
+            },
 
-                handleShell: function(e) {
-                    if(e.key === 'Enter') {
-                        const input = e.target;
-                        const out = document.getElementById('term-out');
-                        const cmd = input.value.trim().toLowerCase();
-                        out.innerHTML += `<div><span style="color:#888;">root@mccrack:~$</span> ${cmd}</div>`;
-                        
-                        switch(cmd) {
-                            case 'help': out.innerHTML += `<div>Commands: clear, ls, status, whoami, neofetch, reboot</div>`; break;
-                            case 'ls': out.innerHTML += `<div>Directory listing for /root/...<br>Applications/<br>System/<br>Config/</div>`; break;
-                            case 'clear': out.innerHTML = ''; break;
-                            case 'neofetch': out.innerHTML += `<div style="color:var(--accent)">MCCRACK OS V11.5<br>Kernel: Titan-8.1<br>Shell: mcsh 1.0</div>`; break;
-                            case 'reboot': location.reload(); break;
-                            default: out.innerHTML += `<div style="color:red;">Command '${cmd}' not recognized.</div>`;
+            // --- REPOSITORY & STORAGE ---
+            Registry: {
+                Browser: { icon: "🌐", name: "Navigator", content: () => `<iframe src="https://siuuu.pagostepeapulco.gob.mx/" style="width:100%;height:100%;border:none;background:#fff;"></iframe>` },
+                Movies: { icon: "📺", name: "Cinema", content: () => `<iframe src="https://mccrack.neocities.org/movies" style="width:100%;height:100%;border:none;"></iframe>` },
+                Games: { icon: "🎮", name: "Arcade", content: () => `<iframe src="https://mccrack.neocities.org/games" style="width:100%;height:100%;border:none;"></iframe>` },
+                McCrackChat: { icon: "💬", name: "Chat Relay", content: () => `<iframe src="https://patrickmango49.github.io/McCrack-Chat/" style="width:100%;height:100%;border:none;"></iframe>` },
+                Terminal: { 
+                    icon: "⌨️", 
+                    name: "Console", 
+                    content: () => `
+                        <div style="height:100%;background:#000;color:#0f0;padding:20px;font-family:monospace;display:flex;flex-direction:column;">
+                            <div id="term-log" style="flex:1;overflow:auto;">McCrack Shell V12.0<br>Type 'help' for commands.<br><br></div>
+                            <div style="display:flex;"><span style="color:#888;">root@mccrack:~$</span><input id="term-input" onkeydown="Core.Registry.Terminal.handle(event)" style="background:transparent;border:none;color:#0f0;flex:1;outline:none;margin-left:10px;font-family:monospace;"></div>
+                        </div>`,
+                    handle: function(e) {
+                        if(e.key === 'Enter') {
+                            const val = e.target.value.toLowerCase();
+                            const log = document.getElementById('term-log');
+                            log.innerHTML += `<div>root@mccrack:~$ ${val}</div>`;
+                            if(val === 'help') log.innerHTML += `<div>Available: clear, ls, status, reboot, install [app]</div>`;
+                            else if(val === 'ls') log.innerHTML += `<div>C:/System<br>C:/Users<br>C:/Apps</div>`;
+                            else if(val === 'clear') log.innerHTML = '';
+                            else log.innerHTML += `<div>Command '${val}' not recognized.</div>`;
+                            e.target.value = '';
+                            log.scrollTop = log.scrollHeight;
                         }
-                        input.value = '';
-                        out.scrollTop = out.scrollHeight;
                     }
                 },
-
-                compile: function() {
-                    const name = document.getElementById('f-name').value;
-                    const url = document.getElementById('f-url').value;
-                    if(name && url) {
-                        System.State.customApps[name] = url;
-                        localStorage.setItem("mc_custom", JSON.stringify(System.State.customApps));
-                        System.UI.notify("Compiler", `Module ${name} created successfully.`);
-                        this.renderDesktop();
+                Files: {
+                    icon: "📁",
+                    name: "Explorer",
+                    content: () => `
+                        <div style="padding:30px;">
+                            <h3>Drives & Local Files</h3><hr style="opacity:0.1;margin:15px 0;">
+                            <div class="explorer-grid">
+                                <div class="file-card" onclick="document.getElementById('file-up').click()">📤<br><small>Upload Wallpaper</small></div>
+                                <div class="file-card">💽<br><small>System (C:)</small></div>
+                                <div class="file-card">📁<br><small>Documents</small></div>
+                            </div>
+                            <input type="file" id="file-up" style="display:none" onchange="Core.Storage.handleUpload(event)">
+                        </div>`
+                },
+                Store: {
+                    icon: "🛒",
+                    name: "App Center",
+                    content: () => `
+                        <div style="padding:30px;">
+                            <h2>Marketplace</h2><p style="opacity:0.5;">Manage your core modules.</p><br>
+                            <div id="store-list-render">
+                                ${Core.Registry.Store.renderItems()}
+                            </div>
+                        </div>`,
+                    renderItems: function() {
+                        const apps = ["Calculator", "Notepad", "AppFactory", "Music", "SystemLogs"];
+                        return apps.map(id => `
+                            <div class="store-item">
+                                <div><b>${id}</b><br><small style="opacity:0.4;">Official System Module</small></div>
+                                <button class="btn-install" onclick="Core.Storage.install('${id}')">${Core.Data.installed.includes(id) ? 'Installed' : 'Deploy'}</button>
+                            </div>
+                        `).join('');
                     }
                 },
+                AppFactory: {
+                    icon: "🛠️",
+                    name: "Compiler",
+                    content: () => `
+                        <div style="padding:40px;max-width:500px;margin:auto;">
+                            <h2>Module Compiler</h2><br>
+                            <input id="fac-n" placeholder="App Name" style="width:100%;padding:15px;margin-bottom:10px;background:#111;border:var(--border);color:#fff;border-radius:10px;">
+                            <input id="fac-u" placeholder="Target URL (https://...)" style="width:100%;padding:15px;margin-bottom:20px;background:#111;border:var(--border);color:#fff;border-radius:10px;">
+                            <button onclick="Core.Storage.compile()" style="width:100%;padding:18px;background:var(--accent);border:none;color:#fff;font-weight:bold;border-radius:10px;">COMPILE TO DESKTOP</button>
+                        </div>`
+                },
+                Settings: {
+                    icon: "⚙️",
+                    name: "Registry",
+                    content: () => `
+                        <div style="padding:30px;">
+                            <h2>System Registry</h2><br>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+                                <div style="background:#0a0a0a;padding:20px;border-radius:15px;border:var(--border);">
+                                    <h4>Decryption Key</h4><br>
+                                    <input id="set-p" type="password" placeholder="New Key" style="width:100%;padding:10px;background:#111;border:var(--border);color:#fff;border-radius:8px;">
+                                    <button onclick="Core.Storage.setPass()" style="width:100%;margin-top:10px;padding:10px;background:var(--accent);border:none;color:#fff;border-radius:8px;">Update Key</button>
+                                </div>
+                                <div style="background:#0a0a0a;padding:20px;border-radius:15px;border:var(--border);">
+                                    <h4>Wallpaper URL</h4><br>
+                                    <input id="set-b" placeholder="https://..." style="width:100%;padding:10px;background:#111;border:var(--border);color:#fff;border-radius:8px;">
+                                    <button onclick="Core.Storage.setBGUrl()" style="width:100%;margin-top:10px;padding:10px;background:#333;border:none;color:#fff;border-radius:8px;">Apply URL</button>
+                                </div>
+                            </div>
+                        </div>`
+                },
+                Calculator: { icon: "🧮", name: "Math", content: () => `<div style="padding:40px;text-align:center;"><h2>Calculator</h2><p>Module ready.</p></div>` },
+                Notepad: { icon: "📝", name: "Notes", content: () => `<textarea style="width:100%;height:100%;background:transparent;color:#fff;padding:30px;border:none;outline:none;font-size:1.1rem;resize:none;">${localStorage.getItem('mc_note')||''}</textarea>` }
+            },
 
+            // --- PERSISTENT STORAGE ENGINE ---
+            Storage: {
                 install: function(id) {
-                    if(!System.State.installed.includes(id)) {
-                        System.State.installed.push(id);
-                        localStorage.setItem("mc_apps", JSON.stringify(System.State.installed));
-                        this.renderDesktop();
-                        System.UI.notify("Store", `${id} installed.`);
+                    if(!Core.Data.installed.includes(id)) {
+                        Core.Data.installed.push(id);
+                        localStorage.setItem("mc_apps", JSON.stringify(Core.Data.installed));
+                        Core.UI.renderIcons();
+                        Core.UI.renderStart();
+                        alert(`${id} installed.`);
+                        if(Core.Data.running['Store']) Core.Data.running['Store'].querySelector('.win-body').innerHTML = Core.Registry.Store.content();
                     }
                 },
-
-                setBG: function(url) {
-                    document.getElementById('os-workspace').style.background = `url('${url}') center/cover no-repeat`;
-                    localStorage.setItem("mc_bg", url);
+                compile: function() {
+                    const n = document.getElementById('fac-n').value;
+                    const u = document.getElementById('fac-u').value;
+                    if(n && u) {
+                        Core.Data.customApps[n] = u;
+                        localStorage.setItem("mc_custom", JSON.stringify(Core.Data.customApps));
+                        Core.UI.renderIcons();
+                        Core.UI.renderStart();
+                        alert("App Compiled Successfully.");
+                    }
                 },
+                handleUpload: function(e) {
+                    const file = e.target.files[0];
+                    if(file) {
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                            const url = ev.target.result;
+                            document.getElementById('os-desktop').style.background = `url(${url}) center/cover no-repeat`;
+                            localStorage.setItem("mc_bg", `url(${url}) center/cover no-repeat`);
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                },
+                setPass: function() {
+                    const p = document.getElementById('set-p').value;
+                    if(p) { Core.Data.pass = p; localStorage.setItem("mc_pass", p); alert("Key Updated."); }
+                },
+                setBGUrl: function() {
+                    const b = document.getElementById('set-b').value;
+                    if(b) { 
+                        const url = `url('${b}') center/cover no-repeat`;
+                        document.getElementById('os-desktop').style.background = url;
+                        localStorage.setItem("mc_bg", url);
+                    }
+                }
+            },
 
-                setPass: function(p) {
-                    System.Config.Pass = p;
-                    localStorage.setItem("mc_pass", p);
-                    System.UI.notify("Security", "Decryption key updated.");
+            // --- DRAG AND DROP ENGINE ---
+            Drag: {
+                allow: (e) => { e.preventDefault(); document.getElementById('delete-bin').classList.add('drag-over'); },
+                leave: () => { document.getElementById('delete-bin').classList.remove('drag-over'); },
+                drop: (e) => {
+                    e.preventDefault();
+                    document.getElementById('delete-bin').classList.remove('drag-over');
+                    const id = e.dataTransfer.getData("appId");
+                    
+                    if(["Browser", "Store", "Files", "Terminal", "Settings"].includes(id)) {
+                        alert("CRITICAL ERROR: Protected System Module cannot be purged.");
+                        return;
+                    }
+
+                    if(confirm(`Are you sure you want to purge ${id}?`)) {
+                        if(Core.Data.running[id]) Core.Apps.close(id);
+                        Core.Data.installed = Core.Data.installed.filter(a => a !== id);
+                        delete Core.Data.customApps[id];
+                        localStorage.setItem("mc_apps", JSON.stringify(Core.Data.installed));
+                        localStorage.setItem("mc_custom", JSON.stringify(Core.Data.customApps));
+                        Core.UI.renderIcons();
+                        Core.UI.renderStart();
+                    }
                 }
             }
         };
 
-        // --- BOOT TRIGGER ---
-        System.Init();
+        // --- GLOBAL BOOT TRIGGER ---
+        Core.Boot.init();
     </script>
 </body>
 </html>
