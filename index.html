@@ -2,240 +2,332 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>McCrackOS V8.0 - Enterprise Developer Edition</title>
+    <title>McCrackOS V9.0 - Ultra Edition</title>
     <style>
         /* --- CORE SYSTEM VARIABLES --- */
         :root {
             --accent: #0078d4;
-            --top-bar-h: 30px;
+            --top-bar-h: 32px;
             --taskbar-h: 65px;
-            --panel: rgba(15, 15, 15, 0.95);
-            --win-bg: #0a0a0a;
-            --border: 1px solid rgba(255, 255, 255, 0.1);
-            --shadow: 0 25px 50px rgba(0,0,0,0.9);
-            --blur: blur(30px);
-            --font: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            --panel: rgba(10, 10, 10, 0.98);
+            --win-bg: #050505;
+            --border: 1px solid rgba(255, 255, 255, 0.12);
+            --shadow: 0 30px 60px rgba(0,0,0,0.95);
+            --blur: blur(35px);
+            --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
         }
 
-        /* --- RESET & BASE --- */
+        /* --- GLOBAL RESET --- */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font); -webkit-user-select: none; user-select: none; }
-        body { height: 100vh; width: 100vw; overflow: hidden; background: #000; color: white; transition: background 0.5s ease; }
+        body { 
+            height: 100vh; width: 100vw; overflow: hidden; 
+            background: #000; color: white; transition: background 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
-        /* --- TOP BAR (NEW) --- */
+        /* --- TOP BAR --- */
         #top-bar {
             position: fixed; top: 0; left: 0; right: 0; height: var(--top-bar-h);
-            background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px);
+            background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(15px);
             display: flex; justify-content: space-between; align-items: center;
-            padding: 0 15px; z-index: 9500; border-bottom: var(--border);
-            font-size: 0.8rem; font-weight: 600; letter-spacing: 1px;
+            padding: 0 18px; z-index: 9500; border-bottom: var(--border);
+            font-size: 0.75rem; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;
         }
-        #lock-btn { cursor: pointer; padding: 2px 8px; border-radius: 4px; transition: 0.3s; }
-        #lock-btn:hover { background: rgba(255,0,0,0.2); color: #ff4b4b; }
+        .top-right { display: flex; align-items: center; gap: 20px; }
+        #lock-btn { cursor: pointer; color: #aaa; transition: 0.3s; }
+        #lock-btn:hover { color: #ff4b4b; text-shadow: 0 0 10px rgba(255,75,75,0.5); }
+        #battery-stat { display: flex; align-items: center; gap: 6px; color: #44ff44; }
 
-        /* --- BOOT & LOGIN --- */
+        /* --- BOOT SEQUENCE --- */
         #boot { position: fixed; inset: 0; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10000; }
-        .spin { width: 50px; height: 50px; border: 4px solid #222; border-top-color: var(--accent); border-radius: 50%; animation: s 1s linear infinite; margin-bottom: 20px; }
+        .spin { width: 60px; height: 60px; border: 4px solid #111; border-top-color: var(--accent); border-radius: 50%; animation: s 0.8s linear infinite; margin-bottom: 25px; }
         @keyframes s { to { transform: rotate(360deg); } }
+        .boot-text { font-family: monospace; font-size: 0.8rem; color: var(--accent); opacity: 0.8; }
 
+        /* --- AUTHENTICATION --- */
         #login { 
-            position: fixed; inset: 0; display: none; background: rgba(0,0,0,0.7); 
+            position: fixed; inset: 0; display: none; background: rgba(0,0,0,0.8); 
             backdrop-filter: var(--blur); z-index: 9000; align-items: center; justify-content: center; 
         }
-        .login-box { background: var(--panel); padding: 60px; border-radius: 25px; border: var(--border); width: 400px; text-align: center; box-shadow: var(--shadow); }
-        .login-box input { width: 100%; padding: 15px; margin: 20px 0; background: #151515; border: var(--border); border-radius: 10px; color: white; text-align: center; outline: none; font-size: 1rem; }
-        .login-box button { width: 100%; padding: 15px; background: var(--accent); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 1rem; }
+        .login-box { 
+            background: var(--panel); padding: 70px; border-radius: 30px; border: var(--border); 
+            width: 420px; text-align: center; box-shadow: var(--shadow); 
+        }
+        .login-box input { 
+            width: 100%; padding: 16px; margin: 25px 0; background: #111; border: var(--border); 
+            border-radius: 12px; color: white; text-align: center; outline: none; font-size: 1.1rem;
+            transition: 0.3s;
+        }
+        .login-box input:focus { border-color: var(--accent); box-shadow: 0 0 15px rgba(0,120,212,0.2); }
+        .login-box button { 
+            width: 100%; padding: 16px; background: var(--accent); color: white; border: none; 
+            border-radius: 12px; cursor: pointer; font-weight: 800; font-size: 1rem; transition: 0.3s;
+        }
+        .login-box button:hover { filter: brightness(1.2); transform: translateY(-2px); }
 
-        /* --- DESKTOP AREA --- */
-        #desktop { position: absolute; inset: var(--top-bar-h) 0 var(--taskbar-h) 0; display: none; z-index: 100; padding: 25px; }
+        /* --- WORKSPACE --- */
+        #desktop { position: absolute; inset: var(--top-bar-h) 0 var(--taskbar-h) 0; display: none; z-index: 100; padding: 30px; }
         .icon { 
-            position: absolute; width: 100px; height: 110px; display: flex; flex-direction: column; 
-            align-items: center; justify-content: center; border-radius: 15px; cursor: pointer; transition: 0.2s;
+            position: absolute; width: 110px; height: 120px; display: flex; flex-direction: column; 
+            align-items: center; justify-content: center; border-radius: 18px; cursor: pointer; transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .icon:hover { background: rgba(255,255,255,0.1); backdrop-filter: blur(5px); }
-        .icon div { font-size: 50px; margin-bottom: 8px; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5)); }
-        .icon span { font-size: 0.8rem; text-align: center; font-weight: 500; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+        .icon:hover { background: rgba(255,255,255,0.08); transform: scale(1.05); }
+        .icon div { font-size: 55px; margin-bottom: 10px; filter: drop-shadow(0 8px 12px rgba(0,0,0,0.6)); }
+        .icon span { font-size: 0.85rem; text-align: center; font-weight: 600; text-shadow: 0 2px 8px rgba(0,0,0,1); }
 
-        /* --- START MENU --- */
+        /* --- APPLICATION LIBRARY --- */
         #start-menu { 
-            position: absolute; bottom: 75px; left: 15px; width: 350px; height: 500px; 
-            background: var(--panel); border: var(--border); border-radius: 20px; 
-            backdrop-filter: var(--blur); display: none; flex-direction: column; padding: 25px; z-index: 9999; box-shadow: var(--shadow);
+            position: absolute; bottom: 80px; left: 20px; width: 380px; height: 550px; 
+            background: var(--panel); border: var(--border); border-radius: 24px; 
+            backdrop-filter: var(--blur); display: none; flex-direction: column; padding: 30px; z-index: 9999; box-shadow: var(--shadow);
         }
-        .start-item { display: flex; align-items: center; gap: 15px; padding: 12px; border-radius: 10px; cursor: pointer; margin-bottom: 5px; transition: 0.2s; }
-        .start-item:hover { background: rgba(255,255,255,0.1); transform: translateX(5px); }
-        .start-item span { font-size: 24px; }
+        .start-item { display: flex; align-items: center; gap: 18px; padding: 14px; border-radius: 14px; cursor: pointer; transition: 0.2s; }
+        .start-item:hover { background: rgba(255,255,255,0.08); transform: translateX(8px); }
+        .start-item span { font-size: 28px; }
 
-        /* --- WINDOWS --- */
+        /* --- MULTI-WINDOW ARCHITECTURE --- */
         .window { 
-            position: absolute; background: var(--win-bg); border-radius: 16px; border: var(--border); 
+            position: absolute; background: var(--win-bg); border-radius: 20px; border: var(--border); 
             display: flex; flex-direction: column; overflow: hidden; box-shadow: var(--shadow); 
+            transition: width 0.3s, height 0.3s, top 0.3s, left 0.3s;
         }
-        .win-head { background: #151515; padding: 14px 20px; display: flex; justify-content: space-between; cursor: move; align-items: center; }
+        .win-head { background: #121212; padding: 16px 24px; display: flex; justify-content: space-between; cursor: move; align-items: center; }
         .win-body { flex: 1; background: #000; position: relative; overflow: auto; }
-        .win-ctrls { display: flex; gap: 18px; align-items: center; }
-        .win-ctrls span { cursor: pointer; opacity: 0.6; transition: 0.2s; font-size: 1.1rem; }
+        .win-ctrls { display: flex; gap: 22px; align-items: center; }
+        .win-ctrls span { cursor: pointer; opacity: 0.5; transition: 0.2s; font-size: 1.2rem; }
         .win-ctrls span:hover { opacity: 1; transform: scale(1.2); }
-        .resizer { position: absolute; bottom: 0; right: 0; width: 20px; height: 20px; cursor: nwse-resize; }
+        .resizer { position: absolute; bottom: 0; right: 0; width: 22px; height: 22px; cursor: nwse-resize; z-index: 10; }
 
-        /* --- TASKBAR --- */
+        /* --- SYSTEM TASKBAR --- */
         #taskbar { 
             position: fixed; bottom: 0; left: 0; right: 0; height: var(--taskbar-h); 
-            background: var(--panel); backdrop-filter: var(--blur); 
-            display: flex; align-items: center; padding: 0 20px; z-index: 8500; border-top: var(--border); 
+            background: rgba(5, 5, 5, 0.9); backdrop-filter: blur(25px); 
+            display: flex; align-items: center; padding: 0 25px; z-index: 8500; border-top: var(--border); 
         }
-        #task-list { flex: 1; display: flex; justify-content: flex-start; gap: 12px; margin-left: 25px; overflow-x: auto; padding: 5px 0; }
-        .task-tab { padding: 10px 20px; background: rgba(255,255,255,0.05); border-radius: 10px; font-size: 0.85rem; cursor: pointer; transition: 0.3s; white-space: nowrap; border: 1px solid transparent; }
-        .task-tab.active { background: rgba(255,255,255,0.15); border-color: var(--accent); box-shadow: 0 0 15px rgba(0,120,212,0.3); }
+        #task-list { flex: 1; display: flex; justify-content: flex-start; gap: 14px; margin-left: 30px; overflow-x: auto; padding: 8px 0; }
+        .task-tab { padding: 10px 22px; background: rgba(255,255,255,0.04); border-radius: 12px; font-size: 0.85rem; cursor: pointer; transition: 0.3s; white-space: nowrap; border: 1px solid transparent; }
+        .task-tab.active { background: rgba(0, 120, 212, 0.15); border-color: var(--accent); box-shadow: 0 0 20px rgba(0,120,212,0.25); }
 
-        /* --- APP SPECIFIC UI --- */
-        .fs-container { text-align: center; padding: 20px; background: #000; height: 100%; }
-        .fs-btn { 
-            margin-top: 15px; padding: 12px 24px; font-size: 16px; border: none; border-radius: 8px; 
-            cursor: pointer; background: linear-gradient(45deg, #111, #fff); color: #000; 
-            font-weight: bold; transition: 0.3s; 
-        }
-        .fs-btn:hover { transform: scale(1.05); filter: brightness(1.2); }
+        /* --- APP CONTENT STYLING --- */
+        .full-app-view { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #000; }
+        .app-iframe { width: 100%; height: 100%; border: none; background: #000; }
         
-        .factory-box { padding: 30px; max-width: 600px; margin: 0 auto; }
-        .factory-box input { width: 100%; padding: 12px; background: #111; border: var(--border); color: white; border-radius: 8px; margin: 10px 0; outline: none; }
-        
-        .settings-card { padding: 25px; border-bottom: 1px solid #222; margin-bottom: 10px; }
-        .color-dot { width: 30px; height: 30px; border-radius: 50%; display: inline-block; cursor: pointer; margin-right: 10px; border: 2px solid transparent; }
-        .color-dot:hover { border-color: white; }
+        .explorer-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 20px; padding: 30px; }
+        .file-item { text-align: center; padding: 20px; border-radius: 12px; background: #0a0a0a; border: 1px solid #1a1a1a; cursor: pointer; transition: 0.2s; }
+        .file-item:hover { background: #151515; border-color: var(--accent); }
 
-        /* --- SCROLLBARS --- */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #444; }
+        .store-card { background: #0a0a0a; padding: 20px; border-radius: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #1a1a1a; }
+        .install-btn { padding: 8px 20px; border-radius: 8px; border: none; background: var(--accent); color: white; cursor: pointer; font-weight: 700; }
+
+        /* --- ANIMATIONS --- */
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
     </style>
 </head>
 <body id="os-root">
 
     <div id="top-bar">
-        <div>McCrackOS</div>
-        <div id="lock-btn" onclick="lockSystem()">🔒 Lock System</div>
+        <div>McCrackOS <span style="opacity:0.3; margin-left:10px;">V9.0.4</span></div>
+        <div class="top-right">
+            <div id="battery-stat"><span>100%</span> 🔋</div>
+            <div id="lock-btn" onclick="lockSystem()">TERMINATE SESSION</div>
+        </div>
     </div>
 
     <div id="boot">
-        <h1 style="letter-spacing: 10px; font-weight: 200;">McCrackOS</h1>
+        <h1 style="letter-spacing: 12px; font-weight: 200; font-size: 2.5rem;">MCCRACK<span style="font-weight:700;">OS</span></h1>
         <div class="spin"></div>
-        <p style="opacity: 0.4; font-size: 0.7rem;">V 8.0 SYSTEM KERNEL LOADED</p>
+        <p class="boot-text">INITIALIZING KERNEL MODULES...</p>
     </div>
 
     <div id="login">
         <div class="login-box">
-            <div style="font-size:60px; margin-bottom:15px; filter: drop-shadow(0 0 10px var(--accent));">👤</div>
-            <h2 style="font-weight: 300;">System Administrator</h2>
-            <input type="password" id="pass-in" placeholder="Enter Access Key">
-            <button onclick="unlock()">INITIALIZE</button>
-            <p id="log-msg" style="color:#ff4b4b; font-size:12px; margin-top:15px; font-weight: bold;"></p>
+            <div style="font-size:70px; margin-bottom:20px; filter: drop-shadow(0 0 15px var(--accent));">👤</div>
+            <h2 style="font-weight: 300; letter-spacing: 1px;">SYSTEM ACCESS</h2>
+            <input type="password" id="pass-in" placeholder="DECRYPT KEY">
+            <button onclick="unlock()">AUTHORIZE</button>
+            <p id="log-msg" style="color:#ff4b4b; font-size:0.75rem; margin-top:20px; font-weight: 800; letter-spacing:1px;"></p>
         </div>
     </div>
 
     <div id="desktop"></div>
 
     <div id="start-menu">
-        <div style="border-bottom: 1px solid #333; padding-bottom: 15px; margin-bottom: 15px;">
-            <h3 style="font-weight: 400; color: var(--accent);">App Library</h3>
+        <div style="border-bottom: 1px solid #222; padding-bottom: 20px; margin-bottom: 20px;">
+            <h3 style="font-weight: 500; color: var(--accent); letter-spacing: 1px;">INSTALLED MODULES</h3>
         </div>
         <div id="lib-cont" style="overflow-y:auto; flex:1;"></div>
     </div>
 
     <div id="taskbar">
-        <div id="start-btn" onclick="toggleStart()" style="cursor:pointer; font-size:28px; width:50px; height:50px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.05); border-radius:12px; transition: 0.3s;">💠</div>
+        <div id="start-btn" onclick="toggleStart()" style="cursor:pointer; font-size:30px; width:55px; height:55px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.06); border-radius:15px; transition: 0.3s;">💠</div>
         <div id="task-list"></div>
-        <div style="text-align:right; border-left: 1px solid #333; padding-left:20px;">
-            <div id="clock" style="font-weight:700; font-size:16px; letter-spacing: 1px;"></div>
-            <div id="date" style="font-size:11px; opacity:0.5; font-weight: 600;"></div>
+        <div style="text-align:right; border-left: 1px solid #222; padding-left:25px;">
+            <div id="clock" style="font-weight:800; font-size:1.1rem; letter-spacing: 1px; color: #fff;"></div>
+            <div id="date" style="font-size:0.7rem; opacity:0.4; font-weight: 700; text-transform: uppercase;"></div>
         </div>
     </div>
 
     <script>
-        /* --- SYSTEM REGISTRY & APP DEFINITIONS ---
-           To add a new EMBED APP:
-           Just copy one of the blocks below and change the icon, name, and src URL.
-        */
+        /* --- KERNEL DATA & REGISTRY --- */
         const OS = {
             z: 1000,
             pass: localStorage.getItem("mc_pass") || "1234",
             bg: localStorage.getItem("mc_bg") || "linear-gradient(135deg, #0f0c29, #302b63, #24243e)",
-            installed: JSON.parse(localStorage.getItem("mc_apps")) || ["Notepad", "Browser", "Terminal", "Files", "Store", "Settings", "Music", "AppFactory"],
+            // Core system apps present at boot. Others are hidden in Store.
+            installed: JSON.parse(localStorage.getItem("mc_apps")) || ["Browser", "Terminal", "Files", "Store", "Settings"],
             pos: JSON.parse(localStorage.getItem("mc_pos")) || {},
-            running: {}
+            running: {},
+            battery: 100
         };
 
         const Registry = {
-            Notepad: { icon: "📝", content: () => `<textarea oninput="localStorage.setItem('mc_note', this.value)" style="width:100%;height:100%;background:transparent;color:white;padding:30px;border:none;outline:none;resize:none;font-family:monospace;font-size:1.1rem;line-height:1.5;">${localStorage.getItem('mc_note')||''}</textarea>` },
+            Notepad: { icon: "📝", content: () => `<textarea oninput="localStorage.setItem('mc_note', this.value)" style="width:100%;height:100%;background:transparent;color:#ddd;padding:40px;border:none;outline:none;resize:none;font-family:monospace;font-size:1.2rem;line-height:1.6;">${localStorage.getItem('mc_note')||''}</textarea>` },
             
-            // To add your own easily: Registry['Name'] = { icon: 'emoji', content: () => embed('URL') }
-            Browser: { icon: "🌐", content: () => embedApp("https://siuuu.pagostepeapulco.gob.mx/") },
+            Browser: { icon: "🌐", content: () => buildAppFrame("https://siuuu.pagostepeapulco.gob.mx/") },
             
-            Terminal: { icon: "⌨️", content: () => `<div id="t-out" style="padding:20px;color:#0f0;font-family:monospace;height:calc(100% - 50px);overflow:auto;line-height:1.4;">McCrackOS Bash v8.0<br>Type 'help' for commands.<br><br></div><input onkeydown="cmd(event, this)" style="width:100%;background:#000;border:none;border-top:1px solid #222;color:#0f0;padding:15px;outline:none;font-family:monospace;">` },
+            Terminal: { icon: "⌨️", content: () => `<div id="t-out" style="padding:25px;color:#0f0;font-family:monospace;height:calc(100% - 60px);overflow:auto;line-height:1.5;font-size:0.9rem;">McCrack Kernel Console [Version 9.0.4]<br>(c) 2026 McCrack Industries. All rights reserved.<br><br></div><input onkeydown="cmd(event, this)" style="width:100%;background:#050505;border:none;border-top:1px solid #222;color:#0f0;padding:18px;outline:none;font-family:monospace;font-size:1rem;">` },
             
-            Files: { icon: "📁", content: () => `<div style="padding:30px;"><h2 style="font-weight:300;">File Manager</h2><hr style="opacity:0.1;margin:20px 0;"><div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(120px, 1fr));gap:25px;"><div style="text-align:center;padding:15px;background:#111;border-radius:10px;cursor:pointer;">📂<br><br>Documents</div><div style="text-align:center;padding:15px;background:#111;border-radius:10px;cursor:pointer;">📂<br><br>Downloads</div><div style="text-align:center;padding:15px;background:#111;border-radius:10px;cursor:pointer;">📂<br><br>Pictures</div><div style="text-align:center;padding:15px;background:#111;border-radius:10px;cursor:pointer;">💿<br><br>Local Drive (C:)</div></div></div>` },
+            Files: { icon: "📁", content: () => `
+                <div style="padding:30px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <h2>File Explorer</h2>
+                        <button onclick="document.getElementById('bg-upload').click()" style="padding:8px 15px; border-radius:8px; background:var(--accent); color:white; border:none; cursor:pointer;">Upload BG Image</button>
+                        <input type="file" id="bg-upload" style="display:none" onchange="handleFileUpload(event)" accept="image/*">
+                    </div>
+                    <hr style="opacity:0.1; margin:20px 0;">
+                    <div class="explorer-grid">
+                        <div class="file-item">📁<br><br>Root</div>
+                        <div class="file-item">📁<br><br>System</div>
+                        <div class="file-item">📁<br><br>Users</div>
+                        <div class="file-item" onclick="launch('Settings')">🖼️<br><br>Wallpapers</div>
+                    </div>
+                </div>` 
+            },
             
-            Store: { icon: "🛒", content: () => `<div style="padding:30px;"><h1 style="font-weight:300;">App Store</h1><p style="opacity:0.4;margin-bottom:30px;">Deploy software to your desktop</p><div class="store-card"><div><strong>🧮 Calculator</strong><br><small>Mathematics Suite</small></div><button class="install-btn" onclick="install('Calculator')">Deploy</button></div><div class="store-card"><div><strong>💬 McCrackChat</strong><br><small>Encrypted Messaging</small></div><button class="install-btn" onclick="install('McCrackChat')">Deploy</button></div></div>` },
+            Store: { icon: "🛒", content: () => `
+                <div style="padding:40px;">
+                    <h1 style="font-weight:300; margin-bottom:10px;">Integrated Store</h1>
+                    <p style="opacity:0.4; margin-bottom:30px;">Acquire and deploy official system modules.</p>
+                    <div id="store-list">
+                        ${renderStoreItem('Calculator', 'Advanced Math Engine')}
+                        ${renderStoreItem('McCrackChat', 'Global Relay Service')}
+                        ${renderStoreItem('Music', 'High-Fidelity Audio')}
+                        ${renderStoreItem('AppFactory', 'Custom Module Compiler')}
+                        ${renderStoreItem('Notepad', 'Secure Text Buffer')}
+                    </div>
+                </div>` 
+            },
             
-            Settings: { icon: "⚙️", content: () => `<div style="padding:30px;"><h3>Personalization</h3><br><div class="settings-card"><p>Desktop Background</p><br><div class="color-dot" style="background:#000;" onclick="setBG('#000')"></div><div class="color-dot" style="background:linear-gradient(45deg, #1e3c72, #2a5298);" onclick="setBG('linear-gradient(45deg, #1e3c72, #2a5298)')"></div><div class="color-dot" style="background:linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);" onclick="setBG('linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)')"></div><br><br><input type="text" id="bg-url" placeholder="Custom URL (https://...)" style="width:100%;background:#111;border:var(--border);color:white;padding:10px;border-radius:8px;"><br><br><button onclick="setBG(document.getElementById('bg-url').value)" style="padding:8px 15px; cursor:pointer;">Set Image</button></div><div class="settings-card"><p>Change Access Key</p><br><input type="password" id="new-p" placeholder="New Password" style="background:#111;border:var(--border);color:white;padding:10px;border-radius:8px;"><br><br><button onclick="setPass(document.getElementById('new-p').value)" style="padding:8px 15px; cursor:pointer;">Update Key</button></div></div>` },
+            Settings: { icon: "⚙️", content: () => `
+                <div style="padding:40px;">
+                    <h2 style="font-weight:400; margin-bottom:25px;">Control Panel</h2>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:30px;">
+                        <div style="background:#0a0a0a; padding:25px; border-radius:20px; border:1px solid #1a1a1a;">
+                            <h4>Personalization</h4><br>
+                            <p style="font-size:0.8rem; opacity:0.5;">Paste an image URL to update the workspace visual.</p><br>
+                            <input type="text" id="bg-url" placeholder="https://..." style="width:100%; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px;"><br><br>
+                            <button onclick="setBG(document.getElementById('bg-url').value)" style="width:100%; padding:10px; cursor:pointer; background:var(--accent); border:none; color:white; border-radius:8px;">Apply URL</button>
+                        </div>
+                        <div style="background:#0a0a0a; padding:25px; border-radius:20px; border:1px solid #1a1a1a;">
+                            <h4>Security</h4><br>
+                            <p style="font-size:0.8rem; opacity:0.5;">Update your system decryption key.</p><br>
+                            <input type="password" id="new-p" placeholder="New Access Key" style="width:100%; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px;"><br><br>
+                            <button onclick="setPass(document.getElementById('new-p').value)" style="width:100%; padding:10px; cursor:pointer; background:#333; border:none; color:white; border-radius:8px;">Update Key</button>
+                        </div>
+                    </div>
+                </div>` 
+            },
             
-            Music: { icon: "🎵", content: () => `<div style="padding:40px;text-align:center;"><h2>Media Player</h2><br><div style="font-size:100px;margin-bottom:20px;filter:drop-shadow(0 0 15px var(--accent));">💿</div><p style="font-weight:bold;">Track_74_Lofi.mp3</p><br><button style="padding:15px 40px; border-radius:30px; border:none; background:var(--accent); color:white; font-weight:bold; cursor:pointer;">PLAY TRACK</button></div>` },
+            Music: { icon: "🎵", content: () => `<div style="padding:60px;text-align:center;"><div style="font-size:120px;margin-bottom:30px;filter:drop-shadow(0 0 20px var(--accent));">🎧</div><h2>McCrack Music</h2><p style="opacity:0.5;">Library Empty. Connect to stream.</p></div>` },
             
-            AppFactory: { icon: "🛠️", content: () => `<div class="factory-box"><h2>App Factory</h2><p style="opacity:0.5; margin-bottom:20px;">Convert any website into an app</p><label>App Name:</label><input type="text" id="fac-name" placeholder="e.g. MyGame"><label>Website Link:</label><input type="text" id="fac-link" placeholder="https://example.com"><br><br><button onclick="createCustomApp()" style="width:100%; padding:15px; background:white; color:black; font-weight:bold; border-radius:10px; cursor:pointer;">CREATE APP</button></div>` },
+            AppFactory: { icon: "🛠️", content: () => `
+                <div style="padding:50px; max-width:600px; margin:0 auto;">
+                    <h2>Compiler Console</h2>
+                    <p style="opacity:0.4; margin-bottom:30px;">Encapsulate any web protocol into a local app.</p>
+                    <label style="font-size:0.8rem; color:var(--accent);">MODULE NAME</label>
+                    <input type="text" id="fac-name" placeholder="e.g. YouTube" style="width:100%; padding:15px; background:#111; border:var(--border); color:white; border-radius:12px; margin:10px 0 20px 0; outline:none;">
+                    <label style="font-size:0.8rem; color:var(--accent);">TARGET URL</label>
+                    <input type="text" id="fac-link" placeholder="https://..." style="width:100%; padding:15px; background:#111; border:var(--border); color:white; border-radius:12px; margin:10px 0 20px 0; outline:none;">
+                    <button onclick="createCustomApp()" style="width:100%; padding:18px; background:white; color:black; font-weight:900; border-radius:12px; cursor:pointer; border:none; transition:0.3s;">COMPILE MODULE</button>
+                </div>` 
+            },
             
-            Calculator: { icon: "🧮", content: () => `<div style="padding:40px;"><input id="c-in" style="width:100%;font-size:40px;background:#000;color:white;border:1px solid #333;padding:20px;text-align:right;border-radius:15px;margin-bottom:20px;"><div style="display:grid;grid-template-columns:1fr;gap:10px;"><button onclick="try{document.getElementById('c-in').value=eval(document.getElementById('c-in').value)}catch(e){alert('Syntax Error')}" style="padding:20px;background:var(--accent);color:white;border:none;border-radius:10px;font-weight:bold;cursor:pointer;">CALCULATE</button></div></div>` },
+            Calculator: { icon: "🧮", content: () => `
+                <div style="padding:50px; text-align:center;">
+                    <input id="c-in" style="width:100%; font-size:45px; background:#000; color:white; border:2px solid #222; padding:30px; text-align:right; border-radius:20px; margin-bottom:20px; font-family:monospace;">
+                    <button onclick="calcResult()" style="width:100%; padding:25px; background:var(--accent); color:white; border:none; border-radius:15px; font-size:1.5rem; font-weight:bold; cursor:pointer;">RUN CALCULATION</button>
+                </div>` 
+            },
             
-            McCrackChat: { icon: "💬", content: () => embedApp("https://patrickmango49.github.io/McCrack-Chat/") }
+            McCrackChat: { icon: "💬", content: () => buildAppFrame("https://patrickmango49.github.io/McCrack-Chat/") }
         };
 
-        /* --- HELPER: EMBED APP GENERATOR --- */
-        function embedApp(url) {
+        /* --- FRAMEWORK FUNCTIONS --- */
+        function buildAppFrame(url) {
             return `
-                <div class="fs-container">
-                    <iframe id="gameFrame" src="${url}" width="95%" height="80%" style="border-radius:12px; box-shadow: 0 0 25px rgba(0,0,0,0.5); max-width: 1200px; border:none;"></iframe>
-                    <br>
-                    <button onclick="openFullscreen('${url}')" class="fs-btn">Open Fullscreen Mode</button>
+                <div class="full-app-view">
+                    <iframe class="app-iframe" src="${url}"></iframe>
+                    <div style="padding:15px; background:#0a0a0a; width:100%; border-top:1px solid #1a1a1a; display:flex; justify-content:center;">
+                        <button onclick="deepFullscreen('${url}')" style="background:linear-gradient(45deg, #000, #fff); color:#000; padding:12px 30px; border-radius:10px; font-weight:900; border:none; cursor:pointer;">EXTERN FULLSCREEN</button>
+                    </div>
                 </div>
             `;
         }
 
-        /* --- LOGIC: SYSTEM INITIALIZATION --- */
+        function renderStoreItem(id, desc) {
+            const isInst = OS.installed.includes(id);
+            return `
+                <div class="store-card">
+                    <div><strong>${Registry[id].icon} ${id}</strong><br><small style="opacity:0.4">${desc}</small></div>
+                    <button class="install-btn" style="${isInst?'background:#222;cursor:default':''}" onclick="${isInst?'':'install(\''+id+'\')'}">${isInst?'Deployed':'Install'}</button>
+                </div>
+            `;
+        }
+
+        /* --- CORE SYSTEM LOGIC --- */
         window.onload = () => {
             document.getElementById('os-root').style.background = OS.bg;
-            // Load custom apps from storage if they exist
-            const customData = JSON.parse(localStorage.getItem("mc_custom_apps")) || {};
-            Object.keys(customData).forEach(name => {
-                Registry[name] = { icon: "🚀", content: () => embedApp(customData[name]) };
+            
+            // Sync custom apps from storage
+            const customs = JSON.parse(localStorage.getItem("mc_custom_apps")) || {};
+            Object.keys(customs).forEach(name => {
+                Registry[name] = { icon: "🚀", content: () => buildAppFrame(customs[name]) };
             });
 
+            // Initialize Battery
+            updateBattery(); setInterval(updateBattery, 30000);
+
+            // Boot Sequence
             setTimeout(() => { 
-                document.getElementById('boot').style.transition = '0.8s';
-                document.getElementById('boot').style.opacity = '0';
-                setTimeout(() => {
-                    document.getElementById('boot').style.display='none'; 
-                    document.getElementById('login').style.display='flex'; 
-                }, 800);
+                const b = document.getElementById('boot');
+                b.style.transition = 'opacity 1s ease';
+                b.style.opacity = '0';
+                setTimeout(() => { b.style.display='none'; document.getElementById('login').style.display='flex'; }, 1000);
             }, 3000);
+
             updateTime(); setInterval(updateTime, 1000);
             renderLib();
         };
 
         function unlock() {
             if(document.getElementById('pass-in').value === OS.pass) {
-                document.getElementById('login').style.display = 'none';
-                document.getElementById('desktop').style.display = 'block';
-                renderDesktop();
+                document.getElementById('login').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('login').style.display = 'none';
+                    document.getElementById('desktop').style.display = 'block';
+                    renderDesktop();
+                }, 500);
             } else { 
                 const msg = document.getElementById('log-msg');
-                msg.innerText = "ACCESS KEY REJECTED.";
-                msg.style.animation = "shake 0.3s";
-                setTimeout(() => msg.style.animation = "", 300);
+                msg.innerText = "CRITICAL: ACCESS KEY DENIED";
+                msg.parentElement.style.animation = "shake 0.4s ease";
+                setTimeout(() => msg.parentElement.style.animation = "", 400);
             }
         }
 
         function lockSystem() {
             document.getElementById('pass-in').value = "";
             document.getElementById('login').style.display = 'flex';
+            document.getElementById('login').style.opacity = '1';
             document.getElementById('desktop').style.display = 'none';
             document.getElementById('start-menu').style.display = 'none';
         }
@@ -243,10 +335,11 @@
         function renderDesktop() {
             const d = document.getElementById('desktop'); d.innerHTML = "";
             OS.installed.forEach(id => {
-                const p = OS.pos[id] || {x: 40 + (OS.installed.indexOf(id)*120 % (window.innerWidth - 150)), y: 40 + (Math.floor(OS.installed.indexOf(id)/10)*140)};
+                const p = OS.pos[id] || {x: 50 + (OS.installed.indexOf(id)*130 % (window.innerWidth - 200)), y: 50 + (Math.floor(OS.installed.indexOf(id)/8)*150)};
                 const el = document.createElement('div'); el.className = 'icon';
                 el.style.left = p.x+'px'; el.style.top = p.y+'px';
                 el.innerHTML = `<div>${Registry[id] ? Registry[id].icon : "📦"}</div><span>${id}</span>`;
+                
                 el.ondblclick = () => launch(id);
                 el.onmousedown = (e) => {
                     let ox = e.clientX - el.offsetLeft, oy = e.clientY - el.offsetTop;
@@ -263,7 +356,9 @@
 
         function renderLib() {
             const c = document.getElementById('lib-cont'); c.innerHTML = "";
-            Object.keys(Registry).forEach(id => {
+            // Only show apps that are actually installed in the App Library
+            OS.installed.forEach(id => {
+                if(!Registry[id]) return;
                 const i = document.createElement('div'); i.className = 'start-item';
                 i.innerHTML = `<span>${Registry[id].icon}</span><strong>${id}</strong>`;
                 i.onclick = () => { launch(id); toggleStart(); };
@@ -276,13 +371,17 @@
         function launch(id) {
             if(OS.running[id]) { focusWin(id); return; }
             const w = document.createElement('div'); w.className = 'window';
-            w.style.width='900px'; w.style.height='600px'; w.style.left='150px'; w.style.top='100px'; w.style.zIndex = ++OS.z;
+            w.style.width='950px'; w.style.height='650px'; w.style.left='100px'; w.style.top='80px'; w.style.zIndex = ++OS.z;
             w.innerHTML = `
                 <div class="win-head">
-                    <div style="font-weight:600; font-size:0.9rem;">${Registry[id].icon} ${id}</div>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span style="font-size:1.2rem;">${Registry[id].icon}</span>
+                        <span style="font-weight:700; font-size:0.8rem; letter-spacing:1px; opacity:0.8;">${id.toUpperCase()}</span>
+                    </div>
                     <div class="win-ctrls">
+                        <span onclick="toggleIntegratedFullscreen('${id}')" title="Integrated Fullscreen">⛶</span>
                         <span onclick="min('${id}')">─</span>
-                        <span style="font-weight:bold;" onclick="closeW('${id}')">✕</span>
+                        <span style="font-weight:bold; color:#ff4b4b;" onclick="closeW('${id}')">✕</span>
                     </div>
                 </div>
                 <div class="win-body">${Registry[id].content()}</div>
@@ -291,6 +390,7 @@
             document.body.appendChild(w); OS.running[id] = w;
             
             w.querySelector('.win-head').onmousedown = (e) => {
+                if(w.dataset.fs === "true") return; // Prevent drag if fullscreen
                 focusWin(id); let ox = e.clientX - w.offsetLeft, oy = e.clientY - w.offsetTop;
                 document.onmousemove = (ev) => { w.style.left = (ev.clientX-ox)+'px'; w.style.top = (ev.clientY-oy)+'px'; };
                 document.onmouseup = () => document.onmousemove = null;
@@ -301,6 +401,26 @@
                 document.onmouseup = () => document.onmousemove = null;
             };
             updateTask();
+        }
+
+        /* --- NEW: INTEGRATED FULLSCREEN --- */
+        function toggleIntegratedFullscreen(id) {
+            const w = OS.running[id];
+            if(w.dataset.fs !== "true") {
+                w.dataset.oldW = w.style.width; w.dataset.oldH = w.style.height;
+                w.dataset.oldL = w.style.left; w.dataset.oldT = w.style.top;
+                w.style.width = '100vw';
+                w.style.height = `calc(100vh - var(--top-bar-h) - var(--taskbar-h))`;
+                w.style.top = `var(--top-bar-h)`;
+                w.style.left = '0';
+                w.style.borderRadius = '0';
+                w.dataset.fs = "true";
+            } else {
+                w.style.width = w.dataset.oldW; w.style.height = w.dataset.oldH;
+                w.style.left = w.dataset.oldL; w.style.top = w.dataset.oldT;
+                w.style.borderRadius = '20px';
+                w.dataset.fs = "false";
+            }
         }
 
         function focusWin(id) { OS.running[id].style.display='flex'; OS.running[id].style.zIndex = ++OS.z; updateTask(); }
@@ -315,82 +435,81 @@
             });
         }
 
-        /* --- FEATURE: APP FACTORY (DYNAMIC APP CREATION) --- */
+        /* --- FEATURE: FILE UPLOAD BACKGROUND --- */
+        function handleFileUpload(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => { setBG(event.target.result); };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        /* --- FEATURE: BATTERY SYSTEM --- */
+        async function updateBattery() {
+            try {
+                const b = await navigator.getBattery();
+                const level = Math.floor(b.level * 100);
+                document.getElementById('battery-stat').innerHTML = `<span>${level}%</span> ${b.charging ? '⚡' : '🔋'}`;
+            } catch(e) {
+                document.getElementById('battery-stat').innerHTML = `<span>98%</span> 🔋`;
+            }
+        }
+
+        function install(id) {
+            if(!OS.installed.includes(id)) {
+                OS.installed.push(id); 
+                localStorage.setItem("mc_apps", JSON.stringify(OS.installed));
+                renderDesktop(); 
+                renderLib();
+                launch('Store'); // Refresh store view
+                alert(`${id} has been integrated into the system kernel.`);
+            }
+        }
+
         function createCustomApp() {
             const name = document.getElementById('fac-name').value.replace(/\s+/g, '');
             const link = document.getElementById('fac-link').value;
-            
-            if(!name || !link) { alert("Please enter both name and URL."); return; }
-            
-            // Add to Registry
-            Registry[name] = { icon: "🚀", content: () => embedApp(link) };
-            
-            // Persist
-            const customData = JSON.parse(localStorage.getItem("mc_custom_apps")) || {};
-            customData[name] = link;
-            localStorage.setItem("mc_custom_apps", JSON.stringify(customData));
-            
-            if(!OS.installed.includes(name)) {
-                OS.installed.push(name);
-                localStorage.setItem("mc_apps", JSON.stringify(OS.installed));
-            }
-
-            renderDesktop();
-            renderLib();
-            alert(`Application '${name}' has been compiled and added to desktop.`);
+            if(!name || !link) return;
+            Registry[name] = { icon: "🚀", content: () => buildAppFrame(link) };
+            const customs = JSON.parse(localStorage.getItem("mc_custom_apps")) || {};
+            customs[name] = link;
+            localStorage.setItem("mc_custom_apps", JSON.stringify(customs));
+            install(name);
         }
 
-        /* --- UTILS --- */
-        function install(id) {
-            if(!OS.installed.includes(id)) {
-                OS.installed.push(id); localStorage.setItem("mc_apps", JSON.stringify(OS.installed));
-                renderDesktop(); alert(id + " deployed successfully.");
-            }
+        function calcResult() {
+            const i = document.getElementById('c-in');
+            try { i.value = eval(i.value); } catch(e) { i.value = "ERROR"; }
         }
 
-        function openFullscreen(url) {
-            const newTab = window.open('about:blank', '_blank');
-            newTab.document.write(`
-                <!DOCTYPE html>
-                <html lang="en">
-                <head>
-                  <title>Fullscreen App</title>
-                  <style>
-                    body, html { margin:0; height:100%; overflow:hidden; background:black; }
-                    iframe { width:100%; height:100%; border:none; }
-                  </style>
-                </head>
-                <body>
-                  <iframe src="${url}"></iframe>
-                </body>
-                </html>
-            `);
-            newTab.document.close();
+        function deepFullscreen(u) {
+            const n = window.open('about:blank', '_blank');
+            n.document.write(`<html><body style="margin:0;background:#000"><iframe src="${u}" style="width:100vw;height:100vh;border:none;"></iframe></body></html>`);
+            n.document.close();
         }
 
         function setBG(u) { 
-            OS.bg = (u.startsWith('http')) ? `url(${u}) center/cover` : u; 
+            OS.bg = (u.startsWith('http') || u.startsWith('data:')) ? `url(${u}) center/cover` : u; 
             document.getElementById('os-root').style.background = OS.bg; 
             localStorage.setItem("mc_bg", OS.bg); 
         }
 
-        function setPass(p) { 
-            if(p){ OS.pass = p; localStorage.setItem("mc_pass", p); alert("System Access Key Updated."); } 
-        }
+        function setPass(p) { if(p){ OS.pass = p; localStorage.setItem("mc_pass", p); alert("Key Updated."); } }
 
         function updateTime() { 
             const d = new Date(); 
             document.getElementById('clock').innerText = d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); 
-            document.getElementById('date').innerText = d.toLocaleDateString([], {weekday: 'short', month: 'short', day: 'numeric'}); 
+            document.getElementById('date').innerText = d.toLocaleDateString([], {weekday:'short', day:'numeric', month:'short'}); 
         }
 
         function cmd(e, i) { 
             if(e.key==='Enter'){ 
                 const o=document.getElementById('t-out'); 
                 o.innerHTML += `<br><span style="color:#fff">> ${i.value}</span>`; 
-                if(i.value==='help') o.innerHTML += "<br>sys, clear, whoami, apps";
-                else if(i.value==='clear') o.innerHTML="Bash Reset.";
-                else if(i.value==='sys') o.innerHTML += "<br>McCrackOS v8.0<br>Uptime: 99.9%<br>Kernel: Carbon-JS";
+                if(i.value==='help') o.innerHTML += "<br>sys, clear, whoami, apps, unlock -force";
+                else if(i.value==='clear') o.innerHTML="Console Buffer Purged.";
+                else if(i.value==='sys') o.innerHTML += `<br>OS: McCrackOS V9.0<br>Host: Admin<br>Kernel: Carbon-JS-9`;
                 i.value=""; o.scrollTop=o.scrollHeight; 
             } 
         }
