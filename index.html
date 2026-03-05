@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>McCrackOS V9.0 - Ultra Edition</title>
+    <title>McCrackOS V9.0 - Ultra Edition (Modified)</title>
     <style>
         /* --- CORE SYSTEM VARIABLES --- */
         :root {
@@ -15,6 +15,7 @@
             --shadow: 0 30px 60px rgba(0,0,0,0.95);
             --blur: blur(35px);
             --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            --danger: #ff4b4b;
         }
 
         /* --- GLOBAL RESET --- */
@@ -66,13 +67,31 @@
 
         /* --- WORKSPACE --- */
         #desktop { position: absolute; inset: var(--top-bar-h) 0 var(--taskbar-h) 0; display: none; z-index: 100; padding: 30px; }
+        
+        /* Drag and Drop Styling */
         .icon { 
             position: absolute; width: 110px; height: 120px; display: flex; flex-direction: column; 
-            align-items: center; justify-content: center; border-radius: 18px; cursor: pointer; transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            align-items: center; justify-content: center; border-radius: 18px; cursor: grab; transition: transform 0.2s;
+            z-index: 150;
         }
+        .icon:active { cursor: grabbing; }
         .icon:hover { background: rgba(255,255,255,0.08); transform: scale(1.05); }
-        .icon div { font-size: 55px; margin-bottom: 10px; filter: drop-shadow(0 8px 12px rgba(0,0,0,0.6)); }
-        .icon span { font-size: 0.85rem; text-align: center; font-weight: 600; text-shadow: 0 2px 8px rgba(0,0,0,1); }
+        .icon div { font-size: 55px; margin-bottom: 10px; filter: drop-shadow(0 8px 12px rgba(0,0,0,0.6)); pointer-events: none;}
+        .icon span { font-size: 0.85rem; text-align: center; font-weight: 600; text-shadow: 0 2px 8px rgba(0,0,0,1); pointer-events: none;}
+
+        /* --- DELETE BIN --- */
+        #delete-bin {
+            position: absolute; bottom: 30px; right: 30px; width: 100px; height: 120px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background: rgba(255, 75, 75, 0.05); border: 2px dashed rgba(255, 75, 75, 0.2);
+            border-radius: 20px; transition: 0.3s; z-index: 110;
+        }
+        #delete-bin.drag-over {
+            background: rgba(255, 75, 75, 0.3); border-color: #ff4b4b;
+            transform: scale(1.1); box-shadow: 0 0 30px rgba(255, 75, 75, 0.4);
+        }
+        #delete-bin div { font-size: 50px; margin-bottom: 5px; }
+        #delete-bin span { font-size: 0.7rem; font-weight: 800; color: #ff4b4b; letter-spacing: 1px; }
 
         /* --- APPLICATION LIBRARY --- */
         #start-menu { 
@@ -120,6 +139,7 @@
 
         /* --- ANIMATIONS --- */
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+        @keyframes pulse-delete { 0% { box-shadow: 0 0 0 0 rgba(255, 75, 75, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(255, 75, 75, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 75, 75, 0); } }
     </style>
 </head>
 <body id="os-root">
@@ -150,6 +170,11 @@
 
     <div id="desktop"></div>
 
+    <div id="delete-bin" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropDelete(event)">
+        <div>🗑️</div>
+        <span>DELETE BIN</span>
+    </div>
+
     <div id="start-menu">
         <div style="border-bottom: 1px solid #222; padding-bottom: 20px; margin-bottom: 20px;">
             <h3 style="font-weight: 500; color: var(--accent); letter-spacing: 1px;">INSTALLED MODULES</h3>
@@ -175,7 +200,8 @@
             installed: JSON.parse(localStorage.getItem("mc_apps")) || ["Browser", "Terminal", "Files", "Store", "Settings"],
             pos: JSON.parse(localStorage.getItem("mc_pos")) || {},
             running: {},
-            battery: 100
+            battery: 100,
+            restricted: ["Browser", "Store", "Terminal"] // System Core Protected Apps
         };
 
         const Registry = {
@@ -208,6 +234,8 @@
                         ${renderStoreItem('Music', 'High-Fidelity Audio')}
                         ${renderStoreItem('AppFactory', 'Custom Module Compiler')}
                         ${renderStoreItem('Notepad', 'Secure Text Buffer')}
+                        ${renderStoreItem('Files', 'Core File Navigator')}
+                        ${renderStoreItem('Settings', 'System Configuration')}
                     </div>
                 </div>` 
             },
@@ -251,6 +279,63 @@
             McCrackChat: { icon: "💬", content: () => buildAppFrame("https://patrickmango49.github.io/McCrack-Chat/") }
         };
 
+        /* --- DRAG & DROP LOGIC --- */
+        function allowDrop(ev) {
+            ev.preventDefault();
+            document.getElementById('delete-bin').classList.add('drag-over');
+        }
+
+        function dragLeave(ev) {
+            document.getElementById('delete-bin').classList.remove('drag-over');
+        }
+
+        function startDrag(ev, id) {
+            ev.dataTransfer.setData("appId", id);
+            // Provide a ghost image effect
+            ev.currentTarget.style.opacity = "0.4";
+        }
+
+        function endDrag(ev) {
+            ev.currentTarget.style.opacity = "1";
+            document.getElementById('delete-bin').classList.remove('drag-over');
+        }
+
+        function dropDelete(ev) {
+            ev.preventDefault();
+            document.getElementById('delete-bin').classList.remove('drag-over');
+            const id = ev.dataTransfer.getData("appId");
+            
+            if (OS.restricted.includes(id)) {
+                alert(`CRITICAL ERROR: ${id} is a protected system kernel module and cannot be purged.`);
+                return;
+            }
+
+            const confirmPurge = confirm(`Are you sure you want to purge ${id} from local storage? This will require re-installation from the Store.`);
+            if (confirmPurge) {
+                // Remove from running apps if open
+                if (OS.running[id]) closeW(id);
+                
+                // Remove from installed list
+                OS.installed = OS.installed.filter(app => app !== id);
+                localStorage.setItem("mc_apps", JSON.stringify(OS.installed));
+                
+                // If it's a custom app, clean that up too
+                const customs = JSON.parse(localStorage.getItem("mc_custom_apps")) || {};
+                if (customs[id]) {
+                    delete customs[id];
+                    localStorage.setItem("mc_custom_apps", JSON.stringify(customs));
+                }
+
+                renderDesktop();
+                renderLib();
+                
+                // Visual feedback
+                const bin = document.getElementById('delete-bin');
+                bin.style.animation = "pulse-delete 0.5s ease-out";
+                setTimeout(() => bin.style.animation = "", 500);
+            }
+        }
+
         /* --- FRAMEWORK FUNCTIONS --- */
         function buildAppFrame(url) {
             return `
@@ -267,7 +352,7 @@
             const isInst = OS.installed.includes(id);
             return `
                 <div class="store-card">
-                    <div><strong>${Registry[id].icon} ${id}</strong><br><small style="opacity:0.4">${desc}</small></div>
+                    <div><strong>${Registry[id] ? Registry[id].icon : "📦"} ${id}</strong><br><small style="opacity:0.4">${desc}</small></div>
                     <button class="install-btn" style="${isInst?'background:#222;cursor:default':''}" onclick="${isInst?'':'install(\''+id+'\')'}">${isInst?'Deployed':'Install'}</button>
                 </div>
             `;
@@ -318,12 +403,19 @@
         function renderDesktop() {
             const d = document.getElementById('desktop'); d.innerHTML = "";
             OS.installed.forEach(id => {
-                const p = OS.pos[id] || {x: 50 + (OS.installed.indexOf(id)*130 % (window.innerWidth - 200)), y: 50 + (Math.floor(OS.installed.indexOf(id)/8)*150)};
+                const p = OS.pos[id] || {x: 50 + (OS.installed.indexOf(id)*130 % (window.innerWidth - 300)), y: 50 + (Math.floor(OS.installed.indexOf(id)/8)*150)};
                 const el = document.createElement('div'); el.className = 'icon';
                 el.style.left = p.x+'px'; el.style.top = p.y+'px';
+                el.setAttribute("draggable", "true");
                 el.innerHTML = `<div>${Registry[id] ? Registry[id].icon : "📦"}</div><span>${id}</span>`;
                 
+                // Drag Events for Delete Bin
+                el.ondragstart = (e) => startDrag(e, id);
+                el.ondragend = (e) => endDrag(e);
+
                 el.ondblclick = () => launch(id);
+                
+                // Mouse logic for movement
                 el.onmousedown = (e) => {
                     let ox = e.clientX - el.offsetLeft, oy = e.clientY - el.offsetTop;
                     document.onmousemove = (ev) => { 
@@ -355,6 +447,8 @@
                 focusWin(id); 
                 return; 
             }
+            if(!Registry[id]) return;
+
             const w = document.createElement('div'); w.className = 'window';
             w.style.width='950px'; w.style.height='650px'; w.style.left='100px'; w.style.top='80px'; w.style.zIndex = ++OS.z;
             w.innerHTML = `
