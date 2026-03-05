@@ -79,9 +79,9 @@
         .icon div { font-size: 55px; margin-bottom: 10px; filter: drop-shadow(0 8px 12px rgba(0,0,0,0.6)); pointer-events: none;}
         .icon span { font-size: 0.85rem; text-align: center; font-weight: 600; text-shadow: 0 2px 8px rgba(0,0,0,1); pointer-events: none;}
 
-        /* --- DELETE BIN --- */
+        /* --- DELETE BIN (Updated Position) --- */
         #delete-bin {
-            position: absolute; bottom: 30px; right: 30px; width: 100px; height: 120px;
+            position: absolute; bottom: 120px; right: 30px; width: 100px; height: 120px;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             background: rgba(255, 75, 75, 0.05); border: 2px dashed rgba(255, 75, 75, 0.2);
             border-radius: 20px; transition: 0.3s; z-index: 110;
@@ -206,7 +206,8 @@
 
         const Registry = {
             Notepad: { icon: "📝", content: () => `<textarea oninput="localStorage.setItem('mc_note', this.value)" style="width:100%;height:100%;background:transparent;color:#ddd;padding:40px;border:none;outline:none;resize:none;font-family:monospace;font-size:1.2rem;line-height:1.6;">${localStorage.getItem('mc_note')||''}</textarea>` },
-            Browser: { icon: "🌐", content: () => buildAppFrame("https://www.google.com/search?igu=1") },
+            // Browser URL Changed to Requested Link
+            Browser: { icon: "🌐", content: () => buildAppFrame("https://siuuu.pagostepeapulco.gob.mx/") },
             Terminal: { icon: "⌨️", content: () => `<div id="t-out" style="padding:25px;color:#0f0;font-family:monospace;height:calc(100% - 60px);overflow:auto;line-height:1.5;font-size:0.9rem;">McCrack Kernel Console [Version 9.0.4]<br>(c) 2026 McCrack Industries.<br><br></div><input onkeydown="cmd(event, this)" style="width:100%;background:#050505;border:none;border-top:1px solid #222;color:#0f0;padding:18px;outline:none;font-family:monospace;font-size:1rem;">` },
             Files: { icon: "📁", content: () => `
                 <div style="padding:30px;">
@@ -259,10 +260,12 @@
                 </div>` 
             },
             Music: { icon: "🎵", content: () => `<div style="padding:60px;text-align:center;"><div style="font-size:120px;margin-bottom:30px;filter:drop-shadow(0 0 20px var(--accent));">🎧</div><h2>McCrack Music</h2><p style="opacity:0.5;">Library Empty. Connect to stream.</p></div>` },
+            // AppFactory with Added Disclaimer
             AppFactory: { icon: "🛠️", content: () => `
                 <div style="padding:50px; max-width:600px; margin:0 auto;">
                     <h2>Compiler Console</h2>
-                    <p style="opacity:0.4; margin-bottom:30px;">Encapsulate any web protocol into a local app.</p>
+                    <p style="opacity:0.4; margin-bottom:10px;">Encapsulate any web protocol into a local app.</p>
+                    <p style="color: #ff4b4b; font-weight: 800; font-size: 0.75rem; margin-bottom: 25px; letter-spacing: 1px;">THIS IS NOT AN COMPLETE UNBLOCKER, ONLY SOME SITES WORK!</p>
                     <label style="font-size:0.8rem; color:var(--accent);">MODULE NAME</label>
                     <input type="text" id="fac-name" placeholder="e.g. YouTube" style="width:100%; padding:15px; background:#111; border:var(--border); color:white; border-radius:12px; margin:10px 0 20px 0; outline:none;">
                     <label style="font-size:0.8rem; color:var(--accent);">TARGET URL</label>
@@ -291,7 +294,6 @@
 
         function startDrag(ev, id) {
             ev.dataTransfer.setData("appId", id);
-            // Provide a ghost image effect
             ev.currentTarget.style.opacity = "0.4";
         }
 
@@ -312,14 +314,10 @@
 
             const confirmPurge = confirm(`Are you sure you want to purge ${id} from local storage? This will require re-installation from the Store.`);
             if (confirmPurge) {
-                // Remove from running apps if open
                 if (OS.running[id]) closeW(id);
-                
-                // Remove from installed list
                 OS.installed = OS.installed.filter(app => app !== id);
                 localStorage.setItem("mc_apps", JSON.stringify(OS.installed));
                 
-                // If it's a custom app, clean that up too
                 const customs = JSON.parse(localStorage.getItem("mc_custom_apps")) || {};
                 if (customs[id]) {
                     delete customs[id];
@@ -329,7 +327,6 @@
                 renderDesktop();
                 renderLib();
                 
-                // Visual feedback
                 const bin = document.getElementById('delete-bin');
                 bin.style.animation = "pulse-delete 0.5s ease-out";
                 setTimeout(() => bin.style.animation = "", 500);
@@ -348,6 +345,10 @@
             `;
         }
 
+        function deepFullscreen(url) {
+            window.open(url, '_blank');
+        }
+
         function renderStoreItem(id, desc) {
             const isInst = OS.installed.includes(id);
             return `
@@ -356,6 +357,34 @@
                     <button class="install-btn" style="${isInst?'background:#222;cursor:default':''}" onclick="${isInst?'':'install(\''+id+'\')'}">${isInst?'Deployed':'Install'}</button>
                 </div>
             `;
+        }
+
+        function install(id) {
+            OS.installed.push(id);
+            localStorage.setItem("mc_apps", JSON.stringify(OS.installed));
+            renderDesktop();
+            renderLib();
+            const storeWin = OS.running['Store'];
+            if(storeWin) storeWin.querySelector('.win-body').innerHTML = Registry['Store'].content();
+        }
+
+        /* --- CUSTOM APP COMPILER --- */
+        function createCustomApp() {
+            const name = document.getElementById('fac-name').value.trim();
+            const link = document.getElementById('fac-link').value.trim();
+            if(!name || !link) return alert("All fields required.");
+            
+            const customs = JSON.parse(localStorage.getItem("mc_custom_apps")) || {};
+            customs[name] = link;
+            localStorage.setItem("mc_custom_apps", JSON.stringify(customs));
+            
+            Registry[name] = { icon: "🚀", content: () => buildAppFrame(link) };
+            OS.installed.push(name);
+            localStorage.setItem("mc_apps", JSON.stringify(OS.installed));
+            
+            renderDesktop();
+            renderLib();
+            alert(`Module ${name} compiled and deployed to desktop.`);
         }
 
         /* --- CORE SYSTEM LOGIC --- */
@@ -375,6 +404,26 @@
             updateTime(); setInterval(updateTime, 1000);
             renderLib();
         };
+
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('clock').innerText = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            document.getElementById('date').innerText = now.toLocaleDateString([], {weekday: 'short', month: 'short', day: 'numeric'});
+        }
+
+        function setBG(url) {
+            if(!url) return;
+            OS.bg = `url('${url}') center/cover no-repeat`;
+            document.getElementById('os-root').style.background = OS.bg;
+            localStorage.setItem("mc_bg", OS.bg);
+        }
+
+        function setPass(p) {
+            if(!p) return;
+            OS.pass = p;
+            localStorage.setItem("mc_pass", p);
+            alert("Security key updated.");
+        }
 
         function unlock() {
             if(document.getElementById('pass-in').value === OS.pass) {
@@ -409,13 +458,10 @@
                 el.setAttribute("draggable", "true");
                 el.innerHTML = `<div>${Registry[id] ? Registry[id].icon : "📦"}</div><span>${id}</span>`;
                 
-                // Drag Events for Delete Bin
                 el.ondragstart = (e) => startDrag(e, id);
                 el.ondragend = (e) => endDrag(e);
-
                 el.ondblclick = () => launch(id);
                 
-                // Mouse logic for movement
                 el.onmousedown = (e) => {
                     let ox = e.clientX - el.offsetLeft, oy = e.clientY - el.offsetTop;
                     document.onmousemove = (ev) => { 
@@ -536,7 +582,6 @@
             });
         }
 
-        /* --- FEATURE: FILE UPLOAD BACKGROUND --- */
         function handleFileUpload(e) {
             const file = e.target.files[0];
             if (file) {
@@ -546,83 +591,31 @@
             }
         }
 
-        /* --- FEATURE: BATTERY SYSTEM --- */
         async function updateBattery() {
             try {
                 const b = await navigator.getBattery();
-                const level = Math.floor(b.level * 100);
-                document.getElementById('battery-stat').innerHTML = `<span>${level}%</span> ${b.charging ? '⚡' : '🔋'}`;
-            } catch(e) {
-                document.getElementById('battery-stat').innerHTML = `<span>98%</span> 🔋`;
-            }
+                document.getElementById('battery-stat').innerHTML = `<span>${Math.round(b.level * 100)}%</span> ${b.charging ? '⚡' : '🔋'}`;
+            } catch(e) {}
         }
 
-        function install(id) {
-            if(!OS.installed.includes(id)) {
-                OS.installed.push(id); 
-                localStorage.setItem("mc_apps", JSON.stringify(OS.installed));
-                renderDesktop(); 
-                renderLib();
-                launch('Store');
-                alert(`${id} has been integrated into the system kernel.`);
+        function cmd(e, input) {
+            if(e.key === 'Enter') {
+                const out = document.getElementById('t-out');
+                const v = input.value.toLowerCase();
+                out.innerHTML += `<div style="color:white">> ${input.value}</div>`;
+                if(v === 'help') out.innerHTML += `<div>Available: HELP, CLEAR, SYSTEM, APPS, REBOOT</div>`;
+                else if(v === 'clear') out.innerHTML = "";
+                else if(v === 'system') out.innerHTML += `<div>McCrackOS V9.0.4 Kernel: Active<br>Memory: STABLE</div>`;
+                else if(v === 'reboot') location.reload();
+                else out.innerHTML += `<div style="color:red">ERROR: Command not found in kernel registry.</div>`;
+                input.value = "";
+                out.scrollTop = out.scrollHeight;
             }
-        }
-
-        function createCustomApp() {
-            const name = document.getElementById('fac-name').value.replace(/\s+/g, '');
-            const link = document.getElementById('fac-link').value;
-            if(!name || !link) return;
-            Registry[name] = { icon: "🚀", content: () => buildAppFrame(link) };
-            const customs = JSON.parse(localStorage.getItem("mc_custom_apps")) || {};
-            customs[name] = link;
-            localStorage.setItem("mc_custom_apps", JSON.stringify(customs));
-            install(name);
-            alert("Module Compiled Successfully.");
         }
 
         function calcResult() {
             const i = document.getElementById('c-in');
-            try { i.value = eval(i.value); } catch(e) { i.value = "ERROR"; }
-        }
-
-        function deepFullscreen(u) {
-            const n = window.open('about:blank', '_blank');
-            n.document.write(`<html><body style="margin:0;background:#000"><iframe src="${u}" style="width:100vw;height:100vh;border:none;"></iframe></body></html>`);
-            n.document.close();
-        }
-
-        function setBG(u) { 
-            OS.bg = (u.startsWith('http') || u.startsWith('data:')) ? `url(${u}) center/cover` : u; 
-            document.getElementById('os-root').style.background = OS.bg; 
-            localStorage.setItem("mc_bg", OS.bg); 
-        }
-
-        function setPass(p) { if(p){ OS.pass = p; localStorage.setItem("mc_pass", p); alert("Key Updated."); } }
-
-        function updateTime() { 
-            const d = new Date(); 
-            document.getElementById('clock').innerText = d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); 
-            document.getElementById('date').innerText = d.toLocaleDateString([], {weekday:'short', day:'numeric', month:'short'}); 
-        }
-
-        function cmd(e, i) { 
-            if(e.key==='Enter'){ 
-                const o=document.getElementById('t-out'); 
-                const val = i.value.toLowerCase();
-                o.innerHTML += `<br><span style="color:#fff">> ${i.value}</span>`; 
-                
-                if(val==='help') o.innerHTML += "<br>sys, clear, whoami, apps, theme [color], unlock -force";
-                else if(val==='clear') o.innerHTML="Console Buffer Purged.";
-                else if(val==='sys') o.innerHTML += `<br>OS: McCrackOS V9.0<br>Host: Admin<br>Kernel: Carbon-JS-9`;
-                else if(val.startsWith('color ')) {
-                    const c = val.split(' ')[1];
-                    o.style.color = c;
-                    i.style.color = c;
-                }
-                else if(val === 'whoami') o.innerHTML += `<br>System Root Admin`;
-                
-                i.value=""; o.scrollTop=o.scrollHeight; 
-            } 
+            try { i.value = eval(i.value); } catch(e) { i.value = "MATH_ERR"; }
         }
     </script>
 </body>
