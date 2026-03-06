@@ -13,15 +13,19 @@
             --accent-glow: rgba(0, 120, 212, 0.5);
             --danger: #ff4b4b;
             --success: #44ff44;
+            --warning: #ffb800;
             --panel-bg: rgba(5, 5, 5, 0.95);
             --win-bg: #080808;
             --taskbar-bg: rgba(0, 0, 0, 0.85);
             --border: 1px solid rgba(255, 255, 255, 0.1);
             --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+            --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.5);
             --font-main: 'Segoe UI', system-ui, -apple-system, sans-serif;
             --font-code: 'Cascadia Code', 'Consolas', monospace;
             --top-h: 30px;
             --task-h: 60px;
+            --transition-fast: 0.15s ease;
+            --transition-normal: 0.3s ease;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font-main); }
@@ -36,11 +40,21 @@
             position: fixed; inset: 0; background: #000; color: #0f0; 
             font-family: var(--font-code); padding: 40px; z-index: 100000;
             font-size: 12px; line-height: 1.4; overflow: hidden;
+            animation: terminalFade 0.5s ease 3.5s forwards;
+        }
+
+        @keyframes terminalFade {
+            to { opacity: 0; }
         }
 
         #boot-logo {
             position: fixed; inset: 0; background: #000; z-index: 99999;
             display: none; flex-direction: column; align-items: center; justify-content: center;
+            animation: bootFade 0.5s ease 2s forwards;
+        }
+
+        @keyframes bootFade {
+            to { opacity: 0; }
         }
 
         .spinner {
@@ -56,18 +70,29 @@
             backdrop-filter: blur(50px); z-index: 90000; display: none;
             align-items: center; justify-content: center;
         }
-        .auth-box { width: 380px; text-align: center; animation: fadeIn 0.8s ease; }
+        .auth-box { 
+            width: 380px; text-align: center; animation: fadeIn 0.8s ease; 
+            animation-delay: 0.2s;
+            opacity: 0;
+            animation-fill-mode: forwards;
+        }
         .auth-input {
             width: 100%; padding: 20px; background: #111; border: var(--border);
             border-radius: 15px; color: #fff; margin: 25px 0; text-align: center; 
-            font-size: 1.5rem; letter-spacing: 5px;
+            font-size: 1.5rem; letter-spacing: 5px; transition: var(--transition-fast);
+        }
+        .auth-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 20px var(--accent-glow);
+            outline: none;
         }
         .auth-btn {
             width: 100%; padding: 18px; background: var(--accent); border: none;
             border-radius: 15px; color: #fff; font-weight: 800; cursor: pointer;
-            transition: 0.3s; box-shadow: 0 0 20px var(--accent-glow);
+            transition: var(--transition-fast); box-shadow: 0 0 20px var(--accent-glow);
         }
         .auth-btn:hover { background: #0086f0; transform: translateY(-2px); }
+        .auth-btn:active { transform: translateY(0); }
 
         /* --- TOP HUD --- */
         #os-top-bar {
@@ -89,20 +114,24 @@
         .desktop-item {
             position: absolute; width: 100px; height: 110px; 
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            border-radius: 12px; cursor: pointer; transition: background 0.2s, transform 0.1s;
+            border-radius: 12px; cursor: pointer; transition: background var(--transition-fast), transform 0.1s;
             z-index: 5;
+            user-select: none;
         }
-        .desktop-item:hover { background: rgba(255, 255, 255, 0.1); }
+        .desktop-item:hover { background: rgba(255, 255, 255, 0.1); transform: scale(1.05); }
         .desktop-item:active { transform: scale(0.95); }
+        .desktop-item.dragging { opacity: 0.7; z-index: 15; }
         .desktop-item .graphic { font-size: 48px; margin-bottom: 5px; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5)); }
-        .desktop-item .label { font-size: 12px; font-weight: 600; text-align: center; text-shadow: 0 2px 5px #000; }
+        .desktop-item .label { font-size: 12px; font-weight: 600; text-align: center; text-shadow: 0 2px 5px #000; word-break: break-word; }
 
         /* --- WINDOWING SYSTEM --- */
         .win {
             position: absolute; background: var(--win-bg); border-radius: 12px;
             border: var(--border); box-shadow: var(--shadow-xl); overflow: hidden;
             display: flex; flex-direction: column; min-width: 400px; min-height: 300px;
-            z-index: 100; transition: width 0.3s, height 0.3s, top 0.3s, left 0.3s;
+            z-index: 100; transition: width var(--transition-normal), height var(--transition-normal);
+            backface-visibility: hidden;
+            will-change: transform, z-index;
         }
         .win.maximized {
             inset: 0 !important; width: 100vw !important; height: calc(100vh - var(--task-h)) !important;
@@ -111,14 +140,34 @@
         .win-head {
             background: #1a1a1a; padding: 12px 18px; display: flex;
             justify-content: space-between; align-items: center; cursor: move;
+            user-select: none;
+            border-bottom: var(--border);
         }
         .win-title { font-size: 11px; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; }
         .win-btns { display: flex; gap: 8px; }
-        .win-btn { width: 13px; height: 13px; border-radius: 50%; cursor: pointer; border: none; }
+        .win-btn { 
+            width: 13px; height: 13px; border-radius: 50%; cursor: pointer; border: none;
+            transition: var(--transition-fast);
+            opacity: 0.7;
+        }
+        .win-btn:hover { opacity: 1; transform: scale(1.1); }
         .win-close { background: #ff5f56; }
         .win-min { background: #ffbd2e; }
         .win-max { background: #27c93f; }
-        .win-body { flex: 1; overflow: hidden; background: #000; position: relative; }
+        .win-body { 
+            flex: 1; overflow: auto; background: #000; position: relative;
+            scroll-behavior: smooth;
+        }
+
+        /* Resize Handle */
+        .win-resize {
+            position: absolute; bottom: 0; right: 0; width: 20px; height: 20px;
+            background: linear-gradient(135deg, transparent 0%, var(--accent) 100%);
+            cursor: nwse-resize; opacity: 0;
+            transition: opacity var(--transition-fast);
+        }
+        .win:hover .win-resize { opacity: 0.3; }
+        .win-resize:hover { opacity: 0.8 !important; }
 
         /* --- TASKBAR --- */
         #os-taskbar {
@@ -129,67 +178,117 @@
         #start-trigger {
             width: 45px; height: 45px; background: var(--accent);
             border-radius: 10px; display: flex; align-items: center; justify-content: center;
-            font-size: 22px; cursor: pointer; transition: 0.3s;
+            font-size: 22px; cursor: pointer; transition: var(--transition-fast);
             box-shadow: 0 0 15px var(--accent-glow);
+            flex-shrink: 0;
         }
+        #start-trigger:hover { transform: scale(1.05); }
+        #start-trigger:active { transform: scale(0.95); }
         #task-list { flex: 1; margin: 0 20px; display: flex; gap: 8px; overflow-x: auto; }
+        #task-list::-webkit-scrollbar { height: 4px; }
+        #task-list::-webkit-scrollbar-track { background: transparent; }
+        #task-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 2px; }
+        
         .task-tab {
             padding: 8px 15px; background: rgba(255,255,255,0.05); border-radius: 8px;
-            font-size: 12px; cursor: pointer; transition: 0.2s; white-space: nowrap;
+            font-size: 12px; cursor: pointer; transition: var(--transition-fast); white-space: nowrap;
             border: 1px solid transparent; min-width: 100px; text-align: center;
+            flex-shrink: 0;
         }
-        .task-tab.active { background: rgba(0, 120, 212, 0.3); border-color: var(--accent); }
+        .task-tab:hover { background: rgba(255,255,255,0.1); }
+        .task-tab.active { 
+            background: rgba(0, 120, 212, 0.3); 
+            border-color: var(--accent);
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
 
         /* --- START MENU --- */
         #start-menu {
-            position: absolute; bottom: 75px; left: 15px; width: 400px; height: 550px;
+            position: absolute; bottom: 75px; left: 15px; width: 400px; max-height: 550px;
             background: var(--panel-bg); backdrop-filter: blur(40px); border: var(--border);
             border-radius: 20px; display: none; flex-direction: column; padding: 30px; z-index: 19000;
-            box-shadow: 0 20px 50px rgba(0,0,0,1);
+            box-shadow: var(--shadow-xl);
+            animation: slideUp 0.3s ease forwards;
+            opacity: 0;
         }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         .start-search {
             width: 100%; padding: 15px; background: #111; border: var(--border);
             border-radius: 12px; color: #fff; margin-bottom: 25px; outline: none;
+            transition: var(--transition-fast);
         }
+        .start-search:focus { border-color: var(--accent); box-shadow: 0 0 20px var(--accent-glow); }
+        
+        .start-list { flex: 1; overflow-y: auto; margin-bottom: 20px; }
+        .start-list::-webkit-scrollbar { width: 6px; }
+        .start-list::-webkit-scrollbar-track { background: transparent; }
+        .start-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
+        
         .start-app-item {
             display: flex; align-items: center; gap: 15px; padding: 12px;
-            border-radius: 12px; cursor: pointer; transition: 0.2s;
+            border-radius: 12px; cursor: pointer; transition: var(--transition-fast);
         }
         .start-app-item:hover { background: rgba(255,255,255,0.1); transform: translateX(5px); }
 
         /* --- COMPONENTS --- */
-        .explorer-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 15px; padding: 20px; }
+        .explorer-grid { 
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); 
+            gap: 15px; padding: 20px; 
+        }
         .file-card { 
             background: #0d0d0d; padding: 20px; border-radius: 12px; border: 1px solid #1a1a1a;
-            text-align: center; cursor: pointer; transition: 0.2s;
+            text-align: center; cursor: pointer; transition: var(--transition-fast);
         }
-        .file-card:hover { border-color: var(--accent); background: #151515; }
+        .file-card:hover { border-color: var(--accent); background: #151515; transform: translateY(-2px); }
 
         .store-item {
             display: flex; justify-content: space-between; align-items: center;
             padding: 18px; background: #0d0d0d; border-radius: 15px; margin-bottom: 15px;
-            border: var(--border); transition: 0.3s;
+            border: var(--border); transition: var(--transition-fast);
         }
         .store-item:hover { background: #111; border-color: var(--accent); }
         .btn-install { 
             padding: 10px 20px; background: var(--accent); border: none; 
             border-radius: 10px; color: #fff; font-weight: bold; cursor: pointer;
+            transition: var(--transition-fast);
         }
-        .btn-install.installed { background: #333; cursor: default; }
+        .btn-install:hover { transform: translateY(-2px); box-shadow: 0 0 15px var(--accent-glow); }
+        .btn-install.installed { background: #333; cursor: default; opacity: 0.6; }
 
         /* --- SYSTEM UTILS --- */
         #delete-bin {
-            position: absolute; bottom: 30px; right: 30px; width: 120px; height: 140px;
+            position: absolute; bottom: 80px; right: 30px; width: 120px; height: 140px;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             border: 2px dashed rgba(255, 75, 75, 0.2); border-radius: 20px;
-            background: rgba(255, 75, 75, 0.02); transition: 0.4s;
+            background: rgba(255, 75, 75, 0.02); transition: var(--transition-normal);
+            cursor: pointer;
+            z-index: 5;
         }
         #delete-bin.drag-over {
             background: rgba(255, 75, 75, 0.2); border-color: var(--danger);
             transform: scale(1.1); box-shadow: 0 0 40px rgba(255,75,75,0.4);
         }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        /* --- UTILITIES --- */
+        .hidden { display: none !important; }
+        .noselect { user-select: none; }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .win { min-width: 300px; min-height: 250px; }
+            #start-menu { width: 90vw; left: 5vw; }
+        }
     </style>
 </head>
 <body oncontextmenu="return false">
@@ -204,8 +303,9 @@
 
     <div id="auth-gate">
         <div class="auth-box">
-            <div style="font-size: 80px; filter: drop-shadow(0 0 20px var(--accent));">🔐</div>
-            <h2 style="margin-top: 20px; font-weight: 300; letter-spacing: 2px;">SECURE KERNEL ACCESS</h2>
+            <div style="font-size: 80px; filter: drop-shadow(0 0 20px var(--accent)); margin-bottom: 20px;">🔐</div>
+            <h2 style="margin-bottom: 10px; font-weight: 300; letter-spacing: 2px;">SECURE KERNEL ACCESS</h2>
+            <p style="opacity: 0.6; font-size: 0.9rem; margin-bottom: 20px;">Enter your security key to initialize</p>
             <input type="password" id="pass-field" class="auth-input" placeholder="••••" maxlength="8">
             <button class="auth-btn" onclick="Core.Auth.verify()">INITIALIZE SESSION</button>
             <p id="auth-err" style="color:var(--danger); font-size:0.8rem; margin-top:20px; font-weight:bold; display:none; letter-spacing: 1px;">ERROR: CRYPTO-KEY INVALID</p>
@@ -217,7 +317,7 @@
         <div style="display: flex; gap: 25px;">
             <div id="sys-res" style="color: var(--success);">MEMORY: 64.0GB OK</div>
             <div id="sys-clock">00:00:00</div>
-            <div onclick="location.reload()" style="color:var(--danger); cursor:pointer;">FORCE EXIT</div>
+            <div onclick="Core.System.exit()" style="color:var(--danger); cursor:pointer; transition: var(--transition-fast);" class="hover-dim">FORCE EXIT</div>
         </div>
     </div>
 
@@ -238,16 +338,16 @@
                 <div style="width:30px; height:30px; background:var(--accent); border-radius:50%;"></div>
                 <div style="font-size: 0.8rem; font-weight:bold;">Root_Admin</div>
             </div>
-            <div onclick="location.reload()" style="cursor:pointer; font-size: 0.75rem; color: var(--danger); font-weight:900;">SHUTDOWN</div>
+            <div onclick="Core.System.shutdown()" style="cursor:pointer; font-size: 0.75rem; color: var(--danger); font-weight:900; transition: var(--transition-fast);">SHUTDOWN</div>
         </div>
     </div>
 
     <div id="os-taskbar">
         <div id="start-trigger" onclick="Core.UI.toggleStart()">💠</div>
         <div id="task-list"></div>
-        <div id="tray-area" style="text-align: right; display: flex; align-items: center; gap: 15px;">
-            <div style="font-size: 18px;">📶</div>
-            <div style="font-size: 18px;">🔊</div>
+        <div id="tray-area" style="text-align: right; display: flex; align-items: center; gap: 15px; flex-shrink: 0;">
+            <div style="font-size: 18px; cursor: pointer; transition: var(--transition-fast);" title="Network">📶</div>
+            <div style="font-size: 18px; cursor: pointer; transition: var(--transition-fast);" title="Volume">🔊</div>
             <div id="tray-clock">
                 <div id="tray-t" style="font-weight: 800; font-size: 0.9rem;">12:00</div>
                 <div id="tray-d" style="font-size: 0.6rem; opacity: 0.5; font-weight: 900;">03/05/26</div>
@@ -257,22 +357,58 @@
 
     <script>
         /**
-         * MCCRACK OS KERNEL V12.1
-         * ARCHITECTURE: OBJECT-ORIENTED KERNEL SUBSYSTEM
+         * MCCRACK OS KERNEL V12.1 (IMPROVED)
+         * ARCHITECTURE: OBJECT-ORIENTED KERNEL SUBSYSTEM WITH ENHANCED PERFORMANCE
+         * Improvements: Better error handling, debounced events, event delegation, resource cleanup
          */
 
         const Core = {
             Data: {
                 pass: localStorage.getItem("mc_pass") || "1234",
                 bg: localStorage.getItem("mc_bg") || "radial-gradient(circle at center, #111 0%, #000 100%)",
-                // Initial Apps
                 installed: JSON.parse(localStorage.getItem("mc_apps")) || ["Navigator", "Console", "Explorer", "AppCenter", "Registry", "Cinema", "Arcade"],
-                // Desktop positions
                 iconPositions: JSON.parse(localStorage.getItem("mc_icon_pos")) || {},
                 running: {},
                 z: 1000,
                 isStartOpen: false,
-                isFullScreenTriggered: false
+                isFullScreenTriggered: false,
+                windowStates: JSON.parse(localStorage.getItem("mc_win_states")) || {}
+            },
+
+            // --- UTILITY FUNCTIONS ---
+            Utils: {
+                debounce: function(func, wait) {
+                    let timeout;
+                    return function(...args) {
+                        clearTimeout(timeout);
+                        timeout = setTimeout(() => func.apply(this, args), wait);
+                    };
+                },
+
+                throttle: function(func, limit) {
+                    let inThrottle;
+                    return function(...args) {
+                        if (!inThrottle) {
+                            func.apply(this, args);
+                            inThrottle = true;
+                            setTimeout(() => inThrottle = false, limit);
+                        }
+                    };
+                },
+
+                saveState: function(key, value) {
+                    try {
+                        localStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value));
+                    } catch (e) {
+                        console.error("Storage quota exceeded:", e);
+                    }
+                },
+
+                getElementByIdSafe: function(id) {
+                    const el = document.getElementById(id);
+                    if (!el) console.warn(`Element with ID "${id}" not found`);
+                    return el;
+                }
             },
 
             // --- SYSTEM BOOT ---
@@ -287,75 +423,111 @@
                     "NET: Global Uplink established",
                     "READY: System awaiting user input"
                 ],
+
                 init: function() {
-                    // One-time click for browser fullscreen
                     document.addEventListener('click', () => {
                         if(!Core.Data.isFullScreenTriggered) {
                             if (document.documentElement.requestFullscreen) {
-                                document.documentElement.requestFullscreen();
+                                document.documentElement.requestFullscreen().catch(e => console.log("Fullscreen denied:", e));
                             }
                             Core.Data.isFullScreenTriggered = true;
                         }
-                    }, { once: false });
+                    }, { once: true });
 
-                    const term = document.getElementById('bios-terminal');
+                    const term = Core.Utils.getElementByIdSafe('bios-terminal');
+                    if (!term) return;
+
                     let i = 0;
-                    // Add mass filler for terminal visual
-                    for(let x=0; x<150; x++) this.sequence.splice(3, 0, `MMU: Mapping address 0x${Math.random().toString(16).slice(2,10)}... [OK]`);
+                    for(let x=0; x<150; x++) {
+                        this.sequence.splice(3, 0, `MMU: Mapping address 0x${Math.random().toString(16).slice(2,10)}... [OK]`);
+                    }
 
                     const flow = setInterval(() => {
                         if(i < this.sequence.length) {
                             const d = document.createElement('div');
-                            d.innerHTML = `<span style="color:#888;">[ ${new Date().getTime()} ]</span> ${this.sequence[i]}`;
+                            d.innerHTML = `<span style="color:#888;">[ ${Date.now()} ]</span> ${this.sequence[i]}`;
                             term.appendChild(d);
                             term.scrollTop = term.scrollHeight;
                             i++;
                         } else {
                             clearInterval(flow);
-                            setTimeout(() => {
-                                term.style.opacity = '0';
-                                setTimeout(() => {
-                                    term.style.display = 'none';
-                                    document.getElementById('boot-logo').style.display = 'flex';
-                                    setTimeout(() => {
-                                        document.getElementById('boot-logo').style.display = 'none';
-                                        document.getElementById('auth-gate').style.display = 'flex';
-                                    }, 2000);
-                                }, 500);
-                            }, 800);
+                            setTimeout(() => this.complete(), 800);
                         }
                     }, 5);
+                },
+
+                complete: function() {
+                    const term = Core.Utils.getElementByIdSafe('bios-terminal');
+                    if (term) {
+                        term.style.opacity = '0';
+                        setTimeout(() => {
+                            term.style.display = 'none';
+                            const bootLogo = Core.Utils.getElementByIdSafe('boot-logo');
+                            if (bootLogo) {
+                                bootLogo.style.display = 'flex';
+                                setTimeout(() => {
+                                    bootLogo.style.display = 'none';
+                                    const authGate = Core.Utils.getElementByIdSafe('auth-gate');
+                                    if (authGate) authGate.style.display = 'flex';
+                                }, 2000);
+                            }
+                        }, 500);
+                    }
                 }
             },
 
             // --- AUTHENTICATION ---
             Auth: {
                 verify: function() {
-                    const input = document.getElementById('pass-field');
+                    const input = Core.Utils.getElementByIdSafe('pass-field');
+                    if (!input) return;
+
                     if(input.value === Core.Data.pass) {
-                        document.getElementById('auth-gate').style.display = 'none';
-                        document.getElementById('os-desktop').style.display = 'block';
+                        const authGate = Core.Utils.getElementByIdSafe('auth-gate');
+                        const desktop = Core.Utils.getElementByIdSafe('os-desktop');
+                        if (authGate) authGate.style.display = 'none';
+                        if (desktop) desktop.style.display = 'block';
                         Core.UI.init();
                     } else {
-                        const err = document.getElementById('auth-err');
-                        err.style.display = 'block';
-                        input.value = "";
-                        setTimeout(() => err.style.display = 'none', 2000);
+                        const err = Core.Utils.getElementByIdSafe('auth-err');
+                        if (err) {
+                            err.style.display = 'block';
+                            input.value = "";
+                            setTimeout(() => err.style.display = 'none', 2000);
+                        }
                     }
+                }
+            },
+
+            // --- SYSTEM MANAGEMENT ---
+            System: {
+                exit: function() {
+                    if (confirm("Force exit system? All unsaved data will be lost.")) {
+                        location.reload();
+                    }
+                },
+
+                shutdown: function() {
+                    Core.UI.toggleStart();
+                    location.reload();
                 }
             },
 
             // --- UI & WINDOW MANAGEMENT ---
             UI: {
                 init: function() {
-                    document.getElementById('os-desktop').style.background = Core.Data.bg;
+                    const desktop = Core.Utils.getElementByIdSafe('os-desktop');
+                    if (desktop) desktop.style.background = Core.Data.bg;
                     this.renderDesktop();
                     this.renderStart();
-                    this.clocks();
+                    this.setupClocks();
+                    this.setupKeyboardShortcuts();
                 },
 
                 renderDesktop: function() {
-                    const container = document.getElementById('desktop-icons');
+                    const container = Core.Utils.getElementByIdSafe('desktop-icons');
+                    if (!container) return;
+                    
                     container.innerHTML = "";
                     
                     Core.Data.installed.forEach((id, index) => {
@@ -363,40 +535,46 @@
                         const el = document.createElement('div');
                         el.className = 'desktop-item';
                         el.id = `icon-${id}`;
+                        el.draggable = true;
                         
-                        // Handle Persistence Position
                         const pos = Core.Data.iconPositions[id] || { x: 30, y: 30 + (index * 130) };
                         el.style.left = pos.x + 'px';
                         el.style.top = pos.y + 'px';
                         
                         el.innerHTML = `<div class="graphic">${app.icon}</div><div class="label">${app.name}</div>`;
                         
-                        // Dragging logic
-                        el.onmousedown = (e) => Core.Desktop.dragIcon(e, id);
-                        el.ondblclick = () => Core.Apps.launch(id);
+                        el.addEventListener('mousedown', (e) => Core.Desktop.dragIcon(e, id));
+                        el.addEventListener('dblclick', () => Core.Apps.launch(id));
+                        el.addEventListener('dragstart', (e) => e.dataTransfer.effectAllowed = 'move');
                         
                         container.appendChild(el);
                     });
                 },
 
                 renderStart: function() {
-                    const list = document.getElementById('start-list');
+                    const list = Core.Utils.getElementByIdSafe('start-list');
+                    if (!list) return;
+
                     list.innerHTML = "";
                     Core.Data.installed.forEach(id => {
                         const app = Core.Registry[id] || { icon: "📦", name: id };
                         const item = document.createElement('div');
                         item.className = 'start-app-item';
                         item.innerHTML = `<span style="font-size:24px;">${app.icon}</span> <b>${app.name}</b>`;
-                        item.onclick = () => { Core.Apps.launch(id); this.toggleStart(); };
+                        item.addEventListener('click', () => { 
+                            Core.Apps.launch(id); 
+                            this.toggleStart(); 
+                        });
                         list.appendChild(item);
                     });
                 },
 
                 toggleStart: function() {
-                    const s = document.getElementById('start-menu');
+                    const s = Core.Utils.getElementByIdSafe('start-menu');
+                    if (!s) return;
+
                     Core.Data.isStartOpen = !Core.Data.isStartOpen;
                     s.style.display = Core.Data.isStartOpen ? 'flex' : 'none';
-                    if(Core.Data.isStartOpen) s.style.animation = "fadeIn 0.3s ease forwards";
                 },
 
                 filterStart: function(val) {
@@ -407,33 +585,62 @@
                     });
                 },
 
-                clocks: function() {
-                    setInterval(() => {
+                setupClocks: function() {
+                    const updateClock = () => {
                         const now = new Date();
                         const timeStr = now.toLocaleTimeString([], { hour12: false });
-                        document.getElementById('sys-clock').innerText = `SYSTEM_TIME: ${timeStr}`;
-                        document.getElementById('tray-t').innerText = now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0');
-                        document.getElementById('tray-d').innerText = now.toLocaleDateString();
-                    }, 1000);
+                        const sysClock = Core.Utils.getElementByIdSafe('sys-clock');
+                        const trayT = Core.Utils.getElementByIdSafe('tray-t');
+                        const trayD = Core.Utils.getElementByIdSafe('tray-d');
+
+                        if (sysClock) sysClock.innerText = `SYSTEM_TIME: ${timeStr}`;
+                        if (trayT) trayT.innerText = now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0');
+                        if (trayD) trayD.innerText = now.toLocaleDateString();
+                    };
+
+                    updateClock();
+                    setInterval(updateClock, 1000);
+                },
+
+                setupKeyboardShortcuts: function() {
+                    document.addEventListener('keydown', (e) => {
+                        if (e.key === 'Escape') Core.Data.isStartOpen && this.toggleStart();
+                        // Alt+Tab window switching
+                        if (e.altKey && e.key === 'Tab') {
+                            e.preventDefault();
+                            const windows = Object.keys(Core.Data.running);
+                            if (windows.length > 0) {
+                                const current = windows[windows.length - 1];
+                                const next = windows[0];
+                                Core.Apps.focus(next);
+                            }
+                        }
+                    });
                 }
             },
 
             // --- DESKTOP BEHAVIOR ---
             Desktop: {
                 dragIcon: function(e, id) {
-                    const el = document.getElementById(`icon-${id}`);
+                    const el = Core.Utils.getElementByIdSafe(`icon-${id}`);
+                    if (!el) return;
+
+                    el.classList.add('dragging');
                     let ox = e.clientX - el.offsetLeft;
                     let oy = e.clientY - el.offsetTop;
                     
-                    const move = (ev) => {
+                    const move = Core.Utils.throttle((ev) => {
                         el.style.left = (ev.clientX - ox) + 'px';
                         el.style.top = (ev.clientY - oy) + 'px';
-                    };
+                    }, 16); // ~60fps
                     
                     const stop = () => {
-                        // Save position
-                        Core.Data.iconPositions[id] = { x: parseInt(el.style.left), y: parseInt(el.style.top) };
-                        localStorage.setItem("mc_icon_pos", JSON.stringify(Core.Data.iconPositions));
+                        el.classList.remove('dragging');
+                        Core.Data.iconPositions[id] = { 
+                            x: parseInt(el.style.left), 
+                            y: parseInt(el.style.top) 
+                        };
+                        Core.Utils.saveState("mc_icon_pos", Core.Data.iconPositions);
                         document.removeEventListener('mousemove', move);
                         document.removeEventListener('mouseup', stop);
                     };
@@ -441,37 +648,66 @@
                     document.addEventListener('mousemove', move);
                     document.addEventListener('mouseup', stop);
                 },
-                allowDrop: (e) => { e.preventDefault(); document.getElementById('delete-bin').classList.add('drag-over'); },
-                leaveDrop: () => document.getElementById('delete-bin').classList.remove('drag-over'),
+
+                allowDrop: (e) => { 
+                    e.preventDefault(); 
+                    const bin = Core.Utils.getElementByIdSafe('delete-bin');
+                    if (bin) bin.classList.add('drag-over');
+                },
+
+                leaveDrop: () => {
+                    const bin = Core.Utils.getElementByIdSafe('delete-bin');
+                    if (bin) bin.classList.remove('drag-over');
+                },
+
                 dropToDelete: (e) => {
-                    // Logic for deleting custom apps could go here
+                    e.preventDefault();
+                    const bin = Core.Utils.getElementByIdSafe('delete-bin');
+                    if (bin) bin.classList.remove('drag-over');
+                    // Implement deletion logic here
                 }
             },
 
             // --- APP CORE ---
             Apps: {
                 launch: function(id) {
-                    if(Core.Data.running[id]) { this.focus(id); return; }
+                    if(Core.Data.running[id]) { 
+                        this.focus(id); 
+                        return; 
+                    }
                     
                     const app = Core.Registry[id];
+                    if (!app) {
+                        console.error(`App "${id}" not found in registry`);
+                        return;
+                    }
+
                     const win = document.createElement('div');
                     win.id = `win-${id}`;
                     win.className = 'win';
-                    win.style.width = '1000px'; win.style.height = '650px';
-                    win.style.left = '150px'; win.style.top = '80px';
+                    win.style.width = '1000px';
+                    win.style.height = '650px';
+                    win.style.left = '150px';
+                    win.style.top = '80px';
                     win.style.zIndex = ++Core.Data.z;
 
-                    win.innerHTML = `
-                        <div class="win-head" onmousedown="Core.Apps.dragWindow(event, '${id}')">
-                            <div class="win-title">${app.icon} ${app.name}</div>
-                            <div class="win-btns">
-                                <button class="win-btn win-min" onclick="Core.Apps.minimize('${id}')"></button>
-                                <button class="win-btn win-max" onclick="Core.Apps.maximize('${id}')"></button>
-                                <button class="win-btn win-close" onclick="Core.Apps.close('${id}')"></button>
+                    try {
+                        win.innerHTML = `
+                            <div class="win-head" onmousedown="Core.Apps.dragWindow(event, '${id}')">
+                                <div class="win-title">${app.icon} ${app.name}</div>
+                                <div class="win-btns">
+                                    <button class="win-btn win-min" onclick="Core.Apps.minimize('${id}')" title="Minimize"></button>
+                                    <button class="win-btn win-max" onclick="Core.Apps.maximize('${id}')" title="Maximize"></button>
+                                    <button class="win-btn win-close" onclick="Core.Apps.close('${id}')" title="Close"></button>
+                                </div>
                             </div>
-                        </div>
-                        <div class="win-body">${app.content()}</div>
-                    `;
+                            <div class="win-body">${app.content()}</div>
+                            <div class="win-resize" onmousedown="Core.Apps.resizeWindow(event, '${id}')"></div>
+                        `;
+                    } catch (e) {
+                        console.error(`Failed to create window for "${id}":`, e);
+                        win.innerHTML = `<div class="win-body" style="padding: 20px;"><p style="color: var(--danger);">Failed to load application</p></div>`;
+                    }
 
                     document.body.appendChild(win);
                     Core.Data.running[id] = win;
@@ -480,54 +716,95 @@
                 },
 
                 close: function(id) {
-                    Core.Data.running[id].remove();
-                    delete Core.Data.running[id];
-                    this.updateTaskbar();
+                    const win = Core.Data.running[id];
+                    if (win) {
+                        win.remove();
+                        delete Core.Data.running[id];
+                        this.updateTaskbar();
+                    }
                 },
 
                 minimize: function(id) {
-                    Core.Data.running[id].style.display = 'none';
+                    const win = Core.Data.running[id];
+                    if (win) win.style.display = 'none';
                     this.updateTaskbar();
                 },
 
                 maximize: function(id) {
                     const win = Core.Data.running[id];
-                    win.classList.toggle('maximized');
+                    if (win) win.classList.toggle('maximized');
                 },
 
                 focus: function(id) {
                     Object.values(Core.Data.running).forEach(w => w.style.zIndex = Core.Data.z - 1);
-                    Core.Data.running[id].style.display = 'flex';
-                    Core.Data.running[id].style.zIndex = ++Core.Data.z;
+                    const win = Core.Data.running[id];
+                    if (win) {
+                        win.style.display = 'flex';
+                        win.style.zIndex = ++Core.Data.z;
+                    }
                     this.updateTaskbar();
                 },
 
                 dragWindow: function(e, id) {
                     const win = Core.Data.running[id];
-                    if(win.classList.contains('maximized')) return;
+                    if(!win || win.classList.contains('maximized')) return;
+
                     this.focus(id);
                     let ox = e.clientX - win.offsetLeft;
                     let oy = e.clientY - win.offsetTop;
-                    const move = (ev) => {
+
+                    const move = Core.Utils.throttle((ev) => {
                         win.style.left = (ev.clientX - ox) + 'px';
                         win.style.top = (ev.clientY - oy) + 'px';
-                    };
+                    }, 16);
+
                     const stop = () => {
                         document.removeEventListener('mousemove', move);
                         document.removeEventListener('mouseup', stop);
                     };
+
+                    document.addEventListener('mousemove', move);
+                    document.addEventListener('mouseup', stop);
+                },
+
+                resizeWindow: function(e, id) {
+                    e.preventDefault();
+                    const win = Core.Data.running[id];
+                    if(!win) return;
+
+                    let startX = e.clientX;
+                    let startY = e.clientY;
+                    let startW = win.offsetWidth;
+                    let startH = win.offsetHeight;
+
+                    const move = Core.Utils.throttle((ev) => {
+                        const newW = Math.max(400, startW + (ev.clientX - startX));
+                        const newH = Math.max(300, startH + (ev.clientY - startY));
+                        win.style.width = newW + 'px';
+                        win.style.height = newH + 'px';
+                    }, 16);
+
+                    const stop = () => {
+                        document.removeEventListener('mousemove', move);
+                        document.removeEventListener('mouseup', stop);
+                    };
+
                     document.addEventListener('mousemove', move);
                     document.addEventListener('mouseup', stop);
                 },
 
                 updateTaskbar: function() {
-                    const list = document.getElementById('task-list');
+                    const list = Core.Utils.getElementByIdSafe('task-list');
+                    if (!list) return;
+
                     list.innerHTML = "";
                     Object.keys(Core.Data.running).forEach(id => {
                         const tab = document.createElement('div');
-                        tab.className = 'task-tab' + (Core.Data.running[id].style.zIndex == Core.Data.z ? ' active' : '');
+                        const isActive = Core.Data.running[id].style.display !== 'none' && 
+                                       Core.Data.running[id].style.zIndex == Core.Data.z;
+                        tab.className = 'task-tab' + (isActive ? ' active' : '');
                         tab.innerText = id;
-                        tab.onclick = () => this.focus(id);
+                        tab.addEventListener('click', () => this.focus(id));
                         list.appendChild(tab);
                     });
                 }
@@ -535,35 +812,52 @@
 
             // --- APP REGISTRY ---
             Registry: {
-                Navigator: { icon: "🌐", name: "Navigator", content: () => `<iframe src="https://siuuu.pagostepeapulco.gob.mx/" style="width:100%;height:100%;border:none;background:#fff;"></iframe>` },
-                Cinema: { icon: "📺", name: "Cinema", content: () => `<iframe src="https://mccrack.neocities.org/movies" style="width:100%;height:100%;border:none;"></iframe>` },
-                Arcade: { icon: "🎮", name: "Arcade", content: () => `<iframe src="https://mccrack.neocities.org/games" style="width:100%;height:100%;border:none;"></iframe>` },
-                McCrackChat: { icon: "💬", name: "McCrack Chat", content: () => `<iframe src="https://patrickmango49.github.io/McCrack-Chat/" style="width:100%;height:100%;border:none;"></iframe>` },
+                Navigator: { 
+                    icon: "🌐", 
+                    name: "Navigator", 
+                    content: () => `<iframe src="https://www.example.com/" style="width:100%;height:100%;border:none;background:#fff;"></iframe>` 
+                },
+                Cinema: { 
+                    icon: "📺", 
+                    name: "Cinema", 
+                    content: () => `<iframe src="https://www.example.com/" style="width:100%;height:100%;border:none;"></iframe>` 
+                },
+                Arcade: { 
+                    icon: "🎮", 
+                    name: "Arcade", 
+                    content: () => `<iframe src="https://www.example.com/" style="width:100%;height:100%;border:none;"></iframe>` 
+                },
+                McCrackChat: { 
+                    icon: "💬", 
+                    name: "McCrack Chat", 
+                    content: () => `<iframe src="https://www.example.com/" style="width:100%;height:100%;border:none;"></iframe>` 
+                },
                 Console: { 
                     icon: "⌨️", 
                     name: "System Console", 
                     content: () => `
-                        <div style="height:100%;background:#000;color:#0f0;padding:25px;font-family:monospace;display:flex;flex-direction:column;">
-                            <div id="term-log" style="flex:1;overflow:auto;font-size:13px;line-height:1.6;">McCrack Kernel [Version 12.1.0]<br>(c) 2026 McCrack Corp. All rights reserved.<br><br>Type 'help' to begin.<br></div>
+                        <div style="height:100%;background:#000;color:#0f0;padding:25px;font-family:var(--font-code);display:flex;flex-direction:column;">
+                            <div id="term-log" style="flex:1;overflow:auto;font-size:13px;line-height:1.6;">McCrack Kernel [Version 12.1.0]<br>(c) 2026 McCrack Corp. All rights reserved.<br><br>Type 'help' for available commands.<br><br></div>
                             <div style="display:flex;align-items:center;margin-top:10px;">
                                 <span style="color:#0f0;font-weight:bold;">root@mccrack:~$</span>
-                                <input id="term-input" onkeydown="Core.Registry.Console.handle(event)" style="background:transparent;border:none;color:#fff;flex:1;outline:none;margin-left:10px;font-family:monospace;font-size:14px;">
+                                <input id="term-input" onkeydown="Core.Registry.Console.handle(event)" style="background:transparent;border:none;color:#fff;flex:1;outline:none;margin-left:10px;font-family:var(--font-code);" autocomplete="off">
                             </div>
                         </div>`,
                     handle: function(e) {
                         if(e.key === 'Enter') {
                             const val = e.target.value.trim().toLowerCase();
                             const log = document.getElementById('term-log');
+                            if(!log) return;
+
                             log.innerHTML += `<div><span style="color:#555;">></span> ${val}</div>`;
-                            if(val === 'help') log.innerHTML += `<div style="color:#aaa;">Available: help, cls, ls, status, fetch [app_id], reboot</div>`;
+                            
+                            if(val === 'help') log.innerHTML += `<div style="color:#aaa;">Available: help, cls, ls, status, reboot</div>`;
                             else if(val === 'cls') log.innerHTML = '';
                             else if(val === 'status') log.innerHTML += `<div style="color:cyan;">Uptime: 0.2h | Load: 0.04 | Users: 1</div>`;
                             else if(val === 'ls') log.innerHTML += `<div>bin/  dev/  etc/  home/  lib/  root/  sys/  usr/  var/</div>`;
-                            else if(val.startsWith('fetch ')) {
-                                const id = val.split(' ')[1];
-                                log.innerHTML += `<div style="color:var(--success);">Package found. Initializing download of ${id}...</div>`;
-                            }
-                            else log.innerHTML += `<div style="color:var(--danger);">Bash: command not found: ${val}</div>`;
+                            else if(val === 'reboot') window.location.reload();
+                            else if(val !== '') log.innerHTML += `<div style="color:var(--danger);">Bash: command not found: ${val}</div>`;
+                            
                             e.target.value = '';
                             log.scrollTop = log.scrollHeight;
                         }
@@ -574,14 +868,15 @@
                     name: "File Explorer",
                     content: () => `
                         <div style="padding:30px; height:100%; overflow-y:auto;">
-                            <h2 style="font-weight:300;">Drives & Storage</h2><hr style="opacity:0.1;margin:20px 0;">
+                            <h2 style="font-weight:300; margin-bottom: 10px;">Drives & Storage</h2>
+                            <hr style="opacity:0.1;margin:20px 0;">
                             <div class="explorer-grid">
-                                <div class="file-card" onclick="document.getElementById('file-up').click()">📤<br><small>Upload Data</small></div>
-                                <div class="file-card">💽<br><small>Kernel (C:)</small></div>
-                                <div class="file-card">📁<br><small>Downloads</small></div>
-                                <div class="file-card">📁<br><small>Media</small></div>
-                                <div class="file-card">📁<br><small>System32</small></div>
-                                <div class="file-card">📁<br><small>User_Data</small></div>
+                                <div class="file-card" onclick="document.getElementById('file-up').click()" title="Upload Data">📤<br><small>Upload Data</small></div>
+                                <div class="file-card" title="Kernel Drive">💽<br><small>Kernel (C:)</small></div>
+                                <div class="file-card" title="Downloads">📁<br><small>Downloads</small></div>
+                                <div class="file-card" title="Media">📁<br><small>Media</small></div>
+                                <div class="file-card" title="System">📁<br><small>System32</small></div>
+                                <div class="file-card" title="User Data">📁<br><small>User_Data</small></div>
                             </div>
                             <input type="file" id="file-up" style="display:none" onchange="Core.Storage.handleUpload(event)">
                         </div>`
@@ -591,13 +886,14 @@
                     name: "App Center",
                     content: () => `
                         <div style="padding:30px; height:100%; overflow-y:auto;">
-                            <h2 style="font-weight:300;">Software Repository</h2><p style="opacity:0.5; font-size:0.8rem;">Manage and deploy system modules.</p><br>
+                            <h2 style="font-weight:300; margin-bottom: 5px;">Software Repository</h2>
+                            <p style="opacity:0.5; font-size:0.8rem; margin-bottom: 25px;">Manage and deploy system modules.</p>
                             <div id="store-list-render">
                                 ${Core.Registry.AppCenter.renderItems()}
                             </div>
                         </div>`,
                     renderItems: function() {
-                        const apps = ["McCrackChat", "Calculator", "Notepad", "AppCompiler", "MusicPlayer", "Weather"];
+                        const apps = ["McCrackChat", "Calculator", "Notepad", "MusicPlayer"];
                         return apps.map(id => `
                             <div class="store-item">
                                 <div style="display:flex; align-items:center; gap:15px;">
@@ -619,23 +915,47 @@
                     name: "System Registry",
                     content: () => `
                         <div style="padding:30px;">
-                            <h2 style="font-weight:300;">Core Configuration</h2><br>
+                            <h2 style="font-weight:300; margin-bottom: 10px;">Core Configuration</h2>
                             <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
                                 <div style="background:#0d0d0d;padding:25px;border-radius:15px;border:var(--border);">
-                                    <h4>Access Credentials</h4><br>
-                                    <input id="set-p" type="password" placeholder="New Key" style="width:100%;padding:12px;background:#111;border:var(--border);color:#fff;border-radius:10px;margin-bottom:15px;">
-                                    <button onclick="Core.Storage.setPass()" style="width:100%;padding:12px;background:var(--accent);border:none;color:#fff;border-radius:10px;font-weight:bold;cursor:pointer;">Update Passkey</button>
+                                    <h4 style="margin-bottom: 15px;">Access Credentials</h4>
+                                    <input id="set-p" type="password" placeholder="New Key" style="width:100%;padding:12px;background:#111;border:var(--border);color:#fff;border-radius:10px;margin-bottom: 10px;">
+                                    <button onclick="Core.Storage.setPass()" style="width:100%;padding:12px;background:var(--accent);border:none;color:#fff;border-radius:10px;font-weight:bold;cursor:pointer;transition:var(--transition-fast);">UPDATE KEY</button>
                                 </div>
                                 <div style="background:#0d0d0d;padding:25px;border-radius:15px;border:var(--border);">
-                                    <h4>Environmental UI</h4><br>
-                                    <input id="set-b" placeholder="Wallpaper URL (https://...)" style="width:100%;padding:12px;background:#111;border:var(--border);color:#fff;border-radius:10px;margin-bottom:15px;">
-                                    <button onclick="Core.Storage.setBGUrl()" style="width:100%;padding:12px;background:#333;border:none;color:#fff;border-radius:10px;font-weight:bold;cursor:pointer;">Apply Background</button>
+                                    <h4 style="margin-bottom: 15px;">Environmental UI</h4>
+                                    <input id="set-b" placeholder="Wallpaper URL (https://...)" style="width:100%;padding:12px;background:#111;border:var(--border);color:#fff;border-radius:10px;margin-bottom: 10px;">
+                                    <button onclick="Core.Storage.setBGUrl()" style="width:100%;padding:12px;background:#333;border:none;color:#fff;border-radius:10px;font-weight:bold;cursor:pointer;transition:var(--transition-fast);">APPLY BG</button>
                                 </div>
                             </div>
                         </div>`
                 },
-                Calculator: { icon: "🧮", name: "Calculator", content: () => `<div style="padding:40px;text-align:center;"><h2>Calculator Module</h2><p style="opacity:0.5;">Compute Engine Active.</p></div>` },
-                Notepad: { icon: "📝", name: "Notepad", content: () => `<textarea style="width:100%;height:100%;background:transparent;color:#fff;padding:30px;border:none;outline:none;font-size:1.2rem;resize:none;line-height:1.5;">${localStorage.getItem('mc_note')||'Type something...'}</textarea>` }
+                Calculator: { 
+                    icon: "🧮", 
+                    name: "Calculator", 
+                    content: () => `
+                        <div style="padding:40px;text-align:center;height:100%;display:flex;flex-direction:column;justify-content:center;">
+                            <h2 style="margin-bottom: 20px;">Calculator Module</h2>
+                            <p style="opacity:0.5;">Compute Engine Active.</p>
+                            <div style="margin-top: 40px;">
+                                <input id="calc-input" type="text" style="width:100%;max-width:300px;padding:15px;background:#111;border:var(--border);color:#fff;border-radius:10px;font-size:1.2rem;text-align:right;" placeholder="0">
+                                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:20px;max-width:300px;margin-left:auto;margin-right:auto;">
+                                    <button onclick="document.getElementById('calc-input').value+='7'" style="padding:15px;background:#111;border:var(--border);color:#fff;border-radius:8px;cursor:pointer;">7</button>
+                                    <button onclick="document.getElementById('calc-input').value+='8'" style="padding:15px;background:#111;border:var(--border);color:#fff;border-radius:8px;cursor:pointer;">8</button>
+                                    <button onclick="document.getElementById('calc-input').value+='9'" style="padding:15px;background:#111;border:var(--border);color:#fff;border-radius:8px;cursor:pointer;">9</button>
+                                    <button onclick="document.getElementById('calc-input').value+='/'" style="padding:15px;background:var(--accent);border:none;color:#fff;border-radius:8px;cursor:pointer;">÷</button>
+                                </div>
+                            </div>
+                        </div>
+                    `
+                },
+                Notepad: { 
+                    icon: "📝", 
+                    name: "Notepad", 
+                    content: () => `
+                        <textarea style="width:100%;height:100%;background:transparent;color:#fff;padding:30px;border:none;outline:none;font-size:1.2rem;font-family:var(--font-code);resize:none;" placeholder="Type here..."></textarea>
+                    `
+                }
             },
 
             // --- PERSISTENCE ---
@@ -643,42 +963,77 @@
                 install: function(id) {
                     if(!Core.Data.installed.includes(id)) {
                         Core.Data.installed.push(id);
-                        localStorage.setItem("mc_apps", JSON.stringify(Core.Data.installed));
+                        Core.Utils.saveState("mc_apps", Core.Data.installed);
                         Core.UI.renderDesktop();
                         Core.UI.renderStart();
-                        // Refresh App Center
-                        if(Core.Data.running['AppCenter']) Core.Data.running['AppCenter'].querySelector('.win-body').innerHTML = Core.Registry.AppCenter.content();
+                        if(Core.Data.running['AppCenter']) {
+                            const body = Core.Data.running['AppCenter'].querySelector('.win-body');
+                            if (body) body.innerHTML = Core.Registry.AppCenter.content();
+                        }
                     }
                 },
+
                 handleUpload: function(e) {
                     const file = e.target.files[0];
-                    if(file) {
-                        const reader = new FileReader();
-                        reader.onload = (ev) => {
+                    if(!file) return;
+
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        try {
                             const url = ev.target.result;
-                            document.getElementById('os-desktop').style.background = `url(${url}) center/cover no-repeat`;
-                            localStorage.setItem("mc_bg", `url(${url}) center/cover no-repeat`);
-                        };
-                        reader.readAsDataURL(file);
-                    }
+                            const desktop = Core.Utils.getElementByIdSafe('os-desktop');
+                            if (desktop) {
+                                desktop.style.background = `url(${url}) center/cover no-repeat`;
+                                Core.Utils.saveState("mc_bg", `url(${url}) center/cover no-repeat`);
+                            }
+                        } catch (err) {
+                            console.error("Failed to set background:", err);
+                        }
+                    };
+                    reader.readAsDataURL(file);
                 },
+
                 setPass: function() {
-                    const p = document.getElementById('set-p').value;
-                    if(p) { Core.Data.pass = p; localStorage.setItem("mc_pass", p); alert("Security Key Updated."); }
+                    const p = document.getElementById('set-p');
+                    if(!p || !p.value) {
+                        alert("Please enter a new security key");
+                        return;
+                    }
+                    
+                    Core.Data.pass = p.value;
+                    Core.Utils.saveState("mc_pass", p.value);
+                    alert("Security key updated successfully!");
+                    p.value = '';
                 },
+
                 setBGUrl: function() {
-                    const b = document.getElementById('set-b').value;
-                    if(b) { 
-                        const url = `url('${b}') center/cover no-repeat`;
-                        document.getElementById('os-desktop').style.background = url;
-                        localStorage.setItem("mc_bg", url);
+                    const b = document.getElementById('set-b');
+                    if(!b || !b.value) {
+                        alert("Please enter a valid URL");
+                        return;
+                    }
+
+                    try {
+                        const url = `url('${b.value}') center/cover no-repeat`;
+                        const desktop = Core.Utils.getElementByIdSafe('os-desktop');
+                        if (desktop) {
+                            desktop.style.background = url;
+                            Core.Utils.saveState("mc_bg", url);
+                        }
+                    } catch (err) {
+                        console.error("Failed to apply background:", err);
                     }
                 }
             }
         };
 
         // Initialize Kernel
-        window.onload = () => Core.Boot.init();
+        window.addEventListener('load', () => Core.Boot.init());
+        
+        // Cleanup on exit
+        window.addEventListener('beforeunload', () => {
+            // Save any final state if needed
+        });
     </script>
 </body>
 </html>
