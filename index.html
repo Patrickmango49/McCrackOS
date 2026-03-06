@@ -3,51 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="styles.css">
-    <title>McCrackOS</title>
-    <script>
-        let userAuthenticated = false;
-
-        function bootSequence() {
-            document.getElementById('boot').innerHTML = '<h2>Booting McCrackOS...</h2>';
-            setTimeout(() => {
-                document.getElementById('boot').innerHTML = ''; 
-                document.getElementById('auth').style.display = 'block';
-            }, 3000);
+    <title>McCrackOS V9.0</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            background: radial-gradient(circle, #f0f0f0, #d9d9d9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.5s;
         }
-
+        #login {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        #desktop {
+            display: none;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="login">
+        <h2>Login to McCrackOS</h2>
+        <input type="password" id="password" placeholder="Enter password" />
+        <button onclick="authenticate()">Login</button>
+        <p id="error-msg" style="color: red; display: none;"></p>
+    </div>
+    <div id="desktop">
+        <h1>Welcome to McCrackOS Desktop</h1>
+        <div id="taskbar">
+            <!-- Taskbar Implementation -->
+        </div>
+        <div id="applications">
+            <!-- Applications Implementation -->
+            <button onclick="openApp('Browser')">Browser</button>
+            <button onclick="openApp('Terminal')">Terminal</button>
+            <button onclick="openApp('Files')">Files</button>
+            <button onclick="openApp('Store')">Store</button>
+            <button onclick="openApp('Settings')">Settings</button>
+            <button onclick="openApp('Calculator')">Calculator</button>
+            <button onclick="openApp('Music')">Music</button>
+            <button onclick="openApp('Movies')">Movies</button>
+            <button onclick="openApp('Games')">Games</button>
+            <button onclick="openApp('AppFactory')">AppFactory</button>
+            <button onclick="openApp('Notepad')">Notepad</button>
+            <button onclick="openApp('McCrackChat')">McCrackChat</button>
+            <button onclick="openApp('SystemLogs')">SystemLogs</button>
+        </div>
+    </div>
+    <script>
         function authenticate() {
             const password = document.getElementById('password').value;
-            if (password === 'password123') { // Example password
-                userAuthenticated = true;
-                document.getElementById('auth').style.display = 'none';
-                loadDesktop();
+            const errorMsg = document.getElementById('error-msg');
+            if (password === '1234') {
+                document.getElementById('login').style.display = 'none';
+                document.getElementById('desktop').style.display = 'block';
             } else {
-                alert('Authentication failed!');
+                errorMsg.textContent = 'Incorrect password';
+                errorMsg.style.display = 'block';
             }
         }
 
-        function loadDesktop() {
-            const desktop = document.getElementById('desktop');
-            desktop.style.display = 'block';
-            desktop.innerHTML = '<h3>Your Applications</h3>' +
-                '<div class="icon">App 1</div>' +
-                '<div class="icon">App 2</div>' +
-                '<div class="icon">App 3</div>';
+        function openApp(app) {
+            alert(app + ' launched!');
+            // Actual app launch logic here
         }
-
-        window.onload = bootSequence;
     </script>
-</head>
-<body>
-    <div id="boot"></div>
-    <div id="auth" style="display:none;">
-        <h2>Authentication</h2>
-        <input type="password" id="password" placeholder="Enter your password">
-        <button onclick="authenticate()">Login</button>
-    </div>
-    <div id="desktop" style="display:none;">
-        <!-- Desktop icons will be loaded here -->
-    </div>
 </body>
 </html>
