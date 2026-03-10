@@ -200,7 +200,8 @@ pos: JSON.parse(localStorage.getItem("mc_pos")) || {},
 running: {},
 battery: 100,
 logs: [],
-restricted: ["Browser", "Store", "Terminal"]
+restricted: ["Browser", "Store", "Terminal", "Files", "Settings"],
+storeApps: ["Movies", "Games", "McCrackChat", "Calculator", "Music", "AppFactory", "Notepad"]
 };
 
 const Registry = {
@@ -295,10 +296,15 @@ function dropDelete(ev) {
 ev.preventDefault();
 document.getElementById('delete-bin').classList.remove('drag-over');
 const id = ev.dataTransfer.getData("appId");
-if (OS.restricted.includes(id)) {
-alert(`CRITICAL ERROR: ${id} is a protected system kernel module.`);
+
+// logic to block apps NOT in the storeApps list (and core restricted apps)
+const isStoreApp = OS.storeApps.includes(id);
+
+if (!isStoreApp || OS.restricted.includes(id)) {
+alert(`CRITICAL ERROR: ${id} is a protected system kernel module and cannot be deleted.`);
 return;
 }
+
 if (confirm(`Purge ${id}?`)) {
 if (OS.running[id]) closeW(id);
 OS.installed = OS.installed.filter(app => app !== id);
