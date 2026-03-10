@@ -43,6 +43,23 @@ font-size: 0.75rem; font-weight: 700; letter-spacing: 1.2px; text-transform: upp
 .spin { width: 60px; height: 60px; border: 4px solid #111; border-top-color: var(--accent); border-radius: 50%; animation: s 0.8s linear infinite; margin-bottom: 25px; }
 @keyframes s { to { transform: rotate(360deg); } }
 .boot-text { font-family: monospace; font-size: 0.8rem; color: var(--accent); opacity: 0.8; }
+.boot-log-box {
+width: min(760px, 82vw);
+max-height: 180px;
+margin-top: 20px;
+padding: 14px 16px;
+border: 1px solid #143a14;
+border-radius: 10px;
+background: rgba(0,0,0,0.75);
+box-shadow: inset 0 0 22px rgba(24, 255, 72, 0.1);
+overflow: hidden;
+font-family: monospace;
+font-size: 0.8rem;
+line-height: 1.35;
+color: #39ff88;
+text-align: left;
+}
+.boot-line { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0.9; }
 
 /* --- AUTHENTICATION --- */
 #login {
@@ -70,9 +87,13 @@ border-radius: 12px; cursor: pointer; font-weight: 800; font-size: 1rem; transit
 /* Drag and Drop Styling */
 .icon {
 position: absolute; width: 110px; height: 120px; display: flex; flex-direction: column;
-align-items: center; justify-content: center; border-radius: 18px; cursor: grab; transition: transform 0.2s;
+align-items: center; justify-content: center; border-radius: 18px; cursor: grab;
+transition: transform 0.2s, left 0.08s linear, top 0.08s linear;
+will-change: left, top, transform;
+user-select: none;
 z-index: 150;
 }
+.icon.dragging { transition: transform 0.08s linear; }
 .icon:active { cursor: grabbing; }
 .icon:hover { background: rgba(255,255,255,0.08); transform: scale(1.05); }
 .icon div { font-size: 55px; margin-bottom: 10px; filter: drop-shadow(0 8px 12px rgba(0,0,0,0.6)); pointer-events: none;}
@@ -154,6 +175,7 @@ display: flex; align-items: center; padding: 0 25px; z-index: 8500; border-top: 
 <h1 style="letter-spacing: 12px; font-weight: 200; font-size: 2.5rem;">𝕄𝕔ℂ𝕣𝕒𝕔𝕜<span style="font-weight:700;">OS</span></h1>
 <div class="spin"></div>
 <p class="boot-text">INITIALIZING OPERATING SYSTEM...</p>
+<div id="boot-logs" class="boot-log-box"></div>
 </div>
 
 <div id="login">
@@ -243,9 +265,11 @@ Settings: { icon: "⚙️", content: () => `<div style="padding:40px;">
 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:30px;">
 <div style="background:#0a0a0a; padding:25px; border-radius:20px; border:1px solid #1a1a1a;">
 <h4>Personalization</h4><br>
-<p style="font-size:0.8rem; opacity:0.5;">Paste an image URL to update the workspace visual.</p><br>
+<p style="font-size:0.8rem; opacity:0.5;">Paste an image URL or upload an image to update the workspace visual.</p><br>
 <input type="text" id="bg-url" placeholder="https://..." style="width:100%; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px;"><br><br>
-<button onclick="setBG(document.getElementById('bg-url').value)" style="width:100%; padding:10px; cursor:pointer; background:var(--accent); border:none; color:white; border-radius:8px;">Apply URL</button>
+<button onclick="setBG(document.getElementById('bg-url').value)" style="width:100%; padding:10px; cursor:pointer; background:var(--accent); border:none; color:white; border-radius:8px;">Apply URL</button><br><br>
+<button onclick="document.getElementById('bg-upload-settings').click()" style="width:100%; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Upload Image</button>
+<input type="file" id="bg-upload-settings" style="display:none" onchange="handleFileUpload(event)" accept="image/*">
 </div>
 <div style="background:#0a0a0a; padding:25px; border-radius:20px; border:1px solid #1a1a1a;">
 <h4>Security</h4><br>
@@ -317,12 +341,8 @@ renderDesktop(); renderLib();
 function buildAppFrame(url) {
 return `<div class="full-app-view">
 <iframe class="app-iframe" src="${url}"></iframe>
-<div style="padding:15px; background:#0a0a0a; width:100%; border-top:1px solid #1a1a1a; display:flex; justify-content:center;">
-<button onclick="deepFullscreen('${url}')" style="background:linear-gradient(45deg, #000, #fff); color:#000; padding:12px 30px; border-radius:10px; font-weight:900; border:none; cursor:pointer;">EXTERN FULLSCREEN</button>
-</div>
 </div>`
 ; }
-function deepFullscreen(url) { window.open(url, '_blank'); }
 
 function renderStoreItem(id, desc) {
 const isInst = OS.installed.includes(id);
@@ -358,6 +378,7 @@ alert(`Compiled ${name}`);
 window.onload = () => {
 addLog("System boot sequence initialized.");
 document.getElementById('os-root').style.background = OS.bg;
+simulateBootLogs();
 const customs = JSON.parse(localStorage.getItem("mc_custom_apps")) || {};
 Object.keys(customs).forEach(name => {
 Registry[name] = { icon: "🚀", content: () => buildAppFrame(customs[name]) };
@@ -371,6 +392,39 @@ setTimeout(() => { b.style.display='none'; document.getElementById('login').styl
 updateTime(); setInterval(updateTime, 1000);
 renderLib();
 };
+
+function simulateBootLogs() {
+const panel = document.getElementById('boot-logs');
+if(!panel) return;
+const bootLines = [
+"[BOOT] Power rails stabilized at 12.0V",
+"[KERNEL] Loading microkernel v9.0.4",
+"[MEMORY] Mapping core pages... OK",
+"[SECURITY] Initializing access-control matrix",
+"[DRIVER] Mounting synthetic file system",
+"[NET] Negotiating loopback interface",
+"[AUDIO] DSP handoff complete",
+"[GPU] Shader cache restored",
+"[SERVICES] Spawning userland daemons",
+"[SYSTEM] Startup checks complete"
+];
+panel.innerHTML = '';
+let idx = 0;
+const intervalMs = 300;
+const timer = setInterval(() => {
+if(idx >= bootLines.length) {
+clearInterval(timer);
+return;
+}
+const line = document.createElement('div');
+line.className = 'boot-line';
+line.textContent = `${new Date().toLocaleTimeString()} ${bootLines[idx]}`;
+panel.appendChild(line);
+panel.scrollTop = panel.scrollHeight;
+idx += 1;
+}, intervalMs);
+setTimeout(() => clearInterval(timer), 3000);
+}
 
 function addLog(msg) {
 OS.logs.push({time: new Date().toLocaleTimeString(), msg: msg});
@@ -396,6 +450,18 @@ function setBG(url) {
 OS.bg = `url('${url}') center/cover no-repeat`;
 document.getElementById('os-root').style.background = OS.bg;
 localStorage.setItem("mc_bg", OS.bg);
+}
+
+function handleFileUpload(event) {
+const file = event.target.files && event.target.files[0];
+if(!file) return;
+const reader = new FileReader();
+reader.onload = (e) => {
+setBG(e.target.result);
+addLog(`Wallpaper updated from file: ${file.name}`);
+};
+reader.readAsDataURL(file);
+event.target.value = '';
 }
 
 function setPass(p) { OS.pass = p; localStorage.setItem("mc_pass", p); }
@@ -429,13 +495,35 @@ el.ondragstart = (e) => startDrag(e, id);
 el.ondragend = (e) => endDrag(e);
 el.ondblclick = () => launch(id);
 el.onmousedown = (e) => {
+if (e.button !== 0) return;
+e.preventDefault();
+el.classList.add('dragging');
 let ox = e.clientX - el.offsetLeft, oy = e.clientY - el.offsetTop;
-document.onmousemove = (ev) => {
-let nx = ev.clientX-ox, ny = ev.clientY-oy;
-el.style.left = nx+'px'; el.style.top = ny+'px';
+let raf = null;
+let pending = null;
+const applyMove = () => {
+if(!pending) return;
+const { clientX, clientY } = pending;
+const nx = clientX - ox;
+const ny = clientY - oy;
+el.style.left = nx + 'px';
+el.style.top = ny + 'px';
 OS.pos[id] = {x: nx, y: ny};
+raf = null;
 };
-document.onmouseup = () => { document.onmousemove = null; localStorage.setItem("mc_pos", JSON.stringify(OS.pos)); };
+const onMove = (ev) => {
+pending = ev;
+if(!raf) raf = requestAnimationFrame(applyMove);
+};
+const onUp = () => {
+window.removeEventListener('mousemove', onMove);
+window.removeEventListener('mouseup', onUp);
+if(raf) cancelAnimationFrame(raf);
+el.classList.remove('dragging');
+localStorage.setItem("mc_pos", JSON.stringify(OS.pos));
+};
+window.addEventListener('mousemove', onMove);
+window.addEventListener('mouseup', onUp);
 };
 d.appendChild(el);
 });
