@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>McCrackOS V9.0 - Ultra Edition (Restored)</title>
+<title>McCrackOS V9.0</title>
 <style>
 /* --- CORE SYSTEM VARIABLES --- */
 :root {
@@ -506,4 +506,45 @@ const tl = document.getElementById('task-list'); tl.innerHTML = "";
 Object.keys(OS.running).forEach(id => {
 const t = document.createElement('div'); t.className = 'task-tab' + (OS.running[id].style.display!=='none'?' active':'');
 t.innerText = id;
-t.onclol
+t.onclick = () => {
+if(OS.running[id].style.display === 'none') {
+OS.running[id].style.display = 'flex';
+focusWin(id);
+} else {
+focusWin(id);
+}
+};
+tl.appendChild(t);
+});
+}
+
+/* --- TERMINAL COMMAND ENGINE --- */
+function cmd(e, el) {
+if(e.key === "Enter") {
+const out = document.getElementById('t-out');
+const v = el.value.toLowerCase().trim();
+out.innerHTML += `<div><span style="color:white;">></span> ${el.value}</div>`;
+if(v === "help") out.innerHTML += "<div>Available: help, clear, exit, logs, apps, ver</div>";
+else if(v === "clear") out.innerHTML = "";
+else if(v === "logs") out.innerHTML += `<div>Total session events: ${OS.logs.length}</div>`;
+else if(v === "apps") out.innerHTML += `<div>Installed: ${OS.installed.join(', ')}</div>`;
+else if(v === "ver") out.innerHTML += "<div>McCrackOS Kernel v9.0.4. Build 2026.03.10</div>";
+else if(v === "exit") closeW('Terminal');
+else out.innerHTML += `<div style="color:var(--danger);">Command not found: ${v}</div>`;
+el.value = "";
+out.scrollTop = out.scrollHeight;
+}
+}
+
+/* --- MATH ENGINE --- */
+function calcResult() {
+try {
+const res = eval(document.getElementById('c-in').value);
+document.getElementById('c-in').value = res;
+} catch(e) {
+document.getElementById('c-in').value = "ERROR";
+}
+}
+</script>
+</body>
+</html>
