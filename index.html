@@ -341,12 +341,8 @@ renderDesktop(); renderLib();
 function buildAppFrame(url) {
 return `<div class="full-app-view">
 <iframe class="app-iframe" src="${url}"></iframe>
-<div style="padding:15px; background:#0a0a0a; width:100%; border-top:1px solid #1a1a1a; display:flex; justify-content:center;">
-<button onclick="deepFullscreen('${url}')" style="background:linear-gradient(45deg, #000, #fff); color:#000; padding:12px 30px; border-radius:10px; font-weight:900; border:none; cursor:pointer;">EXTERN FULLSCREEN</button>
-</div>
 </div>`
 ; }
-function deepFullscreen(url) { window.open(url, '_blank'); }
 
 function renderStoreItem(id, desc) {
 const isInst = OS.installed.includes(id);
@@ -454,6 +450,18 @@ function setBG(url) {
 OS.bg = `url('${url}') center/cover no-repeat`;
 document.getElementById('os-root').style.background = OS.bg;
 localStorage.setItem("mc_bg", OS.bg);
+}
+
+function handleFileUpload(event) {
+const file = event.target.files && event.target.files[0];
+if(!file) return;
+const reader = new FileReader();
+reader.onload = (e) => {
+setBG(e.target.result);
+addLog(`Wallpaper updated from file: ${file.name}`);
+};
+reader.readAsDataURL(file);
+event.target.value = '';
 }
 
 function setPass(p) { OS.pass = p; localStorage.setItem("mc_pass", p); }
