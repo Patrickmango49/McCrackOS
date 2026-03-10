@@ -43,6 +43,23 @@ font-size: 0.75rem; font-weight: 700; letter-spacing: 1.2px; text-transform: upp
 .spin { width: 60px; height: 60px; border: 4px solid #111; border-top-color: var(--accent); border-radius: 50%; animation: s 0.8s linear infinite; margin-bottom: 25px; }
 @keyframes s { to { transform: rotate(360deg); } }
 .boot-text { font-family: monospace; font-size: 0.8rem; color: var(--accent); opacity: 0.8; }
+.boot-log-box {
+width: min(760px, 82vw);
+max-height: 180px;
+margin-top: 20px;
+padding: 14px 16px;
+border: 1px solid #143a14;
+border-radius: 10px;
+background: rgba(0,0,0,0.75);
+box-shadow: inset 0 0 22px rgba(24, 255, 72, 0.1);
+overflow: hidden;
+font-family: monospace;
+font-size: 0.8rem;
+line-height: 1.35;
+color: #39ff88;
+text-align: left;
+}
+.boot-line { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0.9; }
 
 /* --- AUTHENTICATION --- */
 #login {
@@ -154,6 +171,7 @@ display: flex; align-items: center; padding: 0 25px; z-index: 8500; border-top: 
 <h1 style="letter-spacing: 12px; font-weight: 200; font-size: 2.5rem;">𝕄𝕔ℂ𝕣𝕒𝕔𝕜<span style="font-weight:700;">OS</span></h1>
 <div class="spin"></div>
 <p class="boot-text">INITIALIZING OPERATING SYSTEM...</p>
+<div id="boot-logs" class="boot-log-box"></div>
 </div>
 
 <div id="login">
@@ -358,6 +376,7 @@ alert(`Compiled ${name}`);
 window.onload = () => {
 addLog("System boot sequence initialized.");
 document.getElementById('os-root').style.background = OS.bg;
+simulateBootLogs();
 const customs = JSON.parse(localStorage.getItem("mc_custom_apps")) || {};
 Object.keys(customs).forEach(name => {
 Registry[name] = { icon: "🚀", content: () => buildAppFrame(customs[name]) };
@@ -371,6 +390,39 @@ setTimeout(() => { b.style.display='none'; document.getElementById('login').styl
 updateTime(); setInterval(updateTime, 1000);
 renderLib();
 };
+
+function simulateBootLogs() {
+const panel = document.getElementById('boot-logs');
+if(!panel) return;
+const bootLines = [
+"[BOOT] Power rails stabilized at 12.0V",
+"[KERNEL] Loading microkernel v9.0.4",
+"[MEMORY] Mapping core pages... OK",
+"[SECURITY] Initializing access-control matrix",
+"[DRIVER] Mounting synthetic file system",
+"[NET] Negotiating loopback interface",
+"[AUDIO] DSP handoff complete",
+"[GPU] Shader cache restored",
+"[SERVICES] Spawning userland daemons",
+"[SYSTEM] Startup checks complete"
+];
+panel.innerHTML = '';
+let idx = 0;
+const intervalMs = 300;
+const timer = setInterval(() => {
+if(idx >= bootLines.length) {
+clearInterval(timer);
+return;
+}
+const line = document.createElement('div');
+line.className = 'boot-line';
+line.textContent = `${new Date().toLocaleTimeString()} ${bootLines[idx]}`;
+panel.appendChild(line);
+panel.scrollTop = panel.scrollHeight;
+idx += 1;
+}, intervalMs);
+setTimeout(() => clearInterval(timer), 3000);
+}
 
 function addLog(msg) {
 OS.logs.push({time: new Date().toLocaleTimeString(), msg: msg});
