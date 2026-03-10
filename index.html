@@ -87,9 +87,13 @@ border-radius: 12px; cursor: pointer; font-weight: 800; font-size: 1rem; transit
 /* Drag and Drop Styling */
 .icon {
 position: absolute; width: 110px; height: 120px; display: flex; flex-direction: column;
-align-items: center; justify-content: center; border-radius: 18px; cursor: grab; transition: transform 0.2s;
+align-items: center; justify-content: center; border-radius: 18px; cursor: grab;
+transition: transform 0.2s, left 0.08s linear, top 0.08s linear;
+will-change: left, top, transform;
+user-select: none;
 z-index: 150;
 }
+.icon.dragging { transition: transform 0.08s linear; }
 .icon:active { cursor: grabbing; }
 .icon:hover { background: rgba(255,255,255,0.08); transform: scale(1.05); }
 .icon div { font-size: 55px; margin-bottom: 10px; filter: drop-shadow(0 8px 12px rgba(0,0,0,0.6)); pointer-events: none;}
@@ -261,9 +265,11 @@ Settings: { icon: "⚙️", content: () => `<div style="padding:40px;">
 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:30px;">
 <div style="background:#0a0a0a; padding:25px; border-radius:20px; border:1px solid #1a1a1a;">
 <h4>Personalization</h4><br>
-<p style="font-size:0.8rem; opacity:0.5;">Paste an image URL to update the workspace visual.</p><br>
+<p style="font-size:0.8rem; opacity:0.5;">Paste an image URL or upload an image to update the workspace visual.</p><br>
 <input type="text" id="bg-url" placeholder="https://..." style="width:100%; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px;"><br><br>
-<button onclick="setBG(document.getElementById('bg-url').value)" style="width:100%; padding:10px; cursor:pointer; background:var(--accent); border:none; color:white; border-radius:8px;">Apply URL</button>
+<button onclick="setBG(document.getElementById('bg-url').value)" style="width:100%; padding:10px; cursor:pointer; background:var(--accent); border:none; color:white; border-radius:8px;">Apply URL</button><br><br>
+<button onclick="document.getElementById('bg-upload-settings').click()" style="width:100%; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Upload Image</button>
+<input type="file" id="bg-upload-settings" style="display:none" onchange="handleFileUpload(event)" accept="image/*">
 </div>
 <div style="background:#0a0a0a; padding:25px; border-radius:20px; border:1px solid #1a1a1a;">
 <h4>Security</h4><br>
@@ -481,13 +487,35 @@ el.ondragstart = (e) => startDrag(e, id);
 el.ondragend = (e) => endDrag(e);
 el.ondblclick = () => launch(id);
 el.onmousedown = (e) => {
+if (e.button !== 0) return;
+e.preventDefault();
+el.classList.add('dragging');
 let ox = e.clientX - el.offsetLeft, oy = e.clientY - el.offsetTop;
-document.onmousemove = (ev) => {
-let nx = ev.clientX-ox, ny = ev.clientY-oy;
-el.style.left = nx+'px'; el.style.top = ny+'px';
+let raf = null;
+let pending = null;
+const applyMove = () => {
+if(!pending) return;
+const { clientX, clientY } = pending;
+const nx = clientX - ox;
+const ny = clientY - oy;
+el.style.left = nx + 'px';
+el.style.top = ny + 'px';
 OS.pos[id] = {x: nx, y: ny};
+raf = null;
 };
-document.onmouseup = () => { document.onmousemove = null; localStorage.setItem("mc_pos", JSON.stringify(OS.pos)); };
+const onMove = (ev) => {
+pending = ev;
+if(!raf) raf = requestAnimationFrame(applyMove);
+};
+const onUp = () => {
+window.removeEventListener('mousemove', onMove);
+window.removeEventListener('mouseup', onUp);
+if(raf) cancelAnimationFrame(raf);
+el.classList.remove('dragging');
+localStorage.setItem("mc_pos", JSON.stringify(OS.pos));
+};
+window.addEventListener('mousemove', onMove);
+window.addEventListener('mouseup', onUp);
 };
 d.appendChild(el);
 });
