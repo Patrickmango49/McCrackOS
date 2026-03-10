@@ -230,17 +230,26 @@ display: flex; align-items: center; padding: 0 25px; z-index: 8500; border-top: 
 
 <script>
 /* --- KERNEL DATA & REGISTRY --- */
+function safeJSON(key, fallback) {
+try {
+const value = localStorage.getItem(key);
+return value ? JSON.parse(value) : fallback;
+} catch {
+return fallback;
+}
+}
+
 const OS = {
 z: 1000,
 pass: localStorage.getItem("mc_pass") || "1234",
 bg: localStorage.getItem("mc_bg") || "linear-gradient(135deg, #0f0c29, #302b63, #24243e)",
-installed: JSON.parse(localStorage.getItem("mc_apps")) || ["Browser", "Terminal", "Files", "Store", "Settings", "Widgets"],
-pos: JSON.parse(localStorage.getItem("mc_pos")) || {},
+installed: safeJSON("mc_apps", ["Browser", "Terminal", "Files", "Store", "Settings", "Widgets"]),
+pos: safeJSON("mc_pos", {}),
 running: {},
 battery: 100,
 logs: [],
-notifications: JSON.parse(localStorage.getItem("mc_notifications")) || [],
-widgets: JSON.parse(localStorage.getItem("mc_widgets")) || [],
+notifications: safeJSON("mc_notifications", []),
+widgets: safeJSON("mc_widgets", []),
 restricted: ["Browser", "Store", "Terminal", "Files", "Settings"],
 storeApps: ["Movies", "Games", "McCrackChat", "Calculator", "Music", "AppFactory", "Notepad", "Widgets"]
 };
@@ -393,7 +402,7 @@ function createCustomApp() {
 const name = document.getElementById('fac-name').value.trim();
 const link = document.getElementById('fac-link').value.trim();
 if(!name || !link) return alert("Missing fields.");
-const customs = JSON.parse(localStorage.getItem("mc_custom_apps")) || {};
+const customs = safeJSON("mc_custom_apps", {});
 customs[name] = link;
 localStorage.setItem("mc_custom_apps", JSON.stringify(customs));
 Registry[name] = { icon: "🚀", content: () => buildAppFrame(link) };
@@ -409,7 +418,7 @@ addLog("System boot sequence initialized.");
 document.getElementById('os-root').style.background = OS.bg;
 simulateBootLogs();
 setupFullscreenOnInteraction();
-const customs = JSON.parse(localStorage.getItem("mc_custom_apps")) || {};
+const customs = safeJSON("mc_custom_apps", {});
 Object.keys(customs).forEach(name => {
 Registry[name] = { icon: "🚀", content: () => buildAppFrame(customs[name]) };
 });
