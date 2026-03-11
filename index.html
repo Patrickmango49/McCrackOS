@@ -162,7 +162,9 @@ position: absolute; background: var(--win-bg); border-radius: 20px; border: var(
 display: flex; flex-direction: column; overflow: hidden; box-shadow: var(--shadow);
 transition: width 0.3s, height 0.3s, top 0.3s, left 0.3s, opacity 0.2s, transform 0.2s;
 }
-.win-head { background: #121212; padding: 16px 24px; display: flex; justify-content: space-between; cursor: move; align-items: center; }
+.win-head { background: #121212; padding: 16px 24px; display: flex; justify-content: space-between; cursor: grab; align-items: center; }
+.window.dragging, .window.resizing { transition: none !important; }
+.window.dragging .win-head { cursor: grabbing; }
 .win-body { flex: 1; background: #000; position: relative; overflow: auto; }
 .win-ctrls { display: flex; gap: 22px; align-items: center; }
 .win-ctrls span { cursor: pointer; opacity: 0.5; transition: 0.2s; font-size: 1.2rem; }
@@ -632,15 +634,61 @@ w.innerHTML = `<div class="win-head">
 <div class="resizer"></div>`
 ; document.body.appendChild(w); OS.running[id] = w;
 w.querySelector('.win-head').onmousedown = (e) => {
-if(w.dataset.fs === "true") return;
-focusWin(id); let ox = e.clientX - w.offsetLeft, oy = e.clientY - w.offsetTop;
-document.onmousemove = (ev) => { w.style.left = (ev.clientX-ox)+'px'; w.style.top = (ev.clientY-oy)+'px'; };
-document.onmouseup = () => document.onmousemove = null;
+if(w.dataset.fs === "true" || e.button !== 0) return;
+focusWin(id);
+e.preventDefault();
+w.classList.add('dragging');
+let ox = e.clientX - w.offsetLeft, oy = e.clientY - w.offsetTop;
+let raf = null;
+let pending = null;
+const applyMove = () => {
+if(!pending) return;
+const nx = pending.clientX - ox;
+const ny = pending.clientY - oy;
+w.style.left = nx + 'px';
+w.style.top = ny + 'px';
+raf = null;
+};
+const onMove = (ev) => {
+pending = ev;
+if(!raf) raf = requestAnimationFrame(applyMove);
+};
+const onUp = () => {
+window.removeEventListener('mousemove', onMove);
+window.removeEventListener('mouseup', onUp);
+if(raf) cancelAnimationFrame(raf);
+w.classList.remove('dragging');
+};
+window.addEventListener('mousemove', onMove);
+window.addEventListener('mouseup', onUp);
 };
 w.querySelector('.resizer').onmousedown = (e) => {
-let sw=w.offsetWidth, sh=w.offsetHeight, sx=e.clientX, sy=e.clientY;
-document.onmousemove = (ev) => { w.style.width = (sw+(ev.clientX-sx))+'px'; w.style.height = (sh+(ev.clientY-sy))+'px'; };
-document.onmouseup = () => document.onmousemove = null;
+if(e.button !== 0) return;
+e.preventDefault();
+w.classList.add('resizing');
+let sw = w.offsetWidth, sh = w.offsetHeight, sx = e.clientX, sy = e.clientY;
+let raf = null;
+let pending = null;
+const applyResize = () => {
+if(!pending) return;
+const nw = Math.max(420, sw + (pending.clientX - sx));
+const nh = Math.max(280, sh + (pending.clientY - sy));
+w.style.width = nw + 'px';
+w.style.height = nh + 'px';
+raf = null;
+};
+const onMove = (ev) => {
+pending = ev;
+if(!raf) raf = requestAnimationFrame(applyResize);
+};
+const onUp = () => {
+window.removeEventListener('mousemove', onMove);
+window.removeEventListener('mouseup', onUp);
+if(raf) cancelAnimationFrame(raf);
+w.classList.remove('resizing');
+};
+window.addEventListener('mousemove', onMove);
+window.addEventListener('mouseup', onUp);
 };
 updateTask();
 }
