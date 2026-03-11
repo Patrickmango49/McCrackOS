@@ -156,19 +156,6 @@ display: flex; align-items: center; padding: 0 25px; z-index: 8500; border-top: 
 .store-card { background: #0a0a0a; padding: 20px; border-radius: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #1a1a1a; }
 .install-btn { padding: 8px 20px; border-radius: 8px; border: none; background: var(--accent); color: white; cursor: pointer; font-weight: 700; }
 
-/* --- NOTIFICATIONS + WIDGETS --- */
-#notif-bell { cursor: pointer; opacity: 0.8; transition: 0.2s; }
-#notif-bell:hover { opacity: 1; transform: scale(1.12); }
-#notif-center { position: fixed; top: calc(var(--top-bar-h) + 12px); right: 15px; width: 300px; max-height: 420px; overflow: auto; background: rgba(8,8,8,0.95); border: var(--border); border-radius: 14px; padding: 12px; display: none; z-index: 11000; }
-.notif-item { font-size: 0.8rem; border-bottom: 1px solid #1c1c1c; padding: 10px 4px; }
-.notif-item:last-child { border-bottom: none; }
-#toast-wrap { position: fixed; right: 16px; bottom: calc(var(--taskbar-h) + 14px); z-index: 12000; display: flex; flex-direction: column; gap: 10px; }
-.toast { min-width: 220px; max-width: 320px; background: #0f0f0f; border: 1px solid #262626; color: #e8e8e8; border-left: 4px solid var(--accent); border-radius: 10px; padding: 10px 12px; font-size: 0.8rem; box-shadow: var(--shadow); }
-.toast.warn { border-left-color: #ff9f1a; }
-.toast.system { border-left-color: #ff4b4b; }
-#widget-layer { position: absolute; inset: 0; pointer-events: none; z-index: 120; }
-.widget-card { position: absolute; width: 220px; min-height: 120px; background: rgba(10,10,10,0.85); border: var(--border); border-radius: 14px; padding: 14px; pointer-events: auto; box-shadow: var(--shadow); }
-
 /* --- ANIMATIONS --- */
 @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
 @keyframes pulse-delete { 0% { box-shadow: 0 0 0 0 rgba(255, 75, 75, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(255, 75, 75, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 75, 75, 0); } }
@@ -180,7 +167,6 @@ display: flex; align-items: center; padding: 0 25px; z-index: 8500; border-top: 
 <div>𝕄𝕔ℂ𝕣𝕒𝕔𝕜OS <span style="opacity:0.3; margin-left:10px;">V9.0.4</span></div>
 <div class="top-right">
 <div id="battery-stat"><span>100%</span> 🔋</div>
-<div id="notif-bell" onclick="toggleNotifCenter()">🔔</div>
 <div id="lock-btn" onclick="lockSystem()">TERMINATE SESSION</div>
 </div>
 </div>
@@ -203,9 +189,6 @@ display: flex; align-items: center; padding: 0 25px; z-index: 8500; border-top: 
 </div>
 
 <div id="desktop"></div>
-<div id="widget-layer" style="display:none;"></div>
-<div id="toast-wrap"></div>
-<div id="notif-center"></div>
 
 <div id="delete-bin" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropDelete(event)">
 <div>🗑️</div>
@@ -230,28 +213,17 @@ display: flex; align-items: center; padding: 0 25px; z-index: 8500; border-top: 
 
 <script>
 /* --- KERNEL DATA & REGISTRY --- */
-function safeJSON(key, fallback) {
-try {
-const value = localStorage.getItem(key);
-return value ? JSON.parse(value) : fallback;
-} catch {
-return fallback;
-}
-}
-
 const OS = {
 z: 1000,
 pass: localStorage.getItem("mc_pass") || "1234",
 bg: localStorage.getItem("mc_bg") || "linear-gradient(135deg, #0f0c29, #302b63, #24243e)",
-installed: safeJSON("mc_apps", ["Browser", "Terminal", "Files", "Store", "Settings", "Widgets"]),
-pos: safeJSON("mc_pos", {}),
+installed: JSON.parse(localStorage.getItem("mc_apps")) || ["Browser", "Terminal", "Files", "Store", "Settings"],
+pos: JSON.parse(localStorage.getItem("mc_pos")) || {},
 running: {},
 battery: 100,
 logs: [],
-notifications: safeJSON("mc_notifications", []),
-widgets: safeJSON("mc_widgets", []),
 restricted: ["Browser", "Store", "Terminal", "Files", "Settings"],
-storeApps: ["Movies", "Games", "McCrackChat", "Calculator", "Music", "AppFactory", "Notepad", "Widgets"]
+storeApps: ["Movies", "Games", "McCrackChat", "Calculator", "Music", "AppFactory", "Notepad"]
 };
 
 const Registry = {
@@ -286,7 +258,6 @@ ${renderStoreItem('Calculator', 'Advanced Math Engine')}
 ${renderStoreItem('Music', 'High-Fidelity Audio')}
 ${renderStoreItem('AppFactory', 'Custom Module Compiler')}
 ${renderStoreItem('Notepad', 'Secure Text Buffer')}
-${renderStoreItem('Widgets', 'Desktop Widget Manager')}
 </div>
 </div>` },
 Settings: { icon: "⚙️", content: () => `<div style="padding:40px;">
@@ -307,14 +278,6 @@ Settings: { icon: "⚙️", content: () => `<div style="padding:40px;">
 <button onclick="setPass(document.getElementById('new-p').value)" style="width:100%; padding:10px; cursor:pointer; background:#333; border:none; color:white; border-radius:8px;">Update Key</button>
 </div>
 </div>
-</div>` },
-Widgets: { icon: "🧩", content: () => `<div style="padding:28px;">
-<h2 style="font-weight:400; margin-bottom:10px;">Desktop Widgets</h2>
-<p style="opacity:0.55; margin-bottom:20px;">Install quick desktop widgets.</p>
-<div class="store-card"><div><strong>🌤️ Weather</strong><br><small style="opacity:0.5;">Simulated local conditions</small></div><button class="install-btn" onclick="installWidget('weather')">Install</button></div>
-<div class="store-card"><div><strong>🕒 Time & Date</strong><br><small style="opacity:0.5;">Live clock panel</small></div><button class="install-btn" onclick="installWidget('time')">Install</button></div>
-<div class="store-card"><div><strong>📅 Calendar</strong><br><small style="opacity:0.5;">Current month snapshot</small></div><button class="install-btn" onclick="installWidget('calendar')">Install</button></div>
-<div style="margin-top:20px;"><button class="install-btn" style="background:#333; width:100%;" onclick="clearWidgets()">Remove All Widgets</button></div>
 </div>` },
 Music: { icon: "🎵", content: () => `<div style="padding:60px;text-align:center;"><div style="font-size:120px;margin-bottom:30px;filter:drop-shadow(0 0 20px var(--accent));">🎧</div><h2>McCrack Music</h2><p style="opacity:0.5;">Library Empty. Connect to stream.</p></div>` },
 AppFactory: { icon: "🛠️", content: () => `<div style="padding:50px; max-width:600px; margin:0 auto;">
@@ -393,7 +356,6 @@ function install(id) {
 OS.installed.push(id);
 localStorage.setItem("mc_apps", JSON.stringify(OS.installed));
 renderDesktop(); renderLib();
-notify("app", `${id} installed.`);
 const storeWin = OS.running['Store'];
 if(storeWin) storeWin.querySelector('.win-body').innerHTML = Registry['Store'].content();
 }
@@ -402,7 +364,7 @@ function createCustomApp() {
 const name = document.getElementById('fac-name').value.trim();
 const link = document.getElementById('fac-link').value.trim();
 if(!name || !link) return alert("Missing fields.");
-const customs = safeJSON("mc_custom_apps", {});
+const customs = JSON.parse(localStorage.getItem("mc_custom_apps")) || {};
 customs[name] = link;
 localStorage.setItem("mc_custom_apps", JSON.stringify(customs));
 Registry[name] = { icon: "🚀", content: () => buildAppFrame(link) };
@@ -413,35 +375,22 @@ alert(`Compiled ${name}`);
 }
 
 /* --- CORE SYSTEM LOGIC --- */
-function beginBootTransition() {
-setTimeout(() => {
-const b = document.getElementById('boot');
-const login = document.getElementById('login');
-if(!b || !login) return;
-b.style.opacity = '0';
-setTimeout(() => { b.style.display='none'; login.style.display='flex'; }, 1000);
-}, 3000);
-}
-
 window.onload = () => {
-beginBootTransition();
-try {
 addLog("System boot sequence initialized.");
 document.getElementById('os-root').style.background = OS.bg;
 simulateBootLogs();
-initInteractionHooks();
-const customs = safeJSON("mc_custom_apps", {});
+const customs = JSON.parse(localStorage.getItem("mc_custom_apps")) || {};
 Object.keys(customs).forEach(name => {
 Registry[name] = { icon: "🚀", content: () => buildAppFrame(customs[name]) };
 });
 updateBattery(); setInterval(updateBattery, 30000);
+setTimeout(() => {
+const b = document.getElementById('boot');
+b.style.opacity = '0';
+setTimeout(() => { b.style.display='none'; document.getElementById('login').style.display='flex'; }, 1000);
+}, 3000);
 updateTime(); setInterval(updateTime, 1000);
 renderLib();
-renderNotifCenter();
-renderWidgets();
-} catch (err) {
-console.error('Boot initialization warning:', err);
-}
 };
 
 function simulateBootLogs() {
@@ -477,89 +426,6 @@ idx += 1;
 setTimeout(() => clearInterval(timer), 3000);
 }
 
-function initInteractionHooks() {
-setupFullscreenOnInteraction();
-}
-
-function setupFullscreenOnInteraction() {
-const request = () => {
-if(document.fullscreenElement) return;
-const root = document.documentElement;
-if(root.requestFullscreen) root.requestFullscreen().catch(() => {});
-};
-window.addEventListener('pointerdown', request, { once: true });
-window.addEventListener('touchstart', request, { once: true });
-window.addEventListener('click', request, { once: true });
-}
-
-function notify(type, msg) {
-const item = { type, msg, time: new Date().toLocaleTimeString() };
-OS.notifications.unshift(item);
-OS.notifications = OS.notifications.slice(0, 30);
-localStorage.setItem('mc_notifications', JSON.stringify(OS.notifications));
-renderNotifCenter();
-const wrap = document.getElementById('toast-wrap');
-if(!wrap) return;
-const t = document.createElement('div');
-t.className = `toast ${type === 'system' ? 'system' : (type === 'warning' ? 'warn' : '')}`;
-t.innerHTML = `<strong>${type.toUpperCase()}</strong><div>${msg}</div>`;
-wrap.appendChild(t);
-setTimeout(() => t.remove(), 3400);
-}
-
-function renderNotifCenter() {
-const c = document.getElementById('notif-center');
-if(!c) return;
-if(OS.notifications.length === 0) {
-c.innerHTML = '<div class="notif-item" style="opacity:0.6;">No notifications yet.</div>';
-return;
-}
-c.innerHTML = OS.notifications.map(n => `<div class="notif-item"><div style="font-size:0.68rem; opacity:0.55;">${n.time} • ${n.type.toUpperCase()}</div><div>${n.msg}</div></div>`).join('');
-}
-
-function toggleNotifCenter() {
-const c = document.getElementById('notif-center');
-if(!c) return;
-c.style.display = c.style.display === 'block' ? 'none' : 'block';
-}
-
-function installWidget(id) {
-if(OS.widgets.includes(id)) return notify('warning', `${id} widget already installed.`);
-OS.widgets.push(id);
-localStorage.setItem('mc_widgets', JSON.stringify(OS.widgets));
-renderWidgets();
-notify('app', `${id} widget installed.`);
-}
-
-function clearWidgets() {
-OS.widgets = [];
-localStorage.setItem('mc_widgets', JSON.stringify(OS.widgets));
-renderWidgets();
-notify('app', 'All widgets removed.');
-}
-
-function renderWidgets() {
-const layer = document.getElementById('widget-layer');
-if(!layer) return;
-layer.innerHTML = '';
-const now = new Date();
-const cards = {
-weather: `<h4 style="margin:0 0 10px 0;">🌤️ Weather</h4><div style="font-size:1.6rem; font-weight:700;">${18 + (now.getMinutes() % 12)}°C</div><div style="opacity:0.7; font-size:0.8rem;">Partly Cloudy • McCrack City</div>`,
-time: `<h4 style="margin:0 0 10px 0;">🕒 Time & Date</h4><div style="font-size:1.6rem; font-weight:700;">${now.toLocaleTimeString()}</div><div style="opacity:0.7; font-size:0.8rem;">${now.toDateString()}</div>`,
-calendar: `<h4 style="margin:0 0 10px 0;">📅 Calendar</h4><div style="font-size:1.1rem; font-weight:700;">${now.toLocaleString([], { month:'long', year:'numeric' })}</div><div style="opacity:0.7; font-size:0.8rem;">Day ${now.getDate()} of ${new Date(now.getFullYear(), now.getMonth()+1, 0).getDate()}</div>`
-};
-OS.widgets.forEach((id, i) => {
-if(!cards[id]) return;
-const el = document.createElement('div');
-el.className = 'widget-card';
-el.style.top = `${20 + (i * 135)}px`;
-el.style.right = '20px';
-el.innerHTML = cards[id];
-layer.appendChild(el);
-});
-}
-
-
 function addLog(msg) {
 OS.logs.push({time: new Date().toLocaleTimeString(), msg: msg});
 if(OS.running['SystemLogs']) OS.running['SystemLogs'].querySelector('.win-body').innerHTML = Registry['SystemLogs'].content();
@@ -569,7 +435,6 @@ function updateTime() {
 const now = new Date();
 document.getElementById('clock').innerText = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 document.getElementById('date').innerText = now.toLocaleDateString([], {weekday: 'short', month: 'short', day: 'numeric'});
-if(OS.widgets.length) renderWidgets();
 }
 
 function updateBattery() {
@@ -585,7 +450,6 @@ function setBG(url) {
 OS.bg = `url('${url}') center/cover no-repeat`;
 document.getElementById('os-root').style.background = OS.bg;
 localStorage.setItem("mc_bg", OS.bg);
-notify("app", "Wallpaper updated");
 }
 
 function handleFileUpload(event) {
@@ -608,13 +472,11 @@ document.getElementById('login').style.opacity = '0';
 setTimeout(() => {
 document.getElementById('login').style.display = 'none';
 document.getElementById('desktop').style.display = 'block';
-document.getElementById('widget-layer').style.display = 'block';
 renderDesktop();
 addLog("User authenticated successfully.");
 }, 500);
 } else {
 addLog("Warning: Unauthorized access attempt.");
-notify("system", "System Warning: Unauthorized access attempt.");
 document.getElementById('log-msg').innerText = "DENIED";
 }
 }
@@ -653,23 +515,18 @@ const onMove = (ev) => {
 pending = ev;
 if(!raf) raf = requestAnimationFrame(applyMove);
 };
-// keep drag cleanup block from codex branch (resolved merge)
 const onUp = () => {
-cleanupIconDrag(el, onMove, onUp, raf);
+window.removeEventListener('mousemove', onMove);
+window.removeEventListener('mouseup', onUp);
+if(raf) cancelAnimationFrame(raf);
+el.classList.remove('dragging');
+localStorage.setItem("mc_pos", JSON.stringify(OS.pos));
 };
 window.addEventListener('mousemove', onMove);
 window.addEventListener('mouseup', onUp);
 };
 d.appendChild(el);
 });
-}
-
-function cleanupIconDrag(el, onMove, onUp, raf) {
-window.removeEventListener('mousemove', onMove);
-window.removeEventListener('mouseup', onUp);
-if(raf) cancelAnimationFrame(raf);
-el.classList.remove('dragging');
-localStorage.setItem("mc_pos", JSON.stringify(OS.pos));
 }
 
 function renderLib() {
@@ -757,35 +614,20 @@ tl.appendChild(t);
 
 /* --- TERMINAL COMMAND ENGINE --- */
 function cmd(e, el) {
-if(e.key !== "Enter") return;
+if(e.key === "Enter") {
 const out = document.getElementById('t-out');
-const raw = el.value.trim();
-const [command, ...args] = raw.split(' ');
-const v = (command || '').toLowerCase();
-out.innerHTML += `<div><span style="color:white;">></span> ${raw}</div>`;
-if(v === "help") out.innerHTML += "<div>Commands: help, clear, exit, logs, apps, ver, time, date, battery, whoami, echo, open, install, uninstall, notify, setbg, calc, widgets, lock, reboot</div>";
+const v = el.value.toLowerCase().trim();
+out.innerHTML += `<div><span style="color:white;">></span> ${el.value}</div>`;
+if(v === "help") out.innerHTML += "<div>Available: help, clear, exit, logs, apps, ver</div>";
 else if(v === "clear") out.innerHTML = "";
 else if(v === "logs") out.innerHTML += `<div>Total session events: ${OS.logs.length}</div>`;
 else if(v === "apps") out.innerHTML += `<div>Installed: ${OS.installed.join(', ')}</div>`;
 else if(v === "ver") out.innerHTML += "<div>McCrackOS Kernel v9.0.4. Build 2026.03.10</div>";
-else if(v === "time") out.innerHTML += `<div>${new Date().toLocaleTimeString()}</div>`;
-else if(v === "date") out.innerHTML += `<div>${new Date().toDateString()}</div>`;
-else if(v === "battery") out.innerHTML += `<div>Battery: ${OS.battery}%</div>`;
-else if(v === "whoami") out.innerHTML += "<div>user@McCrackOS</div>";
-else if(v === "echo") out.innerHTML += `<div>${args.join(' ')}</div>`;
-else if(v === "open") { const app = args.join(' '); if(Registry[app]) { launch(app); out.innerHTML += `<div>Opened ${app}</div>`; } else out.innerHTML += `<div style="color:var(--danger);">Unknown app: ${app}</div>`; }
-else if(v === "install") { const app = args.join(' '); if(Registry[app] && !OS.installed.includes(app)) { install(app); out.innerHTML += `<div>Installed ${app}</div>`; } else out.innerHTML += `<div>Unable to install ${app}</div>`; }
-else if(v === "uninstall") { const app = args.join(' '); if(OS.installed.includes(app) && !OS.restricted.includes(app)) { OS.installed = OS.installed.filter(a => a !== app); localStorage.setItem('mc_apps', JSON.stringify(OS.installed)); renderDesktop(); renderLib(); out.innerHTML += `<div>Removed ${app}</div>`; notify('warning', `${app} removed.`); } else out.innerHTML += `<div>Cannot remove ${app}</div>`; }
-else if(v === "notify") { const msg = args.join(' ') || 'System Warning'; notify('system', msg); out.innerHTML += `<div>Notification pushed.</div>`; }
-else if(v === "setbg") { const u = args.join(' '); if(u) { setBG(u); out.innerHTML += `<div>Wallpaper updated.</div>`; } else out.innerHTML += `<div>Usage: setbg https://...</div>`; }
-else if(v === "calc") { try { out.innerHTML += `<div>${eval(args.join(' '))}</div>`; } catch { out.innerHTML += `<div>Calculation error.</div>`; } }
-else if(v === "widgets") out.innerHTML += `<div>Installed widgets: ${OS.widgets.join(', ') || 'none'}</div>`;
-else if(v === "lock") lockSystem();
-else if(v === "reboot") location.reload();
 else if(v === "exit") closeW('Terminal');
 else out.innerHTML += `<div style="color:var(--danger);">Command not found: ${v}</div>`;
 el.value = "";
 out.scrollTop = out.scrollHeight;
+}
 }
 
 /* --- MATH ENGINE --- */
