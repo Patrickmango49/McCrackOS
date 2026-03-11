@@ -413,26 +413,35 @@ alert(`Compiled ${name}`);
 }
 
 /* --- CORE SYSTEM LOGIC --- */
+function beginBootTransition() {
+setTimeout(() => {
+const b = document.getElementById('boot');
+const login = document.getElementById('login');
+if(!b || !login) return;
+b.style.opacity = '0';
+setTimeout(() => { b.style.display='none'; login.style.display='flex'; }, 1000);
+}, 3000);
+}
+
 window.onload = () => {
+beginBootTransition();
+try {
 addLog("System boot sequence initialized.");
 document.getElementById('os-root').style.background = OS.bg;
 simulateBootLogs();
-// keep fullscreen hook from codex branch (resolved merge)
 setupFullscreenOnInteraction();
 const customs = safeJSON("mc_custom_apps", {});
 Object.keys(customs).forEach(name => {
 Registry[name] = { icon: "🚀", content: () => buildAppFrame(customs[name]) };
 });
 updateBattery(); setInterval(updateBattery, 30000);
-setTimeout(() => {
-const b = document.getElementById('boot');
-b.style.opacity = '0';
-setTimeout(() => { b.style.display='none'; document.getElementById('login').style.display='flex'; }, 1000);
-}, 3000);
 updateTime(); setInterval(updateTime, 1000);
 renderLib();
 renderNotifCenter();
 renderWidgets();
+} catch (err) {
+console.error('Boot initialization warning:', err);
+}
 };
 
 function simulateBootLogs() {
