@@ -417,6 +417,7 @@ window.onload = () => {
 addLog("System boot sequence initialized.");
 document.getElementById('os-root').style.background = OS.bg;
 simulateBootLogs();
+// keep fullscreen hook from codex branch (resolved merge)
 setupFullscreenOnInteraction();
 const customs = safeJSON("mc_custom_apps", {});
 Object.keys(customs).forEach(name => {
@@ -639,6 +640,7 @@ const onMove = (ev) => {
 pending = ev;
 if(!raf) raf = requestAnimationFrame(applyMove);
 };
+// keep drag cleanup block from codex branch (resolved merge)
 const onUp = () => {
 window.removeEventListener('mousemove', onMove);
 window.removeEventListener('mouseup', onUp);
