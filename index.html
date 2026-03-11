@@ -156,17 +156,6 @@ display: flex; align-items: center; padding: 0 25px; z-index: 8500; border-top: 
 .store-card { background: #0a0a0a; padding: 20px; border-radius: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #1a1a1a; }
 .install-btn { padding: 8px 20px; border-radius: 8px; border: none; background: var(--accent); color: white; cursor: pointer; font-weight: 700; }
 
-/* --- NOTIFICATIONS --- */
-#notif-bell { cursor: pointer; opacity: 0.8; transition: 0.2s; }
-#notif-bell:hover { opacity: 1; transform: scale(1.12); }
-#notif-center { position: fixed; top: calc(var(--top-bar-h) + 12px); right: 15px; width: 300px; max-height: 420px; overflow: auto; background: rgba(8,8,8,0.95); border: var(--border); border-radius: 14px; padding: 12px; display: none; z-index: 11000; }
-.notif-item { font-size: 0.8rem; border-bottom: 1px solid #1c1c1c; padding: 10px 4px; }
-.notif-item:last-child { border-bottom: none; }
-#toast-wrap { position: fixed; right: 16px; bottom: calc(var(--taskbar-h) + 14px); z-index: 12000; display: flex; flex-direction: column; gap: 10px; }
-.toast { min-width: 220px; max-width: 320px; background: #0f0f0f; border: 1px solid #262626; color: #e8e8e8; border-left: 4px solid var(--accent); border-radius: 10px; padding: 10px 12px; font-size: 0.8rem; box-shadow: var(--shadow); }
-.toast.warn { border-left-color: #ff9f1a; }
-.toast.system { border-left-color: #ff4b4b; }
-
 /* --- ANIMATIONS --- */
 @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
 @keyframes pulse-delete { 0% { box-shadow: 0 0 0 0 rgba(255, 75, 75, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(255, 75, 75, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 75, 75, 0); } }
@@ -178,7 +167,6 @@ display: flex; align-items: center; padding: 0 25px; z-index: 8500; border-top: 
 <div>𝕄𝕔ℂ𝕣𝕒𝕔𝕜OS <span style="opacity:0.3; margin-left:10px;">V9.0.4</span></div>
 <div class="top-right">
 <div id="battery-stat"><span>100%</span> 🔋</div>
-<div id="notif-bell" onclick="toggleNotifCenter()">🔔</div>
 <div id="lock-btn" onclick="lockSystem()">TERMINATE SESSION</div>
 </div>
 </div>
@@ -201,8 +189,6 @@ display: flex; align-items: center; padding: 0 25px; z-index: 8500; border-top: 
 </div>
 
 <div id="desktop"></div>
-<div id="toast-wrap"></div>
-<div id="notif-center"></div>
 
 <div id="delete-bin" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropDelete(event)">
 <div>🗑️</div>
@@ -245,7 +231,6 @@ pos: JSON.parse(localStorage.getItem("mc_pos")) || {},
 running: {},
 battery: 100,
 logs: [],
-notifications: safeParse("mc_notifications", []),
 restricted: ["Browser", "Store", "Terminal", "Files", "Settings"],
 storeApps: ["Movies", "Games", "McCrackChat", "Calculator", "Music", "AppFactory", "Notepad"]
 };
@@ -355,7 +340,6 @@ if (OS.running[id]) closeW(id);
 OS.installed = OS.installed.filter(app => app !== id);
 localStorage.setItem("mc_apps", JSON.stringify(OS.installed));
 renderDesktop(); renderLib();
-notify("warning", `${id} removed`);
 return true;
 }
 
@@ -396,7 +380,6 @@ function install(id) {
 OS.installed.push(id);
 localStorage.setItem("mc_apps", JSON.stringify(OS.installed));
 renderDesktop(); renderLib();
-notify("app", `${id} installed`);
 const storeWin = OS.running['Store'];
 if(storeWin) storeWin.querySelector('.win-body').innerHTML = Registry['Store'].content();
 }
@@ -432,7 +415,6 @@ setTimeout(() => { b.style.display='none'; document.getElementById('login').styl
 }, 3000);
 updateTime(); setInterval(updateTime, 1000);
 renderLib();
-renderNotifCenter();
 };
 
 function simulateBootLogs() {
@@ -468,37 +450,6 @@ idx += 1;
 setTimeout(() => clearInterval(timer), 3000);
 }
 
-function notify(type, msg) {
-const item = { type, msg, time: new Date().toLocaleTimeString() };
-OS.notifications.unshift(item);
-OS.notifications = OS.notifications.slice(0, 40);
-localStorage.setItem('mc_notifications', JSON.stringify(OS.notifications));
-renderNotifCenter();
-const wrap = document.getElementById('toast-wrap');
-if(!wrap) return;
-const t = document.createElement('div');
-t.className = `toast ${type === 'system' ? 'system' : (type === 'warning' ? 'warn' : '')}`;
-t.innerHTML = `<strong>${type.toUpperCase()}</strong><div>${msg}</div>`;
-wrap.appendChild(t);
-setTimeout(() => t.remove(), 3200);
-}
-
-function renderNotifCenter() {
-const c = document.getElementById('notif-center');
-if(!c) return;
-if(OS.notifications.length === 0) {
-c.innerHTML = '<div class="notif-item" style="opacity:0.6;">No notifications yet.</div>';
-return;
-}
-c.innerHTML = OS.notifications.map(n => `<div class="notif-item"><div style="font-size:0.68rem; opacity:0.55;">${n.time} • ${n.type.toUpperCase()}</div><div>${n.msg}</div></div>`).join('');
-}
-
-function toggleNotifCenter() {
-const c = document.getElementById('notif-center');
-if(!c) return;
-c.style.display = c.style.display === 'block' ? 'none' : 'block';
-}
-
 function addLog(msg) {
 OS.logs.push({time: new Date().toLocaleTimeString(), msg: msg});
 if(OS.running['SystemLogs']) OS.running['SystemLogs'].querySelector('.win-body').innerHTML = Registry['SystemLogs'].content();
@@ -523,7 +474,6 @@ function setBG(url) {
 OS.bg = `url('${url}') center/cover no-repeat`;
 document.getElementById('os-root').style.background = OS.bg;
 localStorage.setItem("mc_bg", OS.bg);
-notify("app", "Wallpaper updated");
 }
 
 function handleFileUpload(event) {
@@ -551,7 +501,6 @@ addLog("User authenticated successfully.");
 }, 500);
 } else {
 addLog("Warning: Unauthorized access attempt.");
-notify("system", "System Warning: Unauthorized access attempt.");
 document.getElementById('log-msg').innerText = "DENIED";
 }
 }
