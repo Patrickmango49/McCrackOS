@@ -110,8 +110,39 @@ border-radius: 20px; transition: 0.3s; z-index: 110;
 background: rgba(255, 75, 75, 0.3); border-color: #ff4b4b;
 transform: scale(1.1); box-shadow: 0 0 30px rgba(255, 75, 75, 0.4);
 }
+#delete-bin.delete-ready {
+background: rgba(255, 75, 75, 0.38);
+border-color: #ff7878;
+transform: scale(1.12);
+box-shadow: 0 0 35px rgba(255, 75, 75, 0.55), 0 0 60px rgba(255, 75, 75, 0.22);
+animation: pulse-delete 700ms ease-out infinite;
+}
 #delete-bin div { font-size: 50px; margin-bottom: 5px; }
 #delete-bin span { font-size: 0.7rem; font-weight: 800; color: #ff4b4b; letter-spacing: 1px; }
+
+/* --- DESKTOP WIDGETS --- */
+#widget-panel {
+position: absolute;
+top: 24px;
+right: 24px;
+display: flex;
+flex-direction: column;
+gap: 12px;
+z-index: 140;
+pointer-events: none;
+}
+.widget-card {
+min-width: 210px;
+padding: 12px 14px;
+border-radius: 14px;
+background: rgba(8, 8, 8, 0.78);
+border: 1px solid rgba(255,255,255,0.12);
+backdrop-filter: blur(12px);
+box-shadow: 0 10px 22px rgba(0,0,0,0.42);
+}
+.widget-title { font-size: 0.65rem; letter-spacing: 1px; opacity: 0.65; text-transform: uppercase; margin-bottom: 6px; }
+.widget-value { font-size: 1.15rem; font-weight: 700; }
+.widget-sub { font-size: 0.8rem; opacity: 0.72; margin-top: 3px; }
 
 /* --- SYSTEM NOTIFICATIONS --- */
 #notification-center {
@@ -253,14 +284,41 @@ const OS = {
 z: 1000,
 pass: localStorage.getItem("mc_pass") || "1234",
 bg: localStorage.getItem("mc_bg") || "linear-gradient(135deg, #0f0c29, #302b63, #24243e)",
-installed: JSON.parse(localStorage.getItem("mc_apps")) || ["Browser", "Terminal", "Files", "Store", "Settings"],
+installed: JSON.parse(localStorage.getItem("mc_apps")) || ["Browser", "Terminal", "Files", "Store", "Settings", "Widgets"],
 pos: JSON.parse(localStorage.getItem("mc_pos")) || {},
 running: {},
 battery: 100,
 logs: [],
-restricted: ["Browser", "Store", "Terminal", "Files", "Settings"],
-storeApps: ["Movies", "Games", "McCrackChat", "Calculator", "Music", "AppFactory", "Notepad"]
+restricted: ["Browser", "Store", "Terminal", "Files", "Settings", "Widgets"],
+storeApps: ["Movies", "Games", "McCrackChat", "Calculator", "Music", "AppFactory", "Notepad"],
+widgets: JSON.parse(localStorage.getItem("mc_widgets")) || ["clock", "calendar", "weather"],
+weather: { temp: "--", code: "Syncing", location: "Desktop" }
 };
+
+const DEFAULT_APP_ORDER = ["Browser", "Terminal", "Files", "Store", "Settings", "Widgets", ...OS.storeApps];
+
+function getDefaultDesktopPosition(id, fallbackIndex = 0) {
+const desktop = document.getElementById('desktop');
+const desktopWidth = desktop ? desktop.clientWidth : window.innerWidth;
+const appIndex = Math.max(DEFAULT_APP_ORDER.indexOf(id), fallbackIndex);
+return {
+x: 50 + ((appIndex * 130) % Math.max(desktopWidth - 300, 130)),
+y: 50 + (Math.floor(appIndex / 8) * 150)
+};
+}
+
+function iconOverDeleteBin(iconEl) {
+const bin = document.getElementById('delete-bin');
+if(!bin || !iconEl) return false;
+const iconRect = iconEl.getBoundingClientRect();
+const binRect = bin.getBoundingClientRect();
+return !(
+iconRect.right < binRect.left ||
+iconRect.left > binRect.right ||
+iconRect.bottom < binRect.top ||
+iconRect.top > binRect.bottom
+);
+}
 
 const Registry = {
 Notepad: { icon: "📝", content: () => `<textarea oninput="localStorage.setItem('mc_note', this.value)" style="width:100%;height:100%;background:transparent;color:#ddd;padding:40px;border:none;outline:none;resize:none;font-family:monospace;font-size:1.2rem;line-height:1.6;">${localStorage.getItem('mc_note')||''}</textarea>` },
@@ -315,6 +373,15 @@ Settings: { icon: "⚙️", content: () => `<div style="padding:40px;">
 </div>
 </div>
 </div>` },
+Widgets: { icon: "🧩", content: () => `<div style="padding:40px; max-width:760px; margin:0 auto;">
+<h2 style="font-weight:400; margin-bottom:10px;">Widget Manager</h2>
+<p style="opacity:0.55; margin-bottom:24px;">Add or remove desktop widgets.</p>
+<div style="display:grid; grid-template-columns: repeat(3, minmax(160px,1fr)); gap:16px;">
+${renderWidgetControls('clock', 'Clock', 'Live time widget')}
+${renderWidgetControls('calendar', 'Calendar', 'Date + weekday')}
+${renderWidgetControls('weather', 'Weather', 'Local temperature')}
+</div>
+</div>` },
 Music: { icon: "🎵", content: () => `<div style="padding:60px;text-align:center;"><div style="font-size:120px;margin-bottom:30px;filter:drop-shadow(0 0 20px var(--accent));">🎧</div><h2>McCrack Music</h2><p style="opacity:0.5;">Library Empty. Connect to stream.</p></div>` },
 AppFactory: { icon: "🛠️", content: () => `<div style="padding:50px; max-width:600px; margin:0 auto;">
 <h2>Compiler Console</h2>
@@ -351,10 +418,12 @@ ev.currentTarget.style.opacity = "0.4";
 function endDrag(ev) {
 ev.currentTarget.style.opacity = "1";
 document.getElementById('delete-bin').classList.remove('drag-over');
+document.getElementById('delete-bin').classList.remove('delete-ready');
 }
 function dropDelete(ev) {
 ev.preventDefault();
 document.getElementById('delete-bin').classList.remove('drag-over');
+document.getElementById('delete-bin').classList.remove('delete-ready');
 const id = ev.dataTransfer.getData("appId");
 
 if (!id) return;
@@ -365,10 +434,11 @@ attemptDeleteApp(id);
 function attemptDeleteApp(id) {
 if (!id) return;
 
-// logic to block apps NOT in the storeApps list (and core restricted apps)
+const customs = JSON.parse(localStorage.getItem("mc_custom_apps")) || {};
 const isStoreApp = OS.storeApps.includes(id);
+const isCustomApp = Object.prototype.hasOwnProperty.call(customs, id);
 
-if (!isStoreApp || OS.restricted.includes(id)) {
+if ((!isStoreApp && !isCustomApp) || OS.restricted.includes(id)) {
 alert(`CRITICAL ERROR: ${id} is a protected system kernel module and cannot be deleted.`);
 return;
 }
@@ -376,7 +446,14 @@ return;
 if (confirm(`Purge ${id}?`)) {
 if (OS.running[id]) closeW(id);
 OS.installed = OS.installed.filter(app => app !== id);
+delete OS.pos[id];
+if(isCustomApp) {
+delete customs[id];
+localStorage.setItem("mc_custom_apps", JSON.stringify(customs));
+delete Registry[id];
+}
 localStorage.setItem("mc_apps", JSON.stringify(OS.installed));
+localStorage.setItem("mc_pos", JSON.stringify(OS.pos));
 renderDesktop(); renderLib();
 notify(`${id} removed from system.`, "success");
 }
@@ -397,9 +474,75 @@ return `<div class="store-card">
 </div>`
 ; }
 
+function renderWidgetControls(id, name, desc) {
+const active = OS.widgets.includes(id);
+return `<div style="background:#0b0b0b; border:1px solid #1c1c1c; border-radius:14px; padding:16px;">
+<strong>${name}</strong><p style="opacity:0.45; font-size:0.8rem; margin:8px 0 14px 0;">${desc}</p>
+<button onclick="toggleWidget('${id}')" style="width:100%; padding:8px 10px; border-radius:8px; border:none; cursor:pointer; background:${active?'#2b2b2b':'var(--accent)'}; color:white; font-weight:700;">${active?'Remove':'Add'}</button>
+</div>`;
+}
+
+function persistWidgets() {
+localStorage.setItem("mc_widgets", JSON.stringify(OS.widgets));
+}
+
+function toggleWidget(id) {
+if(OS.widgets.includes(id)) OS.widgets = OS.widgets.filter(w => w !== id);
+else OS.widgets.push(id);
+persistWidgets();
+renderWidgets();
+const widgetsWin = OS.running['Widgets'];
+if(widgetsWin) widgetsWin.querySelector('.win-body').innerHTML = Registry['Widgets'].content();
+notify(`${id} widget ${OS.widgets.includes(id) ? 'enabled' : 'disabled'}.`, "info");
+}
+
+function fetchWeatherWidget() {
+const setWeather = (temp, code, location = "Desktop") => {
+OS.weather = { temp, code, location };
+renderWidgets();
+};
+if(!navigator.geolocation) { setWeather('--', 'Geolocation unavailable'); return; }
+navigator.geolocation.getCurrentPosition((pos) => {
+const { latitude, longitude } = pos.coords;
+fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weather_code`)
+.then(r => r.json())
+.then(data => {
+const current = data && data.current ? data.current : {};
+setWeather(current.temperature_2m ?? '--', `Code ${current.weather_code ?? '--'}`, 'Local');
+})
+.catch(() => setWeather('--', 'Weather offline'));
+}, () => setWeather('--', 'Location denied'));
+}
+
+function renderWidgets() {
+const desktop = document.getElementById('desktop');
+if(!desktop) return;
+let panel = document.getElementById('widget-panel');
+if(!panel) {
+panel = document.createElement('div');
+panel.id = 'widget-panel';
+desktop.appendChild(panel);
+}
+const parts = [];
+const now = new Date();
+if(OS.widgets.includes('clock')) {
+parts.push(`<div class="widget-card"><div class="widget-title">Clock</div><div class="widget-value">${now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'})}</div></div>`);
+}
+if(OS.widgets.includes('calendar')) {
+parts.push(`<div class="widget-card"><div class="widget-title">Calendar</div><div class="widget-value">${now.toLocaleDateString([], {month:'short', day:'numeric'})}</div><div class="widget-sub">${now.toLocaleDateString([], {weekday:'long', year:'numeric'})}</div></div>`);
+}
+if(OS.widgets.includes('weather')) {
+parts.push(`<div class="widget-card"><div class="widget-title">Weather</div><div class="widget-value">${OS.weather.temp}°</div><div class="widget-sub">${OS.weather.code} · ${OS.weather.location}</div></div>`);
+}
+panel.innerHTML = parts.join('');
+}
+
 function install(id) {
+if(OS.installed.includes(id)) return;
 OS.installed.push(id);
+OS.pos[id] = getDefaultDesktopPosition(id, OS.installed.length - 1);
 localStorage.setItem("mc_apps", JSON.stringify(OS.installed));
+localStorage.setItem("mc_pos", JSON.stringify(OS.pos));
 renderDesktop(); renderLib();
 notify(`${id} installed successfully.`, "success");
 const storeWin = OS.running['Store'];
@@ -414,8 +557,10 @@ const customs = JSON.parse(localStorage.getItem("mc_custom_apps")) || {};
 customs[name] = link;
 localStorage.setItem("mc_custom_apps", JSON.stringify(customs));
 Registry[name] = { icon: "🚀", content: () => buildAppFrame(link) };
-OS.installed.push(name);
+if(!OS.installed.includes(name)) OS.installed.push(name);
+OS.pos[name] = getDefaultDesktopPosition(name, OS.installed.length - 1);
 localStorage.setItem("mc_apps", JSON.stringify(OS.installed));
+localStorage.setItem("mc_pos", JSON.stringify(OS.pos));
 renderDesktop(); renderLib();
 alert(`Compiled ${name}`);
 }
@@ -434,8 +579,12 @@ setTimeout(() => {
 const b = document.getElementById('boot');
 b.style.opacity = '0';
 setTimeout(() => { b.style.display='none'; document.getElementById('login').style.display='flex'; }, 1000);
-}, 3000);
+}, 6000);
 updateTime(); setInterval(updateTime, 1000);
+setInterval(renderWidgets, 1000);
+setInterval(fetchWeatherWidget, 600000);
+fetchWeatherWidget();
+renderWidgets();
 renderLib();
 };
 
@@ -456,7 +605,7 @@ const bootLines = [
 ];
 panel.innerHTML = '';
 let idx = 0;
-const intervalMs = 300;
+const intervalMs = 600;
 const timer = setInterval(() => {
 if(idx >= bootLines.length) {
 clearInterval(timer);
@@ -469,7 +618,7 @@ panel.appendChild(line);
 panel.scrollTop = panel.scrollHeight;
 idx += 1;
 }, intervalMs);
-setTimeout(() => clearInterval(timer), 3000);
+setTimeout(() => clearInterval(timer), 6000);
 }
 
 function notify(message, type = "info") {
@@ -543,7 +692,7 @@ function lockSystem() { location.reload(); }
 function renderDesktop() {
 const d = document.getElementById('desktop'); d.innerHTML = "";
 OS.installed.forEach((id, index) => {
-const p = OS.pos[id] || {x: 50 + (index*130 % (window.innerWidth - 300)), y: 50 + (Math.floor(index/8)*150)};
+const p = OS.pos[id] || getDefaultDesktopPosition(id, index);
 const el = document.createElement('div'); el.className = 'icon';
 el.style.left = p.x+'px'; el.style.top = p.y+'px';
 el.setAttribute("draggable", "true");
@@ -566,6 +715,7 @@ const ny = clientY - oy;
 el.style.left = nx + 'px';
 el.style.top = ny + 'px';
 OS.pos[id] = {x: nx, y: ny};
+document.getElementById('delete-bin').classList.toggle('delete-ready', iconOverDeleteBin(el));
 raf = null;
 };
 const onMove = (ev) => {
@@ -579,14 +729,9 @@ if(raf) cancelAnimationFrame(raf);
 el.classList.remove('dragging');
 
 const bin = document.getElementById('delete-bin');
-const iconRect = el.getBoundingClientRect();
-const binRect = bin.getBoundingClientRect();
-const overlapsBin = !(
-iconRect.right < binRect.left ||
-iconRect.left > binRect.right ||
-iconRect.bottom < binRect.top ||
-iconRect.top > binRect.bottom
-);
+const overlapsBin = iconOverDeleteBin(el);
+
+bin.classList.remove('delete-ready');
 
 if (overlapsBin) attemptDeleteApp(id);
 
@@ -597,6 +742,7 @@ window.addEventListener('mouseup', onUp);
 };
 d.appendChild(el);
 });
+renderWidgets();
 }
 
 function renderLib() {
