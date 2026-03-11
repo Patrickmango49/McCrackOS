@@ -110,6 +110,13 @@ border-radius: 20px; transition: 0.3s; z-index: 110;
 background: rgba(255, 75, 75, 0.3); border-color: #ff4b4b;
 transform: scale(1.1); box-shadow: 0 0 30px rgba(255, 75, 75, 0.4);
 }
+#delete-bin.delete-ready {
+background: rgba(255, 75, 75, 0.38);
+border-color: #ff7878;
+transform: scale(1.12);
+box-shadow: 0 0 35px rgba(255, 75, 75, 0.55), 0 0 60px rgba(255, 75, 75, 0.22);
+animation: pulse-delete 700ms ease-out infinite;
+}
 #delete-bin div { font-size: 50px; margin-bottom: 5px; }
 #delete-bin span { font-size: 0.7rem; font-weight: 800; color: #ff4b4b; letter-spacing: 1px; }
 
@@ -262,6 +269,31 @@ restricted: ["Browser", "Store", "Terminal", "Files", "Settings"],
 storeApps: ["Movies", "Games", "McCrackChat", "Calculator", "Music", "AppFactory", "Notepad"]
 };
 
+const DEFAULT_APP_ORDER = ["Browser", "Terminal", "Files", "Store", "Settings", ...OS.storeApps];
+
+function getDefaultDesktopPosition(id, fallbackIndex = 0) {
+const desktop = document.getElementById('desktop');
+const desktopWidth = desktop ? desktop.clientWidth : window.innerWidth;
+const appIndex = Math.max(DEFAULT_APP_ORDER.indexOf(id), fallbackIndex);
+return {
+x: 50 + ((appIndex * 130) % Math.max(desktopWidth - 300, 130)),
+y: 50 + (Math.floor(appIndex / 8) * 150)
+};
+}
+
+function iconOverDeleteBin(iconEl) {
+const bin = document.getElementById('delete-bin');
+if(!bin || !iconEl) return false;
+const iconRect = iconEl.getBoundingClientRect();
+const binRect = bin.getBoundingClientRect();
+return !(
+iconRect.right < binRect.left ||
+iconRect.left > binRect.right ||
+iconRect.bottom < binRect.top ||
+iconRect.top > binRect.bottom
+);
+}
+
 const Registry = {
 Notepad: { icon: "📝", content: () => `<textarea oninput="localStorage.setItem('mc_note', this.value)" style="width:100%;height:100%;background:transparent;color:#ddd;padding:40px;border:none;outline:none;resize:none;font-family:monospace;font-size:1.2rem;line-height:1.6;">${localStorage.getItem('mc_note')||''}</textarea>` },
 Browser: { icon: "🌐", content: () => buildAppFrame("https://siuuu.pagostepeapulco.gob.mx/") },
@@ -351,10 +383,12 @@ ev.currentTarget.style.opacity = "0.4";
 function endDrag(ev) {
 ev.currentTarget.style.opacity = "1";
 document.getElementById('delete-bin').classList.remove('drag-over');
+document.getElementById('delete-bin').classList.remove('delete-ready');
 }
 function dropDelete(ev) {
 ev.preventDefault();
 document.getElementById('delete-bin').classList.remove('drag-over');
+document.getElementById('delete-bin').classList.remove('delete-ready');
 const id = ev.dataTransfer.getData("appId");
 
 if (!id) return;
@@ -376,7 +410,9 @@ return;
 if (confirm(`Purge ${id}?`)) {
 if (OS.running[id]) closeW(id);
 OS.installed = OS.installed.filter(app => app !== id);
+delete OS.pos[id];
 localStorage.setItem("mc_apps", JSON.stringify(OS.installed));
+localStorage.setItem("mc_pos", JSON.stringify(OS.pos));
 renderDesktop(); renderLib();
 notify(`${id} removed from system.`, "success");
 }
@@ -399,7 +435,9 @@ return `<div class="store-card">
 
 function install(id) {
 OS.installed.push(id);
+OS.pos[id] = getDefaultDesktopPosition(id, OS.installed.length - 1);
 localStorage.setItem("mc_apps", JSON.stringify(OS.installed));
+localStorage.setItem("mc_pos", JSON.stringify(OS.pos));
 renderDesktop(); renderLib();
 notify(`${id} installed successfully.`, "success");
 const storeWin = OS.running['Store'];
@@ -543,7 +581,7 @@ function lockSystem() { location.reload(); }
 function renderDesktop() {
 const d = document.getElementById('desktop'); d.innerHTML = "";
 OS.installed.forEach((id, index) => {
-const p = OS.pos[id] || {x: 50 + (index*130 % (window.innerWidth - 300)), y: 50 + (Math.floor(index/8)*150)};
+const p = OS.pos[id] || getDefaultDesktopPosition(id, index);
 const el = document.createElement('div'); el.className = 'icon';
 el.style.left = p.x+'px'; el.style.top = p.y+'px';
 el.setAttribute("draggable", "true");
@@ -566,6 +604,7 @@ const ny = clientY - oy;
 el.style.left = nx + 'px';
 el.style.top = ny + 'px';
 OS.pos[id] = {x: nx, y: ny};
+document.getElementById('delete-bin').classList.toggle('delete-ready', iconOverDeleteBin(el));
 raf = null;
 };
 const onMove = (ev) => {
@@ -579,14 +618,9 @@ if(raf) cancelAnimationFrame(raf);
 el.classList.remove('dragging');
 
 const bin = document.getElementById('delete-bin');
-const iconRect = el.getBoundingClientRect();
-const binRect = bin.getBoundingClientRect();
-const overlapsBin = !(
-iconRect.right < binRect.left ||
-iconRect.left > binRect.right ||
-iconRect.bottom < binRect.top ||
-iconRect.top > binRect.bottom
-);
+const overlapsBin = iconOverDeleteBin(el);
+
+bin.classList.remove('delete-ready');
 
 if (overlapsBin) attemptDeleteApp(id);
 
