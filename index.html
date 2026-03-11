@@ -43,6 +43,23 @@ font-size: 0.75rem; font-weight: 700; letter-spacing: 1.2px; text-transform: upp
 .spin { width: 60px; height: 60px; border: 4px solid #111; border-top-color: var(--accent); border-radius: 50%; animation: s 0.8s linear infinite; margin-bottom: 25px; }
 @keyframes s { to { transform: rotate(360deg); } }
 .boot-text { font-family: monospace; font-size: 0.8rem; color: var(--accent); opacity: 0.8; }
+.boot-log-box {
+width: min(760px, 82vw);
+max-height: 180px;
+margin-top: 20px;
+padding: 14px 16px;
+border: 1px solid #143a14;
+border-radius: 10px;
+background: rgba(0,0,0,0.75);
+box-shadow: inset 0 0 22px rgba(24, 255, 72, 0.1);
+overflow: hidden;
+font-family: monospace;
+font-size: 0.8rem;
+line-height: 1.35;
+color: #39ff88;
+text-align: left;
+}
+.boot-line { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0.9; }
 
 /* --- AUTHENTICATION --- */
 #login {
@@ -70,9 +87,13 @@ border-radius: 12px; cursor: pointer; font-weight: 800; font-size: 1rem; transit
 /* Drag and Drop Styling */
 .icon {
 position: absolute; width: 110px; height: 120px; display: flex; flex-direction: column;
-align-items: center; justify-content: center; border-radius: 18px; cursor: grab; transition: transform 0.2s;
+align-items: center; justify-content: center; border-radius: 18px; cursor: grab;
+transition: transform 0.2s, left 0.08s linear, top 0.08s linear;
+will-change: left, top, transform;
+user-select: none;
 z-index: 150;
 }
+.icon.dragging { transition: transform 0.08s linear; }
 .icon:active { cursor: grabbing; }
 .icon:hover { background: rgba(255,255,255,0.08); transform: scale(1.05); }
 .icon div { font-size: 55px; margin-bottom: 10px; filter: drop-shadow(0 8px 12px rgba(0,0,0,0.6)); pointer-events: none;}
@@ -135,6 +156,17 @@ display: flex; align-items: center; padding: 0 25px; z-index: 8500; border-top: 
 .store-card { background: #0a0a0a; padding: 20px; border-radius: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #1a1a1a; }
 .install-btn { padding: 8px 20px; border-radius: 8px; border: none; background: var(--accent); color: white; cursor: pointer; font-weight: 700; }
 
+/* --- NOTIFICATIONS --- */
+#notif-bell { cursor: pointer; opacity: 0.8; transition: 0.2s; }
+#notif-bell:hover { opacity: 1; transform: scale(1.12); }
+#notif-center { position: fixed; top: calc(var(--top-bar-h) + 12px); right: 15px; width: 300px; max-height: 420px; overflow: auto; background: rgba(8,8,8,0.95); border: var(--border); border-radius: 14px; padding: 12px; display: none; z-index: 11000; }
+.notif-item { font-size: 0.8rem; border-bottom: 1px solid #1c1c1c; padding: 10px 4px; }
+.notif-item:last-child { border-bottom: none; }
+#toast-wrap { position: fixed; right: 16px; bottom: calc(var(--taskbar-h) + 14px); z-index: 12000; display: flex; flex-direction: column; gap: 10px; }
+.toast { min-width: 220px; max-width: 320px; background: #0f0f0f; border: 1px solid #262626; color: #e8e8e8; border-left: 4px solid var(--accent); border-radius: 10px; padding: 10px 12px; font-size: 0.8rem; box-shadow: var(--shadow); }
+.toast.warn { border-left-color: #ff9f1a; }
+.toast.system { border-left-color: #ff4b4b; }
+
 /* --- ANIMATIONS --- */
 @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
 @keyframes pulse-delete { 0% { box-shadow: 0 0 0 0 rgba(255, 75, 75, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(255, 75, 75, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 75, 75, 0); } }
@@ -146,6 +178,7 @@ display: flex; align-items: center; padding: 0 25px; z-index: 8500; border-top: 
 <div>𝕄𝕔ℂ𝕣𝕒𝕔𝕜OS <span style="opacity:0.3; margin-left:10px;">V9.0.4</span></div>
 <div class="top-right">
 <div id="battery-stat"><span>100%</span> 🔋</div>
+<div id="notif-bell" onclick="toggleNotifCenter()">🔔</div>
 <div id="lock-btn" onclick="lockSystem()">TERMINATE SESSION</div>
 </div>
 </div>
@@ -154,6 +187,7 @@ display: flex; align-items: center; padding: 0 25px; z-index: 8500; border-top: 
 <h1 style="letter-spacing: 12px; font-weight: 200; font-size: 2.5rem;">𝕄𝕔ℂ𝕣𝕒𝕔𝕜<span style="font-weight:700;">OS</span></h1>
 <div class="spin"></div>
 <p class="boot-text">INITIALIZING OPERATING SYSTEM...</p>
+<div id="boot-logs" class="boot-log-box"></div>
 </div>
 
 <div id="login">
@@ -167,6 +201,8 @@ display: flex; align-items: center; padding: 0 25px; z-index: 8500; border-top: 
 </div>
 
 <div id="desktop"></div>
+<div id="toast-wrap"></div>
+<div id="notif-center"></div>
 
 <div id="delete-bin" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropDelete(event)">
 <div>🗑️</div>
@@ -191,6 +227,15 @@ display: flex; align-items: center; padding: 0 25px; z-index: 8500; border-top: 
 
 <script>
 /* --- KERNEL DATA & REGISTRY --- */
+function safeParse(key, fallback) {
+try {
+const raw = localStorage.getItem(key);
+return raw ? JSON.parse(raw) : fallback;
+} catch {
+return fallback;
+}
+}
+
 const OS = {
 z: 1000,
 pass: localStorage.getItem("mc_pass") || "1234",
@@ -200,6 +245,7 @@ pos: JSON.parse(localStorage.getItem("mc_pos")) || {},
 running: {},
 battery: 100,
 logs: [],
+notifications: safeParse("mc_notifications", []),
 restricted: ["Browser", "Store", "Terminal", "Files", "Settings"],
 storeApps: ["Movies", "Games", "McCrackChat", "Calculator", "Music", "AppFactory", "Notepad"]
 };
@@ -243,9 +289,11 @@ Settings: { icon: "⚙️", content: () => `<div style="padding:40px;">
 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:30px;">
 <div style="background:#0a0a0a; padding:25px; border-radius:20px; border:1px solid #1a1a1a;">
 <h4>Personalization</h4><br>
-<p style="font-size:0.8rem; opacity:0.5;">Paste an image URL to update the workspace visual.</p><br>
+<p style="font-size:0.8rem; opacity:0.5;">Paste an image URL or upload an image to update the workspace visual.</p><br>
 <input type="text" id="bg-url" placeholder="https://..." style="width:100%; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px;"><br><br>
-<button onclick="setBG(document.getElementById('bg-url').value)" style="width:100%; padding:10px; cursor:pointer; background:var(--accent); border:none; color:white; border-radius:8px;">Apply URL</button>
+<button onclick="setBG(document.getElementById('bg-url').value)" style="width:100%; padding:10px; cursor:pointer; background:var(--accent); border:none; color:white; border-radius:8px;">Apply URL</button><br><br>
+<button onclick="document.getElementById('bg-upload-settings').click()" style="width:100%; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Upload Image</button>
+<input type="file" id="bg-upload-settings" style="display:none" onchange="handleFileUpload(event)" accept="image/*">
 </div>
 <div style="background:#0a0a0a; padding:25px; border-radius:20px; border:1px solid #1a1a1a;">
 <h4>Security</h4><br>
@@ -292,37 +340,49 @@ function endDrag(ev) {
 ev.currentTarget.style.opacity = "1";
 document.getElementById('delete-bin').classList.remove('drag-over');
 }
-function dropDelete(ev) {
-ev.preventDefault();
-document.getElementById('delete-bin').classList.remove('drag-over');
-const id = ev.dataTransfer.getData("appId");
-
-// logic to block apps NOT in the storeApps list (and core restricted apps)
+function canDeleteApp(id) {
 const isStoreApp = OS.storeApps.includes(id);
-
-if (!isStoreApp || OS.restricted.includes(id)) {
-alert(`CRITICAL ERROR: ${id} is a protected system kernel module and cannot be deleted.`);
-return;
+return isStoreApp && !OS.restricted.includes(id);
 }
 
-if (confirm(`Purge ${id}?`)) {
+function processDeleteApp(id) {
+if (!canDeleteApp(id)) {
+alert(`CRITICAL ERROR: ${id} is a protected system kernel module and cannot be deleted.`);
+return false;
+}
+if (!confirm(`Purge ${id}?`)) return false;
 if (OS.running[id]) closeW(id);
 OS.installed = OS.installed.filter(app => app !== id);
 localStorage.setItem("mc_apps", JSON.stringify(OS.installed));
 renderDesktop(); renderLib();
+notify("warning", `${id} removed`);
+return true;
 }
+
+function droppedOverDeleteBin(el) {
+const bin = document.getElementById('delete-bin');
+if(!bin || !el) return false;
+const b = bin.getBoundingClientRect();
+const r = el.getBoundingClientRect();
+const cx = r.left + (r.width / 2);
+const cy = r.top + (r.height / 2);
+return cx >= b.left && cx <= b.right && cy >= b.top && cy <= b.bottom;
+}
+
+function dropDelete(ev) {
+ev.preventDefault();
+document.getElementById('delete-bin').classList.remove('drag-over');
+const id = ev.dataTransfer.getData("appId");
+if(!id) return;
+processDeleteApp(id);
 }
 
 /* --- FRAMEWORK FUNCTIONS --- */
 function buildAppFrame(url) {
 return `<div class="full-app-view">
 <iframe class="app-iframe" src="${url}"></iframe>
-<div style="padding:15px; background:#0a0a0a; width:100%; border-top:1px solid #1a1a1a; display:flex; justify-content:center;">
-<button onclick="deepFullscreen('${url}')" style="background:linear-gradient(45deg, #000, #fff); color:#000; padding:12px 30px; border-radius:10px; font-weight:900; border:none; cursor:pointer;">EXTERN FULLSCREEN</button>
-</div>
 </div>`
 ; }
-function deepFullscreen(url) { window.open(url, '_blank'); }
 
 function renderStoreItem(id, desc) {
 const isInst = OS.installed.includes(id);
@@ -336,6 +396,7 @@ function install(id) {
 OS.installed.push(id);
 localStorage.setItem("mc_apps", JSON.stringify(OS.installed));
 renderDesktop(); renderLib();
+notify("app", `${id} installed`);
 const storeWin = OS.running['Store'];
 if(storeWin) storeWin.querySelector('.win-body').innerHTML = Registry['Store'].content();
 }
@@ -344,7 +405,7 @@ function createCustomApp() {
 const name = document.getElementById('fac-name').value.trim();
 const link = document.getElementById('fac-link').value.trim();
 if(!name || !link) return alert("Missing fields.");
-const customs = JSON.parse(localStorage.getItem("mc_custom_apps")) || {};
+const customs = safeParse("mc_custom_apps", {});
 customs[name] = link;
 localStorage.setItem("mc_custom_apps", JSON.stringify(customs));
 Registry[name] = { icon: "🚀", content: () => buildAppFrame(link) };
@@ -358,7 +419,8 @@ alert(`Compiled ${name}`);
 window.onload = () => {
 addLog("System boot sequence initialized.");
 document.getElementById('os-root').style.background = OS.bg;
-const customs = JSON.parse(localStorage.getItem("mc_custom_apps")) || {};
+simulateBootLogs();
+const customs = safeParse("mc_custom_apps", {});
 Object.keys(customs).forEach(name => {
 Registry[name] = { icon: "🚀", content: () => buildAppFrame(customs[name]) };
 });
@@ -370,7 +432,72 @@ setTimeout(() => { b.style.display='none'; document.getElementById('login').styl
 }, 3000);
 updateTime(); setInterval(updateTime, 1000);
 renderLib();
+renderNotifCenter();
 };
+
+function simulateBootLogs() {
+const panel = document.getElementById('boot-logs');
+if(!panel) return;
+const bootLines = [
+"[BOOT] Power rails stabilized at 12.0V",
+"[KERNEL] Loading microkernel v9.0.4",
+"[MEMORY] Mapping core pages... OK",
+"[SECURITY] Initializing access-control matrix",
+"[DRIVER] Mounting synthetic file system",
+"[NET] Negotiating loopback interface",
+"[AUDIO] DSP handoff complete",
+"[GPU] Shader cache restored",
+"[SERVICES] Spawning userland daemons",
+"[SYSTEM] Startup checks complete"
+];
+panel.innerHTML = '';
+let idx = 0;
+const intervalMs = 300;
+const timer = setInterval(() => {
+if(idx >= bootLines.length) {
+clearInterval(timer);
+return;
+}
+const line = document.createElement('div');
+line.className = 'boot-line';
+line.textContent = `${new Date().toLocaleTimeString()} ${bootLines[idx]}`;
+panel.appendChild(line);
+panel.scrollTop = panel.scrollHeight;
+idx += 1;
+}, intervalMs);
+setTimeout(() => clearInterval(timer), 3000);
+}
+
+function notify(type, msg) {
+const item = { type, msg, time: new Date().toLocaleTimeString() };
+OS.notifications.unshift(item);
+OS.notifications = OS.notifications.slice(0, 40);
+localStorage.setItem('mc_notifications', JSON.stringify(OS.notifications));
+renderNotifCenter();
+const wrap = document.getElementById('toast-wrap');
+if(!wrap) return;
+const t = document.createElement('div');
+t.className = `toast ${type === 'system' ? 'system' : (type === 'warning' ? 'warn' : '')}`;
+t.innerHTML = `<strong>${type.toUpperCase()}</strong><div>${msg}</div>`;
+wrap.appendChild(t);
+setTimeout(() => t.remove(), 3200);
+}
+
+function renderNotifCenter() {
+const c = document.getElementById('notif-center');
+if(!c) return;
+if(OS.notifications.length === 0) {
+c.innerHTML = '<div class="notif-item" style="opacity:0.6;">No notifications yet.</div>';
+return;
+}
+c.innerHTML = OS.notifications.map(n => `<div class="notif-item"><div style="font-size:0.68rem; opacity:0.55;">${n.time} • ${n.type.toUpperCase()}</div><div>${n.msg}</div></div>`).join('');
+}
+
+function toggleNotifCenter() {
+const c = document.getElementById('notif-center');
+if(!c) return;
+c.style.display = c.style.display === 'block' ? 'none' : 'block';
+}
 
 function addLog(msg) {
 OS.logs.push({time: new Date().toLocaleTimeString(), msg: msg});
@@ -396,6 +523,19 @@ function setBG(url) {
 OS.bg = `url('${url}') center/cover no-repeat`;
 document.getElementById('os-root').style.background = OS.bg;
 localStorage.setItem("mc_bg", OS.bg);
+notify("app", "Wallpaper updated");
+}
+
+function handleFileUpload(event) {
+const file = event.target.files && event.target.files[0];
+if(!file) return;
+const reader = new FileReader();
+reader.onload = (e) => {
+setBG(e.target.result);
+addLog(`Wallpaper updated from file: ${file.name}`);
+};
+reader.readAsDataURL(file);
+event.target.value = '';
 }
 
 function setPass(p) { OS.pass = p; localStorage.setItem("mc_pass", p); }
@@ -411,6 +551,7 @@ addLog("User authenticated successfully.");
 }, 500);
 } else {
 addLog("Warning: Unauthorized access attempt.");
+notify("system", "System Warning: Unauthorized access attempt.");
 document.getElementById('log-msg').innerText = "DENIED";
 }
 }
@@ -429,13 +570,37 @@ el.ondragstart = (e) => startDrag(e, id);
 el.ondragend = (e) => endDrag(e);
 el.ondblclick = () => launch(id);
 el.onmousedown = (e) => {
+if (e.button !== 0) return;
+e.preventDefault();
+el.classList.add('dragging');
 let ox = e.clientX - el.offsetLeft, oy = e.clientY - el.offsetTop;
-document.onmousemove = (ev) => {
-let nx = ev.clientX-ox, ny = ev.clientY-oy;
-el.style.left = nx+'px'; el.style.top = ny+'px';
+let raf = null;
+let pending = null;
+const applyMove = () => {
+if(!pending) return;
+const { clientX, clientY } = pending;
+const nx = clientX - ox;
+const ny = clientY - oy;
+el.style.left = nx + 'px';
+el.style.top = ny + 'px';
 OS.pos[id] = {x: nx, y: ny};
+raf = null;
 };
-document.onmouseup = () => { document.onmousemove = null; localStorage.setItem("mc_pos", JSON.stringify(OS.pos)); };
+const onMove = (ev) => {
+pending = ev;
+if(!raf) raf = requestAnimationFrame(applyMove);
+};
+const onUp = () => {
+window.removeEventListener('mousemove', onMove);
+window.removeEventListener('mouseup', onUp);
+if(pending) applyMove();
+if(raf) cancelAnimationFrame(raf);
+el.classList.remove('dragging');
+localStorage.setItem("mc_pos", JSON.stringify(OS.pos));
+if(droppedOverDeleteBin(el)) processDeleteApp(id);
+};
+window.addEventListener('mousemove', onMove);
+window.addEventListener('mouseup', onUp);
 };
 d.appendChild(el);
 });
@@ -475,10 +640,28 @@ w.innerHTML = `<div class="win-head">
 <div class="resizer"></div>`
 ; document.body.appendChild(w); OS.running[id] = w;
 w.querySelector('.win-head').onmousedown = (e) => {
-if(w.dataset.fs === "true") return;
-focusWin(id); let ox = e.clientX - w.offsetLeft, oy = e.clientY - w.offsetTop;
-document.onmousemove = (ev) => { w.style.left = (ev.clientX-ox)+'px'; w.style.top = (ev.clientY-oy)+'px'; };
-document.onmouseup = () => document.onmousemove = null;
+if (e.button !== 0 || w.dataset.fs === "true") return;
+focusWin(id);
+const ox = e.clientX - w.offsetLeft, oy = e.clientY - w.offsetTop;
+let raf = null;
+let pending = null;
+const applyMove = () => {
+if(!pending) return;
+w.style.left = (pending.clientX - ox) + 'px';
+w.style.top = (pending.clientY - oy) + 'px';
+raf = null;
+};
+const onMove = (ev) => {
+pending = ev;
+if(!raf) raf = requestAnimationFrame(applyMove);
+};
+const onUp = () => {
+window.removeEventListener('mousemove', onMove);
+window.removeEventListener('mouseup', onUp);
+if(raf) cancelAnimationFrame(raf);
+};
+window.addEventListener('mousemove', onMove);
+window.addEventListener('mouseup', onUp);
 };
 w.querySelector('.resizer').onmousedown = (e) => {
 let sw=w.offsetWidth, sh=w.offsetHeight, sx=e.clientX, sy=e.clientY;
