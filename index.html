@@ -348,9 +348,8 @@ const bin = document.getElementById('delete-bin');
 if(!bin || !el) return false;
 const b = bin.getBoundingClientRect();
 const r = el.getBoundingClientRect();
-const cx = r.left + (r.width / 2);
-const cy = r.top + (r.height / 2);
-return cx >= b.left && cx <= b.right && cy >= b.top && cy <= b.bottom;
+const overlaps = !(r.right < b.left || r.left > b.right || r.bottom < b.top || r.top > b.bottom);
+return overlaps;
 }
 
 function dropDelete(ev) {
@@ -546,6 +545,7 @@ if(pending) applyMove();
 if(raf) cancelAnimationFrame(raf);
 el.classList.remove('dragging');
 localStorage.setItem("mc_pos", JSON.stringify(OS.pos));
+document.getElementById('delete-bin').classList.remove('drag-over');
 if(droppedOverDeleteBin(el)) processDeleteApp(id);
 };
 window.addEventListener('mousemove', onMove);
