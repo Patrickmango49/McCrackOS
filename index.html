@@ -321,6 +321,14 @@ ev.preventDefault();
 document.getElementById('delete-bin').classList.remove('drag-over');
 const id = ev.dataTransfer.getData("appId");
 
+if (!id) return;
+
+attemptDeleteApp(id);
+}
+
+function attemptDeleteApp(id) {
+if (!id) return;
+
 // logic to block apps NOT in the storeApps list (and core restricted apps)
 const isStoreApp = OS.storeApps.includes(id);
 
@@ -520,6 +528,19 @@ window.removeEventListener('mousemove', onMove);
 window.removeEventListener('mouseup', onUp);
 if(raf) cancelAnimationFrame(raf);
 el.classList.remove('dragging');
+
+const bin = document.getElementById('delete-bin');
+const iconRect = el.getBoundingClientRect();
+const binRect = bin.getBoundingClientRect();
+const overlapsBin = !(
+iconRect.right < binRect.left ||
+iconRect.left > binRect.right ||
+iconRect.bottom < binRect.top ||
+iconRect.top > binRect.bottom
+);
+
+if (overlapsBin) attemptDeleteApp(id);
+
 localStorage.setItem("mc_pos", JSON.stringify(OS.pos));
 };
 window.addEventListener('mousemove', onMove);
@@ -614,20 +635,104 @@ tl.appendChild(t);
 
 /* --- TERMINAL COMMAND ENGINE --- */
 function cmd(e, el) {
-if(e.key === "Enter") {
+if(e.key !== "Enter") return;
+
 const out = document.getElementById('t-out');
-const v = el.value.toLowerCase().trim();
-out.innerHTML += `<div><span style="color:white;">></span> ${el.value}</div>`;
-if(v === "help") out.innerHTML += "<div>Available: help, clear, exit, logs, apps, ver</div>";
+const raw = el.value.trim();
+const [command, ...args] = raw.split(/\s+/);
+const v = (command || "").toLowerCase();
+
+out.innerHTML += `<div><span style="color:white;">></span> ${raw}</div>`;
+
+const print = (text, tone = "normal") => {
+const color = tone === "error" ? "var(--danger)" : (tone === "muted" ? "#888" : "#ddd");
+out.innerHTML += `<div style="color:${color};">${text}</div>`;
+};
+
+if(!v) {
+el.value = "";
+return;
+}
+
+if(v === "help") {
+print("Available commands:");
+print("help, clear, exit, logs, apps, ver, time, date, battery, whoami, echo, calc, open, close, install, uninstall, ls, pwd");
+}
 else if(v === "clear") out.innerHTML = "";
-else if(v === "logs") out.innerHTML += `<div>Total session events: ${OS.logs.length}</div>`;
-else if(v === "apps") out.innerHTML += `<div>Installed: ${OS.installed.join(', ')}</div>`;
-else if(v === "ver") out.innerHTML += "<div>McCrackOS Kernel v9.0.4. Build 2026.03.10</div>";
+else if(v === "logs") print(`Total session events: ${OS.logs.length}`);
+else if(v === "apps" || v === "ls") print(`Installed: ${OS.installed.join(', ')}`);
+else if(v === "ver") print("McCrackOS Kernel v9.0.4. Build 2026.03.10");
+else if(v === "time") print(new Date().toLocaleTimeString());
+else if(v === "date") print(new Date().toLocaleDateString());
+else if(v === "battery") print(`Battery status: ${OS.battery}%`);
+else if(v === "whoami") print("operator@mc-crackos");
+else if(v === "echo") print(args.join(' ') || "");
+else if(v === "pwd") print("/system/desktop");
+else if(v === "calc") {
+const expr = args.join(' ');
+if(!expr) print("Usage: calc <expression>", "muted");
+else {
+try { print(`${expr} = ${eval(expr)}`); }
+catch(_) { print("Invalid expression.", "error"); }
+}
+}
+else if(v === "open") {
+const appName = args.join(' ');
+if(!appName) print("Usage: open <app>", "muted");
+else {
+const match = Object.keys(Registry).find(name => name.toLowerCase() === appName.toLowerCase());
+if(match && OS.installed.includes(match)) {
+launch(match);
+print(`Launched ${match}.`);
+} else if(match) {
+print(`${match} is not installed. Try: install ${match}`, "error");
+} else {
+print(`Unknown app: ${appName}`, "error");
+}
+}
+}
+else if(v === "close") {
+const appName = args.join(' ');
+if(!appName) print("Usage: close <app>", "muted");
+else {
+const runningName = Object.keys(OS.running).find(name => name.toLowerCase() === appName.toLowerCase());
+if(runningName) {
+closeW(runningName);
+print(`Closed ${runningName}.`);
+} else {
+print(`${appName} is not running.`, "error");
+}
+}
+}
+else if(v === "install") {
+const appName = args.join(' ');
+if(!appName) print("Usage: install <app>", "muted");
+else {
+const match = OS.storeApps.find(name => name.toLowerCase() === appName.toLowerCase());
+if(!match) print(`${appName} is not available in the store.`, "error");
+else if(OS.installed.includes(match)) print(`${match} is already installed.`, "muted");
+else {
+install(match);
+print(`${match} installed successfully.`);
+}
+}
+}
+else if(v === "uninstall") {
+const appName = args.join(' ');
+if(!appName) print("Usage: uninstall <app>", "muted");
+else {
+const match = OS.installed.find(name => name.toLowerCase() === appName.toLowerCase());
+if(!match) print(`${appName} is not installed.`, "error");
+else {
+attemptDeleteApp(match);
+}
+}
+}
 else if(v === "exit") closeW('Terminal');
-else out.innerHTML += `<div style="color:var(--danger);">Command not found: ${v}</div>`;
+else print(`Command not found: ${v}`, "error");
+
 el.value = "";
 out.scrollTop = out.scrollHeight;
-}
 }
 
 /* --- MATH ENGINE --- */
