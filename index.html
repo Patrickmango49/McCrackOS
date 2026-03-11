@@ -321,6 +321,14 @@ ev.preventDefault();
 document.getElementById('delete-bin').classList.remove('drag-over');
 const id = ev.dataTransfer.getData("appId");
 
+if (!id) return;
+
+attemptDeleteApp(id);
+}
+
+function attemptDeleteApp(id) {
+if (!id) return;
+
 // logic to block apps NOT in the storeApps list (and core restricted apps)
 const isStoreApp = OS.storeApps.includes(id);
 
@@ -520,6 +528,19 @@ window.removeEventListener('mousemove', onMove);
 window.removeEventListener('mouseup', onUp);
 if(raf) cancelAnimationFrame(raf);
 el.classList.remove('dragging');
+
+const bin = document.getElementById('delete-bin');
+const iconRect = el.getBoundingClientRect();
+const binRect = bin.getBoundingClientRect();
+const overlapsBin = !(
+iconRect.right < binRect.left ||
+iconRect.left > binRect.right ||
+iconRect.bottom < binRect.top ||
+iconRect.top > binRect.bottom
+);
+
+if (overlapsBin) attemptDeleteApp(id);
+
 localStorage.setItem("mc_pos", JSON.stringify(OS.pos));
 };
 window.addEventListener('mousemove', onMove);
