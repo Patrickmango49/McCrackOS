@@ -429,7 +429,7 @@ try {
 addLog("System boot sequence initialized.");
 document.getElementById('os-root').style.background = OS.bg;
 simulateBootLogs();
-setupFullscreenOnInteraction();
+initInteractionHooks();
 const customs = safeJSON("mc_custom_apps", {});
 Object.keys(customs).forEach(name => {
 Registry[name] = { icon: "🚀", content: () => buildAppFrame(customs[name]) };
@@ -475,6 +475,10 @@ panel.scrollTop = panel.scrollHeight;
 idx += 1;
 }, intervalMs);
 setTimeout(() => clearInterval(timer), 3000);
+}
+
+function initInteractionHooks() {
+setupFullscreenOnInteraction();
 }
 
 function setupFullscreenOnInteraction() {
@@ -651,17 +655,21 @@ if(!raf) raf = requestAnimationFrame(applyMove);
 };
 // keep drag cleanup block from codex branch (resolved merge)
 const onUp = () => {
-window.removeEventListener('mousemove', onMove);
-window.removeEventListener('mouseup', onUp);
-if(raf) cancelAnimationFrame(raf);
-el.classList.remove('dragging');
-localStorage.setItem("mc_pos", JSON.stringify(OS.pos));
+cleanupIconDrag(el, onMove, onUp, raf);
 };
 window.addEventListener('mousemove', onMove);
 window.addEventListener('mouseup', onUp);
 };
 d.appendChild(el);
 });
+}
+
+function cleanupIconDrag(el, onMove, onUp, raf) {
+window.removeEventListener('mousemove', onMove);
+window.removeEventListener('mouseup', onUp);
+if(raf) cancelAnimationFrame(raf);
+el.classList.remove('dragging');
+localStorage.setItem("mc_pos", JSON.stringify(OS.pos));
 }
 
 function renderLib() {
