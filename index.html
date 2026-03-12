@@ -22,7 +22,7 @@
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font); -webkit-user-select: none; user-select: none; }
 body {
 height: 100vh; width: 100vw; overflow: hidden;
-background: radial-gradient(circle at center, rgba(255, 255, 255, 0.045) 0%, #060606 35%, #020202 68%, #000 100%); color: white; transition: background 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+background: radial-gradient(130% 90% at 50% 8%, rgba(86, 106, 171, 0.16) 0%, rgba(42, 56, 96, 0.08) 24%, rgba(17, 22, 34, 0.96) 54%, #05070d 80%, #020308 100%); color: white; transition: background 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* --- TOP BAR --- */
@@ -125,6 +125,7 @@ cursor: grab;
 pointer-events: auto;
 user-select: none;
 touch-action: none;
+will-change: left, top;
 }
 .widget-card.dragging { cursor: grabbing; }
 .widget-card h4 { font-size: 0.72rem; letter-spacing: 1.2px; opacity: 0.65; margin-bottom: 8px; }
@@ -341,12 +342,12 @@ function clampWidgetPosition(pos, layer, card) {
 const maxX = Math.max((layer?.clientWidth || window.innerWidth) - (card?.offsetWidth || 260), 0);
 const maxY = Math.max((layer?.clientHeight || window.innerHeight) - (card?.offsetHeight || 110), 0);
 return {
-x: Math.min(Math.max(Math.round(pos.x), 0), maxX),
-y: Math.min(Math.max(Math.round(pos.y), 0), maxY)
+x: Math.min(Math.max(pos.x, 0), maxX),
+y: Math.min(Math.max(pos.y, 0), maxY)
 };
 }
 
-const DEFAULT_BG = "radial-gradient(circle at center, rgba(255, 255, 255, 0.045) 0%, #060606 35%, #020202 68%, #000 100%)";
+const DEFAULT_BG = "radial-gradient(130% 90% at 50% 8%, rgba(86, 106, 171, 0.16) 0%, rgba(42, 56, 96, 0.08) 24%, rgba(17, 22, 34, 0.96) 54%, #05070d 80%, #020308 100%)";
 
 const OS = {
 z: 1000,
@@ -690,40 +691,66 @@ localStorage.setItem('mc_quick_note', next.trim() || 'No reminder set.');
 renderWidgets();
 };
 }
-card.onmousedown = (e) => {
+card.onpointerdown = (e) => {
 if (e.button !== 0) return;
 e.preventDefault();
+card.setPointerCapture(e.pointerId);
 card.classList.add('dragging');
 const layerRect = layer.getBoundingClientRect();
 const startLeft = parseFloat(card.style.left || '0');
 const startTop = parseFloat(card.style.top || '0');
 const offsetX = e.clientX - layerRect.left - startLeft;
 const offsetY = e.clientY - layerRect.top - startTop;
+let target = { x: startLeft, y: startTop };
+let current = { x: startLeft, y: startTop };
+let dragActive = true;
 let raf = null;
-let pending = null;
-const applyMove = () => {
-if(!pending) return;
-const rawX = pending.clientX - layerRect.left - offsetX;
-const rawY = pending.clientY - layerRect.top - offsetY;
-const next = clampWidgetPosition({ x: rawX, y: rawY }, layer, card);
-card.style.left = `${next.x}px`;
-card.style.top = `${next.y}px`;
-OS.widgetPositions[widget.id] = next;
+
+const render = () => {
+if (!dragActive) return;
+const dx = target.x - current.x;
+const dy = target.y - current.y;
+const easing = 0.32;
+current.x += dx * easing;
+current.y += dy * easing;
+
+card.style.left = `${current.x.toFixed(2)}px`;
+card.style.top = `${current.y.toFixed(2)}px`;
+OS.widgetPositions[widget.id] = { ...current };
+
+if (Math.abs(dx) > 0.1 || Math.abs(dy) > 0.1) {
+raf = requestAnimationFrame(render);
+} else {
 raf = null;
+}
 };
+
 const onMove = (ev) => {
-pending = ev;
-if(!raf) raf = requestAnimationFrame(applyMove);
+const rawX = ev.clientX - layerRect.left - offsetX;
+const rawY = ev.clientY - layerRect.top - offsetY;
+target = clampWidgetPosition({ x: rawX, y: rawY }, layer, card);
+if (!raf) raf = requestAnimationFrame(render);
 };
+
 const onUp = () => {
-window.removeEventListener('mousemove', onMove);
-window.removeEventListener('mouseup', onUp);
-if(raf) cancelAnimationFrame(raf);
+if (!dragActive) return;
+dragActive = false;
+card.releasePointerCapture(e.pointerId);
+card.removeEventListener('pointermove', onMove);
+card.removeEventListener('pointerup', onUp);
+card.removeEventListener('pointercancel', onUp);
+if (raf) cancelAnimationFrame(raf);
+const finalPos = clampWidgetPosition(target, layer, card);
+card.style.left = `${finalPos.x}px`;
+card.style.top = `${finalPos.y}px`;
+OS.widgetPositions[widget.id] = finalPos;
 card.classList.remove('dragging');
 saveWidgetState();
 };
-window.addEventListener('mousemove', onMove);
-window.addEventListener('mouseup', onUp);
+
+card.addEventListener('pointermove', onMove);
+card.addEventListener('pointerup', onUp);
+card.addEventListener('pointercancel', onUp);
 };
 layer.appendChild(card);
 });
