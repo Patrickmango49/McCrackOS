@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>𝕄𝕔ℂ𝕣𝕒𝕔𝕜OS V9.0</title>
-<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link id="favicon-link" rel="icon" type="image/png" href="https://i.imgur.com/HfPyMtK.png">
 <style>
 /* --- CORE SYSTEM VARIABLES --- */
 :root {
@@ -82,6 +82,13 @@ width: 100%; padding: 16px; background: var(--accent); color: white; border: non
 border-radius: 12px; cursor: pointer; font-weight: 800; font-size: 1rem; transition: 0.3s;
 }
 .login-box button:hover { filter: brightness(1.2); transform: translateY(-2px); }
+.auth-sub { margin-top: 10px; font-size: 0.78rem; opacity: 0.55; line-height: 1.45; }
+.auth-type-row { display: flex; gap: 10px; margin: 15px 0; }
+.auth-type-row button { flex: 1; padding: 10px; border-radius: 10px; border: 1px solid #2b2b2b; background: #111; color: #bbb; font-weight: 700; }
+.auth-type-row button.active { border-color: var(--accent); color: #fff; background: rgba(0,120,212,0.16); }
+.avatar-preview { width: 78px; height: 78px; border-radius: 50%; margin: 0 auto 18px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.04); display: flex; align-items: center; justify-content: center; overflow: hidden; font-size: 2.1rem; }
+.avatar-preview img { width: 100%; height: 100%; object-fit: cover; }
+.auth-link { margin-top: 14px; font-size: 0.78rem; color: #9fc9ff; cursor: pointer; text-decoration: underline; }
 
 /* --- WORKSPACE --- */
 #desktop { position: absolute; inset: var(--top-bar-h) 0 var(--taskbar-h) 0; display: none; z-index: 100; padding: 30px; }
@@ -270,13 +277,7 @@ display: flex; align-items: center; padding: 0 25px; z-index: 8500; border-top: 
 </div>
 
 <div id="login">
-<div class="login-box">
-<div style="font-size:70px; margin-bottom:20px; filter: drop-shadow(0 0 15px var(--accent));">👤</div>
-<h2 style="font-weight: 300; letter-spacing: 1px;">SYSTEM ACCESS</h2>
-<input type="password" id="pass-in" placeholder="DECRYPT KEY">
-<button onclick="unlock()">AUTHORIZE</button>
-<p id="log-msg" style="color:#ff4b4b; font-size:0.75rem; margin-top:20px; font-weight: 800; letter-spacing:1px;"></p>
-</div>
+<div class="login-box" id="auth-box"></div>
 </div>
 
 <div id="desktop"></div>
@@ -370,6 +371,7 @@ y: Math.min(Math.max(pos.y, 0), maxY)
 
 const DEFAULT_BG = "radial-gradient(120% 90% at 50% 44%, #1a1a1a 0%, #121212 30%, #0b0b0b 62%, #050505 82%, #010101 100%)";
 const DEFAULT_ACCENT = "#0078d4";
+const DEFAULT_FAVICON = "https://i.imgur.com/HfPyMtK.png";
 const DEFAULT_SETTINGS = {
 clockSeconds: true,
 clock24h: false,
@@ -387,11 +389,29 @@ if ([3000, 6000, 9000].includes(raw.bootDelay)) base.bootDelay = raw.bootDelay;
 return base;
 }
 
+function normalizeAccount(raw) {
+const fallbackPass = localStorage.getItem("mc_pass") || "1234";
+const base = {
+username: "Operator",
+authType: "password",
+password: fallbackPass,
+avatar: ""
+};
+if (!raw || typeof raw !== 'object') return base;
+if (typeof raw.username === 'string' && raw.username.trim()) base.username = raw.username.trim().slice(0, 24);
+if (raw.authType === 'passwordless') base.authType = 'passwordless';
+if (typeof raw.password === 'string' && raw.password) base.password = raw.password;
+if (typeof raw.avatar === 'string') base.avatar = raw.avatar;
+return base;
+}
+
 const OS = {
 z: 1000,
 pass: localStorage.getItem("mc_pass") || "1234",
 bg: localStorage.getItem("mc_bg") || DEFAULT_BG,
 accent: localStorage.getItem("mc_accent") || DEFAULT_ACCENT,
+favicon: localStorage.getItem("mc_favicon") || DEFAULT_FAVICON,
+account: normalizeAccount(JSON.parse(localStorage.getItem("mc_account"))),
 installed: JSON.parse(localStorage.getItem("mc_apps")) || ["Browser", "Terminal", "Files", "Store", "Settings"],
 pos: JSON.parse(localStorage.getItem("mc_pos")) || {},
 running: {},
@@ -555,6 +575,10 @@ Settings: { icon: "⚙️", content: () => `<div style="padding:40px;">
 <button onclick="setBG(document.getElementById('bg-url').value)" style="width:100%; padding:10px; cursor:pointer; background:var(--accent); border:none; color:white; border-radius:8px;">Apply URL</button><br><br>
 <button onclick="document.getElementById('bg-upload-settings').click()" style="width:100%; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Upload Image</button>
 <input type="file" id="bg-upload-settings" style="display:none" onchange="handleFileUpload(event)" accept="image/*">
+<br><br>
+<p style="font-size:0.8rem; opacity:0.5;">Paste an image URL to use it as the browser tab favicon.</p><br>
+<input type="text" id="favicon-url" value="${OS.favicon}" placeholder="https://..." style="width:100%; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px;"><br><br>
+<button onclick="setFavicon(document.getElementById('favicon-url').value)" style="width:100%; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Apply Favicon URL</button>
 </div>
 <div style="background:#0a0a0a; padding:25px; border-radius:20px; border:1px solid #1a1a1a;">
 <h4>Security</h4><br>
@@ -720,6 +744,8 @@ window.onload = () => {
 addLog("System boot sequence initialized.");
 document.getElementById('os-root').style.background = OS.bg;
 applyAccent(OS.accent);
+setFavicon(OS.favicon, false);
+renderAuthPanel(!localStorage.getItem("mc_account"));
 simulateBootLogs();
 const customs = JSON.parse(localStorage.getItem("mc_custom_apps")) || {};
 Object.keys(customs).forEach(name => {
@@ -962,6 +988,15 @@ localStorage.setItem("mc_bg", OS.bg);
 renderDesktop();
 }
 
+function setFavicon(url, notifyUser = true) {
+const cleanUrl = (url || "").trim();
+OS.favicon = cleanUrl || DEFAULT_FAVICON;
+const linkEl = document.getElementById('favicon-link');
+if (linkEl) linkEl.href = OS.favicon;
+localStorage.setItem("mc_favicon", OS.favicon);
+if (notifyUser) notify('Favicon updated.', 'info');
+}
+
 function handleFileUpload(event) {
 const file = event.target.files && event.target.files[0];
 if(!file) return;
@@ -974,22 +1009,121 @@ reader.readAsDataURL(file);
 event.target.value = '';
 }
 
-function setPass(p) { OS.pass = p; localStorage.setItem("mc_pass", p); }
+function saveAccount() {
+localStorage.setItem("mc_account", JSON.stringify(OS.account));
+}
+
+function avatarMarkup() {
+return OS.account.avatar ? `<img src="${OS.account.avatar}" alt="Profile avatar">` : '👤';
+}
+
+function renderAuthPanel(isCreate = !localStorage.getItem("mc_account")) {
+const box = document.getElementById('auth-box');
+if (!box) return;
+if (isCreate) {
+box.innerHTML = `<div class="avatar-preview" id="avatar-preview">${avatarMarkup()}</div>
+<h2 style="font-weight: 300; letter-spacing: 1px;">CREATE ACCOUNT</h2>
+<p class="auth-sub">First visit detected. Create a regular account with password, or choose passwordless access.</p>
+<input type="text" id="new-user" placeholder="Username" value="${OS.account.username}" maxlength="24">
+<div class="auth-type-row">
+<button id="auth-password" class="${OS.account.authType === 'password' ? 'active' : ''}" onclick="setAuthType('password')">Regular</button>
+<button id="auth-passwordless" class="${OS.account.authType === 'passwordless' ? 'active' : ''}" onclick="setAuthType('passwordless')">Passwordless</button>
+</div>
+<input type="password" id="new-pass" placeholder="Create Password" style="display:${OS.account.authType === 'password' ? 'block' : 'none'}">
+<button onclick="document.getElementById('avatar-upload').click()" style="margin-top:15px; background:#1e1e1e; border:1px solid #2b2b2b;">Choose Profile Picture</button>
+<input type="file" id="avatar-upload" style="display:none" onchange="handleAvatarUpload(event)" accept="image/*">
+<button onclick="createAccount()" style="margin-top:16px;">CREATE & CONTINUE</button>
+<p id="log-msg" style="color:#ff4b4b; font-size:0.75rem; margin-top:16px; font-weight: 800; letter-spacing:1px;"></p>`;
+return;
+}
+
+box.innerHTML = `<div class="avatar-preview">${avatarMarkup()}</div>
+<h2 style="font-weight: 300; letter-spacing: 1px;">WELCOME, ${OS.account.username.toUpperCase()}</h2>
+<p class="auth-sub">${OS.account.authType === 'passwordless' ? 'Passwordless account detected. Continue to desktop.' : 'Enter your password to unlock your desktop.'}</p>
+${OS.account.authType === 'password' ? '<input type="password" id="pass-in" placeholder="DECRYPT KEY">' : ''}
+<button onclick="unlock()">${OS.account.authType === 'password' ? 'AUTHORIZE' : 'CONTINUE'}</button>
+<p class="auth-link" onclick="renderAuthPanel(true)">Create/Reconfigure Account</p>
+<p id="log-msg" style="color:#ff4b4b; font-size:0.75rem; margin-top:12px; font-weight: 800; letter-spacing:1px;"></p>`;
+}
+
+function setAuthType(type) {
+OS.account.authType = type === 'passwordless' ? 'passwordless' : 'password';
+renderAuthPanel(true);
+}
+
+function handleAvatarUpload(event) {
+const file = event.target.files && event.target.files[0];
+if(!file) return;
+const reader = new FileReader();
+reader.onload = (e) => {
+OS.account.avatar = e.target.result;
+renderAuthPanel(true);
+};
+reader.readAsDataURL(file);
+event.target.value = '';
+}
+
+function createAccount() {
+const username = (document.getElementById('new-user')?.value || '').trim();
+const passInput = document.getElementById('new-pass');
+if (!username) {
+const msg = document.getElementById('log-msg');
+if (msg) msg.innerText = 'USERNAME REQUIRED';
+return;
+}
+OS.account.username = username.slice(0, 24);
+if (OS.account.authType === 'password') {
+const password = (passInput?.value || '').trim();
+if (!password) {
+const msg = document.getElementById('log-msg');
+if (msg) msg.innerText = 'PASSWORD REQUIRED';
+return;
+}
+OS.account.password = password;
+OS.pass = password;
+localStorage.setItem("mc_pass", password);
+} else {
+OS.account.password = '';
+}
+saveAccount();
+notify('Account profile saved.', 'info');
+addLog(`Account created for ${OS.account.username}.`);
+renderAuthPanel(false);
+}
+
+function setPass(p) {
+OS.pass = p;
+localStorage.setItem("mc_pass", p);
+if (OS.account.authType === 'password') {
+OS.account.password = p;
+saveAccount();
+}
+}
 
 function unlock() {
-if(document.getElementById('pass-in').value === OS.pass) {
+if (OS.account.authType === 'passwordless') {
+completeLogin('Passwordless profile authenticated.');
+return;
+}
+const passInput = document.getElementById('pass-in');
+if(passInput && passInput.value === OS.account.password) {
+completeLogin('User authenticated successfully.');
+} else {
+addLog("Warning: Unauthorized access attempt.");
+const msg = document.getElementById('log-msg');
+if (msg) msg.innerText = "DENIED";
+}
+}
+
+function completeLogin(logMessage) {
 document.getElementById('login').style.opacity = '0';
 setTimeout(() => {
 document.getElementById('login').style.display = 'none';
 document.getElementById('desktop').style.display = 'block';
 renderWidgets();
 renderDesktop();
-addLog("User authenticated successfully.");
+addLog(logMessage);
 }, 500);
-} else {
-addLog("Warning: Unauthorized access attempt.");
-document.getElementById('log-msg').innerText = "DENIED";
-}
 }
 
 function lockSystem() { location.reload(); }
