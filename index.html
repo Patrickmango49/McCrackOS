@@ -368,11 +368,13 @@ y: Math.min(Math.max(pos.y, 0), maxY)
 }
 
 const DEFAULT_BG = "radial-gradient(120% 90% at 50% 44%, #1a1a1a 0%, #121212 30%, #0b0b0b 62%, #050505 82%, #010101 100%)";
+const DEFAULT_ACCENT = "#0078d4";
 
 const OS = {
 z: 1000,
 pass: localStorage.getItem("mc_pass") || "1234",
 bg: localStorage.getItem("mc_bg") || DEFAULT_BG,
+accent: localStorage.getItem("mc_accent") || DEFAULT_ACCENT,
 installed: JSON.parse(localStorage.getItem("mc_apps")) || ["Browser", "Terminal", "Files", "Store", "Settings"],
 pos: JSON.parse(localStorage.getItem("mc_pos")) || {},
 running: {},
@@ -409,6 +411,64 @@ iconRect.left > binRect.right ||
 iconRect.bottom < binRect.top ||
 iconRect.top > binRect.bottom
 );
+}
+
+function attachMouseDrag(target, { onStart, onMove, onEnd }) {
+target.onmousedown = (e) => {
+if (e.button !== 0) return;
+e.preventDefault();
+if (typeof onStart === 'function') onStart(e);
+let raf = null;
+let pending = null;
+
+const applyMove = () => {
+if (!pending) return;
+if (typeof onMove === 'function') onMove(pending);
+raf = null;
+};
+
+const handleMove = (ev) => {
+pending = ev;
+if (!raf) raf = requestAnimationFrame(applyMove);
+};
+
+const handleUp = () => {
+window.removeEventListener('mousemove', handleMove);
+window.removeEventListener('mouseup', handleUp);
+if (raf) cancelAnimationFrame(raf);
+if (typeof onEnd === 'function') onEnd();
+};
+
+window.addEventListener('mousemove', handleMove);
+window.addEventListener('mouseup', handleUp);
+};
+}
+
+function applyAccent(color) {
+if (!color) return;
+OS.accent = color;
+document.documentElement.style.setProperty('--accent', color);
+localStorage.setItem("mc_accent", color);
+}
+
+function resetAccent() {
+applyAccent(DEFAULT_ACCENT);
+if (OS.running['Settings']) OS.running['Settings'].querySelector('.win-body').innerHTML = Registry['Settings'].content();
+notify('Accent color reset.', 'success');
+}
+
+function resetDesktopLayout() {
+OS.pos = {};
+localStorage.setItem("mc_pos", JSON.stringify(OS.pos));
+renderDesktop();
+notify('Desktop icon layout reset.', 'warning');
+}
+
+function resetWidgetsLayout() {
+OS.widgetPositions = normalizeWidgetPositions(null);
+saveWidgetState();
+renderWidgets();
+notify('Widget layout reset.', 'warning');
 }
 
 const Registry = {
@@ -462,6 +522,18 @@ Settings: { icon: "⚙️", content: () => `<div style="padding:40px;">
 <p style="font-size:0.8rem; opacity:0.5;">Update your system decryption key.</p><br>
 <input type="password" id="new-p" placeholder="New Access Key" style="width:100%; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px;"><br><br>
 <button onclick="setPass(document.getElementById('new-p').value)" style="width:100%; padding:10px; cursor:pointer; background:#333; border:none; color:white; border-radius:8px;">Update Key</button>
+</div>
+<div style="background:#0a0a0a; padding:25px; border-radius:20px; border:1px solid #1a1a1a;">
+<h4>Theme Accent</h4><br>
+<p style="font-size:0.8rem; opacity:0.5;">Set a custom accent color used across highlights and controls.</p><br>
+<input type="color" id="accent-color" value="${OS.accent}" onchange="applyAccent(this.value)" style="width:100%; height:42px; background:#111; border:var(--border); border-radius:10px; cursor:pointer;"><br><br>
+<button onclick="resetAccent()" style="width:100%; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset Accent</button>
+</div>
+<div style="background:#0a0a0a; padding:25px; border-radius:20px; border:1px solid #1a1a1a;">
+<h4>Layout Tools</h4><br>
+<p style="font-size:0.8rem; opacity:0.5;">Restore desktop and widget placement to default positions.</p><br>
+<button onclick="resetDesktopLayout()" style="width:100%; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset App Icon Layout</button><br><br>
+<button onclick="resetWidgetsLayout()" style="width:100%; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset Widget Layout</button>
 </div>
 </div>
 </div>` },
@@ -590,6 +662,7 @@ alert(`Compiled ${name}`);
 window.onload = () => {
 addLog("System boot sequence initialized.");
 document.getElementById('os-root').style.background = OS.bg;
+applyAccent(OS.accent);
 simulateBootLogs();
 const customs = JSON.parse(localStorage.getItem("mc_custom_apps")) || {};
 Object.keys(customs).forEach(name => {
@@ -716,34 +789,26 @@ localStorage.setItem('mc_quick_note', next.trim() || 'No reminder set.');
 renderWidgets();
 };
 }
-card.onpointerdown = (e) => {
-if (e.button !== 0) return;
-e.preventDefault();
-card.setPointerCapture(e.pointerId);
-card.classList.add('dragging');
+let widgetOffsetX = 0;
+let widgetOffsetY = 0;
+attachMouseDrag(card, {
+onStart: (e) => {
 const layerRect = layer.getBoundingClientRect();
 const startLeft = parseFloat(card.style.left || '0');
 const startTop = parseFloat(card.style.top || '0');
-const offsetX = e.clientX - layerRect.left - startLeft;
-const offsetY = e.clientY - layerRect.top - startTop;
-let dragActive = true;
-
-const onMove = (ev) => {
-if (!dragActive) return;
-const rawX = ev.clientX - layerRect.left - offsetX;
-const rawY = ev.clientY - layerRect.top - offsetY;
+widgetOffsetX = e.clientX - layerRect.left - startLeft;
+widgetOffsetY = e.clientY - layerRect.top - startTop;
+card.classList.add('dragging');
+},
+onMove: (ev) => {
+const layerRect = layer.getBoundingClientRect();
+const rawX = ev.clientX - layerRect.left - widgetOffsetX;
+const rawY = ev.clientY - layerRect.top - widgetOffsetY;
 const nextPos = clampWidgetPosition({ x: rawX, y: rawY }, layer, card);
 card.style.left = `${nextPos.x}px`;
 card.style.top = `${nextPos.y}px`;
-};
-
-const onUp = () => {
-if (!dragActive) return;
-dragActive = false;
-card.releasePointerCapture(e.pointerId);
-card.removeEventListener('pointermove', onMove);
-card.removeEventListener('pointerup', onUp);
-card.removeEventListener('pointercancel', onUp);
+},
+onEnd: () => {
 const finalPos = clampWidgetPosition({
 x: parseFloat(card.style.left || '0'),
 y: parseFloat(card.style.top || '0')
@@ -753,12 +818,8 @@ card.style.top = `${finalPos.y}px`;
 OS.widgetPositions[widget.id] = finalPos;
 card.classList.remove('dragging');
 saveWidgetState();
-};
-
-card.addEventListener('pointermove', onMove);
-card.addEventListener('pointerup', onUp);
-card.addEventListener('pointercancel', onUp);
-};
+}
+});
 layer.appendChild(card);
 });
 }
@@ -883,32 +944,23 @@ el.innerHTML = `<div>${Registry[id] ? Registry[id].icon : "📦"}</div><span>${i
 el.ondragstart = (e) => startDrag(e, id);
 el.ondragend = (e) => endDrag(e);
 el.ondblclick = () => launch(id);
-el.onmousedown = (e) => {
-if (e.button !== 0) return;
-e.preventDefault();
+let iconOffsetX = 0;
+let iconOffsetY = 0;
+attachMouseDrag(el, {
+onStart: (e) => {
+iconOffsetX = e.clientX - el.offsetLeft;
+iconOffsetY = e.clientY - el.offsetTop;
 el.classList.add('dragging');
-let ox = e.clientX - el.offsetLeft, oy = e.clientY - el.offsetTop;
-let raf = null;
-let pending = null;
-const applyMove = () => {
-if(!pending) return;
-const { clientX, clientY } = pending;
-const nx = clientX - ox;
-const ny = clientY - oy;
+},
+onMove: (ev) => {
+const nx = ev.clientX - iconOffsetX;
+const ny = ev.clientY - iconOffsetY;
 el.style.left = nx + 'px';
 el.style.top = ny + 'px';
 OS.pos[id] = {x: nx, y: ny};
 document.getElementById('delete-bin').classList.toggle('delete-ready', iconOverDeleteBin(el));
-raf = null;
-};
-const onMove = (ev) => {
-pending = ev;
-if(!raf) raf = requestAnimationFrame(applyMove);
-};
-const onUp = () => {
-window.removeEventListener('mousemove', onMove);
-window.removeEventListener('mouseup', onUp);
-if(raf) cancelAnimationFrame(raf);
+},
+onEnd: () => {
 el.classList.remove('dragging');
 
 const bin = document.getElementById('delete-bin');
@@ -919,10 +971,8 @@ bin.classList.remove('delete-ready');
 if (overlapsBin) attemptDeleteApp(id);
 
 localStorage.setItem("mc_pos", JSON.stringify(OS.pos));
-};
-window.addEventListener('mousemove', onMove);
-window.addEventListener('mouseup', onUp);
-};
+}
+});
 d.appendChild(el);
 });
 renderWidgets();
