@@ -22,7 +22,7 @@
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font); -webkit-user-select: none; user-select: none; }
 body {
 height: 100vh; width: 100vw; overflow: hidden;
-background: radial-gradient(130% 90% at 50% 8%, rgba(86, 106, 171, 0.16) 0%, rgba(42, 56, 96, 0.08) 24%, rgba(17, 22, 34, 0.96) 54%, #05070d 80%, #020308 100%); color: white; transition: background 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+background: radial-gradient(120% 90% at 50% 44%, rgba(72, 72, 72, 0.18) 0%, rgba(35, 35, 35, 0.1) 22%, rgba(14, 14, 14, 0.95) 58%, #080808 80%, #020202 100%); color: white; transition: background 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* --- TOP BAR --- */
@@ -126,6 +126,7 @@ pointer-events: auto;
 user-select: none;
 touch-action: none;
 will-change: left, top;
+transform: translateZ(0);
 }
 .widget-card.dragging { cursor: grabbing; }
 .widget-card h4 { font-size: 0.72rem; letter-spacing: 1.2px; opacity: 0.65; margin-bottom: 8px; }
@@ -135,12 +136,12 @@ will-change: left, top;
 .icon {
 position: absolute; width: 110px; height: 120px; display: flex; flex-direction: column;
 align-items: center; justify-content: center; border-radius: 18px; cursor: grab;
-transition: transform 0.2s, left 0.08s linear, top 0.08s linear;
+transition: transform 0.2s;
 will-change: left, top, transform;
 user-select: none;
 z-index: 150;
 }
-.icon.dragging { transition: transform 0.08s linear; }
+.icon.dragging { transition: none; }
 .icon:active { cursor: grabbing; }
 .icon:hover { background: rgba(255,255,255,0.08); transform: scale(1.05); }
 .icon div { font-size: 55px; margin-bottom: 10px; filter: drop-shadow(0 8px 12px rgba(0,0,0,0.6)); pointer-events: none;}
@@ -303,7 +304,7 @@ display: flex; align-items: center; padding: 0 25px; z-index: 8500; border-top: 
 
 <script>
 /* --- KERNEL DATA & REGISTRY --- */
-const DEFAULT_WIDGETS = { weather: true, clock: true, calendar: true, system: true, notes: true };
+const DEFAULT_WIDGETS = { weather: false, clock: false, calendar: true, system: false, notes: false };
 const DEFAULT_WIDGET_POSITIONS = {
 weather: { x: 24, y: 18 },
 clock: { x: 24, y: 152 },
@@ -347,7 +348,7 @@ y: Math.min(Math.max(pos.y, 0), maxY)
 };
 }
 
-const DEFAULT_BG = "radial-gradient(130% 90% at 50% 8%, rgba(86, 106, 171, 0.16) 0%, rgba(42, 56, 96, 0.08) 24%, rgba(17, 22, 34, 0.96) 54%, #05070d 80%, #020308 100%)";
+const DEFAULT_BG = "radial-gradient(120% 90% at 50% 44%, rgba(72, 72, 72, 0.18) 0%, rgba(35, 35, 35, 0.1) 22%, rgba(14, 14, 14, 0.95) 58%, #080808 80%, #020202 100%)";
 
 const OS = {
 z: 1000,
@@ -631,7 +632,7 @@ const defs = [
 ];
 return `<div style="padding:35px; max-width:760px; margin:0 auto;">
 <h2 style="margin-bottom:8px;">Widget Center</h2>
-<p style="opacity:0.55; margin-bottom:20px;">Add, remove, and move live desktop widgets directly on the desktop.</p>
+<p style="opacity:0.55; margin-bottom:20px;">Only Date starts enabled by default. Add/remove the rest anytime and drag widgets directly on the desktop.</p>
 ${defs.map((item) => renderWidgetControl(item)).join('')}
 </div>`;
 }
