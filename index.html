@@ -64,14 +64,55 @@ text-align: left;
 
 /* --- AUTHENTICATION --- */
 #login {
-position: fixed; inset: 0; display: none; background: rgba(0,0,0,0.8);
+position: fixed; inset: 0; display: none; background: linear-gradient(160deg, rgba(5,5,5,0.84), rgba(0,0,0,0.95));
 backdrop-filter: var(--blur); z-index: 9000; align-items: center; justify-content: center;
 }
+.lockscreen-shell {
+width: min(980px, 92vw);
+display: grid;
+grid-template-columns: 1fr minmax(330px, 430px);
+gap: 30px;
+align-items: center;
+}
+.lockscreen-top p {
+font-size: clamp(1.1rem, 2vw, 1.45rem);
+opacity: 0.82;
+letter-spacing: 0.08em;
+text-transform: uppercase;
+}
+.lockscreen-top h1 {
+font-size: clamp(1.8rem, 4vw, 3rem);
+font-weight: 650;
+letter-spacing: 0.02em;
+margin-top: 8px;
+}
+.lockscreen-time-wrap { margin-top: 24px; }
+#lock-time {
+font-size: clamp(4.2rem, 10vw, 8.5rem);
+line-height: 0.95;
+font-weight: 700;
+text-shadow: 0 20px 40px rgba(0,0,0,0.6);
+}
+#lock-date {
+margin-top: 14px;
+font-size: clamp(1rem, 2vw, 1.4rem);
+font-weight: 550;
+letter-spacing: 0.06em;
+opacity: 0.72;
+text-transform: uppercase;
+}
 .login-box {
-background: var(--panel); padding: 70px; border-radius: 30px; border: var(--border);
-width: 420px; text-align: center; box-shadow: var(--shadow);
+background: linear-gradient(165deg, rgba(15,15,15,0.98), rgba(0,0,0,0.96));
+padding: 38px;
+border-radius: 26px;
+border: 1px solid rgba(255,255,255,0.16);
+width: 100%;
+text-align: center;
+box-shadow: var(--shadow);
 }
 .login-box h2 { font-weight: 300; letter-spacing: 1px; }
+.auth-title { font-size: 1.7rem; font-weight: 700; letter-spacing: 0.07em; }
+.auth-card-sub { font-size: 0.8rem; opacity: 0.64; margin: 8px 0 22px 0; letter-spacing: 0.05em; text-transform: uppercase; }
 .login-box input {
 width: 100%; padding: 16px; margin: 25px 0; background: #111; border: var(--border);
 border-radius: 12px; color: white; text-align: center; outline: none; font-size: 1.1rem;
@@ -104,6 +145,12 @@ overflow: hidden;
 .auth-row { display: flex; gap: 10px; margin-top: 12px; }
 .auth-row button { flex: 1; padding: 12px; font-size: 0.86rem; }
 .auth-sub { font-size: 0.8rem; opacity: 0.66; margin-top: 8px; }
+
+@media (max-width: 860px) {
+.lockscreen-shell { grid-template-columns: 1fr; gap: 18px; }
+#lock-time { font-size: clamp(3.1rem, 15vw, 6rem); }
+.login-box { max-width: 480px; }
+}
 
 /* --- WORKSPACE --- */
 #desktop { position: absolute; inset: var(--top-bar-h) 0 var(--taskbar-h) 0; display: none; z-index: 100; padding: 30px; }
@@ -292,7 +339,19 @@ display: flex; align-items: center; padding: 0 25px; z-index: 8500; border-top: 
 </div>
 
 <div id="login">
+<div class="lockscreen-shell">
+<div>
+<div class="lockscreen-top">
+<p id="lock-greeting">Good Morning</p>
+<h1 id="lock-user">Operator</h1>
+</div>
+<div class="lockscreen-time-wrap">
+<div id="lock-time"></div>
+<div id="lock-date"></div>
+</div>
+</div>
 <div class="login-box" id="auth-box"></div>
+</div>
 </div>
 
 <div id="desktop"></div>
@@ -390,7 +449,9 @@ const DEFAULT_FAVICON = "https://i.imgur.com/HfPyMtK.png";
 const DEFAULT_SETTINGS = {
 clockSeconds: true,
 clock24h: false,
+lockSeconds: false,
 notifications: true,
+firstClickFullscreen: true,
 bootDelay: 6000
 };
 
@@ -416,7 +477,9 @@ const base = { ...DEFAULT_SETTINGS };
 if (!raw || typeof raw !== 'object') return base;
 if (typeof raw.clockSeconds === 'boolean') base.clockSeconds = raw.clockSeconds;
 if (typeof raw.clock24h === 'boolean') base.clock24h = raw.clock24h;
+if (typeof raw.lockSeconds === 'boolean') base.lockSeconds = raw.lockSeconds;
 if (typeof raw.notifications === 'boolean') base.notifications = raw.notifications;
+if (typeof raw.firstClickFullscreen === 'boolean') base.firstClickFullscreen = raw.firstClickFullscreen;
 if ([3000, 6000, 9000].includes(raw.bootDelay)) base.bootDelay = raw.bootDelay;
 return base;
 }
@@ -541,6 +604,7 @@ function setSetting(key, value, message) {
 if (!Object.prototype.hasOwnProperty.call(OS.settings, key)) return;
 OS.settings[key] = value;
 saveSettings();
+if (key === 'firstClickFullscreen') syncFullscreenPreference();
 if (OS.running['Settings']) OS.running['Settings'].querySelector('.win-body').innerHTML = Registry['Settings'].content();
 if (message) notify(message, 'success');
 }
@@ -548,6 +612,7 @@ if (message) notify(message, 'success');
 function resetSystemSettings() {
 OS.settings = { ...DEFAULT_SETTINGS };
 saveSettings();
+syncFullscreenPreference();
 if (OS.running['Settings']) OS.running['Settings'].querySelector('.win-body').innerHTML = Registry['Settings'].content();
 notify('System settings restored.', 'warning');
 }
@@ -603,6 +668,17 @@ Settings: { icon: "⚙️", content: () => `<div style="padding:40px;">
 <button onclick="setFavicon(document.getElementById('favicon-url').value)" style="width:100%; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Apply Favicon URL</button>
 </div>
 <div style="background:#0a0a0a; padding:25px; border-radius:20px; border:1px solid #1a1a1a;">
+<h4>Wallpaper Quick Switch</h4><br>
+<p style="font-size:0.8rem; opacity:0.5;">Apply one-click presets or restore the default wallpaper.</p><br>
+<div style="display:grid; grid-template-columns:repeat(2,1fr); gap:10px;">
+<button onclick="setBG('https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1800&q=80')" style="padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Neon City</button>
+<button onclick="setBG('https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1800&q=80')" style="padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Mountain</button>
+<button onclick="setBG('https://images.unsplash.com/photo-1508615070457-7baeba4003ab?auto=format&fit=crop&w=1800&q=80')" style="padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Night Sky</button>
+<button onclick="setBG('https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=1800&q=80')" style="padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Ocean</button>
+</div><br>
+<button onclick="setBG('')" style="width:100%; padding:10px; cursor:pointer; background:#222; border:1px solid #2b2b2b; color:white; border-radius:8px;">Restore Default Wallpaper</button>
+</div>
+<div style="background:#0a0a0a; padding:25px; border-radius:20px; border:1px solid #1a1a1a;">
 <h4>Security</h4><br>
 <p style="font-size:0.8rem; opacity:0.5;">Update your system decryption key.</p><br>
 <input type="password" id="new-p" placeholder="New Access Key" style="width:100%; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px;"><br><br>
@@ -622,14 +698,16 @@ Settings: { icon: "⚙️", content: () => `<div style="padding:40px;">
 </div>
 <div style="background:#0a0a0a; padding:25px; border-radius:20px; border:1px solid #1a1a1a;">
 <h4>Clock Controls</h4><br>
-<p style="font-size:0.8rem; opacity:0.5;">Tune taskbar clock format and precision.</p><br>
-<label style="display:flex; align-items:center; justify-content:space-between; font-size:0.88rem; margin-bottom:12px;"><span>Show Seconds</span><input type="checkbox" ${OS.settings.clockSeconds ? 'checked' : ''} onchange="setSetting('clockSeconds', this.checked, 'Clock precision updated.')"></label>
+<p style="font-size:0.8rem; opacity:0.5;">Tune taskbar and lockscreen clock format and precision.</p><br>
+<label style="display:flex; align-items:center; justify-content:space-between; font-size:0.88rem; margin-bottom:12px;"><span>Show Taskbar Seconds</span><input type="checkbox" ${OS.settings.clockSeconds ? 'checked' : ''} onchange="setSetting('clockSeconds', this.checked, 'Taskbar clock precision updated.')"></label>
+<label style="display:flex; align-items:center; justify-content:space-between; font-size:0.88rem; margin-bottom:12px;"><span>Show Lockscreen Seconds</span><input type="checkbox" ${OS.settings.lockSeconds ? 'checked' : ''} onchange="setSetting('lockSeconds', this.checked, 'Lockscreen clock precision updated.')"></label>
 <label style="display:flex; align-items:center; justify-content:space-between; font-size:0.88rem;"><span>Use 24-Hour Time</span><input type="checkbox" ${OS.settings.clock24h ? 'checked' : ''} onchange="setSetting('clock24h', this.checked, 'Clock format updated.')"></label>
 </div>
 <div style="background:#0a0a0a; padding:25px; border-radius:20px; border:1px solid #1a1a1a;">
 <h4>System Behavior</h4><br>
 <p style="font-size:0.8rem; opacity:0.5;">Adjust startup speed and notification behavior.</p><br>
 <label style="display:flex; align-items:center; justify-content:space-between; font-size:0.88rem; margin-bottom:12px;"><span>Desktop Notifications</span><input type="checkbox" ${OS.settings.notifications ? 'checked' : ''} onchange="setSetting('notifications', this.checked, 'Notification preference updated.')"></label>
+<label style="display:flex; align-items:center; justify-content:space-between; font-size:0.88rem; margin-bottom:12px;"><span>First-Click Fullscreen</span><input type="checkbox" ${OS.settings.firstClickFullscreen ? 'checked' : ''} onchange="setSetting('firstClickFullscreen', this.checked, 'Fullscreen preference updated.')"></label>
 <label style="font-size:0.78rem; opacity:0.55;">Boot Animation Length</label><br>
 <select onchange="setSetting('bootDelay', Number(this.value), 'Boot timing updated.')" style="margin-top:7px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;">
 <option value="3000" ${OS.settings.bootDelay === 3000 ? 'selected' : ''}>Fast (3s)</option>
@@ -762,6 +840,25 @@ alert(`Compiled ${name}`);
 }
 
 /* --- CORE SYSTEM LOGIC --- */
+function requestFullscreenFromClick() {
+if (!OS.settings.firstClickFullscreen) return;
+if (document.fullscreenElement) return;
+const target = document.documentElement;
+if (!target || !target.requestFullscreen) return;
+target.requestFullscreen().catch(() => {
+addLog('Fullscreen request was blocked by browser policy.');
+});
+}
+
+function syncFullscreenPreference() {
+if (OS.settings.firstClickFullscreen) {
+document.removeEventListener('pointerdown', requestFullscreenFromClick);
+document.addEventListener('pointerdown', requestFullscreenFromClick, { once: true });
+} else {
+document.removeEventListener('pointerdown', requestFullscreenFromClick);
+}
+}
+
 window.onload = () => {
 addLog("System boot sequence initialized.");
 document.getElementById('os-root').style.background = OS.bg;
@@ -783,6 +880,7 @@ setInterval(renderWidgets, 1000);
 refreshWeather();
 setInterval(refreshWeather, 300000);
 renderLib();
+syncFullscreenPreference();
 };
 
 function simulateBootLogs() {
@@ -974,15 +1072,52 @@ OS.logs.push({time: new Date().toLocaleTimeString(), msg: msg});
 if(OS.running['SystemLogs']) OS.running['SystemLogs'].querySelector('.win-body').innerHTML = Registry['SystemLogs'].content();
 }
 
+function getTimeGreeting() {
+const hour = new Date().getHours();
+if (hour < 12) return 'Good Morning';
+if (hour < 18) return 'Good Afternoon';
+return 'Good Evening';
+}
+
+function updateLockscreenHeader() {
+const greeting = document.getElementById('lock-greeting');
+const user = document.getElementById('lock-user');
+if (greeting) greeting.innerText = getTimeGreeting();
+if (user) user.innerText = OS.account?.username || 'Operator';
+}
+
 function updateTime() {
 const now = new Date();
-document.getElementById('clock').innerText = now.toLocaleTimeString([], {
+const clock = document.getElementById('clock');
+const date = document.getElementById('date');
+if (clock) {
+clock.innerText = now.toLocaleTimeString([], {
 hour: '2-digit',
 minute: '2-digit',
 second: OS.settings.clockSeconds ? '2-digit' : undefined,
 hour12: !OS.settings.clock24h
 });
-document.getElementById('date').innerText = now.toLocaleDateString([], {weekday: 'short', month: 'short', day: 'numeric'});
+}
+if (date) date.innerText = now.toLocaleDateString([], {weekday: 'short', month: 'short', day: 'numeric'});
+
+const lockTime = document.getElementById('lock-time');
+const lockDate = document.getElementById('lock-date');
+if (lockTime) {
+lockTime.innerText = now.toLocaleTimeString([], {
+hour: '2-digit',
+minute: '2-digit',
+second: OS.settings.lockSeconds ? '2-digit' : undefined,
+hour12: !OS.settings.clock24h
+});
+}
+if (lockDate) {
+lockDate.innerText = now.toLocaleDateString([], {
+weekday: 'long',
+month: 'long',
+day: 'numeric'
+});
+}
+updateLockscreenHeader();
 }
 
 function updateBattery() {
@@ -1070,20 +1205,21 @@ if (!box) return;
 if (OS.firstRun) {
 box.innerHTML = `
 <div id="avatar-preview" class="account-avatar">${avatarMarkup(OS.pendingAvatar)}</div>
-<h2>CREATE ACCOUNT</h2>
-<p class="auth-sub">First launch detected. Make a password account or go passwordless.</p>
-<input type="text" id="new-user" maxlength="24" placeholder="USERNAME">
+<div class="auth-title">Create Account</div>
+<p class="auth-card-sub">Welcome to McCrackOS</p>
+<p class="auth-sub">Set up your username, sign-in mode, and avatar.</p>
+<input type="text" id="new-user" maxlength="24" placeholder="Choose a username">
 <select id="acc-mode" onchange="updateModeUI()">
-<option value="password">Password Account</option>
-<option value="passwordless">Passwordless Account</option>
+<option value="password">Password Protected</option>
+<option value="passwordless">Passwordless</option>
 </select>
-<input type="password" id="new-pass" placeholder="CREATE PASSWORD">
+<input type="password" id="new-pass" placeholder="Create password">
 <div class="auth-row">
 <button onclick="document.getElementById('avatar-file').click()" style="background:#2a2a2a;">Choose Picture</button>
-<button onclick="OS.pendingAvatar=''; renderAuth();" style="background:#202020;">Use Blank</button>
+<button onclick="OS.pendingAvatar=''; renderAuth();" style="background:#202020;">Reset Avatar</button>
 </div>
 <input id="avatar-file" type="file" accept="image/*" style="display:none" onchange="onAvatarSelected(event)">
-<button onclick="createAccount()" style="margin-top:14px;">CREATE PROFILE</button>
+<button onclick="createAccount()" style="margin-top:14px;">Create Profile</button>
 <p id="log-msg" style="color:#ff4b4b; font-size:0.75rem; margin-top:20px; font-weight: 800; letter-spacing:1px;"></p>
 `;
 updateModeUI();
@@ -1091,10 +1227,10 @@ return;
 }
 box.innerHTML = `
 <div class="account-avatar">${avatarMarkup(OS.account.avatar)}</div>
-<h2>${OS.account.username.toUpperCase()}</h2>
-<p class="auth-sub">${OS.account.mode === 'passwordless' ? 'Passwordless profile' : 'Password protected'}</p>
-${OS.account.mode === 'password' ? '<input type="password" id="pass-in" placeholder="DECRYPT KEY">' : '<p style="font-size:0.86rem; opacity:0.8; margin:20px 0 12px 0;">No password required.</p>'}
-<button onclick="unlock()">${OS.account.mode === 'password' ? 'AUTHORIZE' : 'ENTER DESKTOP'}</button>
+<div class="auth-title">${OS.account.username}</div>
+<p class="auth-card-sub">${OS.account.mode === 'passwordless' ? 'Passwordless profile' : 'Password protected profile'}</p>
+${OS.account.mode === 'password' ? '<input type="password" id="pass-in" placeholder="Enter password">' : '<p style="font-size:0.86rem; opacity:0.8; margin:20px 0 12px 0;">No password required.</p>'}
+<button onclick="unlock()">${OS.account.mode === 'password' ? 'Unlock Desktop' : 'Enter Desktop'}</button>
 <p id="log-msg" style="color:#ff4b4b; font-size:0.75rem; margin-top:20px; font-weight: 800; letter-spacing:1px;"></p>
 `;
 }
@@ -1114,6 +1250,7 @@ setPass(OS.pass);
 persistAccount();
 OS.firstRun = false;
 renderAuth();
+updateLockscreenHeader();
 showAuthError('');
 notify('Account created.', 'success');
 addLog(`Account provisioned for ${OS.account.username}.`);
