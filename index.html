@@ -22,7 +22,7 @@
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font); -webkit-user-select: none; user-select: none; }
 body {
 height: 100vh; width: 100vw; overflow: hidden;
-background: radial-gradient(circle at center, rgba(255, 255, 255, 0.045) 0%, #060606 35%, #020202 68%, #000 100%); color: white; transition: background 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+background: linear-gradient(145deg, #0d1118 0%, #090c12 35%, #05070c 68%, #020305 100%); color: white; transition: background 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* --- TOP BAR --- */
@@ -125,6 +125,7 @@ cursor: grab;
 pointer-events: auto;
 user-select: none;
 touch-action: none;
+will-change: left, top;
 }
 .widget-card.dragging { cursor: grabbing; }
 .widget-card h4 { font-size: 0.72rem; letter-spacing: 1.2px; opacity: 0.65; margin-bottom: 8px; }
@@ -214,6 +215,7 @@ backdrop-filter: var(--blur); display: none; flex-direction: column; padding: 30
 position: absolute; background: var(--win-bg); border-radius: 20px; border: var(--border);
 display: flex; flex-direction: column; overflow: hidden; box-shadow: var(--shadow);
 transition: width 0.3s, height 0.3s, top 0.3s, left 0.3s, opacity 0.2s, transform 0.2s;
+will-change: left, top, width, height;
 }
 .win-head { background: #121212; padding: 16px 24px; display: flex; justify-content: space-between; cursor: grab; align-items: center; }
 .window.dragging, .window.resizing { transition: none !important; }
@@ -341,12 +343,12 @@ function clampWidgetPosition(pos, layer, card) {
 const maxX = Math.max((layer?.clientWidth || window.innerWidth) - (card?.offsetWidth || 260), 0);
 const maxY = Math.max((layer?.clientHeight || window.innerHeight) - (card?.offsetHeight || 110), 0);
 return {
-x: Math.min(Math.max(Math.round(pos.x), 0), maxX),
-y: Math.min(Math.max(Math.round(pos.y), 0), maxY)
+x: Math.min(Math.max(pos.x, 0), maxX),
+y: Math.min(Math.max(pos.y, 0), maxY)
 };
 }
 
-const DEFAULT_BG = "radial-gradient(circle at center, rgba(255, 255, 255, 0.045) 0%, #060606 35%, #020202 68%, #000 100%)";
+const DEFAULT_BG = "linear-gradient(145deg, #0d1118 0%, #090c12 35%, #05070c 68%, #020305 100%)";
 
 const OS = {
 z: 1000,
@@ -690,40 +692,50 @@ localStorage.setItem('mc_quick_note', next.trim() || 'No reminder set.');
 renderWidgets();
 };
 }
-card.onmousedown = (e) => {
+card.onpointerdown = (e) => {
 if (e.button !== 0) return;
 e.preventDefault();
+card.setPointerCapture(e.pointerId);
 card.classList.add('dragging');
 const layerRect = layer.getBoundingClientRect();
 const startLeft = parseFloat(card.style.left || '0');
 const startTop = parseFloat(card.style.top || '0');
 const offsetX = e.clientX - layerRect.left - startLeft;
 const offsetY = e.clientY - layerRect.top - startTop;
+let latest = { x: startLeft, y: startTop };
 let raf = null;
-let pending = null;
-const applyMove = () => {
-if(!pending) return;
-const rawX = pending.clientX - layerRect.left - offsetX;
-const rawY = pending.clientY - layerRect.top - offsetY;
-const next = clampWidgetPosition({ x: rawX, y: rawY }, layer, card);
-card.style.left = `${next.x}px`;
-card.style.top = `${next.y}px`;
-OS.widgetPositions[widget.id] = next;
+
+const render = () => {
+card.style.left = `${latest.x}px`;
+card.style.top = `${latest.y}px`;
+OS.widgetPositions[widget.id] = latest;
 raf = null;
 };
+
 const onMove = (ev) => {
-pending = ev;
-if(!raf) raf = requestAnimationFrame(applyMove);
+const rawX = ev.clientX - layerRect.left - offsetX;
+const rawY = ev.clientY - layerRect.top - offsetY;
+latest = clampWidgetPosition({ x: rawX, y: rawY }, layer, card);
+if (!raf) raf = requestAnimationFrame(render);
 };
+
 const onUp = () => {
-window.removeEventListener('mousemove', onMove);
-window.removeEventListener('mouseup', onUp);
-if(raf) cancelAnimationFrame(raf);
+card.releasePointerCapture(e.pointerId);
+card.removeEventListener('pointermove', onMove);
+card.removeEventListener('pointerup', onUp);
+card.removeEventListener('pointercancel', onUp);
+if (raf) cancelAnimationFrame(raf);
+const finalPos = clampWidgetPosition(latest, layer, card);
+card.style.left = `${finalPos.x}px`;
+card.style.top = `${finalPos.y}px`;
+OS.widgetPositions[widget.id] = finalPos;
 card.classList.remove('dragging');
 saveWidgetState();
 };
-window.addEventListener('mousemove', onMove);
-window.addEventListener('mouseup', onUp);
+
+card.addEventListener('pointermove', onMove);
+card.addEventListener('pointerup', onUp);
+card.addEventListener('pointercancel', onUp);
 };
 layer.appendChild(card);
 });
@@ -849,31 +861,30 @@ el.innerHTML = `<div>${Registry[id] ? Registry[id].icon : "📦"}</div><span>${i
 el.ondragstart = (e) => startDrag(e, id);
 el.ondragend = (e) => endDrag(e);
 el.ondblclick = () => launch(id);
-el.onmousedown = (e) => {
+el.onpointerdown = (e) => {
 if (e.button !== 0) return;
 e.preventDefault();
+el.setPointerCapture(e.pointerId);
 el.classList.add('dragging');
 let ox = e.clientX - el.offsetLeft, oy = e.clientY - el.offsetTop;
+let latest = { x: el.offsetLeft, y: el.offsetTop };
 let raf = null;
-let pending = null;
 const applyMove = () => {
-if(!pending) return;
-const { clientX, clientY } = pending;
-const nx = clientX - ox;
-const ny = clientY - oy;
-el.style.left = nx + 'px';
-el.style.top = ny + 'px';
-OS.pos[id] = {x: nx, y: ny};
+el.style.left = latest.x + 'px';
+el.style.top = latest.y + 'px';
+OS.pos[id] = {x: latest.x, y: latest.y};
 document.getElementById('delete-bin').classList.toggle('delete-ready', iconOverDeleteBin(el));
 raf = null;
 };
 const onMove = (ev) => {
-pending = ev;
+latest = { x: ev.clientX - ox, y: ev.clientY - oy };
 if(!raf) raf = requestAnimationFrame(applyMove);
 };
 const onUp = () => {
-window.removeEventListener('mousemove', onMove);
-window.removeEventListener('mouseup', onUp);
+el.releasePointerCapture(e.pointerId);
+el.removeEventListener('pointermove', onMove);
+el.removeEventListener('pointerup', onUp);
+el.removeEventListener('pointercancel', onUp);
 if(raf) cancelAnimationFrame(raf);
 el.classList.remove('dragging');
 
@@ -886,8 +897,9 @@ if (overlapsBin) attemptDeleteApp(id);
 
 localStorage.setItem("mc_pos", JSON.stringify(OS.pos));
 };
-window.addEventListener('mousemove', onMove);
-window.addEventListener('mouseup', onUp);
+el.addEventListener('pointermove', onMove);
+el.addEventListener('pointerup', onUp);
+el.addEventListener('pointercancel', onUp);
 };
 d.appendChild(el);
 });
@@ -928,34 +940,36 @@ w.innerHTML = `<div class="win-head">
 <div class="win-body">${Registry[id].content()}</div>
 <div class="resizer"></div>`
 ; document.body.appendChild(w); OS.running[id] = w;
-w.querySelector('.win-head').onmousedown = (e) => {
+w.querySelector('.win-head').onpointerdown = (e) => {
 if(w.dataset.fs === "true" || e.button !== 0) return;
 focusWin(id);
 e.preventDefault();
+const head = w.querySelector('.win-head');
+head.setPointerCapture(e.pointerId);
 w.classList.add('dragging');
 let ox = e.clientX - w.offsetLeft, oy = e.clientY - w.offsetTop;
+let latest = { x: w.offsetLeft, y: w.offsetTop };
 let raf = null;
-let pending = null;
 const applyMove = () => {
-if(!pending) return;
-const nx = pending.clientX - ox;
-const ny = pending.clientY - oy;
-w.style.left = nx + 'px';
-w.style.top = ny + 'px';
+w.style.left = latest.x + 'px';
+w.style.top = latest.y + 'px';
 raf = null;
 };
 const onMove = (ev) => {
-pending = ev;
+latest = { x: ev.clientX - ox, y: ev.clientY - oy };
 if(!raf) raf = requestAnimationFrame(applyMove);
 };
 const onUp = () => {
-window.removeEventListener('mousemove', onMove);
-window.removeEventListener('mouseup', onUp);
+head.releasePointerCapture(e.pointerId);
+head.removeEventListener('pointermove', onMove);
+head.removeEventListener('pointerup', onUp);
+head.removeEventListener('pointercancel', onUp);
 if(raf) cancelAnimationFrame(raf);
 w.classList.remove('dragging');
 };
-window.addEventListener('mousemove', onMove);
-window.addEventListener('mouseup', onUp);
+head.addEventListener('pointermove', onMove);
+head.addEventListener('pointerup', onUp);
+head.addEventListener('pointercancel', onUp);
 };
 w.querySelector('.resizer').onmousedown = (e) => {
 if(e.button !== 0) return;
