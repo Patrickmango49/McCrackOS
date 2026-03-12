@@ -308,10 +308,28 @@ const DEFAULT_WIDGETS = { weather: false, clock: false, calendar: true, system: 
 const DEFAULT_WIDGET_POSITIONS = {
 weather: { x: 24, y: 18 },
 clock: { x: 24, y: 152 },
-calendar: { x: 24, y: 286 },
+calendar: { x: null, y: 24 },
 system: { x: 24, y: 420 },
 notes: { x: 24, y: 554 }
 };
+
+function getDefaultWidgetPosition(id) {
+const fallback = DEFAULT_WIDGET_POSITIONS[id] || { x: 24, y: 24 };
+if (id === 'calendar') {
+const desktop = document.getElementById('desktop');
+const desktopWidth = desktop ? desktop.clientWidth : window.innerWidth;
+const widgetWidth = 260;
+const edgePadding = 24;
+return {
+x: Math.max(desktopWidth - widgetWidth - edgePadding, edgePadding),
+y: fallback.y
+};
+}
+return {
+x: typeof fallback.x === 'number' ? fallback.x : 24,
+y: fallback.y
+};
+}
 
 function normalizeWidgetFlags(raw) {
 const base = { ...DEFAULT_WIDGETS };
@@ -326,9 +344,10 @@ function normalizeWidgetPositions(raw) {
 const base = {};
 Object.keys(DEFAULT_WIDGET_POSITIONS).forEach((id) => {
 const saved = raw && raw[id];
+const fallback = DEFAULT_WIDGET_POSITIONS[id] || { x: 24, y: 24 };
 base[id] = {
-x: typeof saved?.x === 'number' ? saved.x : DEFAULT_WIDGET_POSITIONS[id].x,
-y: typeof saved?.y === 'number' ? saved.y : DEFAULT_WIDGET_POSITIONS[id].y
+x: typeof saved?.x === 'number' ? saved.x : fallback.x,
+y: typeof saved?.y === 'number' ? saved.y : fallback.y
 };
 });
 return base;
@@ -681,9 +700,14 @@ const card = document.createElement('div');
 card.className = 'widget-card';
 card.dataset.widgetId = widget.id;
 card.innerHTML = widget.html;
-const saved = OS.widgetPositions[widget.id] || DEFAULT_WIDGET_POSITIONS[widget.id] || { x: 24, y: 24 };
-card.style.left = `${saved.x}px`;
-card.style.top = `${saved.y}px`;
+const saved = OS.widgetPositions[widget.id] || {};
+const startPos = {
+x: typeof saved.x === 'number' ? saved.x : getDefaultWidgetPosition(widget.id).x,
+y: typeof saved.y === 'number' ? saved.y : getDefaultWidgetPosition(widget.id).y
+};
+const clampedStart = clampWidgetPosition(startPos, layer, card);
+card.style.left = `${clampedStart.x}px`;
+card.style.top = `${clampedStart.y}px`;
 if(widget.id === 'notes') {
 card.ondblclick = () => {
 const next = prompt('Quick note', localStorage.getItem('mc_quick_note') || '');
@@ -702,35 +726,15 @@ const startLeft = parseFloat(card.style.left || '0');
 const startTop = parseFloat(card.style.top || '0');
 const offsetX = e.clientX - layerRect.left - startLeft;
 const offsetY = e.clientY - layerRect.top - startTop;
-let target = { x: startLeft, y: startTop };
-let current = { x: startLeft, y: startTop };
 let dragActive = true;
-let raf = null;
-
-const render = () => {
-if (!dragActive) return;
-const dx = target.x - current.x;
-const dy = target.y - current.y;
-const easing = 0.32;
-current.x += dx * easing;
-current.y += dy * easing;
-
-card.style.left = `${current.x.toFixed(2)}px`;
-card.style.top = `${current.y.toFixed(2)}px`;
-OS.widgetPositions[widget.id] = { ...current };
-
-if (Math.abs(dx) > 0.1 || Math.abs(dy) > 0.1) {
-raf = requestAnimationFrame(render);
-} else {
-raf = null;
-}
-};
 
 const onMove = (ev) => {
+if (!dragActive) return;
 const rawX = ev.clientX - layerRect.left - offsetX;
 const rawY = ev.clientY - layerRect.top - offsetY;
-target = clampWidgetPosition({ x: rawX, y: rawY }, layer, card);
-if (!raf) raf = requestAnimationFrame(render);
+const nextPos = clampWidgetPosition({ x: rawX, y: rawY }, layer, card);
+card.style.left = `${nextPos.x}px`;
+card.style.top = `${nextPos.y}px`;
 };
 
 const onUp = () => {
@@ -740,8 +744,10 @@ card.releasePointerCapture(e.pointerId);
 card.removeEventListener('pointermove', onMove);
 card.removeEventListener('pointerup', onUp);
 card.removeEventListener('pointercancel', onUp);
-if (raf) cancelAnimationFrame(raf);
-const finalPos = clampWidgetPosition(target, layer, card);
+const finalPos = clampWidgetPosition({
+x: parseFloat(card.style.left || '0'),
+y: parseFloat(card.style.top || '0')
+}, layer, card);
 card.style.left = `${finalPos.x}px`;
 card.style.top = `${finalPos.y}px`;
 OS.widgetPositions[widget.id] = finalPos;
