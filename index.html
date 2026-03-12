@@ -22,7 +22,7 @@
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font); -webkit-user-select: none; user-select: none; }
 body {
 height: 100vh; width: 100vw; overflow: hidden;
-background: #000; color: white; transition: background 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+background: radial-gradient(circle at center, rgba(255, 255, 255, 0.04) 0%, #111 34%, #090909 68%, #050505 100%); color: white; transition: background 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* --- TOP BAR --- */
@@ -84,6 +84,28 @@ border-radius: 12px; cursor: pointer; font-weight: 800; font-size: 1rem; transit
 
 /* --- WORKSPACE --- */
 #desktop { position: absolute; inset: var(--top-bar-h) 0 var(--taskbar-h) 0; display: none; z-index: 100; padding: 30px; }
+.desktop-hero {
+position: absolute;
+left: 50%;
+top: 50%;
+transform: translate(-50%, -50%);
+text-align: center;
+pointer-events: none;
+z-index: 90;
+}
+.desktop-hero h1 {
+font-size: clamp(2.4rem, 6vw, 4.5rem);
+letter-spacing: 0.14em;
+font-weight: 700;
+text-shadow: 0 14px 35px rgba(0,0,0,0.95);
+}
+.desktop-hero p {
+margin-top: 12px;
+font-size: clamp(0.9rem, 2vw, 1.15rem);
+letter-spacing: 0.08em;
+opacity: 0.72;
+font-weight: 500;
+}
 .widget-layer {
 position: absolute;
 inset: 0;
@@ -329,7 +351,7 @@ y: Math.min(Math.max(Math.round(pos.y), 0), maxY)
 const OS = {
 z: 1000,
 pass: localStorage.getItem("mc_pass") || "1234",
-bg: localStorage.getItem("mc_bg") || "linear-gradient(135deg, #0f0c29, #302b63, #24243e)",
+bg: localStorage.getItem("mc_bg") || "radial-gradient(circle at center, rgba(255, 255, 255, 0.04) 0%, #111 34%, #090909 68%, #050505 100%)",
 installed: JSON.parse(localStorage.getItem("mc_apps")) || ["Browser", "Terminal", "Files", "Store", "Settings"],
 pos: JSON.parse(localStorage.getItem("mc_pos")) || {},
 running: {},
@@ -343,6 +365,12 @@ storeApps: ["Movies", "Games", "McCrackChat", "Calculator", "Music", "AppFactory
 };
 
 const DEFAULT_APP_ORDER = ["Browser", "Terminal", "Files", "Store", "Settings", ...OS.storeApps];
+
+const DEFAULT_THEME_BG = "radial-gradient(circle at center, rgba(255, 255, 255, 0.04) 0%, #111 34%, #090909 68%, #050505 100%)";
+
+function shouldShowDesktopHero() {
+return OS.bg === DEFAULT_THEME_BG;
+}
 
 
 function getDefaultDesktopPosition(id, fallbackIndex = 0) {
@@ -767,6 +795,7 @@ function setBG(url) {
 OS.bg = `url('${url}') center/cover no-repeat`;
 document.getElementById('os-root').style.background = OS.bg;
 localStorage.setItem("mc_bg", OS.bg);
+if (document.getElementById('desktop').style.display === 'block') renderDesktop();
 }
 
 function handleFileUpload(event) {
@@ -803,6 +832,12 @@ function lockSystem() { location.reload(); }
 
 function renderDesktop() {
 const d = document.getElementById('desktop'); d.innerHTML = "";
+if (shouldShowDesktopHero()) {
+const hero = document.createElement('div');
+hero.className = 'desktop-hero';
+hero.innerHTML = '<h1>McCrackOS</h1><p>Made By: Patrick_Mango</p>';
+d.appendChild(hero);
+}
 OS.installed.forEach((id, index) => {
 const p = OS.pos[id] || getDefaultDesktopPosition(id, index);
 const el = document.createElement('div'); el.className = 'icon';
