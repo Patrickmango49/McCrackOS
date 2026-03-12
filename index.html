@@ -450,6 +450,8 @@ const DEFAULT_SETTINGS = {
 clockSeconds: true,
 clock24h: false,
 notifications: true,
+autoFullscreen: true,
+wallpaperFit: 'cover',
 bootDelay: 6000
 };
 
@@ -476,6 +478,8 @@ if (!raw || typeof raw !== 'object') return base;
 if (typeof raw.clockSeconds === 'boolean') base.clockSeconds = raw.clockSeconds;
 if (typeof raw.clock24h === 'boolean') base.clock24h = raw.clock24h;
 if (typeof raw.notifications === 'boolean') base.notifications = raw.notifications;
+if (typeof raw.autoFullscreen === 'boolean') base.autoFullscreen = raw.autoFullscreen;
+if (['cover', 'contain'].includes(raw.wallpaperFit)) base.wallpaperFit = raw.wallpaperFit;
 if ([3000, 6000, 9000].includes(raw.bootDelay)) base.bootDelay = raw.bootDelay;
 return base;
 }
@@ -509,6 +513,15 @@ OS.pendingAvatar = '';
 OS.widgetDragActive = false;
 
 const DEFAULT_APP_ORDER = ["Browser", "Terminal", "Files", "Store", "Settings", ...OS.storeApps];
+
+const WALLPAPER_PRESETS = [
+{ label: 'Default Nebula', value: DEFAULT_BG },
+{ label: 'Aurora Drift', value: 'radial-gradient(130% 100% at 20% 10%, #2f6bff 0%, #12213f 45%, #050509 100%)' },
+{ label: 'Sunset Grid', value: 'linear-gradient(140deg, #2a0f1f 0%, #5f2448 42%, #f26a55 100%)' },
+{ label: 'Midnight Matrix', value: 'linear-gradient(160deg, #001f0f 0%, #033a22 45%, #020507 100%)' }
+];
+
+let fullscreenListenerArmed = false;
 
 
 function getDefaultDesktopPosition(id, fallbackIndex = 0) {
@@ -600,6 +613,7 @@ function setSetting(key, value, message) {
 if (!Object.prototype.hasOwnProperty.call(OS.settings, key)) return;
 OS.settings[key] = value;
 saveSettings();
+if (key === 'autoFullscreen') syncFullscreenPreference();
 if (OS.running['Settings']) OS.running['Settings'].querySelector('.win-body').innerHTML = Registry['Settings'].content();
 if (message) notify(message, 'success');
 }
@@ -651,11 +665,21 @@ Settings: { icon: "⚙️", content: () => `<div style="padding:40px;">
 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:30px;">
 <div style="background:#0a0a0a; padding:25px; border-radius:20px; border:1px solid #1a1a1a;">
 <h4>Personalization</h4><br>
-<p style="font-size:0.8rem; opacity:0.5;">Paste an image URL or upload an image to update the workspace visual.</p><br>
+<p style="font-size:0.8rem; opacity:0.5;">Pick a preset, paste a URL, or upload your own wallpaper image.</p><br>
+<label style="font-size:0.78rem; opacity:0.55;">Wallpaper Preset</label><br>
+<select onchange="setWallpaperPreset(this.value)" style="margin-top:7px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;">
+${WALLPAPER_PRESETS.map(preset => `<option value="${preset.value}" ${OS.bg === preset.value ? 'selected' : ''}>${preset.label}</option>`).join('')}
+</select><br><br>
 <input type="text" id="bg-url" placeholder="https://..." style="width:100%; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px;"><br><br>
 <button onclick="setBG(document.getElementById('bg-url').value)" style="width:100%; padding:10px; cursor:pointer; background:var(--accent); border:none; color:white; border-radius:8px;">Apply URL</button><br><br>
 <button onclick="document.getElementById('bg-upload-settings').click()" style="width:100%; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Upload Image</button>
 <input type="file" id="bg-upload-settings" style="display:none" onchange="handleFileUpload(event)" accept="image/*">
+<br><br>
+<label style="font-size:0.78rem; opacity:0.55;">Wallpaper Fit</label><br>
+<select onchange="setWallpaperFit(this.value)" style="margin-top:7px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;">
+<option value="cover" ${OS.settings.wallpaperFit === 'cover' ? 'selected' : ''}>Fill Screen (Cover)</option>
+<option value="contain" ${OS.settings.wallpaperFit === 'contain' ? 'selected' : ''}>Fit Entire Image (Contain)</option>
+</select>
 <br><br>
 <p style="font-size:0.8rem; opacity:0.5;">Paste an image URL to use it as the browser tab favicon.</p><br>
 <input type="text" id="favicon-url" value="${OS.favicon}" placeholder="https://..." style="width:100%; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px;"><br><br>
@@ -689,6 +713,7 @@ Settings: { icon: "⚙️", content: () => `<div style="padding:40px;">
 <h4>System Behavior</h4><br>
 <p style="font-size:0.8rem; opacity:0.5;">Adjust startup speed and notification behavior.</p><br>
 <label style="display:flex; align-items:center; justify-content:space-between; font-size:0.88rem; margin-bottom:12px;"><span>Desktop Notifications</span><input type="checkbox" ${OS.settings.notifications ? 'checked' : ''} onchange="setSetting('notifications', this.checked, 'Notification preference updated.')"></label>
+<label style="display:flex; align-items:center; justify-content:space-between; font-size:0.88rem; margin-bottom:12px;"><span>Auto Fullscreen on First Click</span><input type="checkbox" ${OS.settings.autoFullscreen ? 'checked' : ''} onchange="setSetting('autoFullscreen', this.checked, 'Fullscreen preference updated.')"></label>
 <label style="font-size:0.78rem; opacity:0.55;">Boot Animation Length</label><br>
 <select onchange="setSetting('bootDelay', Number(this.value), 'Boot timing updated.')" style="margin-top:7px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;">
 <option value="3000" ${OS.settings.bootDelay === 3000 ? 'selected' : ''}>Fast (3s)</option>
@@ -826,6 +851,7 @@ addLog("System boot sequence initialized.");
 document.getElementById('os-root').style.background = OS.bg;
 applyAccent(OS.accent);
 setFavicon(OS.favicon, false);
+syncFullscreenPreference();
 simulateBootLogs();
 const customs = JSON.parse(localStorage.getItem("mc_custom_apps")) || {};
 Object.keys(customs).forEach(name => {
@@ -1093,15 +1119,51 @@ function hasCustomWallpaper() {
 return OS.bg.trim().startsWith("url(");
 }
 
-function setBG(url) {
-if(!url || !url.trim()) {
-OS.bg = DEFAULT_BG;
-} else {
-OS.bg = `url('${url}') center/cover no-repeat`;
+function wallpaperStyleFromInput(input) {
+const value = (input || '').trim();
+if (!value) return DEFAULT_BG;
+if (value.startsWith('url(') && value.includes(' no-repeat')) return value;
+if (value.startsWith('url(')) return `${value} center/${OS.settings.wallpaperFit} no-repeat`;
+if (value.includes('gradient(')) return value;
+return `url('${value}') center/${OS.settings.wallpaperFit} no-repeat`;
 }
+
+function setBG(input) {
+OS.bg = wallpaperStyleFromInput(input);
 document.getElementById('os-root').style.background = OS.bg;
 localStorage.setItem("mc_bg", OS.bg);
 renderDesktop();
+}
+
+function setWallpaperPreset(value) {
+setBG(value);
+notify('Wallpaper preset applied.', 'success');
+}
+
+function setWallpaperFit(mode) {
+if (!['cover', 'contain'].includes(mode)) return;
+setSetting('wallpaperFit', mode, 'Wallpaper fit updated.');
+if (!hasCustomWallpaper()) return;
+const match = OS.bg.match(/url\((['"]?)(.*?)\1\)/);
+if (!match || !match[2]) return;
+setBG(match[2]);
+}
+
+function requestFullscreenOnFirstInteraction() {
+if (!OS.settings.autoFullscreen || sessionStorage.getItem('mc_fullscreen_attempted') === '1' || document.fullscreenElement) return;
+sessionStorage.setItem('mc_fullscreen_attempted', '1');
+document.documentElement.requestFullscreen().catch(() => {});
+}
+
+function syncFullscreenPreference() {
+if (OS.settings.autoFullscreen && !fullscreenListenerArmed) {
+window.addEventListener('pointerdown', requestFullscreenOnFirstInteraction);
+fullscreenListenerArmed = true;
+}
+if (!OS.settings.autoFullscreen && fullscreenListenerArmed) {
+window.removeEventListener('pointerdown', requestFullscreenOnFirstInteraction);
+fullscreenListenerArmed = false;
+}
 }
 
 function setFavicon(url, notifyUser = true) {
