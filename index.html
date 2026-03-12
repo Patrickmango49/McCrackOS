@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>𝕄𝕔ℂ𝕣𝕒𝕔𝕜OS V9.0</title>
-<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link id="favicon-link" rel="icon" type="image/png" href="https://i.imgur.com/HfPyMtK.png">
 <style>
 /* --- CORE SYSTEM VARIABLES --- */
 :root {
@@ -370,6 +370,7 @@ y: Math.min(Math.max(pos.y, 0), maxY)
 
 const DEFAULT_BG = "radial-gradient(120% 90% at 50% 44%, #1a1a1a 0%, #121212 30%, #0b0b0b 62%, #050505 82%, #010101 100%)";
 const DEFAULT_ACCENT = "#0078d4";
+const DEFAULT_FAVICON = "https://i.imgur.com/HfPyMtK.png";
 const DEFAULT_SETTINGS = {
 clockSeconds: true,
 clock24h: false,
@@ -392,6 +393,7 @@ z: 1000,
 pass: localStorage.getItem("mc_pass") || "1234",
 bg: localStorage.getItem("mc_bg") || DEFAULT_BG,
 accent: localStorage.getItem("mc_accent") || DEFAULT_ACCENT,
+favicon: localStorage.getItem("mc_favicon") || DEFAULT_FAVICON,
 installed: JSON.parse(localStorage.getItem("mc_apps")) || ["Browser", "Terminal", "Files", "Store", "Settings"],
 pos: JSON.parse(localStorage.getItem("mc_pos")) || {},
 running: {},
@@ -555,6 +557,10 @@ Settings: { icon: "⚙️", content: () => `<div style="padding:40px;">
 <button onclick="setBG(document.getElementById('bg-url').value)" style="width:100%; padding:10px; cursor:pointer; background:var(--accent); border:none; color:white; border-radius:8px;">Apply URL</button><br><br>
 <button onclick="document.getElementById('bg-upload-settings').click()" style="width:100%; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Upload Image</button>
 <input type="file" id="bg-upload-settings" style="display:none" onchange="handleFileUpload(event)" accept="image/*">
+<br><br>
+<p style="font-size:0.8rem; opacity:0.5;">Paste an image URL to use it as the browser tab favicon.</p><br>
+<input type="text" id="favicon-url" value="${OS.favicon}" placeholder="https://..." style="width:100%; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px;"><br><br>
+<button onclick="setFavicon(document.getElementById('favicon-url').value)" style="width:100%; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Apply Favicon URL</button>
 </div>
 <div style="background:#0a0a0a; padding:25px; border-radius:20px; border:1px solid #1a1a1a;">
 <h4>Security</h4><br>
@@ -720,6 +726,7 @@ window.onload = () => {
 addLog("System boot sequence initialized.");
 document.getElementById('os-root').style.background = OS.bg;
 applyAccent(OS.accent);
+setFavicon(OS.favicon, false);
 simulateBootLogs();
 const customs = JSON.parse(localStorage.getItem("mc_custom_apps")) || {};
 Object.keys(customs).forEach(name => {
@@ -960,6 +967,15 @@ OS.bg = `url('${url}') center/cover no-repeat`;
 document.getElementById('os-root').style.background = OS.bg;
 localStorage.setItem("mc_bg", OS.bg);
 renderDesktop();
+}
+
+function setFavicon(url, notifyUser = true) {
+const cleanUrl = (url || "").trim();
+OS.favicon = cleanUrl || DEFAULT_FAVICON;
+const linkEl = document.getElementById('favicon-link');
+if (linkEl) linkEl.href = OS.favicon;
+localStorage.setItem("mc_favicon", OS.favicon);
+if (notifyUser) notify('Favicon updated.', 'info');
 }
 
 function handleFileUpload(event) {
