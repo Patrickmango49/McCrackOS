@@ -22,7 +22,7 @@
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font); -webkit-user-select: none; user-select: none; }
 body {
 height: 100vh; width: 100vw; overflow: hidden;
-background: radial-gradient(circle at top, rgba(255, 255, 255, 0.08) 0%, #000 48%, #000 100%); color: white; transition: background 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+background: radial-gradient(circle at center, rgba(255, 255, 255, 0.045) 0%, #060606 35%, #020202 68%, #000 100%); color: white; transition: background 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* --- TOP BAR --- */
@@ -346,12 +346,12 @@ y: Math.min(Math.max(Math.round(pos.y), 0), maxY)
 };
 }
 
-
+const DEFAULT_BG = "radial-gradient(circle at center, rgba(255, 255, 255, 0.045) 0%, #060606 35%, #020202 68%, #000 100%)";
 
 const OS = {
 z: 1000,
 pass: localStorage.getItem("mc_pass") || "1234",
-bg: localStorage.getItem("mc_bg") || "radial-gradient(circle at top, rgba(255, 255, 255, 0.08) 0%, #000 48%, #000 100%)",
+bg: localStorage.getItem("mc_bg") || DEFAULT_BG,
 installed: JSON.parse(localStorage.getItem("mc_apps")) || ["Browser", "Terminal", "Files", "Store", "Settings"],
 pos: JSON.parse(localStorage.getItem("mc_pos")) || {},
 running: {},
@@ -785,10 +785,19 @@ document.getElementById('battery-stat').querySelector('span').innerText = OS.bat
 }
 }
 
+function hasCustomWallpaper() {
+return OS.bg.trim().startsWith("url(");
+}
+
 function setBG(url) {
+if(!url || !url.trim()) {
+OS.bg = DEFAULT_BG;
+} else {
 OS.bg = `url('${url}') center/cover no-repeat`;
+}
 document.getElementById('os-root').style.background = OS.bg;
 localStorage.setItem("mc_bg", OS.bg);
+renderDesktop();
 }
 
 function handleFileUpload(event) {
@@ -825,10 +834,12 @@ function lockSystem() { location.reload(); }
 
 function renderDesktop() {
 const d = document.getElementById('desktop'); d.innerHTML = "";
+if(!hasCustomWallpaper()) {
 const hero = document.createElement('div');
 hero.className = 'desktop-hero';
 hero.innerHTML = '<h1>McCrackOS</h1><p>Made By: Patrick_Mango</p>';
 d.appendChild(hero);
+}
 OS.installed.forEach((id, index) => {
 const p = OS.pos[id] || getDefaultDesktopPosition(id, index);
 const el = document.createElement('div'); el.className = 'icon';
