@@ -84,25 +84,42 @@ border-radius: 12px; cursor: pointer; font-weight: 800; font-size: 1rem; transit
 
 /* --- WORKSPACE --- */
 #desktop { position: absolute; inset: var(--top-bar-h) 0 var(--taskbar-h) 0; display: none; z-index: 100; padding: 30px; }
+.desktop-brand {
+position: absolute;
+left: 50%;
+top: 50%;
+transform: translate(-50%, -50%);
+text-align: center;
+pointer-events: none;
+color: rgba(255,255,255,0.85);
+text-shadow: 0 8px 20px rgba(0,0,0,0.55);
+z-index: 120;
+}
+.desktop-brand h1 { font-size: clamp(2.5rem, 6vw, 5rem); letter-spacing: 4px; font-weight: 700; }
+.desktop-brand p { margin-top: 10px; font-size: clamp(0.8rem, 1.3vw, 1.1rem); letter-spacing: 1.2px; opacity: 0.9; }
 .widget-layer {
 position: absolute;
-top: calc(var(--top-bar-h) + 18px);
-right: 24px;
-display: flex;
-flex-direction: column;
-gap: 12px;
+inset: 0;
 z-index: 240;
 pointer-events: none;
 }
 .widget-card {
 width: 260px;
+position: absolute;
 background: rgba(0,0,0,0.58);
 border: 1px solid rgba(255,255,255,0.15);
 border-radius: 14px;
 padding: 12px 14px;
 backdrop-filter: blur(18px);
 box-shadow: 0 15px 30px rgba(0,0,0,0.35);
+cursor: grab;
+pointer-events: auto;
+user-select: none;
+touch-action: none;
+transition: transform 0.2s, left 0.08s linear, top 0.08s linear;
+will-change: left, top, transform;
 }
+.widget-card.dragging { cursor: grabbing; transition: transform 0.08s linear; }
 .widget-card h4 { font-size: 0.72rem; letter-spacing: 1.2px; opacity: 0.65; margin-bottom: 8px; }
 .widget-main { font-size: 1.35rem; font-weight: 700; }
 .widget-sub { margin-top: 4px; font-size: 0.78rem; opacity: 0.7; }
@@ -278,22 +295,70 @@ display: flex; align-items: center; padding: 0 25px; z-index: 8500; border-top: 
 
 <script>
 /* --- KERNEL DATA & REGISTRY --- */
+const DEFAULT_WIDGETS = { weather: true, clock: true, calendar: true, system: true, notes: true };
+const DEFAULT_WIDGET_POSITIONS = {
+weather: { x: 24, y: 18 },
+clock: { x: 24, y: 152 },
+calendar: { x: 24, y: 286 },
+system: { x: 24, y: 420 },
+notes: { x: 24, y: 554 }
+};
+
+function normalizeWidgetFlags(raw) {
+const base = { ...DEFAULT_WIDGETS };
+if (!raw || typeof raw !== 'object') return base;
+Object.keys(DEFAULT_WIDGETS).forEach((id) => {
+if (typeof raw[id] === 'boolean') base[id] = raw[id];
+});
+return base;
+}
+
+function normalizeWidgetPositions(raw) {
+const base = {};
+Object.keys(DEFAULT_WIDGET_POSITIONS).forEach((id) => {
+const saved = raw && raw[id];
+base[id] = {
+x: typeof saved?.x === 'number' ? saved.x : DEFAULT_WIDGET_POSITIONS[id].x,
+y: typeof saved?.y === 'number' ? saved.y : DEFAULT_WIDGET_POSITIONS[id].y
+};
+});
+return base;
+}
+
+function saveWidgetState() {
+localStorage.setItem("mc_widgets", JSON.stringify(OS.widgets));
+localStorage.setItem("mc_widget_pos", JSON.stringify(OS.widgetPositions));
+}
+
+function clampWidgetPosition(pos, layer, card) {
+const maxX = Math.max((layer?.clientWidth || window.innerWidth) - (card?.offsetWidth || 260), 0);
+const maxY = Math.max((layer?.clientHeight || window.innerHeight) - (card?.offsetHeight || 110), 0);
+return {
+x: Math.min(Math.max(Math.round(pos.x), 0), maxX),
+y: Math.min(Math.max(Math.round(pos.y), 0), maxY)
+};
+}
+
+
+
 const OS = {
 z: 1000,
 pass: localStorage.getItem("mc_pass") || "1234",
-bg: localStorage.getItem("mc_bg") || "linear-gradient(135deg, #0f0c29, #302b63, #24243e)",
+bg: localStorage.getItem("mc_bg") || "linear-gradient(140deg, #020202 0%, #101010 52%, #2a2a2a 100%)",
 installed: JSON.parse(localStorage.getItem("mc_apps")) || ["Browser", "Terminal", "Files", "Store", "Settings"],
 pos: JSON.parse(localStorage.getItem("mc_pos")) || {},
 running: {},
 battery: 100,
 logs: [],
-widgets: JSON.parse(localStorage.getItem("mc_widgets")) || { weather: true, clock: true, calendar: true },
+widgets: normalizeWidgetFlags(JSON.parse(localStorage.getItem("mc_widgets"))),
+widgetPositions: normalizeWidgetPositions(JSON.parse(localStorage.getItem("mc_widget_pos"))),
 weather: JSON.parse(localStorage.getItem("mc_weather")) || null,
 restricted: ["Browser", "Store", "Terminal", "Files", "Settings"],
 storeApps: ["Movies", "Games", "McCrackChat", "Calculator", "Music", "AppFactory", "Notepad", "WidgetCenter"]
 };
 
 const DEFAULT_APP_ORDER = ["Browser", "Terminal", "Files", "Store", "Settings", ...OS.storeApps];
+
 
 function getDefaultDesktopPosition(id, fallbackIndex = 0) {
 const desktop = document.getElementById('desktop');
@@ -549,34 +614,41 @@ setTimeout(() => clearInterval(timer), 6000);
 }
 
 function renderWidgetCenter() {
-const status = (id) => OS.widgets[id] ? "Enabled" : "Disabled";
-const buttonLabel = (id) => OS.widgets[id] ? "Remove" : "Add";
+const defs = [
+{ id: 'weather', title: 'Weather Widget', desc: 'Shows current outdoor conditions.' },
+{ id: 'clock', title: 'Time Widget', desc: 'Shows current local time with seconds.' },
+{ id: 'calendar', title: 'Date & Calendar Widget', desc: 'Displays weekday and full date.' },
+{ id: 'system', title: 'System Stats Widget', desc: 'Shows battery level and active app count.' },
+{ id: 'notes', title: 'Quick Note Widget', desc: 'Pin a short reminder on your desktop.' }
+];
 return `<div style="padding:35px; max-width:760px; margin:0 auto;">
 <h2 style="margin-bottom:8px;">Widget Center</h2>
-<p style="opacity:0.55; margin-bottom:20px;">Add and remove live desktop widgets.</p>
-${renderWidgetControl('weather', 'Weather Widget', 'Shows current outdoor conditions.', status('weather'), buttonLabel('weather'))}
-${renderWidgetControl('clock', 'Time Widget', 'Shows current local time with seconds.', status('clock'), buttonLabel('clock'))}
-${renderWidgetControl('calendar', 'Date & Calendar Widget', 'Displays weekday and full date.', status('calendar'), buttonLabel('calendar'))}
+<p style="opacity:0.55; margin-bottom:20px;">Add, remove, and move live desktop widgets directly on the desktop.</p>
+${defs.map((item) => renderWidgetControl(item)).join('')}
 </div>`;
 }
 
-function renderWidgetControl(id, title, desc, state, action) {
+function renderWidgetControl(widget) {
+const enabled = !!OS.widgets[widget.id];
 return `<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; border:1px solid #1e1e1e; border-radius:12px; padding:14px 16px; background:#090909;">
-<div><strong>${title}</strong><div style="opacity:0.55; font-size:0.82rem; margin-top:3px;">${desc}</div><div style="font-size:0.75rem; margin-top:7px; color:var(--accent);">${state}</div></div>
-<button onclick="toggleWidget('${id}')" style="padding:9px 16px; border:none; border-radius:9px; background:${OS.widgets[id] ? '#2f2f2f' : 'var(--accent)'}; color:white; cursor:pointer; font-weight:700;">${action}</button>
+<div><strong>${widget.title}</strong><div style="opacity:0.55; font-size:0.82rem; margin-top:3px;">${widget.desc}</div><div style="font-size:0.75rem; margin-top:7px; color:var(--accent);">${enabled ? 'Enabled' : 'Disabled'}</div></div>
+<button onclick="toggleWidget('${widget.id}')" style="padding:9px 16px; border:none; border-radius:9px; background:${enabled ? '#2f2f2f' : 'var(--accent)'}; color:white; cursor:pointer; font-weight:700;">${enabled ? 'Remove' : 'Add'}</button>
 </div>`;
 }
 
 function toggleWidget(id) {
 if (!Object.prototype.hasOwnProperty.call(OS.widgets, id)) return;
 OS.widgets[id] = !OS.widgets[id];
-localStorage.setItem("mc_widgets", JSON.stringify(OS.widgets));
+saveWidgetState();
 renderWidgets();
 if (OS.running['WidgetCenter']) OS.running['WidgetCenter'].querySelector('.win-body').innerHTML = Registry['WidgetCenter'].content();
 notify(`${id} widget ${OS.widgets[id] ? 'enabled' : 'disabled'}.`, OS.widgets[id] ? 'success' : 'warning');
 }
 
+let activeWidgetDrag = null;
+
 function renderWidgets() {
+if(activeWidgetDrag) return;
 const desktop = document.getElementById('desktop');
 if(!desktop) return;
 let layer = document.getElementById('widget-layer');
@@ -587,18 +659,72 @@ layer.className = 'widget-layer';
 desktop.appendChild(layer);
 }
 const now = new Date();
-const cards = [];
-if(OS.widgets.weather) {
+const quickNote = localStorage.getItem('mc_quick_note') || 'Double-click to edit this note.';
 const weatherText = OS.weather ? `${OS.weather.temp}°C • ${OS.weather.label}` : 'Loading weather...';
-cards.push(`<div class="widget-card"><h4>WEATHER</h4><div class="widget-main">${weatherText}</div><div class="widget-sub">${OS.weather && OS.weather.city ? OS.weather.city : 'Local estimate'}</div></div>`);
+const widgets = [
+{ id: 'weather', html: `<h4>WEATHER</h4><div class="widget-main">${weatherText}</div><div class="widget-sub">${OS.weather && OS.weather.city ? OS.weather.city : 'Local estimate'}</div>` },
+{ id: 'clock', html: `<h4>TIME</h4><div class="widget-main">${now.toLocaleTimeString()}</div><div class="widget-sub">System local clock</div>` },
+{ id: 'calendar', html: `<h4>DATE</h4><div class="widget-main">${now.toLocaleDateString([], { month: 'long', day: 'numeric' })}</div><div class="widget-sub">${now.toLocaleDateString([], { weekday: 'long', year: 'numeric' })}</div>` },
+{ id: 'system', html: `<h4>SYSTEM</h4><div class="widget-main">${OS.battery}% Battery</div><div class="widget-sub">${Object.keys(OS.running).length} app${Object.keys(OS.running).length === 1 ? '' : 's'} active</div>` },
+{ id: 'notes', html: `<h4>QUICK NOTE</h4><div class="widget-main" style="font-size:1rem; line-height:1.35; white-space:pre-wrap; font-weight:600;">${quickNote}</div><div class="widget-sub">Double-click to edit</div>` }
+];
+layer.innerHTML = '';
+widgets.forEach((widget) => {
+if(!OS.widgets[widget.id]) return;
+const card = document.createElement('div');
+card.className = 'widget-card';
+card.dataset.widgetId = widget.id;
+card.innerHTML = widget.html;
+const saved = OS.widgetPositions[widget.id] || DEFAULT_WIDGET_POSITIONS[widget.id] || { x: 24, y: 24 };
+card.style.left = `${saved.x}px`;
+card.style.top = `${saved.y}px`;
+if(widget.id === 'notes') {
+card.ondblclick = () => {
+const next = prompt('Quick note', localStorage.getItem('mc_quick_note') || '');
+if(next === null) return;
+localStorage.setItem('mc_quick_note', next.trim() || 'No reminder set.');
+renderWidgets();
+};
 }
-if(OS.widgets.clock) {
-cards.push(`<div class="widget-card"><h4>TIME</h4><div class="widget-main">${now.toLocaleTimeString()}</div><div class="widget-sub">System local clock</div></div>`);
-}
-if(OS.widgets.calendar) {
-cards.push(`<div class="widget-card"><h4>DATE</h4><div class="widget-main">${now.toLocaleDateString([], { month: 'long', day: 'numeric' })}</div><div class="widget-sub">${now.toLocaleDateString([], { weekday: 'long', year: 'numeric' })}</div></div>`);
-}
-layer.innerHTML = cards.join('');
+card.onmousedown = (e) => {
+if (e.button !== 0) return;
+e.preventDefault();
+card.classList.add('dragging');
+activeWidgetDrag = widget.id;
+const layerRect = layer.getBoundingClientRect();
+const startLeft = parseFloat(card.style.left || '0');
+const startTop = parseFloat(card.style.top || '0');
+const offsetX = e.clientX - layerRect.left - startLeft;
+const offsetY = e.clientY - layerRect.top - startTop;
+let raf = null;
+let pending = null;
+const applyMove = () => {
+if(!pending) return;
+const rawX = pending.clientX - layerRect.left - offsetX;
+const rawY = pending.clientY - layerRect.top - offsetY;
+const next = clampWidgetPosition({ x: rawX, y: rawY }, layer, card);
+card.style.left = `${next.x}px`;
+card.style.top = `${next.y}px`;
+OS.widgetPositions[widget.id] = next;
+raf = null;
+};
+const onMove = (ev) => {
+pending = ev;
+if(!raf) raf = requestAnimationFrame(applyMove);
+};
+const onUp = () => {
+window.removeEventListener('mousemove', onMove);
+window.removeEventListener('mouseup', onUp);
+if(raf) cancelAnimationFrame(raf);
+card.classList.remove('dragging');
+activeWidgetDrag = null;
+saveWidgetState();
+};
+window.addEventListener('mousemove', onMove);
+window.addEventListener('mouseup', onUp);
+};
+layer.appendChild(card);
+});
 }
 
 async function refreshWeather() {
@@ -695,8 +821,21 @@ document.getElementById('log-msg').innerText = "DENIED";
 
 function lockSystem() { location.reload(); }
 
+function ensureDesktopBrand() {
+const desktop = document.getElementById('desktop');
+if(!desktop) return;
+let brand = document.getElementById('desktop-brand');
+if(brand) return;
+brand = document.createElement('div');
+brand.id = 'desktop-brand';
+brand.className = 'desktop-brand';
+brand.innerHTML = '<h1>McCrackOS</h1><p>Made By: Patrick_Mango</p>';
+desktop.appendChild(brand);
+}
+
 function renderDesktop() {
 const d = document.getElementById('desktop'); d.innerHTML = "";
+ensureDesktopBrand();
 OS.installed.forEach((id, index) => {
 const p = OS.pos[id] || getDefaultDesktopPosition(id, index);
 const el = document.createElement('div'); el.className = 'icon';
