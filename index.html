@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>𝕄𝕔ℂ𝕣𝕒𝕔𝕜OS V9.0</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2712%27 fill=%27%230078d4%27/%3E%3Ctext x=%2732%27 y=%2741%27 font-size=%2732%27 text-anchor=%27middle%27 fill=%27white%27 font-family=%27Segoe UI,sans-serif%27%3EM%3C/text%3E%3C/svg%3E">
 <style>
 /* --- CORE SYSTEM VARIABLES --- */
 :root {
@@ -23,6 +24,10 @@
 body {
 height: 100vh; width: 100vw; overflow: hidden;
 background: radial-gradient(120% 90% at 50% 44%, #1a1a1a 0%, #121212 30%, #0b0b0b 62%, #050505 82%, #010101 100%); color: white; transition: background 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+body.reduced-motion *, body.reduced-motion *::before, body.reduced-motion *::after {
+animation: none !important;
+transition: none !important;
 }
 
 /* --- TOP BAR --- */
@@ -353,6 +358,15 @@ y: typeof saved?.y === 'number' ? saved.y : fallback.y
 return base;
 }
 
+function normalizeUserSettings(raw) {
+const base = { ...DEFAULT_SETTINGS };
+if (!raw || typeof raw !== 'object') return base;
+Object.keys(base).forEach((key) => {
+if (typeof raw[key] === 'boolean') base[key] = raw[key];
+});
+return base;
+}
+
 function saveWidgetState() {
 localStorage.setItem("mc_widgets", JSON.stringify(OS.widgets));
 localStorage.setItem("mc_widget_pos", JSON.stringify(OS.widgetPositions));
@@ -368,11 +382,20 @@ y: Math.min(Math.max(pos.y, 0), maxY)
 }
 
 const DEFAULT_BG = "radial-gradient(120% 90% at 50% 44%, #1a1a1a 0%, #121212 30%, #0b0b0b 62%, #050505 82%, #010101 100%)";
+const DEFAULT_ACCENT = "#0078d4";
+const DEFAULT_SETTINGS = {
+notifications: true,
+showClockSeconds: false,
+clock24h: false,
+reducedMotion: false
+};
 
 const OS = {
 z: 1000,
 pass: localStorage.getItem("mc_pass") || "1234",
 bg: localStorage.getItem("mc_bg") || DEFAULT_BG,
+accent: localStorage.getItem("mc_accent") || DEFAULT_ACCENT,
+settings: normalizeUserSettings(JSON.parse(localStorage.getItem("mc_settings"))),
 installed: JSON.parse(localStorage.getItem("mc_apps")) || ["Browser", "Terminal", "Files", "Store", "Settings"],
 pos: JSON.parse(localStorage.getItem("mc_pos")) || {},
 running: {},
@@ -409,6 +432,81 @@ iconRect.left > binRect.right ||
 iconRect.bottom < binRect.top ||
 iconRect.top > binRect.bottom
 );
+}
+
+function attachMouseDrag(target, { onStart, onMove, onEnd }) {
+target.onmousedown = (e) => {
+if (e.button !== 0) return;
+e.preventDefault();
+if (typeof onStart === 'function') onStart(e);
+let raf = null;
+let pending = null;
+
+const applyMove = () => {
+if (!pending) return;
+if (typeof onMove === 'function') onMove(pending);
+raf = null;
+};
+
+const handleMove = (ev) => {
+pending = ev;
+if (!raf) raf = requestAnimationFrame(applyMove);
+};
+
+const handleUp = () => {
+window.removeEventListener('mousemove', handleMove);
+window.removeEventListener('mouseup', handleUp);
+if (raf) cancelAnimationFrame(raf);
+if (typeof onEnd === 'function') onEnd();
+};
+
+window.addEventListener('mousemove', handleMove);
+window.addEventListener('mouseup', handleUp);
+};
+}
+
+function applyAccent(color) {
+if (!color) return;
+OS.accent = color;
+document.documentElement.style.setProperty('--accent', color);
+localStorage.setItem("mc_accent", color);
+}
+
+function resetAccent() {
+applyAccent(DEFAULT_ACCENT);
+if (OS.running['Settings']) OS.running['Settings'].querySelector('.win-body').innerHTML = Registry['Settings'].content();
+notify('Accent color reset.', 'success');
+}
+
+function resetDesktopLayout() {
+OS.pos = {};
+localStorage.setItem("mc_pos", JSON.stringify(OS.pos));
+renderDesktop();
+notify('Desktop icon layout reset.', 'warning');
+}
+
+function resetWidgetsLayout() {
+OS.widgetPositions = normalizeWidgetPositions(null);
+saveWidgetState();
+renderWidgets();
+notify('Widget layout reset.', 'warning');
+}
+
+function applySettings() {
+document.body.classList.toggle('reduced-motion', !!OS.settings.reducedMotion);
+}
+
+function saveSettings() {
+localStorage.setItem("mc_settings", JSON.stringify(OS.settings));
+applySettings();
+}
+
+function toggleSetting(key) {
+if (!Object.prototype.hasOwnProperty.call(OS.settings, key)) return;
+OS.settings[key] = !OS.settings[key];
+saveSettings();
+if (OS.running['Settings']) OS.running['Settings'].querySelector('.win-body').innerHTML = Registry['Settings'].content();
+notify(`${key} ${OS.settings[key] ? 'enabled' : 'disabled'}.`, 'info');
 }
 
 const Registry = {
@@ -462,6 +560,26 @@ Settings: { icon: "⚙️", content: () => `<div style="padding:40px;">
 <p style="font-size:0.8rem; opacity:0.5;">Update your system decryption key.</p><br>
 <input type="password" id="new-p" placeholder="New Access Key" style="width:100%; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px;"><br><br>
 <button onclick="setPass(document.getElementById('new-p').value)" style="width:100%; padding:10px; cursor:pointer; background:#333; border:none; color:white; border-radius:8px;">Update Key</button>
+</div>
+<div style="background:#0a0a0a; padding:25px; border-radius:20px; border:1px solid #1a1a1a;">
+<h4>Theme Accent</h4><br>
+<p style="font-size:0.8rem; opacity:0.5;">Set a custom accent color used across highlights and controls.</p><br>
+<input type="color" id="accent-color" value="${OS.accent}" onchange="applyAccent(this.value)" style="width:100%; height:42px; background:#111; border:var(--border); border-radius:10px; cursor:pointer;"><br><br>
+<button onclick="resetAccent()" style="width:100%; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset Accent</button>
+</div>
+<div style="background:#0a0a0a; padding:25px; border-radius:20px; border:1px solid #1a1a1a;">
+<h4>Layout Tools</h4><br>
+<p style="font-size:0.8rem; opacity:0.5;">Restore desktop and widget placement to default positions.</p><br>
+<button onclick="resetDesktopLayout()" style="width:100%; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset App Icon Layout</button><br><br>
+<button onclick="resetWidgetsLayout()" style="width:100%; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset Widget Layout</button>
+</div>
+<div style="background:#0a0a0a; padding:25px; border-radius:20px; border:1px solid #1a1a1a;">
+<h4>Interface</h4><br>
+<p style="font-size:0.8rem; opacity:0.5;">Adjust notifications, clock display, and motion preferences.</p><br>
+<label style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; font-size:0.85rem;">Notifications <input type="checkbox" ${OS.settings.notifications ? 'checked' : ''} onchange="toggleSetting('notifications')"></label>
+<label style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; font-size:0.85rem;">Show Clock Seconds <input type="checkbox" ${OS.settings.showClockSeconds ? 'checked' : ''} onchange="toggleSetting('showClockSeconds')"></label>
+<label style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; font-size:0.85rem;">Use 24-hour Clock <input type="checkbox" ${OS.settings.clock24h ? 'checked' : ''} onchange="toggleSetting('clock24h')"></label>
+<label style="display:flex; align-items:center; justify-content:space-between; font-size:0.85rem;">Reduced Motion <input type="checkbox" ${OS.settings.reducedMotion ? 'checked' : ''} onchange="toggleSetting('reducedMotion')"></label>
 </div>
 </div>
 </div>` },
@@ -590,6 +708,8 @@ alert(`Compiled ${name}`);
 window.onload = () => {
 addLog("System boot sequence initialized.");
 document.getElementById('os-root').style.background = OS.bg;
+applyAccent(OS.accent);
+applySettings();
 simulateBootLogs();
 const customs = JSON.parse(localStorage.getItem("mc_custom_apps")) || {};
 Object.keys(customs).forEach(name => {
@@ -602,7 +722,7 @@ b.style.opacity = '0';
 setTimeout(() => { b.style.display='none'; document.getElementById('login').style.display='flex'; }, 1000);
 }, 6000);
 updateTime(); setInterval(updateTime, 1000);
-setInterval(renderWidgets, 1000);
+setInterval(updateLiveWidgets, 1000);
 refreshWeather();
 setInterval(refreshWeather, 300000);
 renderLib();
@@ -673,6 +793,29 @@ if (OS.running['WidgetCenter']) OS.running['WidgetCenter'].querySelector('.win-b
 notify(`${id} widget ${OS.widgets[id] ? 'enabled' : 'disabled'}.`, OS.widgets[id] ? 'success' : 'warning');
 }
 
+function getWidgetPayloads() {
+const now = new Date();
+const quickNote = localStorage.getItem('mc_quick_note') || 'Double-click to edit this note.';
+const weatherText = OS.weather ? `${OS.weather.temp}°C • ${OS.weather.label}` : 'Loading weather...';
+return {
+weather: `<h4>WEATHER</h4><div class="widget-main">${weatherText}</div><div class="widget-sub">${OS.weather && OS.weather.city ? OS.weather.city : 'Local estimate'}</div>`,
+clock: `<h4>TIME</h4><div class="widget-main">${now.toLocaleTimeString()}</div><div class="widget-sub">System local clock</div>`,
+calendar: `<h4>DATE</h4><div class="widget-main">${now.toLocaleDateString([], { month: 'long', day: 'numeric' })}</div><div class="widget-sub">${now.toLocaleDateString([], { weekday: 'long', year: 'numeric' })}</div>`,
+system: `<h4>SYSTEM</h4><div class="widget-main">${OS.battery}% Battery</div><div class="widget-sub">${Object.keys(OS.running).length} app${Object.keys(OS.running).length === 1 ? '' : 's'} active</div>`,
+notes: `<h4>QUICK NOTE</h4><div class="widget-main" style="font-size:1rem; line-height:1.35; white-space:pre-wrap; font-weight:600;">${quickNote}</div><div class="widget-sub">Double-click to edit</div>`
+};
+}
+
+function updateLiveWidgets() {
+const layer = document.getElementById('widget-layer');
+if(!layer) return;
+const payloads = getWidgetPayloads();
+Object.entries(payloads).forEach(([id, html]) => {
+const card = layer.querySelector(`[data-widget-id="${id}"]`);
+if(card && !card.classList.contains('dragging')) card.innerHTML = html;
+});
+}
+
 function renderWidgets() {
 const desktop = document.getElementById('desktop');
 if(!desktop) return;
@@ -683,32 +826,30 @@ layer.id = 'widget-layer';
 layer.className = 'widget-layer';
 desktop.appendChild(layer);
 }
-const now = new Date();
-const quickNote = localStorage.getItem('mc_quick_note') || 'Double-click to edit this note.';
-const weatherText = OS.weather ? `${OS.weather.temp}°C • ${OS.weather.label}` : 'Loading weather...';
-const widgets = [
-{ id: 'weather', html: `<h4>WEATHER</h4><div class="widget-main">${weatherText}</div><div class="widget-sub">${OS.weather && OS.weather.city ? OS.weather.city : 'Local estimate'}</div>` },
-{ id: 'clock', html: `<h4>TIME</h4><div class="widget-main">${now.toLocaleTimeString()}</div><div class="widget-sub">System local clock</div>` },
-{ id: 'calendar', html: `<h4>DATE</h4><div class="widget-main">${now.toLocaleDateString([], { month: 'long', day: 'numeric' })}</div><div class="widget-sub">${now.toLocaleDateString([], { weekday: 'long', year: 'numeric' })}</div>` },
-{ id: 'system', html: `<h4>SYSTEM</h4><div class="widget-main">${OS.battery}% Battery</div><div class="widget-sub">${Object.keys(OS.running).length} app${Object.keys(OS.running).length === 1 ? '' : 's'} active</div>` },
-{ id: 'notes', html: `<h4>QUICK NOTE</h4><div class="widget-main" style="font-size:1rem; line-height:1.35; white-space:pre-wrap; font-weight:600;">${quickNote}</div><div class="widget-sub">Double-click to edit</div>` }
-];
-layer.innerHTML = '';
-widgets.forEach((widget) => {
-if(!OS.widgets[widget.id]) return;
+const payloads = getWidgetPayloads();
+Object.keys(DEFAULT_WIDGETS).forEach((id) => {
+const existing = layer.querySelector(`[data-widget-id="${id}"]`);
+if(!OS.widgets[id]) {
+if(existing) existing.remove();
+return;
+}
+if(existing) {
+if (!existing.classList.contains('dragging')) existing.innerHTML = payloads[id];
+return;
+}
 const card = document.createElement('div');
 card.className = 'widget-card';
-card.dataset.widgetId = widget.id;
-card.innerHTML = widget.html;
-const saved = OS.widgetPositions[widget.id] || {};
+card.dataset.widgetId = id;
+card.innerHTML = payloads[id];
+const saved = OS.widgetPositions[id] || {};
 const startPos = {
-x: typeof saved.x === 'number' ? saved.x : getDefaultWidgetPosition(widget.id).x,
-y: typeof saved.y === 'number' ? saved.y : getDefaultWidgetPosition(widget.id).y
+x: typeof saved.x === 'number' ? saved.x : getDefaultWidgetPosition(id).x,
+y: typeof saved.y === 'number' ? saved.y : getDefaultWidgetPosition(id).y
 };
 const clampedStart = clampWidgetPosition(startPos, layer, card);
 card.style.left = `${clampedStart.x}px`;
 card.style.top = `${clampedStart.y}px`;
-if(widget.id === 'notes') {
+if(id === 'notes') {
 card.ondblclick = () => {
 const next = prompt('Quick note', localStorage.getItem('mc_quick_note') || '');
 if(next === null) return;
@@ -716,49 +857,37 @@ localStorage.setItem('mc_quick_note', next.trim() || 'No reminder set.');
 renderWidgets();
 };
 }
-card.onpointerdown = (e) => {
-if (e.button !== 0) return;
-e.preventDefault();
-card.setPointerCapture(e.pointerId);
-card.classList.add('dragging');
+let widgetOffsetX = 0;
+let widgetOffsetY = 0;
+attachMouseDrag(card, {
+onStart: (e) => {
 const layerRect = layer.getBoundingClientRect();
 const startLeft = parseFloat(card.style.left || '0');
 const startTop = parseFloat(card.style.top || '0');
-const offsetX = e.clientX - layerRect.left - startLeft;
-const offsetY = e.clientY - layerRect.top - startTop;
-let dragActive = true;
-
-const onMove = (ev) => {
-if (!dragActive) return;
-const rawX = ev.clientX - layerRect.left - offsetX;
-const rawY = ev.clientY - layerRect.top - offsetY;
+widgetOffsetX = e.clientX - layerRect.left - startLeft;
+widgetOffsetY = e.clientY - layerRect.top - startTop;
+card.classList.add('dragging');
+},
+onMove: (ev) => {
+const layerRect = layer.getBoundingClientRect();
+const rawX = ev.clientX - layerRect.left - widgetOffsetX;
+const rawY = ev.clientY - layerRect.top - widgetOffsetY;
 const nextPos = clampWidgetPosition({ x: rawX, y: rawY }, layer, card);
 card.style.left = `${nextPos.x}px`;
 card.style.top = `${nextPos.y}px`;
-};
-
-const onUp = () => {
-if (!dragActive) return;
-dragActive = false;
-card.releasePointerCapture(e.pointerId);
-card.removeEventListener('pointermove', onMove);
-card.removeEventListener('pointerup', onUp);
-card.removeEventListener('pointercancel', onUp);
+},
+onEnd: () => {
 const finalPos = clampWidgetPosition({
 x: parseFloat(card.style.left || '0'),
 y: parseFloat(card.style.top || '0')
 }, layer, card);
 card.style.left = `${finalPos.x}px`;
 card.style.top = `${finalPos.y}px`;
-OS.widgetPositions[widget.id] = finalPos;
+OS.widgetPositions[id] = finalPos;
 card.classList.remove('dragging');
 saveWidgetState();
-};
-
-card.addEventListener('pointermove', onMove);
-card.addEventListener('pointerup', onUp);
-card.addEventListener('pointercancel', onUp);
-};
+}
+});
 layer.appendChild(card);
 });
 }
@@ -789,6 +918,7 @@ return 'Stable';
 }
 
 function notify(message, type = "info") {
+if (!OS.settings.notifications) return;
 const center = document.getElementById('notification-center');
 if(!center || !message) return;
 const note = document.createElement('div');
@@ -806,7 +936,7 @@ if(OS.running['SystemLogs']) OS.running['SystemLogs'].querySelector('.win-body')
 
 function updateTime() {
 const now = new Date();
-document.getElementById('clock').innerText = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+document.getElementById('clock').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute:'2-digit', second: OS.settings.showClockSeconds ? '2-digit' : undefined, hour12: !OS.settings.clock24h });
 document.getElementById('date').innerText = now.toLocaleDateString([], {weekday: 'short', month: 'short', day: 'numeric'});
 }
 
@@ -883,32 +1013,23 @@ el.innerHTML = `<div>${Registry[id] ? Registry[id].icon : "📦"}</div><span>${i
 el.ondragstart = (e) => startDrag(e, id);
 el.ondragend = (e) => endDrag(e);
 el.ondblclick = () => launch(id);
-el.onmousedown = (e) => {
-if (e.button !== 0) return;
-e.preventDefault();
+let iconOffsetX = 0;
+let iconOffsetY = 0;
+attachMouseDrag(el, {
+onStart: (e) => {
+iconOffsetX = e.clientX - el.offsetLeft;
+iconOffsetY = e.clientY - el.offsetTop;
 el.classList.add('dragging');
-let ox = e.clientX - el.offsetLeft, oy = e.clientY - el.offsetTop;
-let raf = null;
-let pending = null;
-const applyMove = () => {
-if(!pending) return;
-const { clientX, clientY } = pending;
-const nx = clientX - ox;
-const ny = clientY - oy;
+},
+onMove: (ev) => {
+const nx = ev.clientX - iconOffsetX;
+const ny = ev.clientY - iconOffsetY;
 el.style.left = nx + 'px';
 el.style.top = ny + 'px';
 OS.pos[id] = {x: nx, y: ny};
 document.getElementById('delete-bin').classList.toggle('delete-ready', iconOverDeleteBin(el));
-raf = null;
-};
-const onMove = (ev) => {
-pending = ev;
-if(!raf) raf = requestAnimationFrame(applyMove);
-};
-const onUp = () => {
-window.removeEventListener('mousemove', onMove);
-window.removeEventListener('mouseup', onUp);
-if(raf) cancelAnimationFrame(raf);
+},
+onEnd: () => {
 el.classList.remove('dragging');
 
 const bin = document.getElementById('delete-bin');
@@ -919,10 +1040,8 @@ bin.classList.remove('delete-ready');
 if (overlapsBin) attemptDeleteApp(id);
 
 localStorage.setItem("mc_pos", JSON.stringify(OS.pos));
-};
-window.addEventListener('mousemove', onMove);
-window.addEventListener('mouseup', onUp);
-};
+}
+});
 d.appendChild(el);
 });
 renderWidgets();
