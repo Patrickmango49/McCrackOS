@@ -686,8 +686,17 @@ ${WALLPAPER_PRESETS.map(preset => `<option value="${preset.value}" ${OS.bg === p
 <button onclick="setFavicon(document.getElementById('favicon-url').value)" style="width:100%; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Apply Favicon URL</button>
 </div>
 <div style="background:#0a0a0a; padding:25px; border-radius:20px; border:1px solid #1a1a1a;">
-<h4>Security</h4><br>
-<p style="font-size:0.8rem; opacity:0.5;">Update your system decryption key.</p><br>
+<h4>Security & Profile</h4><br>
+<p style="font-size:0.8rem; opacity:0.5;">Update your profile picture and access key.</p><br>
+<div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+<div class="account-avatar" style="width:58px; height:58px; margin:0; font-size:24px;">${avatarMarkup(OS.account.avatar)}</div>
+<div style="font-size:0.8rem; opacity:0.68;">Current Profile Picture</div>
+</div>
+<div style="display:flex; gap:10px; margin-bottom:14px;">
+<button onclick="document.getElementById('settings-avatar-file').click()" style="flex:1; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Upload Picture</button>
+<button onclick="updateAccountAvatar('')" style="flex:1; padding:10px; cursor:pointer; background:#151515; border:1px solid #2b2b2b; color:white; border-radius:8px;">Remove Picture</button>
+</div>
+<input type="file" id="settings-avatar-file" style="display:none" accept="image/*" onchange="onSettingsAvatarSelected(event)">
 <input type="password" id="new-p" placeholder="New Access Key" style="width:100%; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px;"><br><br>
 <button onclick="setPass(document.getElementById('new-p').value)" style="width:100%; padding:10px; cursor:pointer; background:#333; border:none; color:white; border-radius:8px;">Update Key</button>
 </div>
@@ -713,7 +722,7 @@ ${WALLPAPER_PRESETS.map(preset => `<option value="${preset.value}" ${OS.bg === p
 <h4>System Behavior</h4><br>
 <p style="font-size:0.8rem; opacity:0.5;">Adjust startup speed and notification behavior.</p><br>
 <label style="display:flex; align-items:center; justify-content:space-between; font-size:0.88rem; margin-bottom:12px;"><span>Desktop Notifications</span><input type="checkbox" ${OS.settings.notifications ? 'checked' : ''} onchange="setSetting('notifications', this.checked, 'Notification preference updated.')"></label>
-<label style="display:flex; align-items:center; justify-content:space-between; font-size:0.88rem; margin-bottom:12px;"><span>Auto Fullscreen on First Click</span><input type="checkbox" ${OS.settings.autoFullscreen ? 'checked' : ''} onchange="setSetting('autoFullscreen', this.checked, 'Fullscreen preference updated.')"></label>
+<label style="display:flex; align-items:center; justify-content:space-between; font-size:0.88rem; margin-bottom:12px;"><span>Auto Fullscreen on Any Click</span><input type="checkbox" ${OS.settings.autoFullscreen ? 'checked' : ''} onchange="setSetting('autoFullscreen', this.checked, 'Fullscreen preference updated.')"></label>
 <label style="font-size:0.78rem; opacity:0.55;">Boot Animation Length</label><br>
 <select onchange="setSetting('bootDelay', Number(this.value), 'Boot timing updated.')" style="margin-top:7px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;">
 <option value="3000" ${OS.settings.bootDelay === 3000 ? 'selected' : ''}>Fast (3s)</option>
@@ -1150,8 +1159,7 @@ setBG(match[2]);
 }
 
 function requestFullscreenOnFirstInteraction() {
-if (!OS.settings.autoFullscreen || sessionStorage.getItem('mc_fullscreen_attempted') === '1' || document.fullscreenElement) return;
-sessionStorage.setItem('mc_fullscreen_attempted', '1');
+if (!OS.settings.autoFullscreen || document.fullscreenElement) return;
 document.documentElement.requestFullscreen().catch(() => {});
 }
 
@@ -1219,6 +1227,24 @@ const preview = document.getElementById('avatar-preview');
 if (preview) preview.innerHTML = avatarMarkup(OS.pendingAvatar);
 };
 reader.readAsDataURL(file);
+}
+
+function updateAccountAvatar(src = '') {
+OS.account.avatar = src || '';
+persistAccount();
+if (OS.running['Settings']) OS.running['Settings'].querySelector('.win-body').innerHTML = Registry['Settings'].content();
+notify(OS.account.avatar ? 'Profile picture updated.' : 'Profile picture removed.', 'success');
+}
+
+function onSettingsAvatarSelected(event) {
+const file = event.target.files && event.target.files[0];
+if (!file) return;
+const reader = new FileReader();
+reader.onload = (e) => {
+updateAccountAvatar(e.target.result || '');
+};
+reader.readAsDataURL(file);
+event.target.value = '';
 }
 
 function renderAuth() {
