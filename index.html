@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>𝕄𝕔ℂ𝕣𝕒𝕔𝕜OS V9.0</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
 <style>
 /* --- CORE SYSTEM VARIABLES --- */
 :root {
@@ -369,6 +370,22 @@ y: Math.min(Math.max(pos.y, 0), maxY)
 
 const DEFAULT_BG = "radial-gradient(120% 90% at 50% 44%, #1a1a1a 0%, #121212 30%, #0b0b0b 62%, #050505 82%, #010101 100%)";
 const DEFAULT_ACCENT = "#0078d4";
+const DEFAULT_SETTINGS = {
+clockSeconds: true,
+clock24h: false,
+notifications: true,
+bootDelay: 6000
+};
+
+function normalizeSettings(raw) {
+const base = { ...DEFAULT_SETTINGS };
+if (!raw || typeof raw !== 'object') return base;
+if (typeof raw.clockSeconds === 'boolean') base.clockSeconds = raw.clockSeconds;
+if (typeof raw.clock24h === 'boolean') base.clock24h = raw.clock24h;
+if (typeof raw.notifications === 'boolean') base.notifications = raw.notifications;
+if ([3000, 6000, 9000].includes(raw.bootDelay)) base.bootDelay = raw.bootDelay;
+return base;
+}
 
 const OS = {
 z: 1000,
@@ -386,6 +403,9 @@ weather: JSON.parse(localStorage.getItem("mc_weather")) || null,
 restricted: ["Browser", "Store", "Terminal", "Files", "Settings"],
 storeApps: ["Movies", "Games", "McCrackChat", "Calculator", "Music", "AppFactory", "Notepad", "WidgetCenter"]
 };
+
+OS.settings = normalizeSettings(JSON.parse(localStorage.getItem('mc_settings')));
+OS.widgetDragActive = false;
 
 const DEFAULT_APP_ORDER = ["Browser", "Terminal", "Files", "Store", "Settings", ...OS.storeApps];
 
@@ -471,6 +491,25 @@ renderWidgets();
 notify('Widget layout reset.', 'warning');
 }
 
+function saveSettings() {
+localStorage.setItem('mc_settings', JSON.stringify(OS.settings));
+}
+
+function setSetting(key, value, message) {
+if (!Object.prototype.hasOwnProperty.call(OS.settings, key)) return;
+OS.settings[key] = value;
+saveSettings();
+if (OS.running['Settings']) OS.running['Settings'].querySelector('.win-body').innerHTML = Registry['Settings'].content();
+if (message) notify(message, 'success');
+}
+
+function resetSystemSettings() {
+OS.settings = { ...DEFAULT_SETTINGS };
+saveSettings();
+if (OS.running['Settings']) OS.running['Settings'].querySelector('.win-body').innerHTML = Registry['Settings'].content();
+notify('System settings restored.', 'warning');
+}
+
 const Registry = {
 Notepad: { icon: "📝", content: () => `<textarea oninput="localStorage.setItem('mc_note', this.value)" style="width:100%;height:100%;background:transparent;color:#ddd;padding:40px;border:none;outline:none;resize:none;font-family:monospace;font-size:1.2rem;line-height:1.6;">${localStorage.getItem('mc_note')||''}</textarea>` },
 Browser: { icon: "🌐", content: () => buildAppFrame("https://siuuu.pagostepeapulco.gob.mx/") },
@@ -534,6 +573,24 @@ Settings: { icon: "⚙️", content: () => `<div style="padding:40px;">
 <p style="font-size:0.8rem; opacity:0.5;">Restore desktop and widget placement to default positions.</p><br>
 <button onclick="resetDesktopLayout()" style="width:100%; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset App Icon Layout</button><br><br>
 <button onclick="resetWidgetsLayout()" style="width:100%; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset Widget Layout</button>
+</div>
+<div style="background:#0a0a0a; padding:25px; border-radius:20px; border:1px solid #1a1a1a;">
+<h4>Clock Controls</h4><br>
+<p style="font-size:0.8rem; opacity:0.5;">Tune taskbar clock format and precision.</p><br>
+<label style="display:flex; align-items:center; justify-content:space-between; font-size:0.88rem; margin-bottom:12px;"><span>Show Seconds</span><input type="checkbox" ${OS.settings.clockSeconds ? 'checked' : ''} onchange="setSetting('clockSeconds', this.checked, 'Clock precision updated.')"></label>
+<label style="display:flex; align-items:center; justify-content:space-between; font-size:0.88rem;"><span>Use 24-Hour Time</span><input type="checkbox" ${OS.settings.clock24h ? 'checked' : ''} onchange="setSetting('clock24h', this.checked, 'Clock format updated.')"></label>
+</div>
+<div style="background:#0a0a0a; padding:25px; border-radius:20px; border:1px solid #1a1a1a;">
+<h4>System Behavior</h4><br>
+<p style="font-size:0.8rem; opacity:0.5;">Adjust startup speed and notification behavior.</p><br>
+<label style="display:flex; align-items:center; justify-content:space-between; font-size:0.88rem; margin-bottom:12px;"><span>Desktop Notifications</span><input type="checkbox" ${OS.settings.notifications ? 'checked' : ''} onchange="setSetting('notifications', this.checked, 'Notification preference updated.')"></label>
+<label style="font-size:0.78rem; opacity:0.55;">Boot Animation Length</label><br>
+<select onchange="setSetting('bootDelay', Number(this.value), 'Boot timing updated.')" style="margin-top:7px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;">
+<option value="3000" ${OS.settings.bootDelay === 3000 ? 'selected' : ''}>Fast (3s)</option>
+<option value="6000" ${OS.settings.bootDelay === 6000 ? 'selected' : ''}>Normal (6s)</option>
+<option value="9000" ${OS.settings.bootDelay === 9000 ? 'selected' : ''}>Cinematic (9s)</option>
+</select><br><br>
+<button onclick="resetSystemSettings()" style="width:100%; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset System Settings</button>
 </div>
 </div>
 </div>` },
@@ -673,7 +730,7 @@ setTimeout(() => {
 const b = document.getElementById('boot');
 b.style.opacity = '0';
 setTimeout(() => { b.style.display='none'; document.getElementById('login').style.display='flex'; }, 1000);
-}, 6000);
+}, OS.settings.bootDelay);
 updateTime(); setInterval(updateTime, 1000);
 setInterval(renderWidgets, 1000);
 refreshWeather();
@@ -747,6 +804,7 @@ notify(`${id} widget ${OS.widgets[id] ? 'enabled' : 'disabled'}.`, OS.widgets[id
 }
 
 function renderWidgets() {
+if (OS.widgetDragActive) return;
 const desktop = document.getElementById('desktop');
 if(!desktop) return;
 let layer = document.getElementById('widget-layer');
@@ -793,6 +851,7 @@ let widgetOffsetX = 0;
 let widgetOffsetY = 0;
 attachMouseDrag(card, {
 onStart: (e) => {
+OS.widgetDragActive = true;
 const layerRect = layer.getBoundingClientRect();
 const startLeft = parseFloat(card.style.left || '0');
 const startTop = parseFloat(card.style.top || '0');
@@ -807,6 +866,7 @@ const rawY = ev.clientY - layerRect.top - widgetOffsetY;
 const nextPos = clampWidgetPosition({ x: rawX, y: rawY }, layer, card);
 card.style.left = `${nextPos.x}px`;
 card.style.top = `${nextPos.y}px`;
+OS.widgetPositions[widget.id] = nextPos;
 },
 onEnd: () => {
 const finalPos = clampWidgetPosition({
@@ -817,6 +877,7 @@ card.style.left = `${finalPos.x}px`;
 card.style.top = `${finalPos.y}px`;
 OS.widgetPositions[widget.id] = finalPos;
 card.classList.remove('dragging');
+OS.widgetDragActive = false;
 saveWidgetState();
 }
 });
@@ -850,6 +911,7 @@ return 'Stable';
 }
 
 function notify(message, type = "info") {
+if (!OS.settings.notifications) return;
 const center = document.getElementById('notification-center');
 if(!center || !message) return;
 const note = document.createElement('div');
@@ -867,7 +929,12 @@ if(OS.running['SystemLogs']) OS.running['SystemLogs'].querySelector('.win-body')
 
 function updateTime() {
 const now = new Date();
-document.getElementById('clock').innerText = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+document.getElementById('clock').innerText = now.toLocaleTimeString([], {
+hour: '2-digit',
+minute: '2-digit',
+second: OS.settings.clockSeconds ? '2-digit' : undefined,
+hour12: !OS.settings.clock24h
+});
 document.getElementById('date').innerText = now.toLocaleDateString([], {weekday: 'short', month: 'short', day: 'numeric'});
 }
 
