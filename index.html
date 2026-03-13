@@ -217,6 +217,17 @@ z-index: 150;
 .icon div { font-size: 55px; margin-bottom: 10px; filter: drop-shadow(0 8px 12px rgba(0,0,0,0.6)); pointer-events: none;}
 .icon span { font-size: 0.85rem; text-align: center; font-weight: 600; text-shadow: 0 2px 8px rgba(0,0,0,1); pointer-events: none;}
 
+body.no-animations *,
+body.no-animations *::before,
+body.no-animations *::after {
+animation: none !important;
+transition: none !important;
+}
+
+#desktop.compact-icons .icon { width: 88px; height: 98px; }
+#desktop.compact-icons .icon div { font-size: 44px; margin-bottom: 8px; }
+#desktop.compact-icons .icon span { font-size: 0.72rem; }
+
 /* --- DELETE BIN --- */
 #delete-bin {
 position: absolute; bottom: 120px; right: 30px; width: 100px; height: 120px;
@@ -452,7 +463,10 @@ clock24h: false,
 notifications: true,
 autoFullscreen: true,
 wallpaperFit: 'cover',
-bootDelay: 6000
+bootDelay: 6000,
+compactIcons: false,
+reducedMotion: false,
+hideDesktopHero: false
 };
 
 const DEFAULT_ACCOUNT = {
@@ -481,6 +495,9 @@ if (typeof raw.notifications === 'boolean') base.notifications = raw.notificatio
 if (typeof raw.autoFullscreen === 'boolean') base.autoFullscreen = raw.autoFullscreen;
 if (['cover', 'contain'].includes(raw.wallpaperFit)) base.wallpaperFit = raw.wallpaperFit;
 if ([3000, 6000, 9000].includes(raw.bootDelay)) base.bootDelay = raw.bootDelay;
+if (typeof raw.compactIcons === 'boolean') base.compactIcons = raw.compactIcons;
+if (typeof raw.reducedMotion === 'boolean') base.reducedMotion = raw.reducedMotion;
+if (typeof raw.hideDesktopHero === 'boolean') base.hideDesktopHero = raw.hideDesktopHero;
 return base;
 }
 
@@ -499,7 +516,7 @@ widgets: normalizeWidgetFlags(JSON.parse(localStorage.getItem("mc_widgets"))),
 widgetPositions: normalizeWidgetPositions(JSON.parse(localStorage.getItem("mc_widget_pos"))),
 weather: JSON.parse(localStorage.getItem("mc_weather")) || null,
 restricted: ["Browser", "Store", "Terminal", "Files", "Settings"],
-storeApps: ["Movies", "Games", "McCrackChat", "Calculator", "Music", "AppFactory", "Notepad", "WidgetCenter"]
+storeApps: ["Movies", "Games", "McCrackChat", "Calculator", "Music", "AppFactory", "Notepad", "WidgetCenter", "Docs", "Paint", "News", "ClockPro", "CodeLab", "PhotoBooth"]
 };
 
 OS.settings = normalizeSettings(JSON.parse(localStorage.getItem('mc_settings')));
@@ -614,6 +631,7 @@ if (!Object.prototype.hasOwnProperty.call(OS.settings, key)) return;
 OS.settings[key] = value;
 saveSettings();
 if (key === 'autoFullscreen') syncFullscreenPreference();
+if (['compactIcons', 'reducedMotion', 'hideDesktopHero'].includes(key)) applyUISettings();
 if (OS.running['Settings']) OS.running['Settings'].querySelector('.win-body').innerHTML = Registry['Settings'].content();
 if (message) notify(message, 'success');
 }
@@ -621,8 +639,16 @@ if (message) notify(message, 'success');
 function resetSystemSettings() {
 OS.settings = { ...DEFAULT_SETTINGS };
 saveSettings();
+syncFullscreenPreference();
+applyUISettings();
 if (OS.running['Settings']) OS.running['Settings'].querySelector('.win-body').innerHTML = Registry['Settings'].content();
 notify('System settings restored.', 'warning');
+}
+
+function applyUISettings() {
+const desktop = document.getElementById('desktop');
+document.body.classList.toggle('no-animations', !!OS.settings.reducedMotion);
+if (desktop) desktop.classList.toggle('compact-icons', !!OS.settings.compactIcons);
 }
 
 const Registry = {
@@ -631,6 +657,12 @@ Browser: { icon: "🌐", content: () => buildAppFrame("https://siuuu.pagostepeap
 Movies: { icon: "📺", content: () => buildAppFrame("https://mccrack.neocities.org/movies") },
 Games: { icon: "🎮", content: () => buildAppFrame("https://mccrack.neocities.org/games") },
 McCrackChat: { icon: "💬", content: () => buildAppFrame("https://patrickmango49.github.io/McCrack-Chat/") },
+Docs: { icon: "📚", content: () => buildAppFrame("https://docs.astro.build") },
+Paint: { icon: "🎨", content: () => buildAppFrame("https://jspaint.app") },
+News: { icon: "📰", content: () => buildAppFrame("https://news.ycombinator.com") },
+ClockPro: { icon: "⏱️", content: () => `<div style="padding:48px; text-align:center;"><h2 style="margin-bottom:16px;">Clock Pro</h2><p style="opacity:0.6; margin-bottom:24px;">A quick productivity timer and local time helper.</p><div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; max-width:460px; margin:0 auto;"><button onclick="startPomodoro(25)" style="padding:12px; border:none; border-radius:10px; background:var(--accent); color:white; font-weight:700;">25m Focus</button><button onclick="startPomodoro(5)" style="padding:12px; border:none; border-radius:10px; background:#1f1f1f; color:white; font-weight:700;">5m Break</button><button onclick="stopPomodoro()" style="padding:12px; border:none; border-radius:10px; background:#3a2020; color:white; font-weight:700;">Stop</button></div><div id="pomodoro-status" style="margin-top:24px; font-size:1.2rem; font-weight:700;">Timer idle</div></div>` },
+CodeLab: { icon: "🧪", content: () => buildAppFrame("https://vscode.dev") },
+PhotoBooth: { icon: "📸", content: () => `<div style="padding:36px;"><h2 style="margin-bottom:8px;">Photo Booth</h2><p style="opacity:0.58; margin-bottom:16px;">Capture an instant webcam shot directly in your browser.</p><video id="photo-video" autoplay playsinline style="width:100%; max-height:330px; border-radius:14px; border:1px solid #222; background:#000;"></video><canvas id="photo-canvas" style="display:none;"></canvas><div style="display:flex; gap:12px; margin-top:14px;"><button onclick="capturePhoto()" style="flex:1; padding:12px; border:none; border-radius:10px; background:var(--accent); color:#fff; font-weight:700;">Capture</button><button onclick="startPhotoBooth()" style="flex:1; padding:12px; border:none; border-radius:10px; background:#1f1f1f; color:#fff; font-weight:700;">Restart Camera</button></div><img id="photo-output" alt="Captured photo" style="width:100%; margin-top:14px; border-radius:14px; border:1px solid #222; display:none;"></div>` },
 Terminal: { icon: "⌨️", content: () => `<div id="t-out" style="padding:25px;color:#0f0;font-family:monospace;height:calc(100% - 60px);overflow:auto;line-height:1.5;font-size:0.9rem;">McCrack Kernel Console [Version 9.0.4]<br>(c) 2026 McCrack Industries.<br><br></div><input onkeydown="cmd(event, this)" style="width:100%;background:#050505;border:none;border-top:1px solid #222;color:#0f0;padding:18px;outline:none;font-family:monospace;font-size:1rem;">` },
 Files: { icon: "📁", content: () => `<div style="padding:30px;">
 <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -658,6 +690,12 @@ ${renderStoreItem('Music', 'High-Fidelity Audio')}
 ${renderStoreItem('AppFactory', 'Custom Module Compiler')}
 ${renderStoreItem('Notepad', 'Secure Text Buffer')}
 ${renderStoreItem('WidgetCenter', 'Desktop Widget Manager')}
+${renderStoreItem('Docs', 'Developer Documentation Hub')}
+${renderStoreItem('Paint', 'Retro Drawing Studio')}
+${renderStoreItem('News', 'Live Tech News Feed')}
+${renderStoreItem('ClockPro', 'Focus Timer & Clock Toolkit')}
+${renderStoreItem('CodeLab', 'Cloud Coding Workspace')}
+${renderStoreItem('PhotoBooth', 'Camera Snapshot Studio')}
 </div>
 </div>` },
 Settings: { icon: "⚙️", content: () => `<div style="padding:40px;">
@@ -723,6 +761,9 @@ ${WALLPAPER_PRESETS.map(preset => `<option value="${preset.value}" ${OS.bg === p
 <p style="font-size:0.8rem; opacity:0.5;">Adjust startup speed and notification behavior.</p><br>
 <label style="display:flex; align-items:center; justify-content:space-between; font-size:0.88rem; margin-bottom:12px;"><span>Desktop Notifications</span><input type="checkbox" ${OS.settings.notifications ? 'checked' : ''} onchange="setSetting('notifications', this.checked, 'Notification preference updated.')"></label>
 <label style="display:flex; align-items:center; justify-content:space-between; font-size:0.88rem; margin-bottom:12px;"><span>Auto Fullscreen on Any Click</span><input type="checkbox" ${OS.settings.autoFullscreen ? 'checked' : ''} onchange="setSetting('autoFullscreen', this.checked, 'Fullscreen preference updated.')"></label>
+<label style="display:flex; align-items:center; justify-content:space-between; font-size:0.88rem; margin-bottom:12px;"><span>Compact Desktop Icons</span><input type="checkbox" ${OS.settings.compactIcons ? 'checked' : ''} onchange="setSetting('compactIcons', this.checked, 'Desktop icon density updated.')"></label>
+<label style="display:flex; align-items:center; justify-content:space-between; font-size:0.88rem; margin-bottom:12px;"><span>Reduce Animations</span><input type="checkbox" ${OS.settings.reducedMotion ? 'checked' : ''} onchange="setSetting('reducedMotion', this.checked, 'Animation preference updated.')"></label>
+<label style="display:flex; align-items:center; justify-content:space-between; font-size:0.88rem; margin-bottom:12px;"><span>Hide Desktop Hero Text</span><input type="checkbox" ${OS.settings.hideDesktopHero ? 'checked' : ''} onchange="setSetting('hideDesktopHero', this.checked, 'Desktop hero visibility updated.')"></label>
 <label style="font-size:0.78rem; opacity:0.55;">Boot Animation Length</label><br>
 <select onchange="setSetting('bootDelay', Number(this.value), 'Boot timing updated.')" style="margin-top:7px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;">
 <option value="3000" ${OS.settings.bootDelay === 3000 ? 'selected' : ''}>Fast (3s)</option>
@@ -861,6 +902,7 @@ document.getElementById('os-root').style.background = OS.bg;
 applyAccent(OS.accent);
 setFavicon(OS.favicon, false);
 syncFullscreenPreference();
+applyUISettings();
 simulateBootLogs();
 const customs = JSON.parse(localStorage.getItem("mc_custom_apps")) || {};
 Object.keys(customs).forEach(name => {
@@ -1340,7 +1382,7 @@ function lockSystem() { location.reload(); }
 
 function renderDesktop() {
 const d = document.getElementById('desktop'); d.innerHTML = "";
-if(!hasCustomWallpaper()) {
+if(!hasCustomWallpaper() && !OS.settings.hideDesktopHero) {
 const hero = document.createElement('div');
 hero.className = 'desktop-hero';
 hero.innerHTML = '<h1>McCrackOS</h1><p>Made By: Patrick_Mango</p>';
@@ -1407,6 +1449,7 @@ if(OS.running[id]) { focusWin(id); return; }
 if(!Registry[id]) return;
 addLog(`Launched module: ${id}`);
 notify(`Opened ${id}.`);
+if (id === 'PhotoBooth') setTimeout(startPhotoBooth, 40);
 const w = document.createElement('div'); w.className = 'window';
 w.style.width='950px'; w.style.height='650px'; w.style.left='100px'; w.style.top='80px'; w.style.zIndex = ++OS.z;
 w.innerHTML = `<div class="win-head">
@@ -1619,6 +1662,60 @@ else print(`Command not found: ${v}`, "error");
 
 el.value = "";
 out.scrollTop = out.scrollHeight;
+}
+
+
+function startPomodoro(minutes = 25) {
+if (window.mcPomodoroInterval) clearInterval(window.mcPomodoroInterval);
+const status = document.getElementById('pomodoro-status');
+let remaining = Math.max(Math.floor(minutes * 60), 1);
+const render = () => {
+const mm = String(Math.floor(remaining / 60)).padStart(2, '0');
+const ss = String(remaining % 60).padStart(2, '0');
+if (status) status.textContent = `Timer: ${mm}:${ss}`;
+};
+render();
+window.mcPomodoroInterval = setInterval(() => {
+remaining -= 1;
+render();
+if (remaining <= 0) {
+clearInterval(window.mcPomodoroInterval);
+window.mcPomodoroInterval = null;
+if (status) status.textContent = 'Session complete!';
+notify('ClockPro timer completed.', 'success');
+}
+}, 1000);
+}
+
+function stopPomodoro() {
+if (window.mcPomodoroInterval) clearInterval(window.mcPomodoroInterval);
+window.mcPomodoroInterval = null;
+const status = document.getElementById('pomodoro-status');
+if (status) status.textContent = 'Timer idle';
+}
+
+function startPhotoBooth() {
+const video = document.getElementById('photo-video');
+if (!video || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+navigator.mediaDevices.getUserMedia({ video: true, audio: false }).then(stream => {
+video.srcObject = stream;
+}).catch(() => {
+notify('Camera permission denied or unavailable.', 'warning');
+});
+}
+
+function capturePhoto() {
+const video = document.getElementById('photo-video');
+const canvas = document.getElementById('photo-canvas');
+const output = document.getElementById('photo-output');
+if (!video || !canvas || !output || !video.videoWidth) return;
+canvas.width = video.videoWidth;
+canvas.height = video.videoHeight;
+const ctx = canvas.getContext('2d');
+ctx.drawImage(video, 0, 0);
+output.src = canvas.toDataURL('image/png');
+output.style.display = 'block';
+notify('Photo captured.', 'success');
 }
 
 /* --- MATH ENGINE --- */
