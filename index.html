@@ -452,7 +452,10 @@ clock24h: false,
 notifications: true,
 autoFullscreen: true,
 wallpaperFit: 'cover',
-bootDelay: 6000
+bootDelay: 6000,
+notificationDuration: 2600,
+showDesktopHero: true,
+bootLogs: true
 };
 
 const DEFAULT_ACCOUNT = {
@@ -481,6 +484,9 @@ if (typeof raw.notifications === 'boolean') base.notifications = raw.notificatio
 if (typeof raw.autoFullscreen === 'boolean') base.autoFullscreen = raw.autoFullscreen;
 if (['cover', 'contain'].includes(raw.wallpaperFit)) base.wallpaperFit = raw.wallpaperFit;
 if ([3000, 6000, 9000].includes(raw.bootDelay)) base.bootDelay = raw.bootDelay;
+if ([1800, 2600, 4200].includes(raw.notificationDuration)) base.notificationDuration = raw.notificationDuration;
+if (typeof raw.showDesktopHero === 'boolean') base.showDesktopHero = raw.showDesktopHero;
+if (typeof raw.bootLogs === 'boolean') base.bootLogs = raw.bootLogs;
 return base;
 }
 
@@ -499,7 +505,7 @@ widgets: normalizeWidgetFlags(JSON.parse(localStorage.getItem("mc_widgets"))),
 widgetPositions: normalizeWidgetPositions(JSON.parse(localStorage.getItem("mc_widget_pos"))),
 weather: JSON.parse(localStorage.getItem("mc_weather")) || null,
 restricted: ["Browser", "Store", "Terminal", "Files", "Settings"],
-storeApps: ["Movies", "Games", "McCrackChat", "Calculator", "Music", "AppFactory", "Notepad", "WidgetCenter"]
+storeApps: ["Movies", "Games", "McCrackChat", "Calculator", "Music", "AppFactory", "Notepad", "WidgetCenter", "Paint", "Calendar", "Docs"]
 };
 
 OS.settings = normalizeSettings(JSON.parse(localStorage.getItem('mc_settings')));
@@ -658,6 +664,9 @@ ${renderStoreItem('Music', 'High-Fidelity Audio')}
 ${renderStoreItem('AppFactory', 'Custom Module Compiler')}
 ${renderStoreItem('Notepad', 'Secure Text Buffer')}
 ${renderStoreItem('WidgetCenter', 'Desktop Widget Manager')}
+${renderStoreItem('Paint', 'Pixel Paint Studio')}
+${renderStoreItem('Calendar', 'Schedule & Agenda')}
+${renderStoreItem('Docs', 'Document Workspace')}
 </div>
 </div>` },
 Settings: { icon: "⚙️", content: () => `<div style="padding:40px;">
@@ -686,8 +695,17 @@ ${WALLPAPER_PRESETS.map(preset => `<option value="${preset.value}" ${OS.bg === p
 <button onclick="setFavicon(document.getElementById('favicon-url').value)" style="width:100%; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Apply Favicon URL</button>
 </div>
 <div style="background:#0a0a0a; padding:25px; border-radius:20px; border:1px solid #1a1a1a;">
-<h4>Security</h4><br>
-<p style="font-size:0.8rem; opacity:0.5;">Update your system decryption key.</p><br>
+<h4>Security & Profile</h4><br>
+<p style="font-size:0.8rem; opacity:0.5;">Update your profile picture and access key.</p><br>
+<div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+<div class="account-avatar" style="width:58px; height:58px; margin:0; font-size:24px;">${avatarMarkup(OS.account.avatar)}</div>
+<div style="font-size:0.8rem; opacity:0.68;">Current Profile Picture</div>
+</div>
+<div style="display:flex; gap:10px; margin-bottom:14px;">
+<button onclick="document.getElementById('settings-avatar-file').click()" style="flex:1; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Upload Picture</button>
+<button onclick="updateAccountAvatar('')" style="flex:1; padding:10px; cursor:pointer; background:#151515; border:1px solid #2b2b2b; color:white; border-radius:8px;">Remove Picture</button>
+</div>
+<input type="file" id="settings-avatar-file" style="display:none" accept="image/*" onchange="onSettingsAvatarSelected(event)">
 <input type="password" id="new-p" placeholder="New Access Key" style="width:100%; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px;"><br><br>
 <button onclick="setPass(document.getElementById('new-p').value)" style="width:100%; padding:10px; cursor:pointer; background:#333; border:none; color:white; border-radius:8px;">Update Key</button>
 </div>
@@ -713,7 +731,15 @@ ${WALLPAPER_PRESETS.map(preset => `<option value="${preset.value}" ${OS.bg === p
 <h4>System Behavior</h4><br>
 <p style="font-size:0.8rem; opacity:0.5;">Adjust startup speed and notification behavior.</p><br>
 <label style="display:flex; align-items:center; justify-content:space-between; font-size:0.88rem; margin-bottom:12px;"><span>Desktop Notifications</span><input type="checkbox" ${OS.settings.notifications ? 'checked' : ''} onchange="setSetting('notifications', this.checked, 'Notification preference updated.')"></label>
-<label style="display:flex; align-items:center; justify-content:space-between; font-size:0.88rem; margin-bottom:12px;"><span>Auto Fullscreen on First Click</span><input type="checkbox" ${OS.settings.autoFullscreen ? 'checked' : ''} onchange="setSetting('autoFullscreen', this.checked, 'Fullscreen preference updated.')"></label>
+<label style="display:flex; align-items:center; justify-content:space-between; font-size:0.88rem; margin-bottom:12px;"><span>Auto Fullscreen on Any Click</span><input type="checkbox" ${OS.settings.autoFullscreen ? 'checked' : ''} onchange="setSetting('autoFullscreen', this.checked, 'Fullscreen preference updated.')"></label>
+<label style="display:flex; align-items:center; justify-content:space-between; font-size:0.88rem; margin-bottom:12px;"><span>Show Desktop Hero Text</span><input type="checkbox" ${OS.settings.showDesktopHero ? 'checked' : ''} onchange="setSetting('showDesktopHero', this.checked, 'Desktop hero setting updated.'); renderDesktop();"></label>
+<label style="display:flex; align-items:center; justify-content:space-between; font-size:0.88rem; margin-bottom:12px;"><span>Show Boot Logs</span><input type="checkbox" ${OS.settings.bootLogs ? 'checked' : ''} onchange="setSetting('bootLogs', this.checked, 'Boot log preference updated.')"></label>
+<label style="font-size:0.78rem; opacity:0.55;">Notification Timeout</label><br>
+<select onchange="setSetting('notificationDuration', Number(this.value), 'Notification timeout updated.')" style="margin-top:7px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;">
+<option value="1800" ${OS.settings.notificationDuration === 1800 ? 'selected' : ''}>Short (1.8s)</option>
+<option value="2600" ${OS.settings.notificationDuration === 2600 ? 'selected' : ''}>Normal (2.6s)</option>
+<option value="4200" ${OS.settings.notificationDuration === 4200 ? 'selected' : ''}>Long (4.2s)</option>
+</select><br><br>
 <label style="font-size:0.78rem; opacity:0.55;">Boot Animation Length</label><br>
 <select onchange="setSetting('bootDelay', Number(this.value), 'Boot timing updated.')" style="margin-top:7px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;">
 <option value="3000" ${OS.settings.bootDelay === 3000 ? 'selected' : ''}>Fast (3s)</option>
@@ -736,6 +762,9 @@ AppFactory: { icon: "🛠️", content: () => `<div style="padding:50px; max-wid
 <button onclick="createCustomApp()" style="width:100%; padding:18px; background:white; color:black; font-weight:900; border-radius:12px; cursor:pointer; border:none; transition:0.3s;">COMPILE MODULE</button>
 </div>` },
 WidgetCenter: { icon: "🧩", content: () => renderWidgetCenter() },
+Paint: { icon: "🎨", content: () => `<div style="padding:28px;"><h2>Paint Studio</h2><p style="opacity:0.55; margin:10px 0 18px 0;">Quick sketch pad for rough ideas.</p><canvas id="paint-canvas" width="820" height="430" style="border:1px solid #262626; border-radius:12px; background:#fff; touch-action:none; max-width:100%;" onmousedown="paintStart(event)" onmousemove="paintDraw(event)" onmouseup="paintEnd()" onmouseleave="paintEnd()"></canvas><div style="margin-top:14px; display:flex; gap:10px;"><input type="color" id="paint-color" value="#111111" style="height:36px; width:46px; border:none; background:transparent;"><button onclick="clearPaintCanvas()" style="padding:8px 12px; background:#1c1c1c; color:#fff; border:1px solid #2a2a2a; border-radius:8px; cursor:pointer;">Clear</button></div></div>` },
+Calendar: { icon: "🗓️", content: () => `<div style="padding:35px;"><h2>Calendar Hub</h2><p style="opacity:0.58; margin:8px 0 18px 0;">Track plans and upcoming moments.</p><div style="display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px;">${['Today','Tomorrow','This Week'].map((title,i)=>`<div style="background:#0b0b0b; border:1px solid #1c1c1c; border-radius:12px; padding:14px;"><div style="font-size:0.75rem; opacity:0.58;">${title}</div><div style="margin-top:9px; font-weight:700;">${new Date(Date.now()+i*86400000).toLocaleDateString([], {weekday:'short', month:'short', day:'numeric'})}</div></div>`).join('')}</div></div>` },
+Docs: { icon: "📄", content: () => `<div style="padding:30px; height:100%;"><h2>Docs Workspace</h2><p style="opacity:0.58; margin:8px 0 14px 0;">Create quick drafts that autosave locally.</p><textarea oninput="localStorage.setItem('mc_docs', this.value)" style="width:100%; height:calc(100% - 90px); background:#070707; color:#ddd; border:1px solid #1f1f1f; border-radius:12px; padding:18px; resize:none; outline:none;">${localStorage.getItem('mc_docs')||''}</textarea></div>` },
 Calculator: { icon: "🧮", content: () => `<div style="padding:50px; text-align:center;">
 <input id="c-in" style="width:100%; font-size:45px; background:#000; color:white; border:2px solid #222; padding:30px; text-align:right; border-radius:20px; margin-bottom:20px; font-family:monospace;">
 <button onclick="calcResult()" style="width:100%; padding:25px; background:var(--accent); color:white; border:none; border-radius:15px; font-size:1.5rem; font-weight:bold; cursor:pointer;">RUN CALCULATION</button>
@@ -852,7 +881,7 @@ document.getElementById('os-root').style.background = OS.bg;
 applyAccent(OS.accent);
 setFavicon(OS.favicon, false);
 syncFullscreenPreference();
-simulateBootLogs();
+if (OS.settings.bootLogs) simulateBootLogs();
 const customs = JSON.parse(localStorage.getItem("mc_custom_apps")) || {};
 Object.keys(customs).forEach(name => {
 Registry[name] = { icon: "🚀", content: () => buildAppFrame(customs[name]) };
@@ -1050,8 +1079,9 @@ const note = document.createElement('div');
 note.className = `notification ${type}`;
 note.textContent = message;
 center.appendChild(note);
-setTimeout(() => note.classList.add('fade-out'), 2600);
-setTimeout(() => note.remove(), 2850);
+const duration = OS.settings.notificationDuration || 2600;
+setTimeout(() => note.classList.add('fade-out'), duration);
+setTimeout(() => note.remove(), duration + 250);
 }
 
 function addLog(msg) {
@@ -1150,8 +1180,7 @@ setBG(match[2]);
 }
 
 function requestFullscreenOnFirstInteraction() {
-if (!OS.settings.autoFullscreen || sessionStorage.getItem('mc_fullscreen_attempted') === '1' || document.fullscreenElement) return;
-sessionStorage.setItem('mc_fullscreen_attempted', '1');
+if (!OS.settings.autoFullscreen || document.fullscreenElement) return;
 document.documentElement.requestFullscreen().catch(() => {});
 }
 
@@ -1219,6 +1248,24 @@ const preview = document.getElementById('avatar-preview');
 if (preview) preview.innerHTML = avatarMarkup(OS.pendingAvatar);
 };
 reader.readAsDataURL(file);
+}
+
+function updateAccountAvatar(src = '') {
+OS.account.avatar = src || '';
+persistAccount();
+if (OS.running['Settings']) OS.running['Settings'].querySelector('.win-body').innerHTML = Registry['Settings'].content();
+notify(OS.account.avatar ? 'Profile picture updated.' : 'Profile picture removed.', 'success');
+}
+
+function onSettingsAvatarSelected(event) {
+const file = event.target.files && event.target.files[0];
+if (!file) return;
+const reader = new FileReader();
+reader.onload = (e) => {
+updateAccountAvatar(e.target.result || '');
+};
+reader.readAsDataURL(file);
+event.target.value = '';
 }
 
 function renderAuth() {
@@ -1314,7 +1361,7 @@ function lockSystem() { location.reload(); }
 
 function renderDesktop() {
 const d = document.getElementById('desktop'); d.innerHTML = "";
-if(!hasCustomWallpaper()) {
+if(!hasCustomWallpaper() && OS.settings.showDesktopHero) {
 const hero = document.createElement('div');
 hero.className = 'desktop-hero';
 hero.innerHTML = '<h1>McCrackOS</h1><p>Made By: Patrick_Mango</p>';
@@ -1596,6 +1643,42 @@ out.scrollTop = out.scrollHeight;
 }
 
 /* --- MATH ENGINE --- */
+let paintActive = false;
+
+function paintStart(event) {
+const canvas = event.target;
+if (!canvas || canvas.tagName !== 'CANVAS') return;
+const ctx = canvas.getContext('2d');
+ctx.lineWidth = 3;
+ctx.lineCap = 'round';
+ctx.strokeStyle = document.getElementById('paint-color')?.value || '#111';
+const rect = canvas.getBoundingClientRect();
+ctx.beginPath();
+ctx.moveTo(event.clientX - rect.left, event.clientY - rect.top);
+paintActive = true;
+}
+
+function paintDraw(event) {
+if (!paintActive) return;
+const canvas = event.target;
+if (!canvas || canvas.tagName !== 'CANVAS') return;
+const ctx = canvas.getContext('2d');
+const rect = canvas.getBoundingClientRect();
+ctx.lineTo(event.clientX - rect.left, event.clientY - rect.top);
+ctx.stroke();
+}
+
+function paintEnd() {
+paintActive = false;
+}
+
+function clearPaintCanvas() {
+const canvas = document.getElementById('paint-canvas');
+if (!canvas) return;
+const ctx = canvas.getContext('2d');
+ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
 function calcResult() {
 try {
 const res = eval(document.getElementById('c-in').value);
