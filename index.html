@@ -466,7 +466,11 @@ wallpaperFit: 'cover',
 bootDelay: 6000,
 compactIcons: false,
 reducedMotion: false,
-hideDesktopHero: false
+hideDesktopHero: false,
+temperatureUnit: 'C',
+weatherState: 'NY',
+desktopSounds: true,
+todoShowCompleted: true
 };
 
 const DEFAULT_ACCOUNT = {
@@ -498,6 +502,10 @@ if ([3000, 6000, 9000].includes(raw.bootDelay)) base.bootDelay = raw.bootDelay;
 if (typeof raw.compactIcons === 'boolean') base.compactIcons = raw.compactIcons;
 if (typeof raw.reducedMotion === 'boolean') base.reducedMotion = raw.reducedMotion;
 if (typeof raw.hideDesktopHero === 'boolean') base.hideDesktopHero = raw.hideDesktopHero;
+if (['C', 'F'].includes(raw.temperatureUnit)) base.temperatureUnit = raw.temperatureUnit;
+if (typeof raw.weatherState === 'string' && raw.weatherState.trim()) base.weatherState = raw.weatherState.toUpperCase();
+if (typeof raw.desktopSounds === 'boolean') base.desktopSounds = raw.desktopSounds;
+if (typeof raw.todoShowCompleted === 'boolean') base.todoShowCompleted = raw.todoShowCompleted;
 return base;
 }
 
@@ -538,6 +546,34 @@ const WALLPAPER_PRESETS = [
 { label: 'Sunset Grid', value: 'linear-gradient(140deg, #2a0f1f 0%, #5f2448 42%, #f26a55 100%)' },
 { label: 'Midnight Matrix', value: 'linear-gradient(160deg, #001f0f 0%, #033a22 45%, #020507 100%)' }
 ];
+
+const US_STATE_WEATHER = {
+AL: { name: 'Alabama', lat: 32.8067, lon: -86.7911 }, AK: { name: 'Alaska', lat: 61.3707, lon: -152.4044 },
+AZ: { name: 'Arizona', lat: 33.7298, lon: -111.4312 }, AR: { name: 'Arkansas', lat: 34.9697, lon: -92.3731 },
+CA: { name: 'California', lat: 36.1162, lon: -119.6816 }, CO: { name: 'Colorado', lat: 39.0598, lon: -105.3111 },
+CT: { name: 'Connecticut', lat: 41.5978, lon: -72.7554 }, DE: { name: 'Delaware', lat: 39.3185, lon: -75.5071 },
+FL: { name: 'Florida', lat: 27.7663, lon: -81.6868 }, GA: { name: 'Georgia', lat: 33.0406, lon: -83.6431 },
+HI: { name: 'Hawaii', lat: 21.0943, lon: -157.4983 }, ID: { name: 'Idaho', lat: 44.2405, lon: -114.4788 },
+IL: { name: 'Illinois', lat: 40.3495, lon: -88.9861 }, IN: { name: 'Indiana', lat: 39.8494, lon: -86.2583 },
+IA: { name: 'Iowa', lat: 42.0115, lon: -93.2105 }, KS: { name: 'Kansas', lat: 38.5266, lon: -96.7265 },
+KY: { name: 'Kentucky', lat: 37.6681, lon: -84.6701 }, LA: { name: 'Louisiana', lat: 31.1695, lon: -91.8678 },
+ME: { name: 'Maine', lat: 44.6939, lon: -69.3819 }, MD: { name: 'Maryland', lat: 39.0639, lon: -76.8021 },
+MA: { name: 'Massachusetts', lat: 42.2302, lon: -71.5301 }, MI: { name: 'Michigan', lat: 43.3266, lon: -84.5361 },
+MN: { name: 'Minnesota', lat: 45.6945, lon: -93.9002 }, MS: { name: 'Mississippi', lat: 32.7416, lon: -89.6787 },
+MO: { name: 'Missouri', lat: 38.4561, lon: -92.2884 }, MT: { name: 'Montana', lat: 46.9219, lon: -110.4544 },
+NE: { name: 'Nebraska', lat: 41.1254, lon: -98.2681 }, NV: { name: 'Nevada', lat: 38.3135, lon: -117.0554 },
+NH: { name: 'New Hampshire', lat: 43.4525, lon: -71.5639 }, NJ: { name: 'New Jersey', lat: 40.2989, lon: -74.521 },
+NM: { name: 'New Mexico', lat: 34.8405, lon: -106.2485 }, NY: { name: 'New York', lat: 42.1657, lon: -74.9481 },
+NC: { name: 'North Carolina', lat: 35.6301, lon: -79.8064 }, ND: { name: 'North Dakota', lat: 47.5289, lon: -99.784 },
+OH: { name: 'Ohio', lat: 40.3888, lon: -82.7649 }, OK: { name: 'Oklahoma', lat: 35.5653, lon: -96.9289 },
+OR: { name: 'Oregon', lat: 44.572, lon: -122.0709 }, PA: { name: 'Pennsylvania', lat: 40.5908, lon: -77.2098 },
+RI: { name: 'Rhode Island', lat: 41.6809, lon: -71.5118 }, SC: { name: 'South Carolina', lat: 33.8569, lon: -80.945 },
+SD: { name: 'South Dakota', lat: 44.2998, lon: -99.4388 }, TN: { name: 'Tennessee', lat: 35.7478, lon: -86.6923 },
+TX: { name: 'Texas', lat: 31.0545, lon: -97.5635 }, UT: { name: 'Utah', lat: 40.150, lon: -111.8624 },
+VT: { name: 'Vermont', lat: 44.0459, lon: -72.7107 }, VA: { name: 'Virginia', lat: 37.7693, lon: -78.17 },
+WA: { name: 'Washington', lat: 47.4009, lon: -121.4905 }, WV: { name: 'West Virginia', lat: 38.4912, lon: -80.9545 },
+WI: { name: 'Wisconsin', lat: 44.2685, lon: -89.6165 }, WY: { name: 'Wyoming', lat: 42.756, lon: -107.3025 }
+};
 
 let fullscreenListenerArmed = false;
 
@@ -692,7 +728,7 @@ customization: `<div style="display:grid; grid-template-columns:1fr 1fr; gap:18p
 <div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Theme & Branding</h4><p style="font-size:0.8rem; opacity:0.55; margin:8px 0 14px 0;">Accent colors and favicon.</p><label style="font-size:0.76rem; opacity:0.6;">Wallpaper Fit</label><select onchange="setWallpaperFit(this.value)" style="margin-top:7px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;"><option value="cover" ${OS.settings.wallpaperFit === 'cover' ? 'selected' : ''}>Fill Screen</option><option value="contain" ${OS.settings.wallpaperFit === 'contain' ? 'selected' : ''}>Fit Entire Image</option></select><input type="color" value="${OS.accent}" onchange="applyAccent(this.value)" style="margin-top:12px; width:100%; height:42px; background:#111; border:var(--border); border-radius:10px; cursor:pointer;"><button onclick="resetAccent()" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset Accent</button><input type="text" id="favicon-url" value="${OS.favicon}" placeholder="https://..." style="width:100%; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px; margin-top:12px;"><button onclick="setFavicon(document.getElementById('favicon-url').value)" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Apply Favicon</button></div>
 </div>`,
 profile: `<div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;"><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Security & Profile</h4><div style="display:flex; align-items:center; gap:10px; margin:12px 0;"><div class="account-avatar" style="width:54px; height:54px; margin:0; font-size:22px;">${avatarMarkup(OS.account.avatar)}</div><span style="font-size:0.8rem; opacity:0.7;">Current Picture</span></div><div style="display:flex; gap:8px;"><button onclick="document.getElementById('settings-avatar-file').click()" style="flex:1; padding:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:#fff; border-radius:8px;">Upload</button><button onclick="updateAccountAvatar('')" style="flex:1; padding:10px; background:#151515; border:1px solid #2b2b2b; color:#fff; border-radius:8px;">Remove</button></div><input type="file" id="settings-avatar-file" style="display:none" accept="image/*" onchange="onSettingsAvatarSelected(event)"><input type="password" id="new-p" placeholder="New Access Key" style="width:100%; margin-top:12px; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px;"><button onclick="setPass(document.getElementById('new-p').value)" style="width:100%; margin-top:10px; padding:10px; background:#333; border:none; color:white; border-radius:8px;">Update Key</button></div><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Layout Tools</h4><p style="font-size:0.8rem; opacity:0.55; margin:8px 0 14px 0;">Restore desktop defaults quickly.</p><button onclick="resetDesktopLayout()" style="width:100%; padding:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset App Icon Layout</button><button onclick="resetWidgetsLayout()" style="width:100%; margin-top:10px; padding:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset Widget Layout</button></div></div>`,
-system: `<div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;"><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Clock Controls</h4><label style="display:flex; justify-content:space-between; margin-top:12px; font-size:0.88rem;"><span>Show Seconds</span><input type="checkbox" ${OS.settings.clockSeconds ? 'checked' : ''} onchange="setSetting('clockSeconds', this.checked, 'Clock precision updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Use 24-Hour Time</span><input type="checkbox" ${OS.settings.clock24h ? 'checked' : ''} onchange="setSetting('clock24h', this.checked, 'Clock format updated.')"></label></div><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>System Behavior</h4><label style="display:flex; justify-content:space-between; margin-top:12px; font-size:0.88rem;"><span>Desktop Notifications</span><input type="checkbox" ${OS.settings.notifications ? 'checked' : ''} onchange="setSetting('notifications', this.checked, 'Notification preference updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Auto Fullscreen on Any Click</span><input type="checkbox" ${OS.settings.autoFullscreen ? 'checked' : ''} onchange="setSetting('autoFullscreen', this.checked, 'Fullscreen preference updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Compact Desktop Icons</span><input type="checkbox" ${OS.settings.compactIcons ? 'checked' : ''} onchange="setSetting('compactIcons', this.checked, 'Desktop icon density updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Reduce Animations</span><input type="checkbox" ${OS.settings.reducedMotion ? 'checked' : ''} onchange="setSetting('reducedMotion', this.checked, 'Animation preference updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Hide Desktop Hero Text</span><input type="checkbox" ${OS.settings.hideDesktopHero ? 'checked' : ''} onchange="setSetting('hideDesktopHero', this.checked, 'Desktop hero visibility updated.')"></label><select onchange="setSetting('bootDelay', Number(this.value), 'Boot timing updated.')" style="margin-top:12px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;"><option value="3000" ${OS.settings.bootDelay === 3000 ? 'selected' : ''}>Fast Boot (3s)</option><option value="6000" ${OS.settings.bootDelay === 6000 ? 'selected' : ''}>Normal Boot (6s)</option><option value="9000" ${OS.settings.bootDelay === 9000 ? 'selected' : ''}>Cinematic Boot (9s)</option></select><button onclick="resetSystemSettings()" style="width:100%; margin-top:10px; padding:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset System Settings</button></div></div>`
+system: `<div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;"><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Clock Controls</h4><label style="display:flex; justify-content:space-between; margin-top:12px; font-size:0.88rem;"><span>Show Seconds</span><input type="checkbox" ${OS.settings.clockSeconds ? 'checked' : ''} onchange="setSetting('clockSeconds', this.checked, 'Clock precision updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Use 24-Hour Time</span><input type="checkbox" ${OS.settings.clock24h ? 'checked' : ''} onchange="setSetting('clock24h', this.checked, 'Clock format updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Temperature Unit (°F)</span><input type="checkbox" ${OS.settings.temperatureUnit === 'F' ? 'checked' : ''} onchange="setSetting('temperatureUnit', this.checked ? 'F' : 'C', 'Temperature unit updated.'); refreshWeather(true);"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Desktop Sounds</span><input type="checkbox" ${OS.settings.desktopSounds ? 'checked' : ''} onchange="setSetting('desktopSounds', this.checked, 'Sound preference updated.')"></label></div><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>System Behavior</h4><label style="display:flex; justify-content:space-between; margin-top:12px; font-size:0.88rem;"><span>Desktop Notifications</span><input type="checkbox" ${OS.settings.notifications ? 'checked' : ''} onchange="setSetting('notifications', this.checked, 'Notification preference updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Auto Fullscreen on Any Click</span><input type="checkbox" ${OS.settings.autoFullscreen ? 'checked' : ''} onchange="setSetting('autoFullscreen', this.checked, 'Fullscreen preference updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Compact Desktop Icons</span><input type="checkbox" ${OS.settings.compactIcons ? 'checked' : ''} onchange="setSetting('compactIcons', this.checked, 'Desktop icon density updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Reduce Animations</span><input type="checkbox" ${OS.settings.reducedMotion ? 'checked' : ''} onchange="setSetting('reducedMotion', this.checked, 'Animation preference updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Hide Desktop Hero Text</span><input type="checkbox" ${OS.settings.hideDesktopHero ? 'checked' : ''} onchange="setSetting('hideDesktopHero', this.checked, 'Desktop hero visibility updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Show Completed ToDos</span><input type="checkbox" ${OS.settings.todoShowCompleted ? 'checked' : ''} onchange="setSetting('todoShowCompleted', this.checked, 'ToDo display updated.'); refreshTodoBoard();"></label><label style="font-size:0.76rem; opacity:0.7; display:block; margin-top:12px;">Weather State</label><select onchange="setSetting('weatherState', this.value, 'Weather location updated.'); refreshWeather(true);" style="margin-top:6px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;">${Object.entries(US_STATE_WEATHER).map(([abbr, state]) => `<option value="${abbr}" ${OS.settings.weatherState === abbr ? 'selected' : ''}>${state.name} (${abbr})</option>`).join('')}</select><select onchange="setSetting('bootDelay', Number(this.value), 'Boot timing updated.')" style="margin-top:12px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;"><option value="3000" ${OS.settings.bootDelay === 3000 ? 'selected' : ''}>Fast Boot (3s)</option><option value="6000" ${OS.settings.bootDelay === 6000 ? 'selected' : ''}>Normal Boot (6s)</option><option value="9000" ${OS.settings.bootDelay === 9000 ? 'selected' : ''}>Cinematic Boot (9s)</option></select><button onclick="resetSystemSettings()" style="width:100%; margin-top:10px; padding:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset System Settings</button></div></div>`
 };
 return `<div style="padding:28px; height:100%;"><h2 style="font-weight:500; margin-bottom:16px;">Settings</h2><div style="display:grid; grid-template-columns:220px 1fr; gap:16px; height:calc(100% - 52px);"><aside style="background:#080808; border:1px solid #1a1a1a; border-radius:14px; padding:14px;"><button onclick="setSettingsSection('customization')" style="${btnStyle('customization')}">🎨 Customization</button><button onclick="setSettingsSection('profile')" style="${btnStyle('profile')}">👤 Profile & Security</button><button onclick="setSettingsSection('system')" style="${btnStyle('system')}">🖥️ System</button></aside><section style="overflow:auto; background:#080808; border:1px solid #1a1a1a; border-radius:14px; padding:14px;">${cards[section] || cards.customization}</section></div></div>`;
 }
@@ -708,7 +744,7 @@ Paint: { icon: "🎨", content: () => buildAppFrame("https://jspaint.app") },
 News: { icon: "📰", content: () => buildAppFrame("https://www.usnews.com/rss/news") },
 ClockPro: { icon: "⏱️", content: () => `<div style="padding:48px; text-align:center;"><h2 style="margin-bottom:16px;">Clock Pro</h2><p style="opacity:0.6; margin-bottom:24px;">A quick productivity timer and local time helper.</p><div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; max-width:460px; margin:0 auto;"><button onclick="startPomodoro(25)" style="padding:12px; border:none; border-radius:10px; background:var(--accent); color:white; font-weight:700;">25m Focus</button><button onclick="startPomodoro(5)" style="padding:12px; border:none; border-radius:10px; background:#1f1f1f; color:white; font-weight:700;">5m Break</button><button onclick="stopPomodoro()" style="padding:12px; border:none; border-radius:10px; background:#3a2020; color:white; font-weight:700;">Stop</button></div><div id="pomodoro-status" style="margin-top:24px; font-size:1.2rem; font-weight:700;">Timer idle</div></div>` },
 CodeLab: { icon: "🧪", content: () => buildAppFrame("https://onecompiler.com/html/3y5x8jr6s") },
-PhotoBooth: { icon: "📸", content: () => `<div style="padding:36px;"><h2 style="margin-bottom:8px;">Photo Booth</h2><p style="opacity:0.58; margin-bottom:16px;">Capture an instant webcam shot directly in your browser.</p><video id="photo-video" autoplay playsinline style="width:100%; max-height:330px; border-radius:14px; border:1px solid #222; background:#000;"></video><canvas id="photo-canvas" style="display:none;"></canvas><div style="display:flex; gap:12px; margin-top:14px;"><button onclick="capturePhoto()" style="flex:1; padding:12px; border:none; border-radius:10px; background:var(--accent); color:#fff; font-weight:700;">Capture</button><button onclick="startPhotoBooth()" style="flex:1; padding:12px; border:none; border-radius:10px; background:#1f1f1f; color:#fff; font-weight:700;">Restart Camera</button></div><img id="photo-output" alt="Captured photo" style="width:100%; margin-top:14px; border-radius:14px; border:1px solid #222; display:none;"></div>` },
+PhotoBooth: { icon: "📸", content: () => `<div style="padding:36px;"><h2 style="margin-bottom:8px;">Photo Booth</h2><p style="opacity:0.58; margin-bottom:16px;">Capture webcam shots with filters and a timer.</p><video id="photo-video" autoplay playsinline style="width:100%; max-height:330px; border-radius:14px; border:1px solid #222; background:#000;"></video><canvas id="photo-canvas" style="display:none;"></canvas><div style="display:grid; grid-template-columns:1fr 170px; gap:12px; margin-top:14px;"><select id="photo-filter" onchange="applyPhotoFilter(this.value)" style="padding:10px; border-radius:10px; border:1px solid #222; background:#111; color:#fff;"><option value="none">No Filter</option><option value="grayscale(1)">B&W</option><option value="sepia(0.8)">Sepia</option><option value="contrast(1.3) saturate(1.3)">Vivid</option></select><select id="photo-timer" style="padding:10px; border-radius:10px; border:1px solid #222; background:#111; color:#fff;"><option value="0">No Timer</option><option value="3">3 Seconds</option><option value="5">5 Seconds</option></select></div><div style="display:flex; gap:12px; margin-top:14px;"><button onclick="capturePhoto()" style="flex:1; padding:12px; border:none; border-radius:10px; background:var(--accent); color:#fff; font-weight:700;">Capture</button><button onclick="startPhotoBooth()" style="flex:1; padding:12px; border:none; border-radius:10px; background:#1f1f1f; color:#fff; font-weight:700;">Restart Camera</button><button onclick="mirrorPhotoPreview()" style="padding:12px; border:none; border-radius:10px; background:#1f1f1f; color:#fff; font-weight:700;">Mirror</button></div><div id="photo-status" style="margin-top:10px; opacity:0.7;"></div><img id="photo-output" alt="Captured photo" style="width:100%; margin-top:14px; border-radius:14px; border:1px solid #222; display:none;"></div>` },
 Terminal: { icon: "⌨️", content: () => `<div id="t-out" style="padding:25px;color:#0f0;font-family:monospace;height:calc(100% - 60px);overflow:auto;line-height:1.5;font-size:0.9rem;">McCrack Kernel Console [Version 9.0.4]<br>(c) 2026 McCrack Industries.<br><br></div><input onkeydown="cmd(event, this)" style="width:100%;background:#050505;border:none;border-top:1px solid #222;color:#0f0;padding:18px;outline:none;font-family:monospace;font-size:1rem;">` },
 Files: { icon: "📁", content: () => `<div style="padding:30px;">
 <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
@@ -756,7 +792,7 @@ ${renderStoreItem('UnitConverter', 'Convert Length, Weight, Temperature')}
 </div>
 </div>` },
 Settings: { icon: "⚙️", content: () => renderSettingsApp() },
-Music: { icon: "🎵", content: () => `<div style="padding:60px;text-align:center;"><div style="font-size:120px;margin-bottom:30px;filter:drop-shadow(0 0 20px var(--accent));">🎧</div><h2>McCrack Music</h2><p style="opacity:0.5;">Library Empty. Connect to stream.</p></div>` },
+Music: { icon: "🎵", content: () => `<div style="padding:30px; max-width:780px; margin:0 auto;"><h2>McCrack Music</h2><p style="opacity:0.58; margin:8px 0 16px 0;">Build playlists, queue tracks, and keep audio running in your session.</p><div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"><input id="music-title" placeholder="Track title" style="padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><input id="music-artist" placeholder="Artist" style="padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"></div><div style="display:flex; gap:10px; margin-top:10px;"><button onclick="addMusicTrack()" style="flex:1; padding:10px; border:none; border-radius:8px; background:var(--accent); color:#fff; font-weight:700;">Add Track</button><button onclick="playNextTrack()" style="padding:10px 14px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Next</button><button onclick="clearMusicQueue()" style="padding:10px 14px; border:none; border-radius:8px; background:#2a1616; color:#ffbaba;">Clear</button></div><div id="music-now" style="margin-top:14px; font-weight:700;">${renderNowPlaying()}</div><div id="music-list" style="margin-top:12px;">${renderMusicQueue()}</div></div>` },
 AppFactory: { icon: "🛠️", content: () => `<div style="padding:50px; max-width:600px; margin:0 auto;">
 <h2>Compiler Console</h2>
 <p style="opacity:0.4; margin-bottom:10px;">Encapsulate any web protocol into a local app.</p>
@@ -773,8 +809,8 @@ Calculator: { icon: "🧮", content: () => `<div style="padding:50px; text-align
 <button onclick="calcResult()" style="width:100%; padding:25px; background:var(--accent); color:white; border:none; border-radius:15px; font-size:1.5rem; font-weight:bold; cursor:pointer;">RUN CALCULATION</button>
 </div>` },
 UnitConverter: { icon: "📐", content: () => `<div style="padding:30px; max-width:560px; margin:0 auto;"><h2 style="margin-bottom:8px;">Unit Converter</h2><p style="opacity:0.6; margin-bottom:12px;">Convert quickly between common units.</p><select id="conv-type" style="width:100%; padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><option value="length">Length (m ↔ ft)</option><option value="temp">Temperature (C ↔ F)</option><option value="weight">Weight (kg ↔ lb)</option></select><input id="conv-value" type="number" placeholder="Enter value" style="margin-top:10px; width:100%; padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><button onclick="runConverter()" style="margin-top:10px; width:100%; padding:10px; border:none; border-radius:8px; background:var(--accent); color:white; font-weight:700;">Convert</button><div id="conv-output" style="margin-top:12px; font-weight:700;"></div></div>` },
-TodoBoard: { icon: "✅", content: () => `<div style="padding:30px; max-width:620px; margin:0 auto;"><h2>Todo Board</h2><p style="opacity:0.6; margin:8px 0 12px 0;">Keep a short task list saved locally.</p><div style="display:flex; gap:8px;"><input id="todo-input" placeholder="Add a task" style="flex:1; padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><button onclick="addTodo()" style="padding:10px 14px; border:none; border-radius:8px; background:var(--accent); color:#fff;">Add</button></div><div id="todo-list" style="margin-top:12px;">${renderTodos()}</div></div>` },
-WeatherDesk: { icon: "🌦️", content: () => `<div style="padding:32px;"><h2>Weather Desk</h2><p style="opacity:0.58; margin:8px 0 14px 0;">Local weather status synced from desktop widget.</p><div style="background:#0d0d0d; border:1px solid #242424; border-radius:12px; padding:16px;">${OS.weather ? `<div style="font-size:1.5rem; font-weight:700;">${Math.round(OS.weather.temp)}°F</div><div style="margin-top:4px; opacity:0.7;">${OS.weather.name}</div><div style="margin-top:6px; opacity:0.8; text-transform:capitalize;">${OS.weather.desc}</div>` : `<div style="opacity:0.6;">Weather data unavailable. Widget will refresh automatically.</div>`}</div></div>` },
+TodoBoard: { icon: "✅", content: () => `<div style="padding:30px; max-width:700px; margin:0 auto;"><h2>Todo Board</h2><p style="opacity:0.6; margin:8px 0 12px 0;">Plan tasks with priority + completion tracking.</p><div style="display:grid; grid-template-columns:1fr 140px auto; gap:8px;"><input id="todo-input" placeholder="Add a task" style="padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><select id="todo-priority" style="padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><option value="low">Low</option><option value="med" selected>Medium</option><option value="high">High</option></select><button onclick="addTodo()" style="padding:10px 14px; border:none; border-radius:8px; background:var(--accent); color:#fff;">Add</button></div><div style="margin-top:10px; display:flex; gap:8px;"><button onclick="clearCompletedTodos()" style="padding:8px 12px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Clear Completed</button><button onclick="toggleTodoFilter()" style="padding:8px 12px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Toggle Completed Visibility</button></div><div id="todo-list" style="margin-top:12px;">${renderTodos()}</div></div>` },
+WeatherDesk: { icon: "🌦️", content: () => `<div style="padding:32px; max-width:760px; margin:0 auto;"><h2>Weather Desk</h2><p style="opacity:0.58; margin:8px 0 14px 0;">Check weather by US state and refresh on demand.</p><div style="display:flex; gap:10px; margin-bottom:12px;"><select id="weather-state" onchange="chooseWeatherState(this.value)" style="flex:1; background:#111; color:#fff; border:1px solid #222; border-radius:8px; padding:10px;">${Object.entries(US_STATE_WEATHER).map(([abbr, state]) => `<option value="${abbr}" ${OS.settings.weatherState === abbr ? 'selected' : ''}>${state.name} (${abbr})</option>`).join('')}</select><button onclick="refreshWeather(true)" style="padding:10px 14px; border:none; border-radius:8px; background:var(--accent); color:white;">Refresh</button></div><div style="background:#0d0d0d; border:1px solid #242424; border-radius:12px; padding:16px;">${OS.weather ? `<div style="font-size:1.5rem; font-weight:700;">${Math.round(OS.weather.temp)}°${OS.settings.temperatureUnit}</div><div style="margin-top:4px; opacity:0.7;">${OS.weather.city}</div><div style="margin-top:6px; opacity:0.8; text-transform:capitalize;">${OS.weather.label}</div><div style="margin-top:8px; opacity:0.55;">Wind ${OS.weather.wind ?? '--'} mph • Updated ${OS.weather.updatedAt || 'just now'}</div>` : `<div style="opacity:0.6;">Weather data unavailable. Widget will refresh automatically.</div>`}</div></div>` },
 SystemLogs: { icon: "📑", content: () => `<div style="padding:30px;">
 <h3>System Session Logs</h3><br>
 <div id="log-list" style="font-family:monospace; font-size:0.8rem; color:#aaa;">
@@ -984,7 +1020,7 @@ desktop.appendChild(layer);
 }
 const now = new Date();
 const quickNote = localStorage.getItem('mc_quick_note') || 'Double-click to edit this note.';
-const weatherText = OS.weather ? `${OS.weather.temp}°C • ${OS.weather.label}` : 'Loading weather...';
+const weatherText = OS.weather ? `${Math.round(OS.weather.temp)}°${OS.settings.temperatureUnit} • ${OS.weather.label}` : 'Loading weather...';
 const widgets = [
 { id: 'weather', html: `<h4>WEATHER</h4><div class="widget-main">${weatherText}</div><div class="widget-sub">${OS.weather && OS.weather.city ? OS.weather.city : 'Local estimate'}</div>` },
 { id: 'clock', html: `<h4>TIME</h4><div class="widget-main">${now.toLocaleTimeString()}</div><div class="widget-sub">System local clock</div>` },
@@ -1053,15 +1089,27 @@ layer.appendChild(card);
 });
 }
 
-async function refreshWeather() {
-if(!OS.widgets.weather) return;
+async function refreshWeather(force = false) {
+if(!OS.widgets.weather && !OS.running['WeatherDesk'] && !force) return;
 try {
-const data = await fetch("https://api.open-meteo.com/v1/forecast?latitude=40.71&longitude=-74.01&current=temperature_2m,weather_code").then(r => r.json());
+const stateKey = OS.settings.weatherState || 'NY';
+const state = US_STATE_WEATHER[stateKey] || US_STATE_WEATHER.NY;
+const unit = OS.settings.temperatureUnit === 'F' ? 'fahrenheit' : 'celsius';
+const windUnit = OS.settings.temperatureUnit === 'F' ? 'mph' : 'kmh';
+const endpoint = `https://api.open-meteo.com/v1/forecast?latitude=${state.lat}&longitude=${state.lon}&current=temperature_2m,weather_code,wind_speed_10m&temperature_unit=${unit}&wind_speed_unit=${windUnit}`;
+const data = await fetch(endpoint).then(r => r.json());
 const code = data.current.weather_code;
 const label = weatherCodeLabel(code);
-OS.weather = { temp: Math.round(data.current.temperature_2m), label, city: 'New York' };
+OS.weather = {
+ temp: Number(data.current.temperature_2m),
+ label,
+ city: `${state.name} (${stateKey})`,
+ wind: Math.round(Number(data.current.wind_speed_10m) || 0),
+ updatedAt: new Date().toLocaleTimeString()
+};
 localStorage.setItem("mc_weather", JSON.stringify(OS.weather));
 renderWidgets();
+if (OS.running['WeatherDesk']) OS.running['WeatherDesk'].querySelector('.win-body').innerHTML = Registry['WeatherDesk'].content();
 } catch (err) {
 addLog(`Weather widget refresh skipped: ${err.message}`);
 }
@@ -1086,6 +1134,7 @@ const note = document.createElement('div');
 note.className = `notification ${type}`;
 note.textContent = message;
 center.appendChild(note);
+playClickSound(type === 'warning' ? 280 : type === 'success' ? 620 : 420, 0.05);
 setTimeout(() => note.classList.add('fade-out'), 2600);
 setTimeout(() => note.remove(), 2850);
 }
@@ -1717,63 +1766,218 @@ if (status) status.textContent = 'Timer idle';
 
 function startPhotoBooth() {
 const video = document.getElementById('photo-video');
+const status = document.getElementById('photo-status');
 if (!video || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
 navigator.mediaDevices.getUserMedia({ video: true, audio: false }).then(stream => {
 video.srcObject = stream;
+if (status) status.textContent = 'Camera ready.';
 }).catch(() => {
+if (status) status.textContent = 'Camera permission denied or unavailable.';
 notify('Camera permission denied or unavailable.', 'warning');
 });
+}
+
+function applyPhotoFilter(filterValue = 'none') {
+const video = document.getElementById('photo-video');
+if (!video) return;
+video.style.filter = filterValue;
+}
+
+function mirrorPhotoPreview() {
+const video = document.getElementById('photo-video');
+if (!video) return;
+video.dataset.mirrored = video.dataset.mirrored === 'true' ? 'false' : 'true';
+video.style.transform = video.dataset.mirrored === 'true' ? 'scaleX(-1)' : 'scaleX(1)';
 }
 
 function capturePhoto() {
 const video = document.getElementById('photo-video');
 const canvas = document.getElementById('photo-canvas');
 const output = document.getElementById('photo-output');
+const timerEl = document.getElementById('photo-timer');
+const status = document.getElementById('photo-status');
 if (!video || !canvas || !output || !video.videoWidth) return;
+const delay = Number(timerEl ? timerEl.value : 0);
+if (delay > 0) {
+if (status) status.textContent = `Capturing in ${delay}...`;
+}
+setTimeout(() => {
 canvas.width = video.videoWidth;
 canvas.height = video.videoHeight;
 const ctx = canvas.getContext('2d');
+if (video.dataset.mirrored === 'true') {
+ctx.translate(canvas.width, 0);
+ctx.scale(-1, 1);
+}
+ctx.filter = (document.getElementById('photo-filter') || {}).value || 'none';
 ctx.drawImage(video, 0, 0);
 output.src = canvas.toDataURL('image/png');
 output.style.display = 'block';
 saveCapturedPhoto(output.src);
+if (status) status.textContent = 'Photo captured.';
 notify('Photo captured and saved to Files/Camera Booth.', 'success');
+}, delay * 1000);
+}
+
+function chooseWeatherState(stateCode) {
+setSetting('weatherState', stateCode, 'Weather location updated.');
+refreshWeather(true);
+}
+
+function playClickSound(freq = 420, duration = 0.07) {
+if (!OS.settings.desktopSounds) return;
+try {
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+if (!AudioCtx) return;
+const ctx = window.mcAudioCtx || new AudioCtx();
+window.mcAudioCtx = ctx;
+const osc = ctx.createOscillator();
+const gain = ctx.createGain();
+osc.frequency.value = freq;
+osc.type = 'sine';
+gain.gain.value = 0.05;
+osc.connect(gain);
+gain.connect(ctx.destination);
+osc.start();
+osc.stop(ctx.currentTime + duration);
+} catch (_) {}
+}
+
+function getMusicQueue() {
+try {
+const parsed = JSON.parse(localStorage.getItem('mc_music_queue'));
+return Array.isArray(parsed) ? parsed.map(item => typeof item === 'string' ? ({ title: item, artist: 'Unknown Artist' }) : item) : [];
+} catch (_) { return []; }
+}
+
+function setMusicQueue(queue) {
+localStorage.setItem('mc_music_queue', JSON.stringify(queue.slice(0, 60)));
+}
+
+function renderMusicQueue() {
+const queue = getMusicQueue();
+if (!queue.length) return '<div style="opacity:0.55;">No tracks queued.</div>';
+return queue.map((track, idx) => `<div style="display:flex; justify-content:space-between; align-items:center; background:#101010; border:1px solid #222; border-radius:8px; padding:8px 10px; margin-bottom:6px;"><span>${idx+1}. ${track.title} <span style="opacity:0.55;">• ${track.artist}</span></span><button onclick="removeMusicTrack(${idx})" style="border:none; background:#261818; color:#ff9999; border-radius:6px; padding:4px 8px; cursor:pointer;">X</button></div>`).join('');
+}
+
+function renderNowPlaying() {
+const track = JSON.parse(localStorage.getItem('mc_now_playing') || 'null');
+if (!track) return 'Now Playing: Nothing';
+return `Now Playing: ${track.title} • ${track.artist}`;
+}
+
+function refreshMusicApp() {
+if (!OS.running['Music']) return;
+OS.running['Music'].querySelector('.win-body').innerHTML = Registry['Music'].content();
+}
+
+function addMusicTrack() {
+const t = document.getElementById('music-title');
+const a = document.getElementById('music-artist');
+if (!t || !a) return;
+const title = t.value.trim();
+if (!title) return;
+const artist = a.value.trim() || 'Unknown Artist';
+const queue = getMusicQueue();
+queue.push({ title, artist });
+setMusicQueue(queue);
+t.value = '';
+a.value = '';
+refreshMusicApp();
+playClickSound(500, 0.06);
+}
+
+function removeMusicTrack(index) {
+const queue = getMusicQueue();
+queue.splice(index, 1);
+setMusicQueue(queue);
+refreshMusicApp();
+}
+
+function playNextTrack() {
+const queue = getMusicQueue();
+if (!queue.length) {
+localStorage.removeItem('mc_now_playing');
+refreshMusicApp();
+return;
+}
+const next = queue.shift();
+localStorage.setItem('mc_now_playing', JSON.stringify(next));
+setMusicQueue(queue);
+notify(`Now playing ${next.title}`, 'info');
+playClickSound(660, 0.09);
+refreshMusicApp();
+}
+
+function clearMusicQueue() {
+setMusicQueue([]);
+localStorage.removeItem('mc_now_playing');
+refreshMusicApp();
 }
 
 function getTodos() {
 try {
 const parsed = JSON.parse(localStorage.getItem('mc_todos'));
-return Array.isArray(parsed) ? parsed : [];
+return Array.isArray(parsed) ? parsed.map(item => typeof item === 'string' ? ({ text: item, done: false, priority: 'med' }) : item) : [];
 } catch (_) {
 return [];
 }
 }
 
+function refreshTodoBoard() {
+const list = document.getElementById('todo-list');
+if (list) list.innerHTML = renderTodos();
+}
+
 function renderTodos() {
 const todos = getTodos();
-if (!todos.length) return '<div style="opacity:0.55;">No tasks yet.</div>';
-return todos.map((item, idx) => `<div style="display:flex; justify-content:space-between; align-items:center; background:#101010; border:1px solid #222; border-radius:8px; padding:8px 10px; margin-bottom:6px;"><span>${item}</span><button onclick="removeTodo(${idx})" style="border:none; background:#261818; color:#ff9999; border-radius:6px; padding:4px 8px; cursor:pointer;">X</button></div>`).join('');
+const filtered = OS.settings.todoShowCompleted ? todos : todos.filter(item => !item.done);
+if (!filtered.length) return '<div style="opacity:0.55;">No tasks yet.</div>';
+return filtered.map((item, idx) => {
+const realIndex = todos.indexOf(item);
+const priorityColor = item.priority === 'high' ? '#ff7a7a' : item.priority === 'med' ? '#ffc66d' : '#9ed6ff';
+return `<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; background:#101010; border:1px solid #222; border-radius:8px; padding:8px 10px; margin-bottom:6px;"><div style="display:flex; align-items:center; gap:8px;"><input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleTodoDone(${realIndex})"><span style="${item.done ? 'text-decoration:line-through; opacity:0.55;' : ''}">${item.text}</span><span style="font-size:0.7rem; color:${priorityColor}; border:1px solid ${priorityColor}; padding:1px 6px; border-radius:999px; text-transform:uppercase;">${item.priority || 'med'}</span></div><button onclick="removeTodo(${realIndex})" style="border:none; background:#261818; color:#ff9999; border-radius:6px; padding:4px 8px; cursor:pointer;">X</button></div>`;
+}).join('');
 }
 
 function addTodo() {
 const input = document.getElementById('todo-input');
+const priority = document.getElementById('todo-priority');
 if (!input) return;
 const value = input.value.trim();
 if (!value) return;
 const todos = getTodos();
-todos.push(value);
+todos.push({ text: value, done: false, priority: priority ? priority.value : 'med', createdAt: new Date().toISOString() });
 localStorage.setItem('mc_todos', JSON.stringify(todos));
 input.value = '';
-const list = document.getElementById('todo-list');
-if (list) list.innerHTML = renderTodos();
+refreshTodoBoard();
+playClickSound(480, 0.05);
+}
+
+function toggleTodoDone(index) {
+const todos = getTodos();
+if (!todos[index]) return;
+todos[index].done = !todos[index].done;
+localStorage.setItem('mc_todos', JSON.stringify(todos));
+refreshTodoBoard();
+}
+
+function toggleTodoFilter() {
+setSetting('todoShowCompleted', !OS.settings.todoShowCompleted, 'ToDo display updated.');
+refreshTodoBoard();
+}
+
+function clearCompletedTodos() {
+const todos = getTodos().filter(item => !item.done);
+localStorage.setItem('mc_todos', JSON.stringify(todos));
+refreshTodoBoard();
 }
 
 function removeTodo(index) {
 const todos = getTodos();
 todos.splice(index, 1);
 localStorage.setItem('mc_todos', JSON.stringify(todos));
-const list = document.getElementById('todo-list');
-if (list) list.innerHTML = renderTodos();
+refreshTodoBoard();
 }
 
 function runConverter() {
