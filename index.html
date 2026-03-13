@@ -40,14 +40,36 @@ font-size: 0.75rem; font-weight: 700; letter-spacing: 1.2px; text-transform: upp
 #battery-stat { display: flex; align-items: center; gap: 6px; color: #44ff44; }
 
 /* --- BOOT SEQUENCE --- */
-#boot { position: fixed; inset: 0; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10000; }
-.spin { width: 60px; height: 60px; border: 4px solid #111; border-top-color: var(--accent); border-radius: 50%; animation: s 0.8s linear infinite; margin-bottom: 25px; }
+#boot { position: fixed; inset: 0; background: #000; display: flex; align-items: center; justify-content: center; z-index: 10000; }
+.boot-stage { width: min(860px, 90vw); }
+#boot-terminal {
+min-height: 390px;
+border: 1px solid rgba(72, 255, 137, 0.35);
+border-radius: 12px;
+padding: 16px;
+background: radial-gradient(circle at top, rgba(0, 40, 10, 0.5), rgba(0, 0, 0, 0.95));
+box-shadow: inset 0 0 28px rgba(40, 255, 120, 0.18), 0 0 45px rgba(0,0,0,0.85);
+font-family: monospace;
+color: #45ff95;
+}
+#boot-terminal h2 { font-size: 0.95rem; font-weight: 600; letter-spacing: 0.24em; margin-bottom: 12px; opacity: 0.88; }
+#hack-logs {
+height: 305px;
+overflow: hidden;
+font-size: 0.8rem;
+line-height: 1.35;
+}
+.hack-line { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0.9; }
+.boot-cursor { display: inline-block; width: 9px; height: 16px; margin-left: 6px; background: #45ff95; animation: blink 0.9s steps(1, end) infinite; }
+.boot-loading { text-align: center; display: none; }
+.spin { width: 60px; height: 60px; border: 4px solid #111; border-top-color: var(--accent); border-radius: 50%; animation: s 0.8s linear infinite; margin: 20px auto 24px auto; }
 @keyframes s { to { transform: rotate(360deg); } }
+@keyframes blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
 .boot-text { font-family: monospace; font-size: 0.8rem; color: var(--accent); opacity: 0.8; }
 .boot-log-box {
 width: min(760px, 82vw);
 max-height: 180px;
-margin-top: 20px;
+margin: 20px auto 0 auto;
 padding: 14px 16px;
 border: 1px solid #143a14;
 border-radius: 10px;
@@ -343,10 +365,16 @@ display: flex; align-items: center; padding: 0 25px; z-index: 8500; border-top: 
 </div>
 
 <div id="boot">
+<div id="boot-terminal" class="boot-stage">
+<h2>ROOT@MCCRACKOS://BOOT_MATRIX <span class="boot-cursor"></span></h2>
+<div id="hack-logs"></div>
+</div>
+<div id="boot-loading" class="boot-stage boot-loading">
 <h1 style="letter-spacing: 12px; font-weight: 200; font-size: 2.5rem;">𝕄𝕔ℂ𝕣𝕒𝕔𝕜<span style="font-weight:700;">OS</span></h1>
 <div class="spin"></div>
 <p class="boot-text">INITIALIZING OPERATING SYSTEM...</p>
 <div id="boot-logs" class="boot-log-box"></div>
+</div>
 </div>
 
 <div id="login">
@@ -524,7 +552,7 @@ widgets: normalizeWidgetFlags(JSON.parse(localStorage.getItem("mc_widgets"))),
 widgetPositions: normalizeWidgetPositions(JSON.parse(localStorage.getItem("mc_widget_pos"))),
 weather: JSON.parse(localStorage.getItem("mc_weather")) || null,
 restricted: ["Browser", "Store", "Terminal", "Files", "Settings"],
-storeApps: ["Movies", "Games", "McCrackChat", "Calculator", "Music", "AppFactory", "Notepad", "WidgetCenter", "Docs", "Paint", "News", "ClockPro", "CodeLab", "PhotoBooth", "WeatherDesk", "TodoBoard", "UnitConverter"]
+storeApps: ["Movies", "Games", "McCrackChat", "Calculator", "Music", "Music2", "AppFactory", "Notepad", "WidgetCenter", "Docs", "Paint", "ClockPro", "CodeLab", "PhotoBooth", "WeatherDesk", "TodoBoard", "UnitConverter"]
 };
 
 OS.settings = normalizeSettings(JSON.parse(localStorage.getItem('mc_settings')));
@@ -532,6 +560,11 @@ OS.account = normalizeAccount(JSON.parse(localStorage.getItem('mc_account')));
 OS.pass = localStorage.getItem("mc_pass") || OS.account.pass || "1234";
 if (!localStorage.getItem('mc_account') && localStorage.getItem('mc_pass')) {
 OS.account.pass = OS.pass;
+}
+if (OS.installed.includes('News')) {
+OS.installed = OS.installed.map((app) => app === 'News' ? 'Music2' : app);
+OS.installed = [...new Set(OS.installed)];
+localStorage.setItem('mc_apps', JSON.stringify(OS.installed));
 }
 OS.firstRun = !localStorage.getItem('mc_account');
 OS.pendingAvatar = '';
@@ -782,7 +815,7 @@ ${renderStoreItem('Notepad', 'Secure Text Buffer')}
 ${renderStoreItem('WidgetCenter', 'Desktop Widget Manager')}
 ${renderStoreItem('Docs', 'Developer Documentation Hub')}
 ${renderStoreItem('Paint', 'Retro Drawing Studio')}
-${renderStoreItem('News', 'Live Tech News Feed')}
+${renderStoreItem('Music2', 'Stream Player Module')}
 ${renderStoreItem('ClockPro', 'Focus Timer & Clock Toolkit')}
 ${renderStoreItem('CodeLab', 'Cloud Coding Workspace')}
 ${renderStoreItem('PhotoBooth', 'Camera Snapshot Studio')}
@@ -924,23 +957,63 @@ applyAccent(OS.accent);
 setFavicon(OS.favicon, false);
 syncFullscreenPreference();
 applyUISettings();
-simulateBootLogs();
+simulateHackBootLogs(OS.settings.bootDelay || 6000);
 const customs = JSON.parse(localStorage.getItem("mc_custom_apps")) || {};
 Object.keys(customs).forEach(name => {
 Registry[name] = { icon: "🚀", content: () => buildAppFrame(customs[name]) };
 });
 updateBattery(); setInterval(updateBattery, 30000);
+const hackIntroDuration = OS.settings.bootDelay || 6000;
+const loadingDuration = 1800;
+setTimeout(() => {
+document.getElementById('boot-terminal').style.display = 'none';
+document.getElementById('boot-loading').style.display = 'block';
+simulateBootLogs();
 setTimeout(() => {
 const b = document.getElementById('boot');
 b.style.opacity = '0';
 setTimeout(() => { b.style.display='none'; document.getElementById('login').style.display='flex'; renderAuth(); }, 1000);
-}, OS.settings.bootDelay);
+}, loadingDuration);
+}, hackIntroDuration);
 updateTime(); setInterval(updateTime, 1000);
 setInterval(renderWidgets, 1000);
 refreshWeather();
 setInterval(refreshWeather, 300000);
 renderLib();
 };
+
+function simulateHackBootLogs(durationMs = 6000) {
+const panel = document.getElementById('hack-logs');
+if(!panel) return;
+const hackLines = [
+"> root@mc-node:~$ ./init-zero-day --force",
+"[SCAN] Enumerating secure kernel sectors ...",
+"[BYPASS] Signature firewall neutralized",
+"[INJECT] Uploading quantum payload chunk 01/04",
+"[INJECT] Uploading quantum payload chunk 02/04",
+"[INJECT] Uploading quantum payload chunk 03/04",
+"[INJECT] Uploading quantum payload chunk 04/04",
+"[CRYPT] Rotating ephemeral access keys",
+"[TRACE] Ghost route established :: 127.0.0.1",
+"[SYNC] Handshake with McCrack core completed",
+"> root@mc-node:~$ launch --profile mccrackos"
+];
+panel.innerHTML = '';
+let idx = 0;
+const timer = setInterval(() => {
+if(idx >= hackLines.length) {
+clearInterval(timer);
+return;
+}
+const line = document.createElement('div');
+line.className = 'hack-line';
+line.textContent = `${new Date().toLocaleTimeString()} ${hackLines[idx]}`;
+panel.appendChild(line);
+panel.scrollTop = panel.scrollHeight;
+idx += 1;
+}, 520);
+setTimeout(() => clearInterval(timer), durationMs);
+}
 
 function simulateBootLogs() {
 const panel = document.getElementById('boot-logs');
