@@ -516,7 +516,7 @@ widgets: normalizeWidgetFlags(JSON.parse(localStorage.getItem("mc_widgets"))),
 widgetPositions: normalizeWidgetPositions(JSON.parse(localStorage.getItem("mc_widget_pos"))),
 weather: JSON.parse(localStorage.getItem("mc_weather")) || null,
 restricted: ["Browser", "Store", "Terminal", "Files", "Settings"],
-storeApps: ["Movies", "Games", "McCrackChat", "Calculator", "Music", "AppFactory", "Notepad", "WidgetCenter", "Docs", "Paint", "News", "ClockPro", "CodeLab", "PhotoBooth"]
+storeApps: ["Movies", "Games", "McCrackChat", "Calculator", "Music", "AppFactory", "Notepad", "WidgetCenter", "Docs", "Paint", "News", "ClockPro", "CodeLab", "PhotoBooth", "WeatherDesk", "TodoBoard", "UnitConverter"]
 };
 
 OS.settings = normalizeSettings(JSON.parse(localStorage.getItem('mc_settings')));
@@ -528,6 +528,7 @@ OS.account.pass = OS.pass;
 OS.firstRun = !localStorage.getItem('mc_account');
 OS.pendingAvatar = '';
 OS.widgetDragActive = false;
+OS.settingsSection = 'customization';
 
 const DEFAULT_APP_ORDER = ["Browser", "Terminal", "Files", "Store", "Settings", ...OS.storeApps];
 
@@ -651,6 +652,51 @@ document.body.classList.toggle('no-animations', !!OS.settings.reducedMotion);
 if (desktop) desktop.classList.toggle('compact-icons', !!OS.settings.compactIcons);
 }
 
+
+function getSavedPhotos() {
+try {
+const parsed = JSON.parse(localStorage.getItem('mc_photos'));
+return Array.isArray(parsed) ? parsed : [];
+} catch (_) {
+return [];
+}
+}
+
+function saveCapturedPhoto(dataUrl) {
+if (!dataUrl) return;
+const photos = getSavedPhotos();
+photos.unshift({ id: Date.now(), src: dataUrl, createdAt: new Date().toISOString() });
+const trimmed = photos.slice(0, 40);
+localStorage.setItem('mc_photos', JSON.stringify(trimmed));
+if (OS.running['Files']) OS.running['Files'].querySelector('.win-body').innerHTML = Registry['Files'].content();
+}
+
+function deleteCapturedPhoto(id) {
+const photos = getSavedPhotos().filter(photo => String(photo.id) !== String(id));
+localStorage.setItem('mc_photos', JSON.stringify(photos));
+if (OS.running['Files']) OS.running['Files'].querySelector('.win-body').innerHTML = Registry['Files'].content();
+notify('Photo deleted from Camera Booth folder.', 'warning');
+}
+
+function setSettingsSection(section) {
+OS.settingsSection = section;
+if (OS.running['Settings']) OS.running['Settings'].querySelector('.win-body').innerHTML = Registry['Settings'].content();
+}
+
+function renderSettingsApp() {
+const section = OS.settingsSection || 'customization';
+const btnStyle = (id) => `display:block;width:100%;text-align:left;padding:10px 12px;border-radius:10px;border:1px solid ${section === id ? 'var(--accent)' : '#242424'};background:${section === id ? 'rgba(0,120,212,0.18)' : '#101010'};color:#fff;cursor:pointer;font-weight:600;margin-bottom:8px;`;
+const cards = {
+customization: `<div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;">
+<div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Wallpaper</h4><p style="font-size:0.8rem; opacity:0.55; margin:8px 0 14px 0;">Pick presets, URL, or upload image.</p><label style="font-size:0.76rem; opacity:0.6;">Wallpaper Preset</label><select onchange="setWallpaperPreset(this.value)" style="margin-top:7px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;">${WALLPAPER_PRESETS.map(preset => `<option value="${preset.value}" ${OS.bg === preset.value ? 'selected' : ''}>${preset.label}</option>`).join('')}</select><input type="text" id="bg-url" placeholder="https://..." style="width:100%; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px; margin-top:12px;"><button onclick="setBG(document.getElementById('bg-url').value)" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:var(--accent); border:none; color:white; border-radius:8px;">Apply URL</button><button onclick="document.getElementById('bg-upload-settings').click()" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Upload Image</button><input type="file" id="bg-upload-settings" style="display:none" onchange="handleFileUpload(event)" accept="image/*"></div>
+<div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Theme & Branding</h4><p style="font-size:0.8rem; opacity:0.55; margin:8px 0 14px 0;">Accent colors and favicon.</p><label style="font-size:0.76rem; opacity:0.6;">Wallpaper Fit</label><select onchange="setWallpaperFit(this.value)" style="margin-top:7px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;"><option value="cover" ${OS.settings.wallpaperFit === 'cover' ? 'selected' : ''}>Fill Screen</option><option value="contain" ${OS.settings.wallpaperFit === 'contain' ? 'selected' : ''}>Fit Entire Image</option></select><input type="color" value="${OS.accent}" onchange="applyAccent(this.value)" style="margin-top:12px; width:100%; height:42px; background:#111; border:var(--border); border-radius:10px; cursor:pointer;"><button onclick="resetAccent()" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset Accent</button><input type="text" id="favicon-url" value="${OS.favicon}" placeholder="https://..." style="width:100%; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px; margin-top:12px;"><button onclick="setFavicon(document.getElementById('favicon-url').value)" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Apply Favicon</button></div>
+</div>`,
+profile: `<div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;"><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Security & Profile</h4><div style="display:flex; align-items:center; gap:10px; margin:12px 0;"><div class="account-avatar" style="width:54px; height:54px; margin:0; font-size:22px;">${avatarMarkup(OS.account.avatar)}</div><span style="font-size:0.8rem; opacity:0.7;">Current Picture</span></div><div style="display:flex; gap:8px;"><button onclick="document.getElementById('settings-avatar-file').click()" style="flex:1; padding:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:#fff; border-radius:8px;">Upload</button><button onclick="updateAccountAvatar('')" style="flex:1; padding:10px; background:#151515; border:1px solid #2b2b2b; color:#fff; border-radius:8px;">Remove</button></div><input type="file" id="settings-avatar-file" style="display:none" accept="image/*" onchange="onSettingsAvatarSelected(event)"><input type="password" id="new-p" placeholder="New Access Key" style="width:100%; margin-top:12px; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px;"><button onclick="setPass(document.getElementById('new-p').value)" style="width:100%; margin-top:10px; padding:10px; background:#333; border:none; color:white; border-radius:8px;">Update Key</button></div><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Layout Tools</h4><p style="font-size:0.8rem; opacity:0.55; margin:8px 0 14px 0;">Restore desktop defaults quickly.</p><button onclick="resetDesktopLayout()" style="width:100%; padding:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset App Icon Layout</button><button onclick="resetWidgetsLayout()" style="width:100%; margin-top:10px; padding:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset Widget Layout</button></div></div>`,
+system: `<div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;"><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Clock Controls</h4><label style="display:flex; justify-content:space-between; margin-top:12px; font-size:0.88rem;"><span>Show Seconds</span><input type="checkbox" ${OS.settings.clockSeconds ? 'checked' : ''} onchange="setSetting('clockSeconds', this.checked, 'Clock precision updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Use 24-Hour Time</span><input type="checkbox" ${OS.settings.clock24h ? 'checked' : ''} onchange="setSetting('clock24h', this.checked, 'Clock format updated.')"></label></div><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>System Behavior</h4><label style="display:flex; justify-content:space-between; margin-top:12px; font-size:0.88rem;"><span>Desktop Notifications</span><input type="checkbox" ${OS.settings.notifications ? 'checked' : ''} onchange="setSetting('notifications', this.checked, 'Notification preference updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Auto Fullscreen on Any Click</span><input type="checkbox" ${OS.settings.autoFullscreen ? 'checked' : ''} onchange="setSetting('autoFullscreen', this.checked, 'Fullscreen preference updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Compact Desktop Icons</span><input type="checkbox" ${OS.settings.compactIcons ? 'checked' : ''} onchange="setSetting('compactIcons', this.checked, 'Desktop icon density updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Reduce Animations</span><input type="checkbox" ${OS.settings.reducedMotion ? 'checked' : ''} onchange="setSetting('reducedMotion', this.checked, 'Animation preference updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Hide Desktop Hero Text</span><input type="checkbox" ${OS.settings.hideDesktopHero ? 'checked' : ''} onchange="setSetting('hideDesktopHero', this.checked, 'Desktop hero visibility updated.')"></label><select onchange="setSetting('bootDelay', Number(this.value), 'Boot timing updated.')" style="margin-top:12px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;"><option value="3000" ${OS.settings.bootDelay === 3000 ? 'selected' : ''}>Fast Boot (3s)</option><option value="6000" ${OS.settings.bootDelay === 6000 ? 'selected' : ''}>Normal Boot (6s)</option><option value="9000" ${OS.settings.bootDelay === 9000 ? 'selected' : ''}>Cinematic Boot (9s)</option></select><button onclick="resetSystemSettings()" style="width:100%; margin-top:10px; padding:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset System Settings</button></div></div>`
+};
+return `<div style="padding:28px; height:100%;"><h2 style="font-weight:500; margin-bottom:16px;">Settings</h2><div style="display:grid; grid-template-columns:220px 1fr; gap:16px; height:calc(100% - 52px);"><aside style="background:#080808; border:1px solid #1a1a1a; border-radius:14px; padding:14px;"><button onclick="setSettingsSection('customization')" style="${btnStyle('customization')}">🎨 Customization</button><button onclick="setSettingsSection('profile')" style="${btnStyle('profile')}">👤 Profile & Security</button><button onclick="setSettingsSection('system')" style="${btnStyle('system')}">🖥️ System</button></aside><section style="overflow:auto; background:#080808; border:1px solid #1a1a1a; border-radius:14px; padding:14px;">${cards[section] || cards.customization}</section></div></div>`;
+}
+
 const Registry = {
 Notepad: { icon: "📝", content: () => `<textarea oninput="localStorage.setItem('mc_note', this.value)" style="width:100%;height:100%;background:transparent;color:#ddd;padding:40px;border:none;outline:none;resize:none;font-family:monospace;font-size:1.2rem;line-height:1.6;">${localStorage.getItem('mc_note')||''}</textarea>` },
 Browser: { icon: "🌐", content: () => buildAppFrame("https://siuuu.pagostepeapulco.gob.mx/") },
@@ -665,7 +711,7 @@ CodeLab: { icon: "🧪", content: () => buildAppFrame("https://onecompiler.com/h
 PhotoBooth: { icon: "📸", content: () => `<div style="padding:36px;"><h2 style="margin-bottom:8px;">Photo Booth</h2><p style="opacity:0.58; margin-bottom:16px;">Capture an instant webcam shot directly in your browser.</p><video id="photo-video" autoplay playsinline style="width:100%; max-height:330px; border-radius:14px; border:1px solid #222; background:#000;"></video><canvas id="photo-canvas" style="display:none;"></canvas><div style="display:flex; gap:12px; margin-top:14px;"><button onclick="capturePhoto()" style="flex:1; padding:12px; border:none; border-radius:10px; background:var(--accent); color:#fff; font-weight:700;">Capture</button><button onclick="startPhotoBooth()" style="flex:1; padding:12px; border:none; border-radius:10px; background:#1f1f1f; color:#fff; font-weight:700;">Restart Camera</button></div><img id="photo-output" alt="Captured photo" style="width:100%; margin-top:14px; border-radius:14px; border:1px solid #222; display:none;"></div>` },
 Terminal: { icon: "⌨️", content: () => `<div id="t-out" style="padding:25px;color:#0f0;font-family:monospace;height:calc(100% - 60px);overflow:auto;line-height:1.5;font-size:0.9rem;">McCrack Kernel Console [Version 9.0.4]<br>(c) 2026 McCrack Industries.<br><br></div><input onkeydown="cmd(event, this)" style="width:100%;background:#050505;border:none;border-top:1px solid #222;color:#0f0;padding:18px;outline:none;font-family:monospace;font-size:1rem;">` },
 Files: { icon: "📁", content: () => `<div style="padding:30px;">
-<div style="display:flex; justify-content:space-between; align-items:center;">
+<div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
 <h2>File Explorer</h2>
 <button onclick="document.getElementById('bg-upload').click()" style="padding:8px 15px; border-radius:8px; background:var(--accent); color:white; border:none; cursor:pointer;">Upload BG Image</button>
 <input type="file" id="bg-upload" style="display:none" onchange="handleFileUpload(event)" accept="image/*">
@@ -676,6 +722,14 @@ Files: { icon: "📁", content: () => `<div style="padding:30px;">
 <div class="file-item">📁<br><br>System</div>
 <div class="file-item">📁<br><br>Users</div>
 <div class="file-item" onclick="launch('Settings')">🖼️<br><br>Wallpapers</div>
+<div class="file-item">📷<br><br>Camera Booth</div>
+</div>
+<div style="margin-top:20px;">
+<h3 style="margin-bottom:10px;">Camera Booth Folder</h3>
+<p style="opacity:0.58; font-size:0.82rem; margin-bottom:14px;">All photos captured in Photo Booth are saved here.</p>
+<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(160px,1fr)); gap:10px;">
+${getSavedPhotos().length ? getSavedPhotos().map(photo => `<div style="border:1px solid #242424; border-radius:10px; overflow:hidden; background:#090909;"><img src="${photo.src}" alt="Captured photo" style="width:100%; height:120px; object-fit:cover; display:block;"><div style="padding:8px;"><div style="font-size:0.7rem; opacity:0.65; margin-bottom:7px;">${new Date(photo.createdAt).toLocaleString()}</div><button onclick="deleteCapturedPhoto('${photo.id}')" style="width:100%; border:none; border-radius:7px; background:#241515; color:#ff8787; padding:6px; cursor:pointer;">Delete</button></div></div>`).join('') : `<div style="font-size:0.86rem; opacity:0.5;">No photos yet. Open Photo Booth and capture one.</div>`}
+</div>
 </div>
 </div>` },
 Store: { icon: "🛒", content: () => `<div style="padding:40px;">
@@ -696,84 +750,12 @@ ${renderStoreItem('News', 'Live Tech News Feed')}
 ${renderStoreItem('ClockPro', 'Focus Timer & Clock Toolkit')}
 ${renderStoreItem('CodeLab', 'Cloud Coding Workspace')}
 ${renderStoreItem('PhotoBooth', 'Camera Snapshot Studio')}
+${renderStoreItem('WeatherDesk', 'Quick Weather Dashboard')}
+${renderStoreItem('TodoBoard', 'Simple Daily Task Manager')}
+${renderStoreItem('UnitConverter', 'Convert Length, Weight, Temperature')}
 </div>
 </div>` },
-Settings: { icon: "⚙️", content: () => `<div style="padding:40px;">
-<h2 style="font-weight:400; margin-bottom:25px;">Control Panel</h2>
-<div style="display:grid; grid-template-columns: 1fr 1fr; gap:30px;">
-<div style="background:#0a0a0a; padding:25px; border-radius:20px; border:1px solid #1a1a1a;">
-<h4>Personalization</h4><br>
-<p style="font-size:0.8rem; opacity:0.5;">Pick a preset, paste a URL, or upload your own wallpaper image.</p><br>
-<label style="font-size:0.78rem; opacity:0.55;">Wallpaper Preset</label><br>
-<select onchange="setWallpaperPreset(this.value)" style="margin-top:7px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;">
-${WALLPAPER_PRESETS.map(preset => `<option value="${preset.value}" ${OS.bg === preset.value ? 'selected' : ''}>${preset.label}</option>`).join('')}
-</select><br><br>
-<input type="text" id="bg-url" placeholder="https://..." style="width:100%; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px;"><br><br>
-<button onclick="setBG(document.getElementById('bg-url').value)" style="width:100%; padding:10px; cursor:pointer; background:var(--accent); border:none; color:white; border-radius:8px;">Apply URL</button><br><br>
-<button onclick="document.getElementById('bg-upload-settings').click()" style="width:100%; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Upload Image</button>
-<input type="file" id="bg-upload-settings" style="display:none" onchange="handleFileUpload(event)" accept="image/*">
-<br><br>
-<label style="font-size:0.78rem; opacity:0.55;">Wallpaper Fit</label><br>
-<select onchange="setWallpaperFit(this.value)" style="margin-top:7px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;">
-<option value="cover" ${OS.settings.wallpaperFit === 'cover' ? 'selected' : ''}>Fill Screen (Cover)</option>
-<option value="contain" ${OS.settings.wallpaperFit === 'contain' ? 'selected' : ''}>Fit Entire Image (Contain)</option>
-</select>
-<br><br>
-<p style="font-size:0.8rem; opacity:0.5;">Paste an image URL to use it as the browser tab favicon.</p><br>
-<input type="text" id="favicon-url" value="${OS.favicon}" placeholder="https://..." style="width:100%; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px;"><br><br>
-<button onclick="setFavicon(document.getElementById('favicon-url').value)" style="width:100%; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Apply Favicon URL</button>
-</div>
-<div style="background:#0a0a0a; padding:25px; border-radius:20px; border:1px solid #1a1a1a;">
-<h4>Security & Profile</h4><br>
-<p style="font-size:0.8rem; opacity:0.5;">Update your profile picture and access key.</p><br>
-<div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
-<div class="account-avatar" style="width:58px; height:58px; margin:0; font-size:24px;">${avatarMarkup(OS.account.avatar)}</div>
-<div style="font-size:0.8rem; opacity:0.68;">Current Profile Picture</div>
-</div>
-<div style="display:flex; gap:10px; margin-bottom:14px;">
-<button onclick="document.getElementById('settings-avatar-file').click()" style="flex:1; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Upload Picture</button>
-<button onclick="updateAccountAvatar('')" style="flex:1; padding:10px; cursor:pointer; background:#151515; border:1px solid #2b2b2b; color:white; border-radius:8px;">Remove Picture</button>
-</div>
-<input type="file" id="settings-avatar-file" style="display:none" accept="image/*" onchange="onSettingsAvatarSelected(event)">
-<input type="password" id="new-p" placeholder="New Access Key" style="width:100%; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px;"><br><br>
-<button onclick="setPass(document.getElementById('new-p').value)" style="width:100%; padding:10px; cursor:pointer; background:#333; border:none; color:white; border-radius:8px;">Update Key</button>
-</div>
-<div style="background:#0a0a0a; padding:25px; border-radius:20px; border:1px solid #1a1a1a;">
-<h4>Theme Accent</h4><br>
-<p style="font-size:0.8rem; opacity:0.5;">Set a custom accent color used across highlights and controls.</p><br>
-<input type="color" id="accent-color" value="${OS.accent}" onchange="applyAccent(this.value)" style="width:100%; height:42px; background:#111; border:var(--border); border-radius:10px; cursor:pointer;"><br><br>
-<button onclick="resetAccent()" style="width:100%; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset Accent</button>
-</div>
-<div style="background:#0a0a0a; padding:25px; border-radius:20px; border:1px solid #1a1a1a;">
-<h4>Layout Tools</h4><br>
-<p style="font-size:0.8rem; opacity:0.5;">Restore desktop and widget placement to default positions.</p><br>
-<button onclick="resetDesktopLayout()" style="width:100%; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset App Icon Layout</button><br><br>
-<button onclick="resetWidgetsLayout()" style="width:100%; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset Widget Layout</button>
-</div>
-<div style="background:#0a0a0a; padding:25px; border-radius:20px; border:1px solid #1a1a1a;">
-<h4>Clock Controls</h4><br>
-<p style="font-size:0.8rem; opacity:0.5;">Tune taskbar clock format and precision.</p><br>
-<label style="display:flex; align-items:center; justify-content:space-between; font-size:0.88rem; margin-bottom:12px;"><span>Show Seconds</span><input type="checkbox" ${OS.settings.clockSeconds ? 'checked' : ''} onchange="setSetting('clockSeconds', this.checked, 'Clock precision updated.')"></label>
-<label style="display:flex; align-items:center; justify-content:space-between; font-size:0.88rem;"><span>Use 24-Hour Time</span><input type="checkbox" ${OS.settings.clock24h ? 'checked' : ''} onchange="setSetting('clock24h', this.checked, 'Clock format updated.')"></label>
-</div>
-<div style="background:#0a0a0a; padding:25px; border-radius:20px; border:1px solid #1a1a1a;">
-<h4>System Behavior</h4><br>
-<p style="font-size:0.8rem; opacity:0.5;">Adjust startup speed and notification behavior.</p><br>
-<label style="display:flex; align-items:center; justify-content:space-between; font-size:0.88rem; margin-bottom:12px;"><span>Desktop Notifications</span><input type="checkbox" ${OS.settings.notifications ? 'checked' : ''} onchange="setSetting('notifications', this.checked, 'Notification preference updated.')"></label>
-<label style="display:flex; align-items:center; justify-content:space-between; font-size:0.88rem; margin-bottom:12px;"><span>Auto Fullscreen on Any Click</span><input type="checkbox" ${OS.settings.autoFullscreen ? 'checked' : ''} onchange="setSetting('autoFullscreen', this.checked, 'Fullscreen preference updated.')"></label>
-<label style="display:flex; align-items:center; justify-content:space-between; font-size:0.88rem; margin-bottom:12px;"><span>Compact Desktop Icons</span><input type="checkbox" ${OS.settings.compactIcons ? 'checked' : ''} onchange="setSetting('compactIcons', this.checked, 'Desktop icon density updated.')"></label>
-<label style="display:flex; align-items:center; justify-content:space-between; font-size:0.88rem; margin-bottom:12px;"><span>Reduce Animations</span><input type="checkbox" ${OS.settings.reducedMotion ? 'checked' : ''} onchange="setSetting('reducedMotion', this.checked, 'Animation preference updated.')"></label>
-<label style="display:flex; align-items:center; justify-content:space-between; font-size:0.88rem; margin-bottom:12px;"><span>Hide Desktop Hero Text</span><input type="checkbox" ${OS.settings.hideDesktopHero ? 'checked' : ''} onchange="setSetting('hideDesktopHero', this.checked, 'Desktop hero visibility updated.')"></label>
-<label style="font-size:0.78rem; opacity:0.55;">Boot Animation Length</label><br>
-<select onchange="setSetting('bootDelay', Number(this.value), 'Boot timing updated.')" style="margin-top:7px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;">
-<option value="3000" ${OS.settings.bootDelay === 3000 ? 'selected' : ''}>Fast (3s)</option>
-<option value="6000" ${OS.settings.bootDelay === 6000 ? 'selected' : ''}>Normal (6s)</option>
-<option value="9000" ${OS.settings.bootDelay === 9000 ? 'selected' : ''}>Cinematic (9s)</option>
-</select><br><br>
-<button onclick="resetSystemSettings()" style="width:100%; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset System Settings</button>
-</div>
-</div>
-</div>` },
+Settings: { icon: "⚙️", content: () => renderSettingsApp() },
 Music: { icon: "🎵", content: () => `<div style="padding:60px;text-align:center;"><div style="font-size:120px;margin-bottom:30px;filter:drop-shadow(0 0 20px var(--accent));">🎧</div><h2>McCrack Music</h2><p style="opacity:0.5;">Library Empty. Connect to stream.</p></div>` },
 AppFactory: { icon: "🛠️", content: () => `<div style="padding:50px; max-width:600px; margin:0 auto;">
 <h2>Compiler Console</h2>
@@ -790,6 +772,9 @@ Calculator: { icon: "🧮", content: () => `<div style="padding:50px; text-align
 <input id="c-in" style="width:100%; font-size:45px; background:#000; color:white; border:2px solid #222; padding:30px; text-align:right; border-radius:20px; margin-bottom:20px; font-family:monospace;">
 <button onclick="calcResult()" style="width:100%; padding:25px; background:var(--accent); color:white; border:none; border-radius:15px; font-size:1.5rem; font-weight:bold; cursor:pointer;">RUN CALCULATION</button>
 </div>` },
+UnitConverter: { icon: "📐", content: () => `<div style="padding:30px; max-width:560px; margin:0 auto;"><h2 style="margin-bottom:8px;">Unit Converter</h2><p style="opacity:0.6; margin-bottom:12px;">Convert quickly between common units.</p><select id="conv-type" style="width:100%; padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><option value="length">Length (m ↔ ft)</option><option value="temp">Temperature (C ↔ F)</option><option value="weight">Weight (kg ↔ lb)</option></select><input id="conv-value" type="number" placeholder="Enter value" style="margin-top:10px; width:100%; padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><button onclick="runConverter()" style="margin-top:10px; width:100%; padding:10px; border:none; border-radius:8px; background:var(--accent); color:white; font-weight:700;">Convert</button><div id="conv-output" style="margin-top:12px; font-weight:700;"></div></div>` },
+TodoBoard: { icon: "✅", content: () => `<div style="padding:30px; max-width:620px; margin:0 auto;"><h2>Todo Board</h2><p style="opacity:0.6; margin:8px 0 12px 0;">Keep a short task list saved locally.</p><div style="display:flex; gap:8px;"><input id="todo-input" placeholder="Add a task" style="flex:1; padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><button onclick="addTodo()" style="padding:10px 14px; border:none; border-radius:8px; background:var(--accent); color:#fff;">Add</button></div><div id="todo-list" style="margin-top:12px;">${renderTodos()}</div></div>` },
+WeatherDesk: { icon: "🌦️", content: () => `<div style="padding:32px;"><h2>Weather Desk</h2><p style="opacity:0.58; margin:8px 0 14px 0;">Local weather status synced from desktop widget.</p><div style="background:#0d0d0d; border:1px solid #242424; border-radius:12px; padding:16px;">${OS.weather ? `<div style="font-size:1.5rem; font-weight:700;">${Math.round(OS.weather.temp)}°F</div><div style="margin-top:4px; opacity:0.7;">${OS.weather.name}</div><div style="margin-top:6px; opacity:0.8; text-transform:capitalize;">${OS.weather.desc}</div>` : `<div style="opacity:0.6;">Weather data unavailable. Widget will refresh automatically.</div>`}</div></div>` },
 SystemLogs: { icon: "📑", content: () => `<div style="padding:30px;">
 <h3>System Session Logs</h3><br>
 <div id="log-list" style="font-family:monospace; font-size:0.8rem; color:#aaa;">
@@ -1585,7 +1570,7 @@ return;
 
 if(v === "help") {
 print("Available commands:");
-print("help, clear, exit, logs, apps, ver, time, date, battery, whoami, echo, calc, open, close, install, uninstall, ls, pwd");
+print("help, clear, exit, logs, apps, ver, time, date, battery, whoami, echo, calc, open, close, install, uninstall, ls, pwd, ps, weather, todo, note, theme, reboot");
 }
 else if(v === "clear") out.innerHTML = "";
 else if(v === "logs") print(`Total session events: ${OS.logs.length}`);
@@ -1597,6 +1582,42 @@ else if(v === "battery") print(`Battery status: ${OS.battery}%`);
 else if(v === "whoami") print("operator@mc-crackos");
 else if(v === "echo") print(args.join(' ') || "");
 else if(v === "pwd") print("/system/desktop");
+else if(v === "ps") print(`Running: ${Object.keys(OS.running).join(', ') || 'none'}`);
+else if(v === "weather") {
+if (OS.weather) print(`${OS.weather.name}: ${Math.round(OS.weather.temp)}°F, ${OS.weather.desc}`);
+else print("Weather data unavailable.", "muted");
+}
+else if(v === "todo") {
+if(args[0] === 'add') {
+const task = args.slice(1).join(' ').trim();
+if(!task) print('Usage: todo add <task>', 'muted');
+else {
+const todos = getTodos();
+todos.push(task);
+localStorage.setItem('mc_todos', JSON.stringify(todos));
+print(`Added todo: ${task}`);
+if (OS.running['TodoBoard']) OS.running['TodoBoard'].querySelector('.win-body').innerHTML = Registry['TodoBoard'].content();
+}
+} else if(args[0] === 'list') {
+const todos = getTodos();
+print(todos.length ? todos.map((t,i)=>`${i+1}. ${t}`).join(' | ') : 'No todo items.');
+} else print('Usage: todo <add|list> ...', 'muted');
+}
+else if(v === "note") {
+const text = args.join(' ');
+localStorage.setItem('mc_note', text);
+print('Notepad content updated.');
+if (OS.running['Notepad']) OS.running['Notepad'].querySelector('.win-body').innerHTML = Registry['Notepad'].content();
+}
+else if(v === "theme") {
+const color = args[0];
+if(!color) print('Usage: theme <css-color>', 'muted');
+else { applyAccent(color); print(`Accent set to ${color}`); }
+}
+else if(v === "reboot") {
+print('Rebooting McCrackOS shell session...');
+setTimeout(() => { out.innerHTML = 'McCrack Kernel Console [Version 9.0.4]<br>(c) 2026 McCrack Industries.<br><br>'; }, 300);
+}
 else if(v === "calc") {
 const expr = args.join(' ');
 if(!expr) print("Usage: calc <expression>", "muted");
@@ -1715,8 +1736,63 @@ const ctx = canvas.getContext('2d');
 ctx.drawImage(video, 0, 0);
 output.src = canvas.toDataURL('image/png');
 output.style.display = 'block';
-notify('Photo captured.', 'success');
+saveCapturedPhoto(output.src);
+notify('Photo captured and saved to Files/Camera Booth.', 'success');
 }
+
+function getTodos() {
+try {
+const parsed = JSON.parse(localStorage.getItem('mc_todos'));
+return Array.isArray(parsed) ? parsed : [];
+} catch (_) {
+return [];
+}
+}
+
+function renderTodos() {
+const todos = getTodos();
+if (!todos.length) return '<div style="opacity:0.55;">No tasks yet.</div>';
+return todos.map((item, idx) => `<div style="display:flex; justify-content:space-between; align-items:center; background:#101010; border:1px solid #222; border-radius:8px; padding:8px 10px; margin-bottom:6px;"><span>${item}</span><button onclick="removeTodo(${idx})" style="border:none; background:#261818; color:#ff9999; border-radius:6px; padding:4px 8px; cursor:pointer;">X</button></div>`).join('');
+}
+
+function addTodo() {
+const input = document.getElementById('todo-input');
+if (!input) return;
+const value = input.value.trim();
+if (!value) return;
+const todos = getTodos();
+todos.push(value);
+localStorage.setItem('mc_todos', JSON.stringify(todos));
+input.value = '';
+const list = document.getElementById('todo-list');
+if (list) list.innerHTML = renderTodos();
+}
+
+function removeTodo(index) {
+const todos = getTodos();
+todos.splice(index, 1);
+localStorage.setItem('mc_todos', JSON.stringify(todos));
+const list = document.getElementById('todo-list');
+if (list) list.innerHTML = renderTodos();
+}
+
+function runConverter() {
+const type = document.getElementById('conv-type');
+const valueEl = document.getElementById('conv-value');
+const output = document.getElementById('conv-output');
+if (!type || !valueEl || !output) return;
+const value = Number(valueEl.value);
+if (Number.isNaN(value)) {
+output.textContent = 'Enter a numeric value.';
+return;
+}
+let result = '';
+if (type.value === 'length') result = `${value} m = ${(value * 3.28084).toFixed(2)} ft | ${value} ft = ${(value / 3.28084).toFixed(2)} m`;
+else if (type.value === 'temp') result = `${value}°C = ${(value * 9 / 5 + 32).toFixed(2)}°F | ${value}°F = ${((value - 32) * 5 / 9).toFixed(2)}°C`;
+else result = `${value} kg = ${(value * 2.20462).toFixed(2)} lb | ${value} lb = ${(value / 2.20462).toFixed(2)} kg`;
+output.textContent = result;
+}
+
 
 /* --- MATH ENGINE --- */
 function calcResult() {
