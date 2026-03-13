@@ -498,7 +498,11 @@ hideDesktopHero: false,
 temperatureUnit: 'C',
 weatherState: 'NY',
 desktopSounds: true,
-todoShowCompleted: true
+todoShowCompleted: true,
+cameraGrid: false,
+cameraShutterSound: true,
+cameraResolution: 'hd',
+privacyTelemetry: false
 };
 
 const DEFAULT_ACCOUNT = {
@@ -534,6 +538,10 @@ if (['C', 'F'].includes(raw.temperatureUnit)) base.temperatureUnit = raw.tempera
 if (typeof raw.weatherState === 'string' && raw.weatherState.trim()) base.weatherState = raw.weatherState.toUpperCase();
 if (typeof raw.desktopSounds === 'boolean') base.desktopSounds = raw.desktopSounds;
 if (typeof raw.todoShowCompleted === 'boolean') base.todoShowCompleted = raw.todoShowCompleted;
+if (typeof raw.cameraGrid === 'boolean') base.cameraGrid = raw.cameraGrid;
+if (typeof raw.cameraShutterSound === 'boolean') base.cameraShutterSound = raw.cameraShutterSound;
+if (['sd', 'hd', 'fhd'].includes(raw.cameraResolution)) base.cameraResolution = raw.cameraResolution;
+if (typeof raw.privacyTelemetry === 'boolean') base.privacyTelemetry = raw.privacyTelemetry;
 return base;
 }
 
@@ -552,7 +560,7 @@ widgets: normalizeWidgetFlags(JSON.parse(localStorage.getItem("mc_widgets"))),
 widgetPositions: normalizeWidgetPositions(JSON.parse(localStorage.getItem("mc_widget_pos"))),
 weather: JSON.parse(localStorage.getItem("mc_weather")) || null,
 restricted: ["Browser", "Store", "Terminal", "Files", "Settings"],
-storeApps: ["Movies", "Games", "McCrackChat", "Calculator", "Music", "Music2", "AppFactory", "Notepad", "WidgetCenter", "Docs", "Paint", "ClockPro", "CodeLab", "PhotoBooth", "WeatherDesk", "TodoBoard", "UnitConverter"]
+storeApps: ["Movies", "Games", "McCrackChat", "Calculator", "Music", "Music2", "AppFactory", "Notepad", "WidgetCenter", "Docs", "Paint", "ClockPro", "CodeLab", "PhotoBooth", "WeatherDesk", "TodoBoard", "UnitConverter", "HabitTracker", "QuickSketch", "FocusSounds"]
 };
 
 OS.settings = normalizeSettings(JSON.parse(localStorage.getItem('mc_settings')));
@@ -756,14 +764,13 @@ function renderSettingsApp() {
 const section = OS.settingsSection || 'customization';
 const btnStyle = (id) => `display:block;width:100%;text-align:left;padding:10px 12px;border-radius:10px;border:1px solid ${section === id ? 'var(--accent)' : '#242424'};background:${section === id ? 'rgba(0,120,212,0.18)' : '#101010'};color:#fff;cursor:pointer;font-weight:600;margin-bottom:8px;`;
 const cards = {
-customization: `<div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;">
-<div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Wallpaper</h4><p style="font-size:0.8rem; opacity:0.55; margin:8px 0 14px 0;">Pick presets, URL, or upload image.</p><label style="font-size:0.76rem; opacity:0.6;">Wallpaper Preset</label><select onchange="setWallpaperPreset(this.value)" style="margin-top:7px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;">${WALLPAPER_PRESETS.map(preset => `<option value="${preset.value}" ${OS.bg === preset.value ? 'selected' : ''}>${preset.label}</option>`).join('')}</select><input type="text" id="bg-url" placeholder="https://..." style="width:100%; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px; margin-top:12px;"><button onclick="setBG(document.getElementById('bg-url').value)" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:var(--accent); border:none; color:white; border-radius:8px;">Apply URL</button><button onclick="document.getElementById('bg-upload-settings').click()" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Upload Image</button><input type="file" id="bg-upload-settings" style="display:none" onchange="handleFileUpload(event)" accept="image/*"></div>
-<div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Theme & Branding</h4><p style="font-size:0.8rem; opacity:0.55; margin:8px 0 14px 0;">Accent colors and favicon.</p><label style="font-size:0.76rem; opacity:0.6;">Wallpaper Fit</label><select onchange="setWallpaperFit(this.value)" style="margin-top:7px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;"><option value="cover" ${OS.settings.wallpaperFit === 'cover' ? 'selected' : ''}>Fill Screen</option><option value="contain" ${OS.settings.wallpaperFit === 'contain' ? 'selected' : ''}>Fit Entire Image</option></select><input type="color" value="${OS.accent}" onchange="applyAccent(this.value)" style="margin-top:12px; width:100%; height:42px; background:#111; border:var(--border); border-radius:10px; cursor:pointer;"><button onclick="resetAccent()" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset Accent</button><input type="text" id="favicon-url" value="${OS.favicon}" placeholder="https://..." style="width:100%; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px; margin-top:12px;"><button onclick="setFavicon(document.getElementById('favicon-url').value)" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Apply Favicon</button></div>
-</div>`,
-profile: `<div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;"><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Security & Profile</h4><div style="display:flex; align-items:center; gap:10px; margin:12px 0;"><div class="account-avatar" style="width:54px; height:54px; margin:0; font-size:22px;">${avatarMarkup(OS.account.avatar)}</div><span style="font-size:0.8rem; opacity:0.7;">Current Picture</span></div><div style="display:flex; gap:8px;"><button onclick="document.getElementById('settings-avatar-file').click()" style="flex:1; padding:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:#fff; border-radius:8px;">Upload</button><button onclick="updateAccountAvatar('')" style="flex:1; padding:10px; background:#151515; border:1px solid #2b2b2b; color:#fff; border-radius:8px;">Remove</button></div><input type="file" id="settings-avatar-file" style="display:none" accept="image/*" onchange="onSettingsAvatarSelected(event)"><input type="password" id="new-p" placeholder="New Access Key" style="width:100%; margin-top:12px; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px;"><button onclick="setPass(document.getElementById('new-p').value)" style="width:100%; margin-top:10px; padding:10px; background:#333; border:none; color:white; border-radius:8px;">Update Key</button></div><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Layout Tools</h4><p style="font-size:0.8rem; opacity:0.55; margin:8px 0 14px 0;">Restore desktop defaults quickly.</p><button onclick="resetDesktopLayout()" style="width:100%; padding:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset App Icon Layout</button><button onclick="resetWidgetsLayout()" style="width:100%; margin-top:10px; padding:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset Widget Layout</button></div></div>`,
-system: `<div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;"><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Clock Controls</h4><label style="display:flex; justify-content:space-between; margin-top:12px; font-size:0.88rem;"><span>Show Seconds</span><input type="checkbox" ${OS.settings.clockSeconds ? 'checked' : ''} onchange="setSetting('clockSeconds', this.checked, 'Clock precision updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Use 24-Hour Time</span><input type="checkbox" ${OS.settings.clock24h ? 'checked' : ''} onchange="setSetting('clock24h', this.checked, 'Clock format updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Temperature Unit (°F)</span><input type="checkbox" ${OS.settings.temperatureUnit === 'F' ? 'checked' : ''} onchange="setSetting('temperatureUnit', this.checked ? 'F' : 'C', 'Temperature unit updated.'); refreshWeather(true);"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Desktop Sounds</span><input type="checkbox" ${OS.settings.desktopSounds ? 'checked' : ''} onchange="setSetting('desktopSounds', this.checked, 'Sound preference updated.')"></label></div><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>System Behavior</h4><label style="display:flex; justify-content:space-between; margin-top:12px; font-size:0.88rem;"><span>Desktop Notifications</span><input type="checkbox" ${OS.settings.notifications ? 'checked' : ''} onchange="setSetting('notifications', this.checked, 'Notification preference updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Auto Fullscreen on Any Click</span><input type="checkbox" ${OS.settings.autoFullscreen ? 'checked' : ''} onchange="setSetting('autoFullscreen', this.checked, 'Fullscreen preference updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Compact Desktop Icons</span><input type="checkbox" ${OS.settings.compactIcons ? 'checked' : ''} onchange="setSetting('compactIcons', this.checked, 'Desktop icon density updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Reduce Animations</span><input type="checkbox" ${OS.settings.reducedMotion ? 'checked' : ''} onchange="setSetting('reducedMotion', this.checked, 'Animation preference updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Hide Desktop Hero Text</span><input type="checkbox" ${OS.settings.hideDesktopHero ? 'checked' : ''} onchange="setSetting('hideDesktopHero', this.checked, 'Desktop hero visibility updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Show Completed ToDos</span><input type="checkbox" ${OS.settings.todoShowCompleted ? 'checked' : ''} onchange="setSetting('todoShowCompleted', this.checked, 'ToDo display updated.'); refreshTodoBoard();"></label><label style="font-size:0.76rem; opacity:0.7; display:block; margin-top:12px;">Weather State</label><select onchange="setSetting('weatherState', this.value, 'Weather location updated.'); refreshWeather(true);" style="margin-top:6px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;">${Object.entries(US_STATE_WEATHER).map(([abbr, state]) => `<option value="${abbr}" ${OS.settings.weatherState === abbr ? 'selected' : ''}>${state.name} (${abbr})</option>`).join('')}</select><select onchange="setSetting('bootDelay', Number(this.value), 'Boot timing updated.')" style="margin-top:12px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;"><option value="3000" ${OS.settings.bootDelay === 3000 ? 'selected' : ''}>Fast Boot (3s)</option><option value="6000" ${OS.settings.bootDelay === 6000 ? 'selected' : ''}>Normal Boot (6s)</option><option value="9000" ${OS.settings.bootDelay === 9000 ? 'selected' : ''}>Cinematic Boot (9s)</option></select><button onclick="resetSystemSettings()" style="width:100%; margin-top:10px; padding:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset System Settings</button></div></div>`
+customization: `<div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;"><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Wallpaper</h4><p style="font-size:0.8rem; opacity:0.55; margin:8px 0 14px 0;">Pick presets, URL, or upload image.</p><label style="font-size:0.76rem; opacity:0.6;">Wallpaper Preset</label><select onchange="setWallpaperPreset(this.value)" style="margin-top:7px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;">${WALLPAPER_PRESETS.map(preset => `<option value="${preset.value}" ${OS.bg === preset.value ? 'selected' : ''}>${preset.label}</option>`).join('')}</select><input type="text" id="bg-url" placeholder="https://..." style="width:100%; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px; margin-top:12px;"><button onclick="setBG(document.getElementById('bg-url').value)" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:var(--accent); border:none; color:white; border-radius:8px;">Apply URL</button><button onclick="document.getElementById('bg-upload-settings').click()" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Upload Image</button><input type="file" id="bg-upload-settings" style="display:none" onchange="handleFileUpload(event)" accept="image/*"></div><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Theme & Branding</h4><p style="font-size:0.8rem; opacity:0.55; margin:8px 0 14px 0;">Accent colors and favicon.</p><label style="font-size:0.76rem; opacity:0.6;">Wallpaper Fit</label><select onchange="setWallpaperFit(this.value)" style="margin-top:7px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;"><option value="cover" ${OS.settings.wallpaperFit === 'cover' ? 'selected' : ''}>Fill Screen</option><option value="contain" ${OS.settings.wallpaperFit === 'contain' ? 'selected' : ''}>Fit Entire Image</option></select><input type="color" value="${OS.accent}" onchange="applyAccent(this.value)" style="margin-top:12px; width:100%; height:42px; background:#111; border:var(--border); border-radius:10px; cursor:pointer;"><button onclick="resetAccent()" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset Accent</button><input type="text" id="favicon-url" value="${OS.favicon}" placeholder="https://..." style="width:100%; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px; margin-top:12px;"><button onclick="setFavicon(document.getElementById('favicon-url').value)" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Apply Favicon</button></div></div>`,
+profile: `<div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;"><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Security & Profile</h4><div style="display:flex; align-items:center; gap:10px; margin:12px 0;"><div class="account-avatar" style="width:54px; height:54px; margin:0; font-size:22px;">${avatarMarkup(OS.account.avatar)}</div><span style="font-size:0.8rem; opacity:0.7;">Current Picture</span></div><div style="display:flex; gap:8px;"><button onclick="document.getElementById('settings-avatar-file').click()" style="flex:1; padding:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:#fff; border-radius:8px;">Upload</button><button onclick="updateAccountAvatar('')" style="flex:1; padding:10px; background:#151515; border:1px solid #2b2b2b; color:#fff; border-radius:8px;">Remove</button></div><input type="file" id="settings-avatar-file" style="display:none" accept="image/*" onchange="onSettingsAvatarSelected(event)"><input type="password" id="new-p" placeholder="New Access Key" style="width:100%; margin-top:12px; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px;"><button onclick="setPass(document.getElementById('new-p').value)" style="width:100%; margin-top:10px; padding:10px; background:#333; border:none; color:white; border-radius:8px;">Update Key</button></div><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Layout Tools</h4><button onclick="resetDesktopLayout()" style="width:100%; padding:10px; margin-top:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset App Icon Layout</button><button onclick="resetWidgetsLayout()" style="width:100%; margin-top:10px; padding:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset Widget Layout</button></div></div>`,
+system: `<div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;"><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Clock Controls</h4><label style="display:flex; justify-content:space-between; margin-top:12px;"><span>Show Seconds</span><input type="checkbox" ${OS.settings.clockSeconds ? 'checked' : ''} onchange="setSetting('clockSeconds', this.checked, 'Clock precision updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Use 24-Hour Time</span><input type="checkbox" ${OS.settings.clock24h ? 'checked' : ''} onchange="setSetting('clock24h', this.checked, 'Clock format updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Desktop Sounds</span><input type="checkbox" ${OS.settings.desktopSounds ? 'checked' : ''} onchange="setSetting('desktopSounds', this.checked, 'Sound preference updated.')"></label></div><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>System Behavior</h4><label style="display:flex; justify-content:space-between; margin-top:12px;"><span>Desktop Notifications</span><input type="checkbox" ${OS.settings.notifications ? 'checked' : ''} onchange="setSetting('notifications', this.checked, 'Notification preference updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Compact Desktop Icons</span><input type="checkbox" ${OS.settings.compactIcons ? 'checked' : ''} onchange="setSetting('compactIcons', this.checked, 'Desktop icon density updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Reduce Animations</span><input type="checkbox" ${OS.settings.reducedMotion ? 'checked' : ''} onchange="setSetting('reducedMotion', this.checked, 'Animation preference updated.')"></label><button onclick="resetSystemSettings()" style="width:100%; margin-top:12px; padding:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset System Settings</button></div></div>`,
+camera: `<div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;"><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Camera Defaults</h4><label style="font-size:0.76rem; opacity:0.7; display:block; margin-top:10px;">Default Resolution</label><select onchange="setSetting('cameraResolution', this.value, 'Camera resolution preference saved.')" style="margin-top:6px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;"><option value="sd" ${OS.settings.cameraResolution === 'sd' ? 'selected' : ''}>SD</option><option value="hd" ${OS.settings.cameraResolution === 'hd' ? 'selected' : ''}>HD</option><option value="fhd" ${OS.settings.cameraResolution === 'fhd' ? 'selected' : ''}>Full HD</option></select><label style="display:flex; justify-content:space-between; margin-top:12px;"><span>Show Rule-of-Thirds Grid</span><input type="checkbox" ${OS.settings.cameraGrid ? 'checked' : ''} onchange="setSetting('cameraGrid', this.checked, 'Camera grid updated.'); applyCameraOverlay();"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Shutter Click Sound</span><input type="checkbox" ${OS.settings.cameraShutterSound ? 'checked' : ''} onchange="setSetting('cameraShutterSound', this.checked, 'Camera sound updated.')"></label></div><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Privacy</h4><label style="display:flex; justify-content:space-between; margin-top:12px;"><span>Anonymous Telemetry</span><input type="checkbox" ${OS.settings.privacyTelemetry ? 'checked' : ''} onchange="setSetting('privacyTelemetry', this.checked, 'Privacy preference updated.')"></label><button onclick="stopPhotoBooth()" style="width:100%; margin-top:12px; padding:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Stop Active Camera Stream</button></div></div>`,
+about: `<div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>About This Build</h4><p style="opacity:0.65; margin-top:10px; line-height:1.5;">Expanded settings with more sections for camera and privacy.</p></div>`
 };
-return `<div style="padding:28px; height:100%;"><h2 style="font-weight:500; margin-bottom:16px;">Settings</h2><div style="display:grid; grid-template-columns:220px 1fr; gap:16px; height:calc(100% - 52px);"><aside style="background:#080808; border:1px solid #1a1a1a; border-radius:14px; padding:14px;"><button onclick="setSettingsSection('customization')" style="${btnStyle('customization')}">🎨 Customization</button><button onclick="setSettingsSection('profile')" style="${btnStyle('profile')}">👤 Profile & Security</button><button onclick="setSettingsSection('system')" style="${btnStyle('system')}">🖥️ System</button></aside><section style="overflow:auto; background:#080808; border:1px solid #1a1a1a; border-radius:14px; padding:14px;">${cards[section] || cards.customization}</section></div></div>`;
+return `<div style="padding:28px; height:100%;"><h2 style="font-weight:500; margin-bottom:16px;">Settings</h2><div style="display:grid; grid-template-columns:220px 1fr; gap:16px; height:calc(100% - 52px);"><aside style="background:#080808; border:1px solid #1a1a1a; border-radius:14px; padding:14px;"><button onclick="setSettingsSection('customization')" style="${btnStyle('customization')}">🎨 Customization</button><button onclick="setSettingsSection('profile')" style="${btnStyle('profile')}">👤 Profile & Security</button><button onclick="setSettingsSection('system')" style="${btnStyle('system')}">🖥️ System</button><button onclick="setSettingsSection('camera')" style="${btnStyle('camera')}">📷 Camera</button><button onclick="setSettingsSection('about')" style="${btnStyle('about')}">ℹ️ About</button></aside><section style="overflow:auto; background:#080808; border:1px solid #1a1a1a; border-radius:14px; padding:14px;">${cards[section] || cards.customization}</section></div></div>`;
 }
 
 const Registry = {
@@ -775,9 +782,9 @@ McCrackChat: { icon: "💬", content: () => buildAppFrame("https://patrickmango4
 Docs: { icon: "📚", content: () => buildAppFrame("https://docs.astro.build") },
 Paint: { icon: "🎨", content: () => buildAppFrame("https://jspaint.app") },
 Music2: { icon: "🎶", content: () => buildAppFrame("https://freefy.app/") },
-ClockPro: { icon: "⏱️", content: () => `<div style="padding:48px; text-align:center;"><h2 style="margin-bottom:16px;">Clock Pro</h2><p style="opacity:0.6; margin-bottom:24px;">A quick productivity timer and local time helper.</p><div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; max-width:460px; margin:0 auto;"><button onclick="startPomodoro(25)" style="padding:12px; border:none; border-radius:10px; background:var(--accent); color:white; font-weight:700;">25m Focus</button><button onclick="startPomodoro(5)" style="padding:12px; border:none; border-radius:10px; background:#1f1f1f; color:white; font-weight:700;">5m Break</button><button onclick="stopPomodoro()" style="padding:12px; border:none; border-radius:10px; background:#3a2020; color:white; font-weight:700;">Stop</button></div><div id="pomodoro-status" style="margin-top:24px; font-size:1.2rem; font-weight:700;">Timer idle</div></div>` },
+ClockPro: { icon: "⏱️", content: () => `<div style="padding:34px;"><h2 style="margin-bottom:8px;">Clock Pro</h2><p style="opacity:0.6; margin-bottom:16px;">Pomodoro + stopwatch + alarms + world time zones.</p><div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px;"><button onclick="startPomodoro(25)" style="padding:12px; border:none; border-radius:10px; background:var(--accent); color:white; font-weight:700;">25m Focus</button><button onclick="startPomodoro(15)" style="padding:12px; border:none; border-radius:10px; background:#1f1f1f; color:white; font-weight:700;">15m Sprint</button><button onclick="startPomodoro(5)" style="padding:12px; border:none; border-radius:10px; background:#1f1f1f; color:white; font-weight:700;">5m Break</button><button onclick="stopPomodoro()" style="padding:12px; border:none; border-radius:10px; background:#3a2020; color:white; font-weight:700;">Stop</button></div><div id="pomodoro-status" style="margin-top:16px; font-size:1.05rem; font-weight:700;">Timer idle</div><div style="margin-top:18px; display:grid; grid-template-columns:1fr auto auto; gap:8px;"><input id="alarm-mins" type="number" min="1" placeholder="Alarm in minutes" style="padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><button onclick="setClockAlarm()" style="padding:10px 12px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Set Alarm</button><button onclick="clearClockAlarm()" style="padding:10px 12px; border:none; border-radius:8px; background:#2a1a1a; color:#fff;">Clear</button></div><div id="clock-alarm-status" style="margin-top:8px; opacity:0.75;">No alarm set.</div><div style="margin-top:18px; display:grid; grid-template-columns:1fr auto auto; gap:8px; align-items:center;"><div id="clock-stopwatch" style="padding:10px; background:#0f0f0f; border:1px solid #222; border-radius:8px; font-family:monospace; font-size:1.1rem;">00:00.0</div><button onclick="startStopwatch()" style="padding:10px 12px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Start/Stop</button><button onclick="resetStopwatch()" style="padding:10px 12px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Reset</button></div><div style="margin-top:18px; background:#0f0f0f; border:1px solid #222; border-radius:10px; padding:12px;">${renderWorldClocks()}</div></div>` },
 CodeLab: { icon: "🧪", content: () => buildAppFrame("https://onecompiler.com/html/3y5x8jr6s") },
-PhotoBooth: { icon: "📸", content: () => `<div style="padding:36px;"><h2 style="margin-bottom:8px;">Photo Booth</h2><p style="opacity:0.58; margin-bottom:16px;">Capture webcam shots with filters and a timer.</p><video id="photo-video" autoplay playsinline style="width:100%; max-height:330px; border-radius:14px; border:1px solid #222; background:#000;"></video><canvas id="photo-canvas" style="display:none;"></canvas><div style="display:grid; grid-template-columns:1fr 170px; gap:12px; margin-top:14px;"><select id="photo-filter" onchange="applyPhotoFilter(this.value)" style="padding:10px; border-radius:10px; border:1px solid #222; background:#111; color:#fff;"><option value="none">No Filter</option><option value="grayscale(1)">B&W</option><option value="sepia(0.8)">Sepia</option><option value="contrast(1.3) saturate(1.3)">Vivid</option></select><select id="photo-timer" style="padding:10px; border-radius:10px; border:1px solid #222; background:#111; color:#fff;"><option value="0">No Timer</option><option value="3">3 Seconds</option><option value="5">5 Seconds</option></select></div><div style="display:flex; gap:12px; margin-top:14px;"><button onclick="capturePhoto()" style="flex:1; padding:12px; border:none; border-radius:10px; background:var(--accent); color:#fff; font-weight:700;">Capture</button><button onclick="startPhotoBooth()" style="flex:1; padding:12px; border:none; border-radius:10px; background:#1f1f1f; color:#fff; font-weight:700;">Restart Camera</button><button onclick="mirrorPhotoPreview()" style="padding:12px; border:none; border-radius:10px; background:#1f1f1f; color:#fff; font-weight:700;">Mirror</button></div><div id="photo-status" style="margin-top:10px; opacity:0.7;"></div><img id="photo-output" alt="Captured photo" style="width:100%; margin-top:14px; border-radius:14px; border:1px solid #222; display:none;"></div>` },
+PhotoBooth: { icon: "📸", content: () => `<div style="padding:36px;"><h2 style="margin-bottom:8px;">Photo Booth</h2><p style="opacity:0.58; margin-bottom:16px;">Capture webcam shots with pro filters and camera controls.</p><div style="position:relative;"><video id="photo-video" autoplay playsinline style="width:100%; max-height:330px; border-radius:14px; border:1px solid #222; background:#000;"></video><div id="camera-grid-overlay" style="display:none; position:absolute; inset:0; pointer-events:none; border-radius:14px; background-image:linear-gradient(to right, transparent 32%, rgba(255,255,255,0.2) 33%, transparent 34%, transparent 65%, rgba(255,255,255,0.2) 66%, transparent 67%), linear-gradient(to bottom, transparent 32%, rgba(255,255,255,0.2) 33%, transparent 34%, transparent 65%, rgba(255,255,255,0.2) 66%, transparent 67%);"></div></div><canvas id="photo-canvas" style="display:none;"></canvas><div style="display:grid; grid-template-columns:1fr 160px 160px; gap:12px; margin-top:14px;"><select id="photo-filter" onchange="applyPhotoFilter(this.value)" style="padding:10px; border-radius:10px; border:1px solid #222; background:#111; color:#fff;"><option value="none">No Filter</option><option value="grayscale(1)">B&W</option><option value="sepia(0.8)">Sepia</option><option value="contrast(1.3) saturate(1.3)">Vivid</option><option value="brightness(1.2) contrast(1.15)">Bright</option><option value="hue-rotate(35deg) saturate(1.2)">Warm Glow</option><option value="hue-rotate(200deg) contrast(1.15)">Cool Night</option><option value="invert(1)">Inverted</option></select><select id="photo-timer" style="padding:10px; border-radius:10px; border:1px solid #222; background:#111; color:#fff;"><option value="0">No Timer</option><option value="3">3 Seconds</option><option value="5">5 Seconds</option><option value="10">10 Seconds</option></select><select id="photo-quality" style="padding:10px; border-radius:10px; border:1px solid #222; background:#111; color:#fff;"><option value="0.7">Standard JPG</option><option value="0.9">High JPG</option><option value="1">Max JPG</option></select></div><div style="display:flex; gap:12px; margin-top:14px;"><button onclick="capturePhoto()" style="flex:1; padding:12px; border:none; border-radius:10px; background:var(--accent); color:#fff; font-weight:700;">Capture</button><button onclick="startPhotoBooth()" style="flex:1; padding:12px; border:none; border-radius:10px; background:#1f1f1f; color:#fff; font-weight:700;">Restart Camera</button><button onclick="mirrorPhotoPreview()" style="padding:12px; border:none; border-radius:10px; background:#1f1f1f; color:#fff; font-weight:700;">Mirror</button><button onclick="toggleCameraGrid()" style="padding:12px; border:none; border-radius:10px; background:#1f1f1f; color:#fff; font-weight:700;">Grid</button></div><div id="photo-status" style="margin-top:10px; opacity:0.7;"></div><img id="photo-output" alt="Captured photo" style="width:100%; margin-top:14px; border-radius:14px; border:1px solid #222; display:none;"></div>` },
 Terminal: { icon: "⌨️", content: () => `<div id="t-out" style="padding:25px;color:#0f0;font-family:monospace;height:calc(100% - 60px);overflow:auto;line-height:1.5;font-size:0.9rem;">McCrack Kernel Console [Version 9.0.4]<br>(c) 2026 McCrack Industries.<br><br></div><input onkeydown="cmd(event, this)" style="width:100%;background:#050505;border:none;border-top:1px solid #222;color:#0f0;padding:18px;outline:none;font-family:monospace;font-size:1rem;">` },
 Files: { icon: "📁", content: () => `<div style="padding:30px;">
 <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
@@ -822,6 +829,9 @@ ${renderStoreItem('PhotoBooth', 'Camera Snapshot Studio')}
 ${renderStoreItem('WeatherDesk', 'Quick Weather Dashboard')}
 ${renderStoreItem('TodoBoard', 'Simple Daily Task Manager')}
 ${renderStoreItem('UnitConverter', 'Convert Length, Weight, Temperature')}
+${renderStoreItem('HabitTracker', 'Track daily streaks and habits')}
+${renderStoreItem('QuickSketch', 'Fast doodles and idea capture')}
+${renderStoreItem('FocusSounds', 'Ambient loops for concentration')}
 </div>
 </div>` },
 Settings: { icon: "⚙️", content: () => renderSettingsApp() },
@@ -844,6 +854,10 @@ Calculator: { icon: "🧮", content: () => `<div style="padding:50px; text-align
 UnitConverter: { icon: "📐", content: () => `<div style="padding:30px; max-width:560px; margin:0 auto;"><h2 style="margin-bottom:8px;">Unit Converter</h2><p style="opacity:0.6; margin-bottom:12px;">Convert quickly between common units.</p><select id="conv-type" style="width:100%; padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><option value="length">Length (m ↔ ft)</option><option value="temp">Temperature (C ↔ F)</option><option value="weight">Weight (kg ↔ lb)</option></select><input id="conv-value" type="number" placeholder="Enter value" style="margin-top:10px; width:100%; padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><button onclick="runConverter()" style="margin-top:10px; width:100%; padding:10px; border:none; border-radius:8px; background:var(--accent); color:white; font-weight:700;">Convert</button><div id="conv-output" style="margin-top:12px; font-weight:700;"></div></div>` },
 TodoBoard: { icon: "✅", content: () => `<div style="padding:30px; max-width:700px; margin:0 auto;"><h2>Todo Board</h2><p style="opacity:0.6; margin:8px 0 12px 0;">Plan tasks with priority + completion tracking.</p><div style="display:grid; grid-template-columns:1fr 140px auto; gap:8px;"><input id="todo-input" placeholder="Add a task" style="padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><select id="todo-priority" style="padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><option value="low">Low</option><option value="med" selected>Medium</option><option value="high">High</option></select><button onclick="addTodo()" style="padding:10px 14px; border:none; border-radius:8px; background:var(--accent); color:#fff;">Add</button></div><div style="margin-top:10px; display:flex; gap:8px;"><button onclick="clearCompletedTodos()" style="padding:8px 12px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Clear Completed</button><button onclick="toggleTodoFilter()" style="padding:8px 12px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Toggle Completed Visibility</button></div><div id="todo-list" style="margin-top:12px;">${renderTodos()}</div></div>` },
 WeatherDesk: { icon: "🌦️", content: () => `<div style="padding:32px; max-width:760px; margin:0 auto;"><h2>Weather Desk</h2><p style="opacity:0.58; margin:8px 0 14px 0;">Check weather by US state and refresh on demand.</p><div style="display:flex; gap:10px; margin-bottom:12px;"><select id="weather-state" onchange="chooseWeatherState(this.value)" style="flex:1; background:#111; color:#fff; border:1px solid #222; border-radius:8px; padding:10px;">${Object.entries(US_STATE_WEATHER).map(([abbr, state]) => `<option value="${abbr}" ${OS.settings.weatherState === abbr ? 'selected' : ''}>${state.name} (${abbr})</option>`).join('')}</select><button onclick="refreshWeather(true)" style="padding:10px 14px; border:none; border-radius:8px; background:var(--accent); color:white;">Refresh</button></div><div style="background:#0d0d0d; border:1px solid #242424; border-radius:12px; padding:16px;">${OS.weather ? `<div style="font-size:1.5rem; font-weight:700;">${Math.round(OS.weather.temp)}°${OS.settings.temperatureUnit}</div><div style="margin-top:4px; opacity:0.7;">${OS.weather.city}</div><div style="margin-top:6px; opacity:0.8; text-transform:capitalize;">${OS.weather.label}</div><div style="margin-top:8px; opacity:0.55;">Wind ${OS.weather.wind ?? '--'} mph • Updated ${OS.weather.updatedAt || 'just now'}</div>` : `<div style="opacity:0.6;">Weather data unavailable. Widget will refresh automatically.</div>`}</div></div>` },
+
+HabitTracker: { icon: "📆", content: () => `<div style="padding:30px; max-width:680px; margin:0 auto;"><h2>Habit Tracker</h2><p style="opacity:0.6; margin:8px 0 12px 0;">Create habits and keep your streak alive.</p><div style="display:flex; gap:8px;"><input id="habit-input" placeholder="Add a habit" style="flex:1; padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><button onclick="addHabit()" style="padding:10px 14px; border:none; border-radius:8px; background:var(--accent); color:#fff;">Add</button></div><div id="habit-list" style="margin-top:12px;">${renderHabits()}</div></div>` },
+QuickSketch: { icon: "🖌️", content: () => `<div style="padding:24px;"><h2 style="margin-bottom:10px;">Quick Sketch</h2><p style="opacity:0.6; margin-bottom:10px;">Draw fast ideas locally.</p><canvas id="sketch-canvas" width="760" height="380" style="width:100%; background:#fff; border-radius:12px; cursor:crosshair;"></canvas><div style="display:flex; gap:8px; margin-top:10px;"><input id="sketch-color" type="color" value="#000000" onchange="setSketchColor(this.value)"><input id="sketch-size" type="range" min="1" max="18" value="3" onchange="setSketchSize(this.value)"><button onclick="clearSketch()" style="padding:8px 12px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Clear</button></div></div>` },
+FocusSounds: { icon: "🎧", content: () => `<div style="padding:28px; max-width:660px; margin:0 auto;"><h2>Focus Sounds</h2><p style="opacity:0.6; margin:8px 0 14px 0;">Play simple ambient tones while you work.</p><div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px;"><button onclick="playFocusTone(140)" style="padding:10px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Rain</button><button onclick="playFocusTone(220)" style="padding:10px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Cafe</button><button onclick="playFocusTone(310)" style="padding:10px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Deep Space</button></div><button onclick="stopFocusTone()" style="margin-top:12px; padding:10px 14px; border:none; border-radius:8px; background:#2a1a1a; color:#fff;">Stop</button><div id="focus-status" style="margin-top:10px; opacity:0.7;">Idle</div></div>` },
 SystemLogs: { icon: "📑", content: () => `<div style="padding:30px;">
 <h3>System Session Logs</h3><br>
 <div id="log-list" style="font-family:monospace; font-size:0.8rem; color:#aaa;">
@@ -1557,6 +1571,7 @@ if(!Registry[id]) return;
 addLog(`Launched module: ${id}`);
 notify(`Opened ${id}.`);
 if (id === 'PhotoBooth') setTimeout(startPhotoBooth, 40);
+if (id === 'QuickSketch') setTimeout(initSketchPad, 40);
 const w = document.createElement('div'); w.className = 'window';
 w.style.width='950px'; w.style.height='650px'; w.style.left='100px'; w.style.top='80px'; w.style.zIndex = ++OS.z;
 w.innerHTML = `<div class="win-head">
@@ -1841,13 +1856,40 @@ function startPhotoBooth() {
 const video = document.getElementById('photo-video');
 const status = document.getElementById('photo-status');
 if (!video || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
-navigator.mediaDevices.getUserMedia({ video: true, audio: false }).then(stream => {
+const presets = {
+  sd: { width: { ideal: 640 }, height: { ideal: 480 } },
+  hd: { width: { ideal: 1280 }, height: { ideal: 720 } },
+  fhd: { width: { ideal: 1920 }, height: { ideal: 1080 } }
+};
+const constraints = { video: presets[OS.settings.cameraResolution] || presets.hd, audio: false };
+navigator.mediaDevices.getUserMedia(constraints).then(stream => {
 video.srcObject = stream;
-if (status) status.textContent = 'Camera ready.';
+if (status) status.textContent = `Camera ready (${OS.settings.cameraResolution.toUpperCase()}).`;
+applyCameraOverlay();
 }).catch(() => {
 if (status) status.textContent = 'Camera permission denied or unavailable.';
 notify('Camera permission denied or unavailable.', 'warning');
 });
+}
+
+function stopPhotoBooth() {
+const video = document.getElementById('photo-video');
+if (!video || !video.srcObject) return;
+video.srcObject.getTracks().forEach(track => track.stop());
+video.srcObject = null;
+const status = document.getElementById('photo-status');
+if (status) status.textContent = 'Camera stopped.';
+}
+
+function applyCameraOverlay() {
+const overlay = document.getElementById('camera-grid-overlay');
+if (!overlay) return;
+overlay.style.display = OS.settings.cameraGrid ? 'block' : 'none';
+}
+
+function toggleCameraGrid() {
+setSetting('cameraGrid', !OS.settings.cameraGrid, 'Camera grid toggled.');
+applyCameraOverlay();
 }
 
 function applyPhotoFilter(filterValue = 'none') {
@@ -1868,12 +1910,11 @@ const video = document.getElementById('photo-video');
 const canvas = document.getElementById('photo-canvas');
 const output = document.getElementById('photo-output');
 const timerEl = document.getElementById('photo-timer');
+const qualityEl = document.getElementById('photo-quality');
 const status = document.getElementById('photo-status');
 if (!video || !canvas || !output || !video.videoWidth) return;
 const delay = Number(timerEl ? timerEl.value : 0);
-if (delay > 0) {
-if (status) status.textContent = `Capturing in ${delay}...`;
-}
+if (delay > 0 && status) status.textContent = `Capturing in ${delay}...`;
 setTimeout(() => {
 canvas.width = video.videoWidth;
 canvas.height = video.videoHeight;
@@ -1884,9 +1925,11 @@ ctx.scale(-1, 1);
 }
 ctx.filter = (document.getElementById('photo-filter') || {}).value || 'none';
 ctx.drawImage(video, 0, 0);
-output.src = canvas.toDataURL('image/png');
+const quality = Number(qualityEl ? qualityEl.value : 0.9);
+output.src = canvas.toDataURL('image/jpeg', quality);
 output.style.display = 'block';
 saveCapturedPhoto(output.src);
+if (OS.settings.cameraShutterSound) playClickSound(880, 0.05);
 if (status) status.textContent = 'Photo captured.';
 notify('Photo captured and saved to Files/Camera Booth.', 'success');
 }, delay * 1000);
@@ -2070,6 +2113,170 @@ else result = `${value} kg = ${(value * 2.20462).toFixed(2)} lb | ${value} lb = 
 output.textContent = result;
 }
 
+
+function renderWorldClocks() {
+const zones = [['New York','America/New_York'],['London','Europe/London'],['Tokyo','Asia/Tokyo']];
+return zones.map(([label, zone]) => `<div style="display:flex; justify-content:space-between; margin-bottom:6px;"><span>${label}</span><strong>${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: !OS.settings.clock24h, timeZone: zone })}</strong></div>`).join('');
+}
+
+function setClockAlarm() {
+const input = document.getElementById('alarm-mins');
+const status = document.getElementById('clock-alarm-status');
+const mins = Number(input ? input.value : 0);
+if (!mins || mins < 1) { if (status) status.textContent = 'Enter at least 1 minute.'; return; }
+if (window.mcClockAlarm) clearTimeout(window.mcClockAlarm);
+window.mcClockAlarm = setTimeout(() => {
+notify('ClockPro alarm ringing!', 'success');
+playClickSound(990, 0.1);
+const target = document.getElementById('clock-alarm-status');
+if (target) target.textContent = 'Alarm complete.';
+}, mins * 60000);
+if (status) status.textContent = `Alarm set for ${mins} minute(s).`;
+}
+
+function clearClockAlarm() {
+if (window.mcClockAlarm) clearTimeout(window.mcClockAlarm);
+window.mcClockAlarm = null;
+const status = document.getElementById('clock-alarm-status');
+if (status) status.textContent = 'No alarm set.';
+}
+
+function formatStopwatch(ms) {
+const total = Math.floor(ms / 100);
+const minutes = String(Math.floor(total / 600)).padStart(2, '0');
+const seconds = String(Math.floor((total % 600) / 10)).padStart(2, '0');
+const tenths = total % 10;
+return `${minutes}:${seconds}.${tenths}`;
+}
+
+function startStopwatch() {
+if (!window.mcStopwatch) window.mcStopwatch = { running: false, elapsed: 0, startedAt: 0, timer: null };
+const sw = window.mcStopwatch;
+if (sw.running) {
+sw.elapsed += Date.now() - sw.startedAt;
+sw.running = false;
+clearInterval(sw.timer);
+sw.timer = null;
+} else {
+sw.startedAt = Date.now();
+sw.running = true;
+sw.timer = setInterval(() => {
+const view = document.getElementById('clock-stopwatch');
+if (view) view.textContent = formatStopwatch(sw.elapsed + (Date.now() - sw.startedAt));
+}, 100);
+}
+}
+
+function resetStopwatch() {
+if (!window.mcStopwatch) window.mcStopwatch = { running: false, elapsed: 0, startedAt: 0, timer: null };
+const sw = window.mcStopwatch;
+if (sw.timer) clearInterval(sw.timer);
+window.mcStopwatch = { running: false, elapsed: 0, startedAt: 0, timer: null };
+const view = document.getElementById('clock-stopwatch');
+if (view) view.textContent = '00:00.0';
+}
+
+function getHabits() {
+try { const parsed = JSON.parse(localStorage.getItem('mc_habits')); return Array.isArray(parsed) ? parsed : []; } catch (_) { return []; }
+}
+
+function saveHabits(habits) {
+localStorage.setItem('mc_habits', JSON.stringify(habits.slice(0, 50)));
+}
+
+function renderHabits() {
+const habits = getHabits();
+if (!habits.length) return '<div style="opacity:0.55;">No habits yet.</div>';
+return habits.map((h, i) => `<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; background:#101010; border:1px solid #222; border-radius:8px; padding:8px 10px; margin-bottom:6px;"><span>${h.name} <span style="opacity:0.55;">🔥 ${h.streak || 0}</span></span><div><button onclick="checkHabit(${i})" style="border:none; background:#1f1f1f; color:#fff; border-radius:6px; padding:4px 8px; margin-right:6px;">Check</button><button onclick="removeHabit(${i})" style="border:none; background:#261818; color:#ff9999; border-radius:6px; padding:4px 8px;">X</button></div></div>`).join('');
+}
+
+function refreshHabitTracker() {
+if (!OS.running['HabitTracker']) return;
+OS.running['HabitTracker'].querySelector('.win-body').innerHTML = Registry['HabitTracker'].content();
+}
+
+function addHabit() {
+const input = document.getElementById('habit-input');
+if (!input) return;
+const value = input.value.trim();
+if (!value) return;
+const habits = getHabits();
+habits.push({ name: value, streak: 0, lastCheck: '' });
+saveHabits(habits);
+input.value = '';
+refreshHabitTracker();
+}
+
+function checkHabit(index) {
+const habits = getHabits();
+if (!habits[index]) return;
+const today = new Date().toISOString().slice(0,10);
+if (habits[index].lastCheck !== today) {
+habits[index].streak = (habits[index].streak || 0) + 1;
+habits[index].lastCheck = today;
+}
+saveHabits(habits);
+refreshHabitTracker();
+}
+
+function removeHabit(index) {
+const habits = getHabits();
+habits.splice(index, 1);
+saveHabits(habits);
+refreshHabitTracker();
+}
+
+function initSketchPad() {
+const canvas = document.getElementById('sketch-canvas');
+if (!canvas || canvas.dataset.ready === '1') return;
+const ctx = canvas.getContext('2d');
+ctx.lineCap = 'round';
+ctx.strokeStyle = window.mcSketchColor || '#000000';
+ctx.lineWidth = window.mcSketchSize || 3;
+let drawing = false;
+const draw = (e) => {
+if (!drawing) return;
+const r = canvas.getBoundingClientRect();
+ctx.lineTo((e.clientX - r.left) * (canvas.width / r.width), (e.clientY - r.top) * (canvas.height / r.height));
+ctx.stroke();
+};
+canvas.addEventListener('pointerdown', (e) => { drawing = true; const r = canvas.getBoundingClientRect(); ctx.beginPath(); ctx.moveTo((e.clientX-r.left)*(canvas.width/r.width), (e.clientY-r.top)*(canvas.height/r.height)); });
+canvas.addEventListener('pointermove', draw);
+canvas.addEventListener('pointerup', () => drawing = false);
+canvas.addEventListener('pointerleave', () => drawing = false);
+canvas.dataset.ready = '1';
+}
+
+function setSketchColor(color) { window.mcSketchColor = color; const canvas=document.getElementById('sketch-canvas'); if (!canvas) return; canvas.getContext('2d').strokeStyle = color; }
+function setSketchSize(size) { window.mcSketchSize = Number(size); const canvas=document.getElementById('sketch-canvas'); if (!canvas) return; canvas.getContext('2d').lineWidth = Number(size); }
+function clearSketch() { const canvas=document.getElementById('sketch-canvas'); if (!canvas) return; const ctx=canvas.getContext('2d'); ctx.clearRect(0,0,canvas.width,canvas.height); }
+
+function playFocusTone(freq = 140) {
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+if (!AudioCtx) return;
+if (!window.mcFocusCtx) window.mcFocusCtx = new AudioCtx();
+stopFocusTone();
+const osc = window.mcFocusCtx.createOscillator();
+const gain = window.mcFocusCtx.createGain();
+osc.type = 'sine';
+osc.frequency.value = freq;
+gain.gain.value = 0.03;
+osc.connect(gain);
+gain.connect(window.mcFocusCtx.destination);
+osc.start();
+window.mcFocusOsc = osc;
+const status = document.getElementById('focus-status');
+if (status) status.textContent = `Playing tone ${freq}Hz`;
+}
+
+function stopFocusTone() {
+if (window.mcFocusOsc) {
+window.mcFocusOsc.stop();
+window.mcFocusOsc = null;
+}
+const status = document.getElementById('focus-status');
+if (status) status.textContent = 'Idle';
+}
 
 /* --- MATH ENGINE --- */
 function calcResult() {
