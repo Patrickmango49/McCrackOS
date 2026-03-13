@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>𝕄𝕔ℂ𝕣𝕒𝕔𝕜OS V9.0</title>
+<title>𝕄𝕔ℂ𝕣𝕒𝕔𝕜OS V1.0</title>
 <link id="favicon-link" rel="icon" type="image/png" href="https://i.imgur.com/HfPyMtK.png">
 <style>
 /* --- CORE SYSTEM VARIABLES --- */
@@ -357,7 +357,7 @@ display: flex; align-items: center; padding: 0 25px; z-index: 8500; border-top: 
 <body id="os-root">
 
 <div id="top-bar">
-<div>𝕄𝕔ℂ𝕣𝕒𝕔𝕜OS <span style="opacity:0.3; margin-left:10px;">V9.0.4</span></div>
+<div>𝕄𝕔ℂ𝕣𝕒𝕔𝕜OS <span style="opacity:0.3; margin-left:10px;">V1.0.4</span></div>
 <div class="top-right">
 <div id="battery-stat"><span>100%</span> 🔋</div>
 <div id="lock-btn" onclick="lockSystem()">TERMINATE SESSION</div>
@@ -366,7 +366,7 @@ display: flex; align-items: center; padding: 0 25px; z-index: 8500; border-top: 
 
 <div id="boot">
 <div id="boot-terminal" class="boot-stage">
-<h2>ROOT@MCCRACKOS://BOOT_MATRIX <span class="boot-cursor"></span></h2>
+<h2>ROOT@𝕄𝕔ℂ𝕣𝕒𝕔𝕜OS://BOOT_MATRIX <span class="boot-cursor"></span></h2>
 <div id="hack-logs"></div>
 </div>
 <div id="boot-loading" class="boot-stage boot-loading">
@@ -560,7 +560,7 @@ widgets: normalizeWidgetFlags(JSON.parse(localStorage.getItem("mc_widgets"))),
 widgetPositions: normalizeWidgetPositions(JSON.parse(localStorage.getItem("mc_widget_pos"))),
 weather: JSON.parse(localStorage.getItem("mc_weather")) || null,
 restricted: ["Browser", "Store", "Terminal", "Files", "Settings"],
-storeApps: ["Movies", "Games", "McCrackChat", "Calculator", "Music", "Music2", "AppFactory", "Notepad", "WidgetCenter", "Docs", "Paint", "ClockPro", "CodeLab", "PhotoBooth", "WeatherDesk", "TodoBoard", "UnitConverter", "HabitTracker", "QuickSketch", "FocusSounds"]
+storeApps: ["Movies", "Games", "𝕄𝕔ℂ𝕣𝕒𝕔𝕜Chat", "Calculator", "Music", "Music2", "AppFactory", "Notepad", "WidgetCenter", "Docs", "Paint", "ClockPro", "CodeLab", "PhotoBooth", "WeatherDesk", "TodoBoard", "UnitConverter", "HabitTracker", "QuickSketch", "FocusSounds"]
 };
 
 OS.settings = normalizeSettings(JSON.parse(localStorage.getItem('mc_settings')));
@@ -778,14 +778,14 @@ Notepad: { icon: "📝", content: () => `<textarea oninput="localStorage.setItem
 Browser: { icon: "🌐", content: () => buildAppFrame("https://siuuu.pagostepeapulco.gob.mx/") },
 Movies: { icon: "📺", content: () => buildAppFrame("https://mccrack.neocities.org/movies") },
 Games: { icon: "🎮", content: () => buildAppFrame("https://mccrack.neocities.org/games") },
-McCrackChat: { icon: "💬", content: () => buildAppFrame("https://patrickmango49.github.io/McCrack-Chat/") },
+𝕄𝕔ℂ𝕣𝕒𝕔𝕜Chat: { icon: "💬", content: () => buildAppFrame("https://patrickmango49.github.io/McCrack-Chat/") },
 Docs: { icon: "📚", content: () => buildAppFrame("https://docs.astro.build") },
 Paint: { icon: "🎨", content: () => buildAppFrame("https://jspaint.app") },
 Music2: { icon: "🎶", content: () => buildAppFrame("https://freefy.app/") },
 ClockPro: { icon: "⏱️", content: () => `<div style="padding:34px;"><h2 style="margin-bottom:8px;">Clock Pro</h2><p style="opacity:0.6; margin-bottom:16px;">Pomodoro + stopwatch + alarms + world time zones.</p><div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px;"><button onclick="startPomodoro(25)" style="padding:12px; border:none; border-radius:10px; background:var(--accent); color:white; font-weight:700;">25m Focus</button><button onclick="startPomodoro(15)" style="padding:12px; border:none; border-radius:10px; background:#1f1f1f; color:white; font-weight:700;">15m Sprint</button><button onclick="startPomodoro(5)" style="padding:12px; border:none; border-radius:10px; background:#1f1f1f; color:white; font-weight:700;">5m Break</button><button onclick="stopPomodoro()" style="padding:12px; border:none; border-radius:10px; background:#3a2020; color:white; font-weight:700;">Stop</button></div><div id="pomodoro-status" style="margin-top:16px; font-size:1.05rem; font-weight:700;">Timer idle</div><div style="margin-top:18px; display:grid; grid-template-columns:1fr auto auto; gap:8px;"><input id="alarm-mins" type="number" min="1" placeholder="Alarm in minutes" style="padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><button onclick="setClockAlarm()" style="padding:10px 12px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Set Alarm</button><button onclick="clearClockAlarm()" style="padding:10px 12px; border:none; border-radius:8px; background:#2a1a1a; color:#fff;">Clear</button></div><div id="clock-alarm-status" style="margin-top:8px; opacity:0.75;">No alarm set.</div><div style="margin-top:18px; display:grid; grid-template-columns:1fr auto auto; gap:8px; align-items:center;"><div id="clock-stopwatch" style="padding:10px; background:#0f0f0f; border:1px solid #222; border-radius:8px; font-family:monospace; font-size:1.1rem;">00:00.0</div><button onclick="startStopwatch()" style="padding:10px 12px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Start/Stop</button><button onclick="resetStopwatch()" style="padding:10px 12px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Reset</button></div><div style="margin-top:18px; background:#0f0f0f; border:1px solid #222; border-radius:10px; padding:12px;">${renderWorldClocks()}</div></div>` },
 CodeLab: { icon: "🧪", content: () => buildAppFrame("https://onecompiler.com/html/3y5x8jr6s") },
 PhotoBooth: { icon: "📸", content: () => `<div style="padding:36px;"><h2 style="margin-bottom:8px;">Photo Booth</h2><p style="opacity:0.58; margin-bottom:16px;">Capture webcam shots with pro filters and camera controls.</p><div style="position:relative;"><video id="photo-video" autoplay playsinline style="width:100%; max-height:330px; border-radius:14px; border:1px solid #222; background:#000;"></video><div id="camera-grid-overlay" style="display:none; position:absolute; inset:0; pointer-events:none; border-radius:14px; background-image:linear-gradient(to right, transparent 32%, rgba(255,255,255,0.2) 33%, transparent 34%, transparent 65%, rgba(255,255,255,0.2) 66%, transparent 67%), linear-gradient(to bottom, transparent 32%, rgba(255,255,255,0.2) 33%, transparent 34%, transparent 65%, rgba(255,255,255,0.2) 66%, transparent 67%);"></div></div><canvas id="photo-canvas" style="display:none;"></canvas><div style="display:grid; grid-template-columns:1fr 160px 160px; gap:12px; margin-top:14px;"><select id="photo-filter" onchange="applyPhotoFilter(this.value)" style="padding:10px; border-radius:10px; border:1px solid #222; background:#111; color:#fff;"><option value="none">No Filter</option><option value="grayscale(1)">B&W</option><option value="sepia(0.8)">Sepia</option><option value="contrast(1.3) saturate(1.3)">Vivid</option><option value="brightness(1.2) contrast(1.15)">Bright</option><option value="hue-rotate(35deg) saturate(1.2)">Warm Glow</option><option value="hue-rotate(200deg) contrast(1.15)">Cool Night</option><option value="invert(1)">Inverted</option></select><select id="photo-timer" style="padding:10px; border-radius:10px; border:1px solid #222; background:#111; color:#fff;"><option value="0">No Timer</option><option value="3">3 Seconds</option><option value="5">5 Seconds</option><option value="10">10 Seconds</option></select><select id="photo-quality" style="padding:10px; border-radius:10px; border:1px solid #222; background:#111; color:#fff;"><option value="0.7">Standard JPG</option><option value="0.9">High JPG</option><option value="1">Max JPG</option></select></div><div style="display:flex; gap:12px; margin-top:14px;"><button onclick="capturePhoto()" style="flex:1; padding:12px; border:none; border-radius:10px; background:var(--accent); color:#fff; font-weight:700;">Capture</button><button onclick="startPhotoBooth()" style="flex:1; padding:12px; border:none; border-radius:10px; background:#1f1f1f; color:#fff; font-weight:700;">Restart Camera</button><button onclick="mirrorPhotoPreview()" style="padding:12px; border:none; border-radius:10px; background:#1f1f1f; color:#fff; font-weight:700;">Mirror</button><button onclick="toggleCameraGrid()" style="padding:12px; border:none; border-radius:10px; background:#1f1f1f; color:#fff; font-weight:700;">Grid</button></div><div id="photo-status" style="margin-top:10px; opacity:0.7;"></div><img id="photo-output" alt="Captured photo" style="width:100%; margin-top:14px; border-radius:14px; border:1px solid #222; display:none;"></div>` },
-Terminal: { icon: "⌨️", content: () => `<div id="t-out" style="padding:25px;color:#0f0;font-family:monospace;height:calc(100% - 60px);overflow:auto;line-height:1.5;font-size:0.9rem;">McCrack Kernel Console [Version 9.0.4]<br>(c) 2026 McCrack Industries.<br><br></div><input onkeydown="cmd(event, this)" style="width:100%;background:#050505;border:none;border-top:1px solid #222;color:#0f0;padding:18px;outline:none;font-family:monospace;font-size:1rem;">` },
+Terminal: { icon: "⌨️", content: () => `<div id="t-out" style="padding:25px;color:#0f0;font-family:monospace;height:calc(100% - 60px);overflow:auto;line-height:1.5;font-size:0.9rem;">𝕄𝕔ℂ𝕣𝕒𝕔𝕜 Kernel Console [Version19.0.4]<br>(c) 2026 𝕄𝕔ℂ𝕣𝕒𝕔𝕜 Industries.<br><br></div><input onkeydown="cmd(event, this)" style="width:100%;background:#050505;border:none;border-top:1px solid #222;color:#0f0;padding:18px;outline:none;font-family:monospace;font-size:1rem;">` },
 Files: { icon: "📁", content: () => `<div style="padding:30px;">
 <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
 <h2>File Explorer</h2>
@@ -813,8 +813,8 @@ Store: { icon: "🛒", content: () => `<div style="padding:40px;">
 <p style="opacity:0.4; margin-bottom:30px;">Acquire and deploy official system modules.</p>
 <div id="store-list">
 ${renderStoreItem('Movies', 'Streaming Movies Player')}
-${renderStoreItem('Games', 'McCrack Game Hub')}
-${renderStoreItem('McCrackChat', 'Global Relay Service')}
+${renderStoreItem('Games', '𝕄𝕔ℂ𝕣𝕒𝕔𝕜 Game Hub')}
+${renderStoreItem('𝕄𝕔ℂ𝕣𝕒𝕔𝕜Chat', 'Global Relay Service')}
 ${renderStoreItem('Calculator', 'Advanced Math Engine')}
 ${renderStoreItem('Music', 'High-Fidelity Audio')}
 ${renderStoreItem('AppFactory', 'Custom Module Compiler')}
@@ -835,7 +835,7 @@ ${renderStoreItem('FocusSounds', 'Ambient loops for concentration')}
 </div>
 </div>` },
 Settings: { icon: "⚙️", content: () => renderSettingsApp() },
-Music: { icon: "🎵", content: () => `<div style="padding:30px; max-width:780px; margin:0 auto;"><h2>McCrack Music</h2><p style="opacity:0.58; margin:8px 0 16px 0;">Build playlists, queue tracks, and keep audio running in your session.</p><div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"><input id="music-title" placeholder="Track title" style="padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><input id="music-artist" placeholder="Artist" style="padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"></div><div style="display:flex; gap:10px; margin-top:10px;"><button onclick="addMusicTrack()" style="flex:1; padding:10px; border:none; border-radius:8px; background:var(--accent); color:#fff; font-weight:700;">Add Track</button><button onclick="playNextTrack()" style="padding:10px 14px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Next</button><button onclick="clearMusicQueue()" style="padding:10px 14px; border:none; border-radius:8px; background:#2a1616; color:#ffbaba;">Clear</button></div><div id="music-now" style="margin-top:14px; font-weight:700;">${renderNowPlaying()}</div><div id="music-list" style="margin-top:12px;">${renderMusicQueue()}</div></div>` },
+Music: { icon: "🎵", content: () => `<div style="padding:30px; max-width:780px; margin:0 auto;"><h2>𝕄𝕔ℂ𝕣𝕒𝕔𝕜 Music</h2><p style="opacity:0.58; margin:8px 0 16px 0;">Build playlists, queue tracks, and keep audio running in your session.</p><div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"><input id="music-title" placeholder="Track title" style="padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><input id="music-artist" placeholder="Artist" style="padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"></div><div style="display:flex; gap:10px; margin-top:10px;"><button onclick="addMusicTrack()" style="flex:1; padding:10px; border:none; border-radius:8px; background:var(--accent); color:#fff; font-weight:700;">Add Track</button><button onclick="playNextTrack()" style="padding:10px 14px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Next</button><button onclick="clearMusicQueue()" style="padding:10px 14px; border:none; border-radius:8px; background:#2a1616; color:#ffbaba;">Clear</button></div><div id="music-now" style="margin-top:14px; font-weight:700;">${renderNowPlaying()}</div><div id="music-list" style="margin-top:12px;">${renderMusicQueue()}</div></div>` },
 AppFactory: { icon: "🛠️", content: () => `<div style="padding:50px; max-width:600px; margin:0 auto;">
 <h2>Compiler Console</h2>
 <p style="opacity:0.4; margin-bottom:10px;">Encapsulate any web protocol into a local app.</p>
@@ -1009,8 +1009,8 @@ const hackLines = [
 "[INJECT] Uploading quantum payload chunk 04/04",
 "[CRYPT] Rotating ephemeral access keys",
 "[TRACE] Ghost route established :: 127.0.0.1",
-"[SYNC] Handshake with McCrack core completed",
-"> root@mc-node:~$ launch --profile mccrackos"
+"[SYNC] Handshake with 𝕄𝕔ℂ𝕣𝕒𝕔𝕜 core completed",
+"> root@mc-node:~$ launch --profile 𝕄𝕔ℂ𝕣𝕒𝕔𝕜os"
 ];
 panel.innerHTML = '';
 let idx = 0;
@@ -1034,7 +1034,7 @@ const panel = document.getElementById('boot-logs');
 if(!panel) return;
 const bootLines = [
 "[BOOT] Power rails stabilized at 12.0V",
-"[KERNEL] Loading microkernel v9.0.4",
+"[KERNEL] Loading microkernel v1.0.4",
 "[MEMORY] Mapping core pages... OK",
 "[SECURITY] Initializing access-control matrix",
 "[DRIVER] Mounting synthetic file system",
@@ -1417,7 +1417,7 @@ if (OS.firstRun) {
 box.innerHTML = `
 <div id="avatar-preview" class="account-avatar">${avatarMarkup(OS.pendingAvatar)}</div>
 <div class="auth-title">Create Account</div>
-<p class="auth-card-sub">Welcome to McCrackOS</p>
+<p class="auth-card-sub">Welcome to 𝕄𝕔ℂ𝕣𝕒𝕔𝕜OS</p>
 <p class="auth-sub">Set up your username, sign-in mode, and avatar.</p>
 <input type="text" id="new-user" maxlength="24" placeholder="Choose a username">
 <select id="acc-mode" onchange="updateModeUI()">
@@ -1506,7 +1506,7 @@ const d = document.getElementById('desktop'); d.innerHTML = "";
 if(!hasCustomWallpaper() && !OS.settings.hideDesktopHero) {
 const hero = document.createElement('div');
 hero.className = 'desktop-hero';
-hero.innerHTML = '<h1>McCrackOS</h1><p>Made By: Patrick_Mango</p>';
+hero.innerHTML = '<h1>𝕄𝕔ℂ𝕣𝕒𝕔𝕜OS</h1><p>Made By: Patrick_Mango</p>';
 d.appendChild(hero);
 }
 OS.installed.forEach((id, index) => {
@@ -1712,7 +1712,7 @@ print("help, clear, exit, logs, apps, ver, time, date, battery, whoami, echo, ca
 else if(v === "clear") out.innerHTML = "";
 else if(v === "logs") print(`Total session events: ${OS.logs.length}`);
 else if(v === "apps" || v === "ls") print(`Installed: ${OS.installed.join(', ')}`);
-else if(v === "ver") print("McCrackOS Kernel v9.0.4. Build 2026.03.10");
+else if(v === "ver") print("𝕄𝕔ℂ𝕣𝕒𝕔𝕜OS Kernel v1.0.4. Build 2026.03.10");
 else if(v === "time") print(new Date().toLocaleTimeString());
 else if(v === "date") print(new Date().toLocaleDateString());
 else if(v === "battery") print(`Battery status: ${OS.battery}%`);
@@ -1752,8 +1752,8 @@ if(!color) print('Usage: theme <css-color>', 'muted');
 else { applyAccent(color); print(`Accent set to ${color}`); }
 }
 else if(v === "reboot") {
-print('Rebooting McCrackOS shell session...');
-setTimeout(() => { out.innerHTML = 'McCrack Kernel Console [Version 9.0.4]<br>(c) 2026 McCrack Industries.<br><br>'; }, 300);
+print('Rebooting 𝕄𝕔ℂ𝕣𝕒𝕔𝕜OS shell session...');
+setTimeout(() => { out.innerHTML = '𝕄𝕔ℂ𝕣𝕒𝕔𝕜 Kernel Console [Version19.0.4]<br>(c) 2026 𝕄𝕔ℂ𝕣𝕒𝕔𝕜 Industries.<br><br>'; }, 300);
 }
 else if(v === "calc") {
 const expr = args.join(' ');
