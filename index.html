@@ -25,6 +25,8 @@ body {
 height: 100vh; width: 100vw; overflow: hidden;
 background: radial-gradient(120% 90% at 50% 44%, #1a1a1a 0%, #121212 30%, #0b0b0b 62%, #050505 82%, #010101 100%); color: white; transition: background 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
+body.high-contrast { filter: contrast(1.18) saturate(1.08); }
+body.large-text { font-size: 1.08em; }
 
 /* --- TOP BAR --- */
 #top-bar {
@@ -40,14 +42,36 @@ font-size: 0.75rem; font-weight: 700; letter-spacing: 1.2px; text-transform: upp
 #battery-stat { display: flex; align-items: center; gap: 6px; color: #44ff44; }
 
 /* --- BOOT SEQUENCE --- */
-#boot { position: fixed; inset: 0; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10000; }
-.spin { width: 60px; height: 60px; border: 4px solid #111; border-top-color: var(--accent); border-radius: 50%; animation: s 0.8s linear infinite; margin-bottom: 25px; }
+#boot { position: fixed; inset: 0; background: #000; display: flex; align-items: center; justify-content: center; z-index: 10000; }
+.boot-stage { width: min(860px, 90vw); }
+#boot-terminal {
+min-height: 390px;
+border: 1px solid rgba(72, 255, 137, 0.35);
+border-radius: 12px;
+padding: 16px;
+background: radial-gradient(circle at top, rgba(0, 40, 10, 0.5), rgba(0, 0, 0, 0.95));
+box-shadow: inset 0 0 28px rgba(40, 255, 120, 0.18), 0 0 45px rgba(0,0,0,0.85);
+font-family: monospace;
+color: #45ff95;
+}
+#boot-terminal h2 { font-size: 0.95rem; font-weight: 600; letter-spacing: 0.24em; margin-bottom: 12px; opacity: 0.88; }
+#hack-logs {
+height: 305px;
+overflow: hidden;
+font-size: 0.8rem;
+line-height: 1.35;
+}
+.hack-line { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0.9; }
+.boot-cursor { display: inline-block; width: 9px; height: 16px; margin-left: 6px; background: #45ff95; animation: blink 0.9s steps(1, end) infinite; }
+.boot-loading { text-align: center; display: none; }
+.spin { width: 60px; height: 60px; border: 4px solid #111; border-top-color: var(--accent); border-radius: 50%; animation: s 0.8s linear infinite; margin: 20px auto 24px auto; }
 @keyframes s { to { transform: rotate(360deg); } }
+@keyframes blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
 .boot-text { font-family: monospace; font-size: 0.8rem; color: var(--accent); opacity: 0.8; }
 .boot-log-box {
 width: min(760px, 82vw);
 max-height: 180px;
-margin-top: 20px;
+margin: 20px auto 0 auto;
 padding: 14px 16px;
 border: 1px solid #143a14;
 border-radius: 10px;
@@ -343,10 +367,16 @@ display: flex; align-items: center; padding: 0 25px; z-index: 8500; border-top: 
 </div>
 
 <div id="boot">
+<div id="boot-terminal" class="boot-stage">
+<h2>ROOT@MCCRACKOS://BOOT_MATRIX <span class="boot-cursor"></span></h2>
+<div id="hack-logs"></div>
+</div>
+<div id="boot-loading" class="boot-stage boot-loading">
 <h1 style="letter-spacing: 12px; font-weight: 200; font-size: 2.5rem;">𝕄𝕔ℂ𝕣𝕒𝕔𝕜<span style="font-weight:700;">OS</span></h1>
 <div class="spin"></div>
 <p class="boot-text">INITIALIZING OPERATING SYSTEM...</p>
 <div id="boot-logs" class="boot-log-box"></div>
+</div>
 </div>
 
 <div id="login">
@@ -470,7 +500,11 @@ hideDesktopHero: false,
 temperatureUnit: 'C',
 weatherState: 'NY',
 desktopSounds: true,
-todoShowCompleted: true
+todoShowCompleted: true,
+highContrast: false,
+largeText: false,
+confirmBeforeDelete: true,
+clockChime: false
 };
 
 const DEFAULT_ACCOUNT = {
@@ -506,6 +540,10 @@ if (['C', 'F'].includes(raw.temperatureUnit)) base.temperatureUnit = raw.tempera
 if (typeof raw.weatherState === 'string' && raw.weatherState.trim()) base.weatherState = raw.weatherState.toUpperCase();
 if (typeof raw.desktopSounds === 'boolean') base.desktopSounds = raw.desktopSounds;
 if (typeof raw.todoShowCompleted === 'boolean') base.todoShowCompleted = raw.todoShowCompleted;
+if (typeof raw.highContrast === 'boolean') base.highContrast = raw.highContrast;
+if (typeof raw.largeText === 'boolean') base.largeText = raw.largeText;
+if (typeof raw.confirmBeforeDelete === 'boolean') base.confirmBeforeDelete = raw.confirmBeforeDelete;
+if (typeof raw.clockChime === 'boolean') base.clockChime = raw.clockChime;
 return base;
 }
 
@@ -524,7 +562,7 @@ widgets: normalizeWidgetFlags(JSON.parse(localStorage.getItem("mc_widgets"))),
 widgetPositions: normalizeWidgetPositions(JSON.parse(localStorage.getItem("mc_widget_pos"))),
 weather: JSON.parse(localStorage.getItem("mc_weather")) || null,
 restricted: ["Browser", "Store", "Terminal", "Files", "Settings"],
-storeApps: ["Movies", "Games", "McCrackChat", "Calculator", "Music", "AppFactory", "Notepad", "WidgetCenter", "Docs", "Paint", "News", "ClockPro", "CodeLab", "PhotoBooth", "WeatherDesk", "TodoBoard", "UnitConverter"]
+storeApps: ["Movies", "Games", "McCrackChat", "Calculator", "Music", "Music2", "AppFactory", "Notepad", "WidgetCenter", "Docs", "Paint", "ClockPro", "CodeLab", "PhotoBooth", "WeatherDesk", "TodoBoard", "UnitConverter", "HabitTracker", "PasswordGen", "QuoteBox", "SystemPulse"]
 };
 
 OS.settings = normalizeSettings(JSON.parse(localStorage.getItem('mc_settings')));
@@ -532,6 +570,11 @@ OS.account = normalizeAccount(JSON.parse(localStorage.getItem('mc_account')));
 OS.pass = localStorage.getItem("mc_pass") || OS.account.pass || "1234";
 if (!localStorage.getItem('mc_account') && localStorage.getItem('mc_pass')) {
 OS.account.pass = OS.pass;
+}
+if (OS.installed.includes('News')) {
+OS.installed = OS.installed.map((app) => app === 'News' ? 'Music2' : app);
+OS.installed = [...new Set(OS.installed)];
+localStorage.setItem('mc_apps', JSON.stringify(OS.installed));
 }
 OS.firstRun = !localStorage.getItem('mc_account');
 OS.pendingAvatar = '';
@@ -668,7 +711,7 @@ if (!Object.prototype.hasOwnProperty.call(OS.settings, key)) return;
 OS.settings[key] = value;
 saveSettings();
 if (key === 'autoFullscreen') syncFullscreenPreference();
-if (['compactIcons', 'reducedMotion', 'hideDesktopHero'].includes(key)) applyUISettings();
+if (['compactIcons', 'reducedMotion', 'hideDesktopHero', 'highContrast', 'largeText'].includes(key)) applyUISettings();
 if (OS.running['Settings']) OS.running['Settings'].querySelector('.win-body').innerHTML = Registry['Settings'].content();
 if (message) notify(message, 'success');
 }
@@ -686,6 +729,8 @@ function applyUISettings() {
 const desktop = document.getElementById('desktop');
 document.body.classList.toggle('no-animations', !!OS.settings.reducedMotion);
 if (desktop) desktop.classList.toggle('compact-icons', !!OS.settings.compactIcons);
+document.body.classList.toggle('high-contrast', !!OS.settings.highContrast);
+document.body.classList.toggle('large-text', !!OS.settings.largeText);
 }
 
 
@@ -725,12 +770,13 @@ const btnStyle = (id) => `display:block;width:100%;text-align:left;padding:10px 
 const cards = {
 customization: `<div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;">
 <div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Wallpaper</h4><p style="font-size:0.8rem; opacity:0.55; margin:8px 0 14px 0;">Pick presets, URL, or upload image.</p><label style="font-size:0.76rem; opacity:0.6;">Wallpaper Preset</label><select onchange="setWallpaperPreset(this.value)" style="margin-top:7px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;">${WALLPAPER_PRESETS.map(preset => `<option value="${preset.value}" ${OS.bg === preset.value ? 'selected' : ''}>${preset.label}</option>`).join('')}</select><input type="text" id="bg-url" placeholder="https://..." style="width:100%; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px; margin-top:12px;"><button onclick="setBG(document.getElementById('bg-url').value)" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:var(--accent); border:none; color:white; border-radius:8px;">Apply URL</button><button onclick="document.getElementById('bg-upload-settings').click()" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Upload Image</button><input type="file" id="bg-upload-settings" style="display:none" onchange="handleFileUpload(event)" accept="image/*"></div>
-<div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Theme & Branding</h4><p style="font-size:0.8rem; opacity:0.55; margin:8px 0 14px 0;">Accent colors and favicon.</p><label style="font-size:0.76rem; opacity:0.6;">Wallpaper Fit</label><select onchange="setWallpaperFit(this.value)" style="margin-top:7px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;"><option value="cover" ${OS.settings.wallpaperFit === 'cover' ? 'selected' : ''}>Fill Screen</option><option value="contain" ${OS.settings.wallpaperFit === 'contain' ? 'selected' : ''}>Fit Entire Image</option></select><input type="color" value="${OS.accent}" onchange="applyAccent(this.value)" style="margin-top:12px; width:100%; height:42px; background:#111; border:var(--border); border-radius:10px; cursor:pointer;"><button onclick="resetAccent()" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset Accent</button><input type="text" id="favicon-url" value="${OS.favicon}" placeholder="https://..." style="width:100%; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px; margin-top:12px;"><button onclick="setFavicon(document.getElementById('favicon-url').value)" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Apply Favicon</button></div>
-</div>`,
+<div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Theme & Branding</h4><p style="font-size:0.8rem; opacity:0.55; margin:8px 0 14px 0;">Accent colors and favicon.</p><label style="font-size:0.76rem; opacity:0.6;">Wallpaper Fit</label><select onchange="setWallpaperFit(this.value)" style="margin-top:7px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;"><option value="cover" ${OS.settings.wallpaperFit === 'cover' ? 'selected' : ''}>Fill Screen</option><option value="contain" ${OS.settings.wallpaperFit === 'contain' ? 'selected' : ''}>Fit Entire Image</option></select><input type="color" value="${OS.accent}" onchange="applyAccent(this.value)" style="margin-top:12px; width:100%; height:42px; background:#111; border:var(--border); border-radius:10px; cursor:pointer;"><button onclick="resetAccent()" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset Accent</button><input type="text" id="favicon-url" value="${OS.favicon}" placeholder="https://..." style="width:100%; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px; margin-top:12px;"><button onclick="setFavicon(document.getElementById('favicon-url').value)" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Apply Favicon</button></div></div>`,
 profile: `<div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;"><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Security & Profile</h4><div style="display:flex; align-items:center; gap:10px; margin:12px 0;"><div class="account-avatar" style="width:54px; height:54px; margin:0; font-size:22px;">${avatarMarkup(OS.account.avatar)}</div><span style="font-size:0.8rem; opacity:0.7;">Current Picture</span></div><div style="display:flex; gap:8px;"><button onclick="document.getElementById('settings-avatar-file').click()" style="flex:1; padding:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:#fff; border-radius:8px;">Upload</button><button onclick="updateAccountAvatar('')" style="flex:1; padding:10px; background:#151515; border:1px solid #2b2b2b; color:#fff; border-radius:8px;">Remove</button></div><input type="file" id="settings-avatar-file" style="display:none" accept="image/*" onchange="onSettingsAvatarSelected(event)"><input type="password" id="new-p" placeholder="New Access Key" style="width:100%; margin-top:12px; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px;"><button onclick="setPass(document.getElementById('new-p').value)" style="width:100%; margin-top:10px; padding:10px; background:#333; border:none; color:white; border-radius:8px;">Update Key</button></div><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Layout Tools</h4><p style="font-size:0.8rem; opacity:0.55; margin:8px 0 14px 0;">Restore desktop defaults quickly.</p><button onclick="resetDesktopLayout()" style="width:100%; padding:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset App Icon Layout</button><button onclick="resetWidgetsLayout()" style="width:100%; margin-top:10px; padding:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset Widget Layout</button></div></div>`,
-system: `<div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;"><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Clock Controls</h4><label style="display:flex; justify-content:space-between; margin-top:12px; font-size:0.88rem;"><span>Show Seconds</span><input type="checkbox" ${OS.settings.clockSeconds ? 'checked' : ''} onchange="setSetting('clockSeconds', this.checked, 'Clock precision updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Use 24-Hour Time</span><input type="checkbox" ${OS.settings.clock24h ? 'checked' : ''} onchange="setSetting('clock24h', this.checked, 'Clock format updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Temperature Unit (°F)</span><input type="checkbox" ${OS.settings.temperatureUnit === 'F' ? 'checked' : ''} onchange="setSetting('temperatureUnit', this.checked ? 'F' : 'C', 'Temperature unit updated.'); refreshWeather(true);"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Desktop Sounds</span><input type="checkbox" ${OS.settings.desktopSounds ? 'checked' : ''} onchange="setSetting('desktopSounds', this.checked, 'Sound preference updated.')"></label></div><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>System Behavior</h4><label style="display:flex; justify-content:space-between; margin-top:12px; font-size:0.88rem;"><span>Desktop Notifications</span><input type="checkbox" ${OS.settings.notifications ? 'checked' : ''} onchange="setSetting('notifications', this.checked, 'Notification preference updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Auto Fullscreen on Any Click</span><input type="checkbox" ${OS.settings.autoFullscreen ? 'checked' : ''} onchange="setSetting('autoFullscreen', this.checked, 'Fullscreen preference updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Compact Desktop Icons</span><input type="checkbox" ${OS.settings.compactIcons ? 'checked' : ''} onchange="setSetting('compactIcons', this.checked, 'Desktop icon density updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Reduce Animations</span><input type="checkbox" ${OS.settings.reducedMotion ? 'checked' : ''} onchange="setSetting('reducedMotion', this.checked, 'Animation preference updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Hide Desktop Hero Text</span><input type="checkbox" ${OS.settings.hideDesktopHero ? 'checked' : ''} onchange="setSetting('hideDesktopHero', this.checked, 'Desktop hero visibility updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Show Completed ToDos</span><input type="checkbox" ${OS.settings.todoShowCompleted ? 'checked' : ''} onchange="setSetting('todoShowCompleted', this.checked, 'ToDo display updated.'); refreshTodoBoard();"></label><label style="font-size:0.76rem; opacity:0.7; display:block; margin-top:12px;">Weather State</label><select onchange="setSetting('weatherState', this.value, 'Weather location updated.'); refreshWeather(true);" style="margin-top:6px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;">${Object.entries(US_STATE_WEATHER).map(([abbr, state]) => `<option value="${abbr}" ${OS.settings.weatherState === abbr ? 'selected' : ''}>${state.name} (${abbr})</option>`).join('')}</select><select onchange="setSetting('bootDelay', Number(this.value), 'Boot timing updated.')" style="margin-top:12px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;"><option value="3000" ${OS.settings.bootDelay === 3000 ? 'selected' : ''}>Fast Boot (3s)</option><option value="6000" ${OS.settings.bootDelay === 6000 ? 'selected' : ''}>Normal Boot (6s)</option><option value="9000" ${OS.settings.bootDelay === 9000 ? 'selected' : ''}>Cinematic Boot (9s)</option></select><button onclick="resetSystemSettings()" style="width:100%; margin-top:10px; padding:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset System Settings</button></div></div>`
+system: `<div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;"><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Clock Controls</h4><label style="display:flex; justify-content:space-between; margin-top:12px; font-size:0.88rem;"><span>Show Seconds</span><input type="checkbox" ${OS.settings.clockSeconds ? 'checked' : ''} onchange="setSetting('clockSeconds', this.checked, 'Clock precision updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Use 24-Hour Time</span><input type="checkbox" ${OS.settings.clock24h ? 'checked' : ''} onchange="setSetting('clock24h', this.checked, 'Clock format updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Hourly Clock Chime</span><input type="checkbox" ${OS.settings.clockChime ? 'checked' : ''} onchange="setSetting('clockChime', this.checked, 'Clock chime preference updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Temperature Unit (°F)</span><input type="checkbox" ${OS.settings.temperatureUnit === 'F' ? 'checked' : ''} onchange="setSetting('temperatureUnit', this.checked ? 'F' : 'C', 'Temperature unit updated.'); refreshWeather(true);"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Desktop Sounds</span><input type="checkbox" ${OS.settings.desktopSounds ? 'checked' : ''} onchange="setSetting('desktopSounds', this.checked, 'Sound preference updated.')"></label></div><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>System Behavior</h4><label style="display:flex; justify-content:space-between; margin-top:12px; font-size:0.88rem;"><span>Desktop Notifications</span><input type="checkbox" ${OS.settings.notifications ? 'checked' : ''} onchange="setSetting('notifications', this.checked, 'Notification preference updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Auto Fullscreen on Any Click</span><input type="checkbox" ${OS.settings.autoFullscreen ? 'checked' : ''} onchange="setSetting('autoFullscreen', this.checked, 'Fullscreen preference updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Compact Desktop Icons</span><input type="checkbox" ${OS.settings.compactIcons ? 'checked' : ''} onchange="setSetting('compactIcons', this.checked, 'Desktop icon density updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Reduce Animations</span><input type="checkbox" ${OS.settings.reducedMotion ? 'checked' : ''} onchange="setSetting('reducedMotion', this.checked, 'Animation preference updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Hide Desktop Hero Text</span><input type="checkbox" ${OS.settings.hideDesktopHero ? 'checked' : ''} onchange="setSetting('hideDesktopHero', this.checked, 'Desktop hero visibility updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Show Completed ToDos</span><input type="checkbox" ${OS.settings.todoShowCompleted ? 'checked' : ''} onchange="setSetting('todoShowCompleted', this.checked, 'ToDo display updated.'); refreshTodoBoard();"></label><label style="font-size:0.76rem; opacity:0.7; display:block; margin-top:12px;">Weather State</label><select onchange="setSetting('weatherState', this.value, 'Weather location updated.'); refreshWeather(true);" style="margin-top:6px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;">${Object.entries(US_STATE_WEATHER).map(([abbr, state]) => `<option value="${abbr}" ${OS.settings.weatherState === abbr ? 'selected' : ''}>${state.name} (${abbr})</option>`).join('')}</select><select onchange="setSetting('bootDelay', Number(this.value), 'Boot timing updated.')" style="margin-top:12px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;"><option value="3000" ${OS.settings.bootDelay === 3000 ? 'selected' : ''}>Fast Boot (3s)</option><option value="6000" ${OS.settings.bootDelay === 6000 ? 'selected' : ''}>Normal Boot (6s)</option><option value="9000" ${OS.settings.bootDelay === 9000 ? 'selected' : ''}>Cinematic Boot (9s)</option></select><button onclick="resetSystemSettings()" style="width:100%; margin-top:10px; padding:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset System Settings</button></div></div>`,
+accessibility: `<div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;"><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Visual Accessibility</h4><label style="display:flex; justify-content:space-between; margin-top:12px; font-size:0.88rem;"><span>High Contrast Mode</span><input type="checkbox" ${OS.settings.highContrast ? 'checked' : ''} onchange="setSetting('highContrast', this.checked, 'Contrast mode updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Larger Text Scale</span><input type="checkbox" ${OS.settings.largeText ? 'checked' : ''} onchange="setSetting('largeText', this.checked, 'Text size updated.')"></label><p style="opacity:0.6; margin-top:12px; font-size:0.82rem;">These options improve readability across the desktop and apps.</p></div><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Motion & Focus</h4><label style="display:flex; justify-content:space-between; margin-top:12px; font-size:0.88rem;"><span>Reduce Animations</span><input type="checkbox" ${OS.settings.reducedMotion ? 'checked' : ''} onchange="setSetting('reducedMotion', this.checked, 'Animation preference updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Compact Desktop Icons</span><input type="checkbox" ${OS.settings.compactIcons ? 'checked' : ''} onchange="setSetting('compactIcons', this.checked, 'Desktop icon density updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Hide Desktop Hero Text</span><input type="checkbox" ${OS.settings.hideDesktopHero ? 'checked' : ''} onchange="setSetting('hideDesktopHero', this.checked, 'Desktop hero visibility updated.')"></label></div></div>`,
+privacy: `<div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;"><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Privacy Controls</h4><label style="display:flex; justify-content:space-between; margin-top:12px; font-size:0.88rem;"><span>Confirm App Delete Prompts</span><input type="checkbox" ${OS.settings.confirmBeforeDelete ? 'checked' : ''} onchange="setSetting('confirmBeforeDelete', this.checked, 'Delete confirmation updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.88rem;"><span>Desktop Notifications</span><input type="checkbox" ${OS.settings.notifications ? 'checked' : ''} onchange="setSetting('notifications', this.checked, 'Notification preference updated.')"></label><p style="opacity:0.6; margin-top:12px; font-size:0.82rem;">Use app-level controls for camera and browser permissions.</p></div><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Session</h4><button onclick="lockSystem()" style="width:100%; margin-top:10px; padding:10px; background:#2a1616; border:1px solid #472626; color:#ffb7b7; border-radius:8px;">Lock Session</button><button onclick="rebootSystem()" style="width:100%; margin-top:10px; padding:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reboot</button></div></div>`
 };
-return `<div style="padding:28px; height:100%;"><h2 style="font-weight:500; margin-bottom:16px;">Settings</h2><div style="display:grid; grid-template-columns:220px 1fr; gap:16px; height:calc(100% - 52px);"><aside style="background:#080808; border:1px solid #1a1a1a; border-radius:14px; padding:14px;"><button onclick="setSettingsSection('customization')" style="${btnStyle('customization')}">🎨 Customization</button><button onclick="setSettingsSection('profile')" style="${btnStyle('profile')}">👤 Profile & Security</button><button onclick="setSettingsSection('system')" style="${btnStyle('system')}">🖥️ System</button></aside><section style="overflow:auto; background:#080808; border:1px solid #1a1a1a; border-radius:14px; padding:14px;">${cards[section] || cards.customization}</section></div></div>`;
+return `<div style="padding:28px; height:100%;"><h2 style="font-weight:500; margin-bottom:16px;">Settings</h2><div style="display:grid; grid-template-columns:220px 1fr; gap:16px; height:calc(100% - 52px);"><aside style="background:#080808; border:1px solid #1a1a1a; border-radius:14px; padding:14px;"><button onclick="setSettingsSection('customization')" style="${btnStyle('customization')}">🎨 Customization</button><button onclick="setSettingsSection('profile')" style="${btnStyle('profile')}">👤 Profile & Security</button><button onclick="setSettingsSection('system')" style="${btnStyle('system')}">🖥️ System</button><button onclick="setSettingsSection('accessibility')" style="${btnStyle('accessibility')}">🧩 Accessibility</button><button onclick="setSettingsSection('privacy')" style="${btnStyle('privacy')}">🔐 Privacy</button></aside><section style="overflow:auto; background:#080808; border:1px solid #1a1a1a; border-radius:14px; padding:14px;">${cards[section] || cards.customization}</section></div></div>`;
 }
 
 const Registry = {
@@ -742,9 +788,10 @@ McCrackChat: { icon: "💬", content: () => buildAppFrame("https://patrickmango4
 Docs: { icon: "📚", content: () => buildAppFrame("https://docs.astro.build") },
 Paint: { icon: "🎨", content: () => buildAppFrame("https://jspaint.app") },
 Music2: { icon: "🎶", content: () => buildAppFrame("https://freefy.app/") },
-Clock: { icon: "⏱️", content: () => `<div style="padding:48px; text-align:center;"><h2 style="margin-bottom:16px;">Clock Pro</h2><p style="opacity:0.6; margin-bottom:24px;">A quick productivity timer and local time helper.</p><div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; max-width:460px; margin:0 auto;"><button onclick="startPomodoro(25)" style="padding:12px; border:none; border-radius:10px; background:var(--accent); color:white; font-weight:700;">25m Focus</button><button onclick="startPomodoro(5)" style="padding:12px; border:none; border-radius:10px; background:#1f1f1f; color:white; font-weight:700;">5m Break</button><button onclick="stopPomodoro()" style="padding:12px; border:none; border-radius:10px; background:#3a2020; color:white; font-weight:700;">Stop</button></div><div id="pomodoro-status" style="margin-top:24px; font-size:1.2rem; font-weight:700;">Timer idle</div></div>` },
+Clock: { icon: "⏱️", content: () => `<div style="padding:32px; max-width:840px; margin:0 auto;"><h2 style="margin-bottom:8px;">Clock Pro</h2><p style="opacity:0.6; margin-bottom:18px;">Focus timer, custom countdowns, stopwatch, alarms, and world clocks.</p><div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px;"><button onclick="startPomodoro(25)" style="padding:12px; border:none; border-radius:10px; background:var(--accent); color:white; font-weight:700;">25m Focus</button><button onclick="startPomodoro(5)" style="padding:12px; border:none; border-radius:10px; background:#1f1f1f; color:white; font-weight:700;">5m Break</button><button onclick="stopPomodoro()" style="padding:12px; border:none; border-radius:10px; background:#3a2020; color:white; font-weight:700;">Stop</button></div><div style="display:flex; gap:8px; margin-top:10px;"><input id="clockpro-custom" type="number" min="1" max="180" placeholder="Custom minutes" style="flex:1; padding:10px; background:#111; border:1px solid #222; color:#fff; border-radius:8px;"><button onclick="startCustomClockTimer()" style="padding:10px 14px; border:none; border-radius:8px; background:#1f2f1f; color:#d7ffd7;">Start Custom</button></div><div id="pomodoro-status" style="margin-top:16px; font-size:1.1rem; font-weight:700;">Timer idle</div><div style="margin-top:20px; padding:12px; border:1px solid #1e1e1e; border-radius:12px; background:#0b0b0b;"><h4>Stopwatch</h4><div id="stopwatch-display" style="font-size:1.8rem; margin:8px 0 10px 0; font-family:monospace;">00:00.0</div><div style="display:flex; gap:8px;"><button onclick="startStopwatch()" style="flex:1; padding:10px; border:none; border-radius:8px; background:var(--accent); color:white;">Start</button><button onclick="pauseStopwatch()" style="flex:1; padding:10px; border:none; border-radius:8px; background:#1f1f1f; color:white;">Pause</button><button onclick="resetStopwatch()" style="flex:1; padding:10px; border:none; border-radius:8px; background:#2a1616; color:#ffbaba;">Reset</button></div></div><div style="margin-top:16px; padding:12px; border:1px solid #1e1e1e; border-radius:12px; background:#0b0b0b;"><h4>Alarm</h4><div style="display:flex; gap:8px; margin-top:8px;"><input id="clockpro-alarm" type="time" style="flex:1; padding:10px; background:#111; border:1px solid #222; color:#fff; border-radius:8px;"><button onclick="setClockAlarm()" style="padding:10px 12px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Set Alarm</button><button onclick="clearClockAlarm()" style="padding:10px 12px; border:none; border-radius:8px; background:#2a1616; color:#ffbaba;">Clear</button></div><div id="clockpro-alarm-status" style="margin-top:8px; opacity:0.75;">No alarm set.</div></div><div style="margin-top:16px; padding:12px; border:1px solid #1e1e1e; border-radius:12px; background:#0b0b0b;"><h4>World Clocks</h4><div id="clockpro-world" style="margin-top:8px; line-height:1.6;">${renderClockProWorldClocks()}</div></div></div>` },
+ClockPro: { icon: "⏱️", content: () => Registry.Clock.content() },
 CodeLab: { icon: "🧪", content: () => buildAppFrame("https://onecompiler.com/html/3y5x8jr6s") },
-Camera: { icon: "📸", content: () => `<div style="padding:36px;"><h2 style="margin-bottom:8px;">Photo Booth</h2><p style="opacity:0.58; margin-bottom:16px;">Capture webcam shots with filters and a timer.</p><video id="photo-video" autoplay playsinline style="width:100%; max-height:330px; border-radius:14px; border:1px solid #222; background:#000;"></video><canvas id="photo-canvas" style="display:none;"></canvas><div style="display:grid; grid-template-columns:1fr 170px; gap:12px; margin-top:14px;"><select id="photo-filter" onchange="applyPhotoFilter(this.value)" style="padding:10px; border-radius:10px; border:1px solid #222; background:#111; color:#fff;"><option value="none">No Filter</option><option value="grayscale(1)">B&W</option><option value="sepia(0.8)">Sepia</option><option value="contrast(1.3) saturate(1.3)">Vivid</option></select><select id="photo-timer" style="padding:10px; border-radius:10px; border:1px solid #222; background:#111; color:#fff;"><option value="0">No Timer</option><option value="3">3 Seconds</option><option value="5">5 Seconds</option></select></div><div style="display:flex; gap:12px; margin-top:14px;"><button onclick="capturePhoto()" style="flex:1; padding:12px; border:none; border-radius:10px; background:var(--accent); color:#fff; font-weight:700;">Capture</button><button onclick="startPhotoBooth()" style="flex:1; padding:12px; border:none; border-radius:10px; background:#1f1f1f; color:#fff; font-weight:700;">Restart Camera</button><button onclick="mirrorPhotoPreview()" style="padding:12px; border:none; border-radius:10px; background:#1f1f1f; color:#fff; font-weight:700;">Mirror</button></div><div id="photo-status" style="margin-top:10px; opacity:0.7;"></div><img id="photo-output" alt="Captured photo" style="width:100%; margin-top:14px; border-radius:14px; border:1px solid #222; display:none;"></div>` },
+Camera: { icon: "📸", content: () => `<div style="padding:36px;"><h2 style="margin-bottom:8px;">Photo Booth</h2><p style="opacity:0.58; margin-bottom:16px;">Capture webcam shots with filters and a timer.</p><video id="photo-video" autoplay playsinline style="width:100%; max-height:330px; border-radius:14px; border:1px solid #222; background:#000;"></video><canvas id="photo-canvas" style="display:none;"></canvas><div style="display:grid; grid-template-columns:1fr 170px; gap:12px; margin-top:14px;"><select id="photo-filter" onchange="applyPhotoFilter(this.value)" style="padding:10px; border-radius:10px; border:1px solid #222; background:#111; color:#fff;"><option value="none">No Filter</option><option value="grayscale(1)">B&W</option><option value="sepia(0.8)">Sepia</option><option value="contrast(1.3) saturate(1.3)">Vivid</option><option value="invert(1)">Negative</option><option value="hue-rotate(120deg)">Cyber Green</option><option value="hue-rotate(260deg) saturate(1.4)">Neon Purple</option><option value="brightness(1.1) contrast(1.4)">HDR Pop</option><option value="blur(1.5px)">Soft Blur</option><option value="grayscale(0.4) contrast(1.2)">Film</option></select><select id="photo-timer" style="padding:10px; border-radius:10px; border:1px solid #222; background:#111; color:#fff;"><option value="0">No Timer</option><option value="3">3 Seconds</option><option value="5">5 Seconds</option><option value="10">10 Seconds</option></select></div><div style="display:flex; gap:12px; margin-top:14px;"><button onclick="capturePhoto()" style="flex:1; padding:12px; border:none; border-radius:10px; background:var(--accent); color:#fff; font-weight:700;">Capture</button><button onclick="startPhotoBooth()" style="flex:1; padding:12px; border:none; border-radius:10px; background:#1f1f1f; color:#fff; font-weight:700;">Restart Camera</button><button onclick="mirrorPhotoPreview()" style="padding:12px; border:none; border-radius:10px; background:#1f1f1f; color:#fff; font-weight:700;">Mirror</button></div><div id="photo-status" style="margin-top:10px; opacity:0.7;"></div><img id="photo-output" alt="Captured photo" style="width:100%; margin-top:14px; border-radius:14px; border:1px solid #222; display:none;"></div>` },
 Terminal: { icon: "⌨️", content: () => `<div id="t-out" style="padding:25px;color:#0f0;font-family:monospace;height:calc(100% - 60px);overflow:auto;line-height:1.5;font-size:0.9rem;">McCrack Kernel Console [Version 9.0.4]<br>(c) 2026 McCrack Industries.<br><br></div><input onkeydown="cmd(event, this)" style="width:100%;background:#050505;border:none;border-top:1px solid #222;color:#0f0;padding:18px;outline:none;font-family:monospace;font-size:1rem;">` },
 Files: { icon: "📁", content: () => `<div style="padding:30px;">
 <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
@@ -782,13 +829,17 @@ ${renderStoreItem('Notepad', 'Secure Text Buffer')}
 ${renderStoreItem('WidgetCenter', 'Desktop Widget Manager')}
 ${renderStoreItem('Docs', 'Developer Documentation Hub')}
 ${renderStoreItem('Paint', 'Retro Drawing Studio')}
-${renderStoreItem('News', 'Live Tech News Feed')}
+${renderStoreItem('Music2', 'Stream Player Module')}
 ${renderStoreItem('ClockPro', 'Focus Timer & Clock Toolkit')}
 ${renderStoreItem('CodeLab', 'Cloud Coding Workspace')}
 ${renderStoreItem('PhotoBooth', 'Camera Snapshot Studio')}
 ${renderStoreItem('WeatherDesk', 'Quick Weather Dashboard')}
 ${renderStoreItem('TodoBoard', 'Simple Daily Task Manager')}
 ${renderStoreItem('UnitConverter', 'Convert Length, Weight, Temperature')}
+${renderStoreItem('HabitTracker', 'Daily Habit Progress Board')}
+${renderStoreItem('PasswordGen', 'Strong Password Generator')}
+${renderStoreItem('QuoteBox', 'Random Motivation & Quotes')}
+${renderStoreItem('SystemPulse', 'Live Session Snapshot')}
 </div>
 </div>` },
 Settings: { icon: "⚙️", content: () => renderSettingsApp() },
@@ -816,7 +867,11 @@ SystemLogs: { icon: "📑", content: () => `<div style="padding:30px;">
 <div id="log-list" style="font-family:monospace; font-size:0.8rem; color:#aaa;">
 ${OS.logs.map(l => `<div>[${l.time}] ${l.msg}</div>`).join('')}
 </div>
-</div>` }
+</div>` },
+HabitTracker: { icon: "📈", content: () => `<div style="padding:28px; max-width:760px; margin:0 auto;"><h2>Habit Tracker</h2><p style="opacity:0.6; margin:8px 0 12px 0;">Track streaks and daily check-ins.</p><div style="display:flex; gap:8px;"><input id="habit-name" placeholder="Habit name" style="flex:1; padding:10px; background:#111; border:1px solid #222; color:#fff; border-radius:8px;"><button onclick="addHabit()" style="padding:10px 14px; border:none; border-radius:8px; background:var(--accent); color:#fff;">Add</button></div><div id="habit-list" style="margin-top:12px;">${renderHabits()}</div></div>` },
+PasswordGen: { icon: "🔑", content: () => `<div style="padding:28px; max-width:560px; margin:0 auto;"><h2>Password Generator</h2><p style="opacity:0.6; margin:8px 0 12px 0;">Generate strong local passwords instantly.</p><div style="display:grid; grid-template-columns:1fr 130px; gap:8px;"><input id="passgen-len" type="number" min="8" max="64" value="16" style="padding:10px; background:#111; border:1px solid #222; color:#fff; border-radius:8px;"><button onclick="generatePassword()" style="padding:10px; border:none; border-radius:8px; background:var(--accent); color:#fff;">Generate</button></div><div id="passgen-out" style="margin-top:12px; padding:12px; border-radius:8px; border:1px solid #242424; background:#0d0d0d; font-family:monospace;">Press Generate</div><button onclick="copyGeneratedPassword()" style="width:100%; margin-top:10px; padding:10px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Copy</button></div>` },
+QuoteBox: { icon: "💡", content: () => `<div style="padding:30px; max-width:640px; margin:0 auto; text-align:center;"><h2>Quote Box</h2><p style="opacity:0.6; margin-top:6px;">A quick motivation burst.</p><div id="quote-box-text" style="margin-top:16px; padding:18px; border:1px solid #242424; border-radius:12px; background:#0d0d0d; font-size:1.05rem; line-height:1.6;">${getRandomQuote()}</div><button onclick="refreshQuoteBox()" style="margin-top:12px; padding:10px 14px; border:none; border-radius:8px; background:var(--accent); color:#fff;">New Quote</button></div>` },
+SystemPulse: { icon: "🛰️", content: () => `<div style="padding:30px;"><h2>System Pulse</h2><p style="opacity:0.6; margin:8px 0 14px 0;">Live snapshot of this session.</p><div style="display:grid; grid-template-columns:repeat(2, minmax(180px,1fr)); gap:10px;"><div style="padding:12px; border:1px solid #242424; border-radius:10px; background:#0b0b0b;"><div style="opacity:0.6; font-size:0.78rem;">Running Apps</div><div style="font-size:1.5rem; font-weight:700;">${Object.keys(OS.running).length}</div></div><div style="padding:12px; border:1px solid #242424; border-radius:10px; background:#0b0b0b;"><div style="opacity:0.6; font-size:0.78rem;">Battery</div><div style="font-size:1.5rem; font-weight:700;">${OS.battery}%</div></div><div style="padding:12px; border:1px solid #242424; border-radius:10px; background:#0b0b0b;"><div style="opacity:0.6; font-size:0.78rem;">Installed Apps</div><div style="font-size:1.5rem; font-weight:700;">${OS.installed.length}</div></div><div style="padding:12px; border:1px solid #242424; border-radius:10px; background:#0b0b0b;"><div style="opacity:0.6; font-size:0.78rem;">Session Logs</div><div style="font-size:1.5rem; font-weight:700;">${OS.logs.length}</div></div></div></div>` }
 };
 
 /* --- DRAG & DROP LOGIC --- */
@@ -857,7 +912,7 @@ alert(`CRITICAL ERROR: ${id} is a protected system kernel module and cannot be d
 return;
 }
 
-if (confirm(`Purge ${id}?`)) {
+if (!OS.settings.confirmBeforeDelete || confirm(`Purge ${id}?`)) {
 if (OS.running[id]) closeW(id);
 OS.installed = OS.installed.filter(app => app !== id);
 delete OS.pos[id];
@@ -924,23 +979,63 @@ applyAccent(OS.accent);
 setFavicon(OS.favicon, false);
 syncFullscreenPreference();
 applyUISettings();
-simulateBootLogs();
+simulateHackBootLogs(OS.settings.bootDelay || 6000);
 const customs = JSON.parse(localStorage.getItem("mc_custom_apps")) || {};
 Object.keys(customs).forEach(name => {
 Registry[name] = { icon: "🚀", content: () => buildAppFrame(customs[name]) };
 });
 updateBattery(); setInterval(updateBattery, 30000);
+const hackIntroDuration = OS.settings.bootDelay || 6000;
+const loadingDuration = 1800;
+setTimeout(() => {
+document.getElementById('boot-terminal').style.display = 'none';
+document.getElementById('boot-loading').style.display = 'block';
+simulateBootLogs();
 setTimeout(() => {
 const b = document.getElementById('boot');
 b.style.opacity = '0';
 setTimeout(() => { b.style.display='none'; document.getElementById('login').style.display='flex'; renderAuth(); }, 1000);
-}, OS.settings.bootDelay);
+}, loadingDuration);
+}, hackIntroDuration);
 updateTime(); setInterval(updateTime, 1000);
 setInterval(renderWidgets, 1000);
 refreshWeather();
 setInterval(refreshWeather, 300000);
 renderLib();
 };
+
+function simulateHackBootLogs(durationMs = 6000) {
+const panel = document.getElementById('hack-logs');
+if(!panel) return;
+const hackLines = [
+"> root@mc-node:~$ ./init-zero-day --force",
+"[SCAN] Enumerating secure kernel sectors ...",
+"[BYPASS] Signature firewall neutralized",
+"[INJECT] Uploading quantum payload chunk 01/04",
+"[INJECT] Uploading quantum payload chunk 02/04",
+"[INJECT] Uploading quantum payload chunk 03/04",
+"[INJECT] Uploading quantum payload chunk 04/04",
+"[CRYPT] Rotating ephemeral access keys",
+"[TRACE] Ghost route established :: 127.0.0.1",
+"[SYNC] Handshake with McCrack core completed",
+"> root@mc-node:~$ launch --profile mccrackos"
+];
+panel.innerHTML = '';
+let idx = 0;
+const timer = setInterval(() => {
+if(idx >= hackLines.length) {
+clearInterval(timer);
+return;
+}
+const line = document.createElement('div');
+line.className = 'hack-line';
+line.textContent = `${new Date().toLocaleTimeString()} ${hackLines[idx]}`;
+panel.appendChild(line);
+panel.scrollTop = panel.scrollHeight;
+idx += 1;
+}, 520);
+setTimeout(() => clearInterval(timer), durationMs);
+}
 
 function simulateBootLogs() {
 const panel = document.getElementById('boot-logs');
@@ -1188,6 +1283,19 @@ month: 'long',
 day: 'numeric'
 });
 }
+if (window.mcClockAlarm && now.toTimeString().slice(0, 5) === window.mcClockAlarm && now.getSeconds() === 0) {
+notify(`ClockPro alarm: ${window.mcClockAlarm}`, 'success');
+playClickSound(900, 0.2);
+window.mcClockAlarm = null;
+const alarmStatus = document.getElementById('clockpro-alarm-status');
+if (alarmStatus) alarmStatus.textContent = 'Alarm complete.';
+}
+if (OS.settings.clockChime && now.getMinutes() === 0 && now.getSeconds() === 0) {
+playClickSound(760, 0.1);
+}
+const world = document.getElementById('clockpro-world');
+if (world) world.innerHTML = renderClockProWorldClocks();
+updateStopwatchDisplay();
 updateLockscreenHeader();
 }
 
@@ -1413,6 +1521,7 @@ addLog("User authenticated successfully.");
 }
 
 function lockSystem() { location.reload(); }
+function rebootSystem() { location.reload(); }
 
 function renderDesktop() {
 const d = document.getElementById('desktop'); d.innerHTML = "";
@@ -1757,6 +1866,73 @@ notify('ClockPro timer completed.', 'success');
 }, 1000);
 }
 
+function startCustomClockTimer() {
+const input = document.getElementById('clockpro-custom');
+const minutes = Number(input?.value || 0);
+if (!minutes || minutes < 1) return notify('Enter custom minutes first.', 'warning');
+startPomodoro(minutes);
+}
+
+function renderClockProWorldClocks() {
+const now = new Date();
+const zones = [
+['New York', 'America/New_York'],
+['London', 'Europe/London'],
+['Tokyo', 'Asia/Tokyo'],
+['Sydney', 'Australia/Sydney']
+];
+return zones.map(([label, zone]) => `<div>${label}: <span style="opacity:0.8;">${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: !OS.settings.clock24h, timeZone: zone })}</span></div>`).join('');
+}
+
+function setClockAlarm() {
+const input = document.getElementById('clockpro-alarm');
+const status = document.getElementById('clockpro-alarm-status');
+if (!input || !input.value) return notify('Select an alarm time.', 'warning');
+window.mcClockAlarm = input.value;
+if (status) status.textContent = `Alarm set for ${input.value}`;
+notify(`Alarm armed for ${input.value}.`, 'success');
+}
+
+function clearClockAlarm() {
+window.mcClockAlarm = null;
+const status = document.getElementById('clockpro-alarm-status');
+if (status) status.textContent = 'No alarm set.';
+notify('Alarm cleared.', 'warning');
+}
+
+function startStopwatch() {
+if (window.mcStopwatchInterval) return;
+window.mcStopwatchStartedAt = Date.now() - (window.mcStopwatchElapsed || 0);
+window.mcStopwatchInterval = setInterval(updateStopwatchDisplay, 100);
+}
+
+function pauseStopwatch() {
+if (!window.mcStopwatchInterval) return;
+clearInterval(window.mcStopwatchInterval);
+window.mcStopwatchInterval = null;
+window.mcStopwatchElapsed = Date.now() - (window.mcStopwatchStartedAt || Date.now());
+updateStopwatchDisplay();
+}
+
+function resetStopwatch() {
+if (window.mcStopwatchInterval) clearInterval(window.mcStopwatchInterval);
+window.mcStopwatchInterval = null;
+window.mcStopwatchStartedAt = null;
+window.mcStopwatchElapsed = 0;
+updateStopwatchDisplay();
+}
+
+function updateStopwatchDisplay() {
+const el = document.getElementById('stopwatch-display');
+if (!el) return;
+const elapsed = window.mcStopwatchInterval ? Date.now() - (window.mcStopwatchStartedAt || Date.now()) : (window.mcStopwatchElapsed || 0);
+const totalSec = Math.floor(elapsed / 1000);
+const mm = String(Math.floor(totalSec / 60)).padStart(2, '0');
+const ss = String(totalSec % 60).padStart(2, '0');
+const ds = Math.floor((elapsed % 1000) / 100);
+el.textContent = `${mm}:${ss}.${ds}`;
+}
+
 function stopPomodoro() {
 if (window.mcPomodoroInterval) clearInterval(window.mcPomodoroInterval);
 window.mcPomodoroInterval = null;
@@ -1841,6 +2017,87 @@ gain.connect(ctx.destination);
 osc.start();
 osc.stop(ctx.currentTime + duration);
 } catch (_) {}
+}
+
+function getHabits() {
+try {
+const parsed = JSON.parse(localStorage.getItem('mc_habits'));
+return Array.isArray(parsed) ? parsed : [];
+} catch (_) { return []; }
+}
+
+function setHabits(items) {
+localStorage.setItem('mc_habits', JSON.stringify(items.slice(0, 50)));
+}
+
+function renderHabits() {
+const habits = getHabits();
+if (!habits.length) return '<div style="opacity:0.55;">No habits yet. Add one above.</div>';
+return habits.map((h, i) => `<div style="display:flex; align-items:center; justify-content:space-between; background:#101010; border:1px solid #222; border-radius:8px; padding:8px 10px; margin-bottom:6px;"><div><strong>${h.name}</strong><div style="font-size:0.75rem; opacity:0.6;">Streak: ${h.streak || 0}</div></div><div style="display:flex; gap:6px;"><button onclick="toggleHabit(${i})" style="border:none; border-radius:6px; padding:5px 8px; background:${h.done ? '#244224' : '#1f1f1f'}; color:#fff;">${h.done ? 'Done' : 'Mark'}</button><button onclick="deleteHabit(${i})" style="border:none; border-radius:6px; padding:5px 8px; background:#291616; color:#ffb4b4;">Del</button></div></div>`).join('');
+}
+
+function refreshHabitTracker() {
+if (!OS.running['HabitTracker']) return;
+OS.running['HabitTracker'].querySelector('.win-body').innerHTML = Registry['HabitTracker'].content();
+}
+
+function addHabit() {
+const input = document.getElementById('habit-name');
+const name = (input?.value || '').trim();
+if (!name) return;
+const habits = getHabits();
+habits.push({ name: name.slice(0, 40), streak: 0, done: false });
+setHabits(habits);
+if (input) input.value = '';
+refreshHabitTracker();
+}
+
+function toggleHabit(index) {
+const habits = getHabits();
+if (!habits[index]) return;
+habits[index].done = !habits[index].done;
+habits[index].streak = Math.max((habits[index].streak || 0) + (habits[index].done ? 1 : -1), 0);
+setHabits(habits);
+refreshHabitTracker();
+}
+
+function deleteHabit(index) {
+const habits = getHabits();
+habits.splice(index, 1);
+setHabits(habits);
+refreshHabitTracker();
+}
+
+function generatePassword() {
+const len = Math.max(8, Math.min(64, Number(document.getElementById('passgen-len')?.value || 16)));
+const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%^&*()_+-=';
+let out = '';
+for (let i = 0; i < len; i += 1) out += chars[Math.floor(Math.random() * chars.length)];
+const target = document.getElementById('passgen-out');
+if (target) target.textContent = out;
+}
+
+function copyGeneratedPassword() {
+const text = document.getElementById('passgen-out')?.textContent || '';
+if (!text || text === 'Press Generate') return;
+navigator.clipboard?.writeText(text).then(() => notify('Password copied.', 'success')).catch(() => notify('Could not copy password.', 'warning'));
+}
+
+function getRandomQuote() {
+const quotes = [
+'Code. Break. Build. Repeat.',
+'Small commits, big progress.',
+'Focus beats motivation.',
+'Debugging is detective work with logic.',
+'Your future self loves clean code.',
+'Consistency writes the real masterpiece.'
+];
+return quotes[Math.floor(Math.random() * quotes.length)];
+}
+
+function refreshQuoteBox() {
+const target = document.getElementById('quote-box-text');
+if (target) target.textContent = getRandomQuote();
 }
 
 function getMusicQueue() {
