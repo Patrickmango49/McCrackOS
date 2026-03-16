@@ -560,7 +560,7 @@ widgets: normalizeWidgetFlags(JSON.parse(localStorage.getItem("mc_widgets"))),
 widgetPositions: normalizeWidgetPositions(JSON.parse(localStorage.getItem("mc_widget_pos"))),
 weather: JSON.parse(localStorage.getItem("mc_weather")) || null,
 restricted: ["Browser", "Store", "Terminal", "Files", "Settings"],
-storeApps: ["Movies", "Games", "𝕄𝕔ℂ𝕣𝕒𝕔𝕜Chat", "Calculator", "Music", "Music2", "AppFactory", "Notepad", "WidgetCenter", "Docs", "Paint", "ClockPro", "CodeLab", "PhotoBooth", "WeatherDesk", "TodoBoard", "UnitConverter", "HabitTracker", "QuickSketch", "FocusSounds"]
+storeApps: ["Movies", "Games", "𝕄𝕔ℂ𝕣𝕒𝕔𝕜Chat", "Calculator", "Music", "Music2", "AppFactory", "Notepad", "WidgetCenter", "YouTube", "Paint", "ClockPro", "CodeLab", "PhotoBooth", "WeatherDesk", "TodoBoard", "UnitConverter", "HabitTracker", "QuickSketch", "FocusSounds"]
 };
 
 OS.settings = normalizeSettings(JSON.parse(localStorage.getItem('mc_settings')));
@@ -779,7 +779,7 @@ Browser: { icon: "🌐", content: () => buildAppFrame("https://online.notes.dinp
 Movies: { icon: "📺", content: () => buildAppFrame("https://mccrack.neocities.org/movies") },
 Games: { icon: "🎮", content: () => buildAppFrame("https://mccrack.neocities.org/games") },
 𝕄𝕔ℂ𝕣𝕒𝕔𝕜Chat: { icon: "💬", content: () => buildAppFrame("https://patrickmango49.github.io/McCrack-Chat/") },
-Docs: { icon: "📚", content: () => buildAppFrame("https://docs.astro.build") },
+YouTube: { icon: "📺", content: () => buildAppFrame("https://online.notes.dinprima.ro/os/youtube.html") },
 Paint: { icon: "🎨", content: () => buildAppFrame("https://jspaint.app") },
 Music2: { icon: "🎶", content: () => buildAppFrame("https://freefy.app/") },
 ClockPro: { icon: "⏱️", content: () => `<div style="padding:34px;"><h2 style="margin-bottom:8px;">Clock Pro</h2><p style="opacity:0.6; margin-bottom:16px;">Pomodoro + stopwatch + alarms + world time zones.</p><div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px;"><button onclick="startPomodoro(25)" style="padding:12px; border:none; border-radius:10px; background:var(--accent); color:white; font-weight:700;">25m Focus</button><button onclick="startPomodoro(15)" style="padding:12px; border:none; border-radius:10px; background:#1f1f1f; color:white; font-weight:700;">15m Sprint</button><button onclick="startPomodoro(5)" style="padding:12px; border:none; border-radius:10px; background:#1f1f1f; color:white; font-weight:700;">5m Break</button><button onclick="stopPomodoro()" style="padding:12px; border:none; border-radius:10px; background:#3a2020; color:white; font-weight:700;">Stop</button></div><div id="pomodoro-status" style="margin-top:16px; font-size:1.05rem; font-weight:700;">Timer idle</div><div style="margin-top:18px; display:grid; grid-template-columns:1fr auto auto; gap:8px;"><input id="alarm-mins" type="number" min="1" placeholder="Alarm in minutes" style="padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><button onclick="setClockAlarm()" style="padding:10px 12px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Set Alarm</button><button onclick="clearClockAlarm()" style="padding:10px 12px; border:none; border-radius:8px; background:#2a1a1a; color:#fff;">Clear</button></div><div id="clock-alarm-status" style="margin-top:8px; opacity:0.75;">No alarm set.</div><div style="margin-top:18px; display:grid; grid-template-columns:1fr auto auto; gap:8px; align-items:center;"><div id="clock-stopwatch" style="padding:10px; background:#0f0f0f; border:1px solid #222; border-radius:8px; font-family:monospace; font-size:1.1rem;">00:00.0</div><button onclick="startStopwatch()" style="padding:10px 12px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Start/Stop</button><button onclick="resetStopwatch()" style="padding:10px 12px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Reset</button></div><div style="margin-top:18px; background:#0f0f0f; border:1px solid #222; border-radius:10px; padding:12px;">${renderWorldClocks()}</div></div>` },
@@ -820,7 +820,7 @@ ${renderStoreItem('Music', 'High-Fidelity Audio')}
 ${renderStoreItem('AppFactory', 'Custom Module Compiler')}
 ${renderStoreItem('Notepad', 'Secure Text Buffer')}
 ${renderStoreItem('WidgetCenter', 'Desktop Widget Manager')}
-${renderStoreItem('Docs', 'Developer Documentation Hub')}
+${renderStoreItem('YouTube', 'YouTube Video Streamer')}
 ${renderStoreItem('Paint', 'Retro Drawing Studio')}
 ${renderStoreItem('Music2', 'Stream Player Module')}
 ${renderStoreItem('ClockPro', 'Focus Timer & Clock Toolkit')}
