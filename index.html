@@ -342,14 +342,18 @@ animation: window-in 220ms ease;
 
 /* --- SYSTEM TASKBAR --- */
 #taskbar {
-position: fixed; bottom: 0; left: 0; right: 0; height: var(--taskbar-h);
+position: fixed; bottom: 8px; left: 50%; transform: translateX(-50%);
+width: min(1100px, calc(100vw - 24px)); height: var(--taskbar-h);
 background: rgba(5, 5, 5, 0.9); backdrop-filter: blur(var(--glass-blur));
-display: flex; align-items: center; padding: 0 25px; z-index: 8500; border-top: var(--border);
-transition: background 250ms ease, border-color 250ms ease;
+display: flex; align-items: center; padding: 0 18px; z-index: 8500; border: var(--border); border-radius: 18px;
+transition: background 250ms ease, border-color 250ms ease, transform 220ms ease;
 }
-#task-list { flex: 1; display: flex; justify-content: flex-start; gap: 14px; margin-left: 30px; overflow-x: auto; padding: 8px 0; }
-.task-tab { padding: 10px 22px; background: rgba(255,255,255,0.04); border-radius: 12px; font-size: 0.85rem; cursor: pointer; transition: 0.3s; white-space: nowrap; border: 1px solid transparent; color: #888; }
+#task-list { flex: 1; display: flex; justify-content: center; gap: 10px; margin: 0 16px; overflow-x: auto; padding: 8px 0; }
+.task-tab { padding: 10px 16px; background: rgba(255,255,255,0.04); border-radius: 12px; font-size: 0.82rem; cursor: pointer; transition: 0.3s; white-space: nowrap; border: 1px solid transparent; color: #888; }
 .task-tab.active { background: rgba(0, 120, 212, 0.15); border-color: var(--accent); box-shadow: 0 0 20px rgba(0,120,212,0.25); color: white; }
+.task-tab.pinned-only { border-style: dashed; color: #b9b9b9; }
+#start-btn { transform: rotate(180deg); }
+#start-btn:hover, #start-btn:active, #start-btn.menu-open { transform: rotate(0deg) scale(1.06); }
 
 /* --- APP CONTENT STYLING --- */
 .full-app-view { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #000; }
@@ -428,7 +432,7 @@ body.icon-wiggle .icon:hover div { animation: wiggle calc(var(--anim-speed, 1) *
 <div style="border-bottom: 1px solid #222; padding-bottom: 20px; margin-bottom: 20px;">
 <h3 style="font-weight: 500; color: var(--accent); letter-spacing: 1px;">INSTALLED MODULES</h3>
 </div>
-<div id="lib-cont" style="overflow-y:auto; flex:1;"></div>
+<input id="start-search" oninput="filterStartMenu(this.value)" placeholder="Search apps..." style="width:100%; padding:10px; border-radius:10px; border:1px solid #222; background:#111; color:#fff; margin-bottom:10px;"><div style="display:flex; gap:8px; margin-bottom:10px;"><button onclick="launch('Settings')" style="flex:1; padding:8px; background:#1a1a1a; color:#fff; border:1px solid #2b2b2b; border-radius:8px;">Settings</button><button onclick="launch('Terminal')" style="flex:1; padding:8px; background:#1a1a1a; color:#fff; border:1px solid #2b2b2b; border-radius:8px;">Terminal</button><button onclick="openPinnedApps()" style="flex:1; padding:8px; background:#1a1a1a; color:#fff; border:1px solid #2b2b2b; border-radius:8px;">Open Pinned</button></div><div id="lib-cont" style="overflow-y:auto; flex:1;"></div>
 </div>
 
 <div id="taskbar">
@@ -603,7 +607,8 @@ widgets: normalizeWidgetFlags(JSON.parse(localStorage.getItem("mc_widgets"))),
 widgetPositions: normalizeWidgetPositions(JSON.parse(localStorage.getItem("mc_widget_pos"))),
 weather: JSON.parse(localStorage.getItem("mc_weather")) || null,
 restricted: ["Browser", "Store", "Terminal", "Files", "Settings"],
-storeApps: ["Movies", "Games", "𝕄𝕔ℂ𝕣𝕒𝕔𝕜Chat", "Calculator", "Music", "Music2", "AppFactory", "Notepad", "WidgetCenter", "YouTube", "Paint", "ClockPro", "CodeLab", "PhotoBooth", "WeatherDesk", "TodoBoard", "UnitConverter", "HabitTracker", "QuickSketch", "FocusSounds", "MarkdownPad", "FinanceTracker", "MindMap", "ColorLab", "PixelRunner"]
+storeApps: ["Movies", "Games", "𝕄𝕔ℂ𝕣𝕒𝕔𝕜Chat", "Calculator", "Music", "Music2", "AppFactory", "Notepad", "WidgetCenter", "YouTube", "Paint", "ClockPro", "CodeLab", "PhotoBooth", "WeatherDesk", "TodoBoard", "UnitConverter", "HabitTracker", "QuickSketch", "FocusSounds", "MarkdownPad", "FinanceTracker", "MindMap", "ColorLab", "PixelRunner"],
+pinned: JSON.parse(localStorage.getItem('mc_pinned') || 'null') || ["Browser", "Files", "Settings"]
 };
 
 OS.settings = normalizeSettings(JSON.parse(localStorage.getItem('mc_settings')));
@@ -820,7 +825,7 @@ const section = OS.settingsSection || 'customization';
 const btnStyle = (id) => `display:block;width:100%;text-align:left;padding:10px 12px;border-radius:10px;border:1px solid ${section === id ? 'var(--accent)' : '#242424'};background:${section === id ? 'rgba(0,120,212,0.18)' : '#101010'};color:#fff;cursor:pointer;font-weight:600;margin-bottom:8px;`;
 const cards = {
 customization: `<div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;"><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Wallpaper</h4><p style="font-size:0.8rem; opacity:0.55; margin:8px 0 14px 0;">Pick presets, URL, or upload image.</p><label style="font-size:0.76rem; opacity:0.6;">Wallpaper Preset</label><select onchange="setWallpaperPreset(this.value)" style="margin-top:7px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;">${WALLPAPER_PRESETS.map(preset => `<option value="${preset.value}" ${OS.bg === preset.value ? 'selected' : ''}>${preset.label}</option>`).join('')}</select><input type="text" id="bg-url" placeholder="https://..." style="width:100%; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px; margin-top:12px;"><button onclick="setBG(document.getElementById('bg-url').value)" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:var(--accent); border:none; color:white; border-radius:8px;">Apply URL</button><button onclick="document.getElementById('bg-upload-settings').click()" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Upload Image</button><input type="file" id="bg-upload-settings" style="display:none" onchange="handleFileUpload(event)" accept="image/*"></div><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Theme & Branding</h4><p style="font-size:0.8rem; opacity:0.55; margin:8px 0 14px 0;">Accent colors and favicon.</p><label style="font-size:0.76rem; opacity:0.6;">Wallpaper Fit</label><select onchange="setWallpaperFit(this.value)" style="margin-top:7px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;"><option value="cover" ${OS.settings.wallpaperFit === 'cover' ? 'selected' : ''}>Fill Screen</option><option value="contain" ${OS.settings.wallpaperFit === 'contain' ? 'selected' : ''}>Fit Entire Image</option></select><input type="color" value="${OS.accent}" onchange="applyAccent(this.value)" style="margin-top:12px; width:100%; height:42px; background:#111; border:var(--border); border-radius:10px; cursor:pointer;"><button onclick="resetAccent()" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset Accent</button><input type="text" id="favicon-url" value="${OS.favicon}" placeholder="https://..." style="width:100%; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px; margin-top:12px;"><button onclick="setFavicon(document.getElementById('favicon-url').value)" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Apply Favicon</button></div></div>`,
-profile: `<div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;"><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Security & Profile</h4><div style="display:flex; align-items:center; gap:10px; margin:12px 0;"><div class="account-avatar" style="width:54px; height:54px; margin:0; font-size:22px;">${avatarMarkup(OS.account.avatar)}</div><span style="font-size:0.8rem; opacity:0.7;">Current Picture</span></div><div style="display:flex; gap:8px;"><button onclick="document.getElementById('settings-avatar-file').click()" style="flex:1; padding:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:#fff; border-radius:8px;">Upload</button><button onclick="updateAccountAvatar('')" style="flex:1; padding:10px; background:#151515; border:1px solid #2b2b2b; color:#fff; border-radius:8px;">Remove</button></div><input type="file" id="settings-avatar-file" style="display:none" accept="image/*" onchange="onSettingsAvatarSelected(event)"><input type="password" id="new-p" placeholder="New Access Key" style="width:100%; margin-top:12px; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px;"><button onclick="setPass(document.getElementById('new-p').value)" style="width:100%; margin-top:10px; padding:10px; background:#333; border:none; color:white; border-radius:8px;">Update Key</button></div><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Layout Tools</h4><button onclick="resetDesktopLayout()" style="width:100%; padding:10px; margin-top:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset App Icon Layout</button><button onclick="resetWidgetsLayout()" style="width:100%; margin-top:10px; padding:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset Widget Layout</button></div></div>`,
+profile: `<div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;"><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Security & Profile</h4><div style="display:flex; align-items:center; gap:10px; margin:12px 0;"><div class="account-avatar" style="width:54px; height:54px; margin:0; font-size:22px;">${avatarMarkup(OS.account.avatar)}</div><span style="font-size:0.8rem; opacity:0.7;">Current Picture</span></div><div style="display:flex; gap:8px;"><button onclick="document.getElementById('settings-avatar-file').click()" style="flex:1; padding:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:#fff; border-radius:8px;">Upload</button><button onclick="updateAccountAvatar('')" style="flex:1; padding:10px; background:#151515; border:1px solid #2b2b2b; color:#fff; border-radius:8px;">Remove</button></div><input type="file" id="settings-avatar-file" style="display:none" accept="image/*" onchange="onSettingsAvatarSelected(event)"><input type="password" id="new-p" placeholder="New Access Key" style="width:100%; margin-top:12px; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px;"><button onclick="setPass(document.getElementById('new-p').value)" style="width:100%; margin-top:10px; padding:10px; background:#333; border:none; color:white; border-radius:8px;">Update Key</button><button onclick="factoryResetWithPassword()" style="width:100%; margin-top:10px; padding:10px; background:#4a1010; border:1px solid #7a1e1e; color:white; border-radius:8px;">Factory Reset (Password Required)</button></div><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Layout Tools</h4><button onclick="resetDesktopLayout()" style="width:100%; padding:10px; margin-top:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset App Icon Layout</button><button onclick="resetWidgetsLayout()" style="width:100%; margin-top:10px; padding:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset Widget Layout</button></div></div>`,
 system: `<div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;"><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Clock & Weather</h4><label style="display:flex; justify-content:space-between; margin-top:12px;"><span>Show Seconds</span><input type="checkbox" ${OS.settings.clockSeconds ? 'checked' : ''} onchange="setSetting('clockSeconds', this.checked, 'Clock precision updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Use 24-Hour Time</span><input type="checkbox" ${OS.settings.clock24h ? 'checked' : ''} onchange="setSetting('clock24h', this.checked, 'Clock format updated.')"></label><label style="font-size:0.76rem; opacity:0.7; display:block; margin-top:10px;">Temperature Unit</label><select onchange="setSetting('temperatureUnit', this.value, 'Temperature unit updated.'); refreshWeather(true);" style="margin-top:6px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;"><option value="C" ${OS.settings.temperatureUnit === 'C' ? 'selected' : ''}>Celsius (°C)</option><option value="F" ${OS.settings.temperatureUnit === 'F' ? 'selected' : ''}>Fahrenheit (°F)</option></select><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Desktop Sounds</span><input type="checkbox" ${OS.settings.desktopSounds ? 'checked' : ''} onchange="setSetting('desktopSounds', this.checked, 'Sound preference updated.')"></label></div><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Animation & Behavior</h4><label style="display:flex; justify-content:space-between; margin-top:12px;"><span>Desktop Notifications</span><input type="checkbox" ${OS.settings.notifications ? 'checked' : ''} onchange="setSetting('notifications', this.checked, 'Notification preference updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Compact Desktop Icons</span><input type="checkbox" ${OS.settings.compactIcons ? 'checked' : ''} onchange="setSetting('compactIcons', this.checked, 'Desktop icon density updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Reduce Animations</span><input type="checkbox" ${OS.settings.reducedMotion ? 'checked' : ''} onchange="setSetting('reducedMotion', this.checked, 'Animation preference updated.')"></label><label style="font-size:0.76rem; opacity:0.7; display:block; margin-top:10px;">Animation Speed</label><select onchange="setSetting('uiAnimationSpeed', this.value, 'Animation speed updated.')" style="margin-top:6px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;"><option value="slow" ${OS.settings.uiAnimationSpeed === 'slow' ? 'selected' : ''}>Slow</option><option value="normal" ${OS.settings.uiAnimationSpeed === 'normal' ? 'selected' : ''}>Normal</option><option value="fast" ${OS.settings.uiAnimationSpeed === 'fast' ? 'selected' : ''}>Fast</option></select><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Window Opening Animations</span><input type="checkbox" ${OS.settings.windowOpenAnimations ? 'checked' : ''} onchange="setSetting('windowOpenAnimations', this.checked, 'Window animations updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Start Menu Animations</span><input type="checkbox" ${OS.settings.startMenuAnimations ? 'checked' : ''} onchange="setSetting('startMenuAnimations', this.checked, 'Start menu animations updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Taskbar Accent Pulse</span><input type="checkbox" ${OS.settings.taskbarGlow ? 'checked' : ''} onchange="setSetting('taskbarGlow', this.checked, 'Taskbar pulse updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Hover Lift Effects</span><input type="checkbox" ${OS.settings.hoverLift ? 'checked' : ''} onchange="setSetting('hoverLift', this.checked, 'Hover lift updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Icon Wiggle</span><input type="checkbox" ${OS.settings.iconWiggle ? 'checked' : ''} onchange="setSetting('iconWiggle', this.checked, 'Icon wiggle updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Animated Gradient Wallpaper</span><input type="checkbox" ${OS.settings.gradientShift ? 'checked' : ''} onchange="setSetting('gradientShift', this.checked, 'Gradient animation updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Lively UI Saturation</span><input type="checkbox" ${OS.settings.livelyUi ? 'checked' : ''} onchange="setSetting('livelyUi', this.checked, 'Lively UI updated.')"></label><label style="font-size:0.76rem; opacity:0.7; display:block; margin-top:10px;">Glass Blur Intensity</label><select onchange="setSetting('glassIntensity', this.value, 'Glass blur updated.')" style="margin-top:6px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;"><option value="low" ${OS.settings.glassIntensity === 'low' ? 'selected' : ''}>Low</option><option value="medium" ${OS.settings.glassIntensity === 'medium' ? 'selected' : ''}>Medium</option><option value="high" ${OS.settings.glassIntensity === 'high' ? 'selected' : ''}>High</option></select><button onclick="resetSystemSettings()" style="width:100%; margin-top:12px; padding:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset System Settings</button></div></div>`,
 camera: `<div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;"><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Camera Defaults</h4><label style="font-size:0.76rem; opacity:0.7; display:block; margin-top:10px;">Default Resolution</label><select onchange="setSetting('cameraResolution', this.value, 'Camera resolution preference saved.')" style="margin-top:6px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;"><option value="sd" ${OS.settings.cameraResolution === 'sd' ? 'selected' : ''}>SD</option><option value="hd" ${OS.settings.cameraResolution === 'hd' ? 'selected' : ''}>HD</option><option value="fhd" ${OS.settings.cameraResolution === 'fhd' ? 'selected' : ''}>Full HD</option></select><label style="display:flex; justify-content:space-between; margin-top:12px;"><span>Show Rule-of-Thirds Grid</span><input type="checkbox" ${OS.settings.cameraGrid ? 'checked' : ''} onchange="setSetting('cameraGrid', this.checked, 'Camera grid updated.'); applyCameraOverlay();"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Shutter Click Sound</span><input type="checkbox" ${OS.settings.cameraShutterSound ? 'checked' : ''} onchange="setSetting('cameraShutterSound', this.checked, 'Camera sound updated.')"></label></div><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Privacy</h4><label style="display:flex; justify-content:space-between; margin-top:12px;"><span>Anonymous Telemetry</span><input type="checkbox" ${OS.settings.privacyTelemetry ? 'checked' : ''} onchange="setSetting('privacyTelemetry', this.checked, 'Privacy preference updated.')"></label><button onclick="stopPhotoBooth()" style="width:100%; margin-top:12px; padding:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Stop Active Camera Stream</button></div></div>`,
 about: `<div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>About This Build</h4><p style="opacity:0.65; margin-top:10px; line-height:1.5;">Expanded settings with more sections for camera and privacy.</p></div>`
@@ -1611,6 +1616,7 @@ box.innerHTML = `
 <p class="auth-card-sub">${OS.account.mode === 'passwordless' ? 'Passwordless profile' : 'Password protected profile'}</p>
 ${OS.account.mode === 'password' ? '<input type="password" id="pass-in" placeholder="Enter password">' : '<p style="font-size:0.86rem; opacity:0.8; margin:20px 0 12px 0;">No password required.</p>'}
 <button onclick="unlock()">${OS.account.mode === 'password' ? 'Unlock Desktop' : 'Enter Desktop'}</button>
+${OS.account.mode === 'password' ? '<button onclick="forgotPasswordReset()" style="margin-top:10px; background:#222;">Forgot Password (Factory Reset)</button>' : ''}
 <p id="log-msg" style="color:#ff4b4b; font-size:0.75rem; margin-top:20px; font-weight: 800; letter-spacing:1px;"></p>
 `;
 }
@@ -1641,6 +1647,27 @@ OS.pass = p;
 OS.account.pass = p;
 localStorage.setItem("mc_pass", p);
 persistAccount();
+}
+
+function runFactoryReset() {
+localStorage.clear();
+notify('Factory reset complete. Rebooting...', 'warning');
+setTimeout(() => location.reload(), 220);
+}
+
+function factoryResetWithPassword() {
+if (OS.account.mode !== 'password') return runFactoryReset();
+const entered = prompt('Enter your password to factory reset:') || '';
+if (!entered) return;
+if (entered !== OS.pass) {
+notify('Incorrect password. Factory reset canceled.', 'error');
+return;
+}
+if (confirm('This will erase account, installed apps, widgets, and settings. Continue?')) runFactoryReset();
+}
+
+function forgotPasswordReset() {
+if (confirm('Forgot password reset will erase everything and create a fresh OS. Continue?')) runFactoryReset();
 }
 
 function unlock() {
@@ -1721,18 +1748,46 @@ d.appendChild(el);
 renderWidgets();
 }
 
-function renderLib() {
+function renderLib(filter = '') {
 const c = document.getElementById('lib-cont'); c.innerHTML = "";
-OS.installed.forEach(id => {
+const term = (filter || '').toLowerCase();
+OS.installed.filter(id => id.toLowerCase().includes(term)).forEach(id => {
 if(!Registry[id]) return;
 const i = document.createElement('div'); i.className = 'start-item';
-i.innerHTML = `<span>${Registry[id].icon}</span><strong>${id}</strong>`;
+const pinned = OS.pinned.includes(id);
+i.innerHTML = `<span>${Registry[id].icon}</span><strong style="flex:1;">${id}</strong><button onclick="event.stopPropagation(); togglePinnedApp('${id}')" style="padding:6px 10px; border-radius:8px; border:1px solid #2d2d2d; background:${pinned ? 'rgba(0,120,212,0.25)' : '#151515'}; color:#fff;">${pinned ? 'Unpin' : 'Pin'}</button>`;
 i.onclick = () => { launch(id); toggleStart(); };
 c.appendChild(i);
 });
 }
 
-function toggleStart() { const s = document.getElementById('start-menu'); s.style.display = (s.style.display==='flex')?'none':'flex'; }
+function filterStartMenu(value) { renderLib(value); }
+
+function togglePinnedApp(id) {
+if (OS.pinned.includes(id)) OS.pinned = OS.pinned.filter(app => app !== id);
+else OS.pinned.push(id);
+localStorage.setItem('mc_pinned', JSON.stringify(OS.pinned));
+renderLib(document.getElementById('start-search')?.value || '');
+updateTask();
+notify(`${id} ${OS.pinned.includes(id) ? 'pinned' : 'unpinned'} on taskbar.`);
+}
+
+function openPinnedApps() {
+OS.pinned.forEach((id) => { if (!OS.running[id]) launch(id); });
+notify('Opened all pinned apps.', 'info');
+}
+
+function toggleStart() {
+const s = document.getElementById('start-menu');
+const btn = document.getElementById('start-btn');
+const show = s.style.display !== 'flex';
+s.style.display = show ? 'flex' : 'none';
+if (btn) btn.classList.toggle('menu-open', show);
+if (show) {
+const search = document.getElementById('start-search');
+if (search) { search.value = ''; renderLib(''); search.focus(); }
+}
+}
 
 function launch(id) {
 if(OS.running[id]) { focusWin(id); return; }
@@ -1839,10 +1894,18 @@ w.style.borderRadius = '20px'; w.dataset.fs = "false";
 
 function updateTask() {
 const tl = document.getElementById('task-list'); tl.innerHTML = "";
-Object.keys(OS.running).forEach(id => {
-const t = document.createElement('div'); t.className = 'task-tab' + (OS.running[id].style.display!=='none'?' active':'');
-t.innerText = id;
+const ordered = [...new Set([...(OS.pinned || []), ...Object.keys(OS.running)])];
+ordered.forEach(id => {
+if(!Registry[id]) return;
+const running = !!OS.running[id];
+const t = document.createElement('div');
+t.className = 'task-tab' + (running && OS.running[id].style.display!=='none' ? ' active' : '') + (!running ? ' pinned-only' : '');
+t.innerText = `${Registry[id].icon} ${id}`;
 t.onclick = () => {
+if(!running) {
+launch(id);
+return;
+}
 if(OS.running[id].style.display === 'none') {
 OS.running[id].style.display = 'flex';
 focusWin(id);
