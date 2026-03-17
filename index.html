@@ -15,6 +15,8 @@
 --border: 1px solid rgba(255, 255, 255, 0.12);
 --shadow: 0 30px 60px rgba(0,0,0,0.95);
 --blur: blur(35px);
+--anim-speed: 1;
+--glass-blur: 25px;
 --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
 --danger: #ff4b4b;
 }
@@ -25,6 +27,10 @@ body {
 height: 100vh; width: 100vw; overflow: hidden;
 background: radial-gradient(120% 90% at 50% 44%, #1a1a1a 0%, #121212 30%, #0b0b0b 62%, #050505 82%, #010101 100%); color: white; transition: background 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
+body.lively-ui { animation: breathe-ui calc(var(--anim-speed, 1) * 10s) ease-in-out infinite; }
+body.gradient-shift { background-size: 160% 160%; animation: gradient-shift calc(var(--anim-speed, 1) * 18s) ease infinite; }
+body.pulse-accent #top-bar,
+body.pulse-accent #taskbar { box-shadow: 0 0 0 rgba(0, 120, 212, 0); animation: chrome-pulse calc(var(--anim-speed, 1) * 2.8s) ease-in-out infinite; }
 
 /* --- TOP BAR --- */
 #top-bar {
@@ -33,6 +39,7 @@ background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(15px);
 display: flex; justify-content: space-between; align-items: center;
 padding: 0 18px; z-index: 9500; border-bottom: var(--border);
 font-size: 0.75rem; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;
+transition: transform 260ms ease, background 260ms ease, border-color 260ms ease;
 }
 .top-right { display: flex; align-items: center; gap: 20px; }
 #lock-btn { cursor: pointer; color: #aaa; transition: 0.3s; }
@@ -219,7 +226,9 @@ user-select: none;
 touch-action: none;
 will-change: left, top;
 transform: translateZ(0);
+transition: transform 180ms ease, box-shadow 180ms ease;
 }
+.widget-card:hover { transform: translateY(-2px); box-shadow: 0 18px 36px rgba(0,0,0,0.44); }
 .widget-card.dragging { cursor: grabbing; }
 .widget-card h4 { font-size: 0.72rem; letter-spacing: 1.2px; opacity: 0.65; margin-bottom: 8px; }
 .widget-main { font-size: 1.35rem; font-weight: 700; }
@@ -309,6 +318,7 @@ animation: toast-in 220ms ease forwards;
 position: absolute; bottom: 80px; left: 20px; width: 380px; height: 550px;
 background: var(--panel); border: var(--border); border-radius: 24px;
 backdrop-filter: var(--blur); display: none; flex-direction: column; padding: 30px; z-index: 9999; box-shadow: var(--shadow);
+animation: panel-pop 240ms ease;
 }
 .start-item { display: flex; align-items: center; gap: 18px; padding: 14px; border-radius: 14px; cursor: pointer; transition: 0.2s; }
 .start-item:hover { background: rgba(255,255,255,0.08); transform: translateX(8px); }
@@ -319,6 +329,7 @@ backdrop-filter: var(--blur); display: none; flex-direction: column; padding: 30
 position: absolute; background: var(--win-bg); border-radius: 20px; border: var(--border);
 display: flex; flex-direction: column; overflow: hidden; box-shadow: var(--shadow);
 transition: width 0.3s, height 0.3s, top 0.3s, left 0.3s, opacity 0.2s, transform 0.2s;
+animation: window-in 220ms ease;
 }
 .win-head { background: #121212; padding: 16px 24px; display: flex; justify-content: space-between; cursor: grab; align-items: center; }
 .window.dragging, .window.resizing { transition: none !important; }
@@ -332,8 +343,9 @@ transition: width 0.3s, height 0.3s, top 0.3s, left 0.3s, opacity 0.2s, transfor
 /* --- SYSTEM TASKBAR --- */
 #taskbar {
 position: fixed; bottom: 0; left: 0; right: 0; height: var(--taskbar-h);
-background: rgba(5, 5, 5, 0.9); backdrop-filter: blur(25px);
+background: rgba(5, 5, 5, 0.9); backdrop-filter: blur(var(--glass-blur));
 display: flex; align-items: center; padding: 0 25px; z-index: 8500; border-top: var(--border);
+transition: background 250ms ease, border-color 250ms ease;
 }
 #task-list { flex: 1; display: flex; justify-content: flex-start; gap: 14px; margin-left: 30px; overflow-x: auto; padding: 8px 0; }
 .task-tab { padding: 10px 22px; background: rgba(255,255,255,0.04); border-radius: 12px; font-size: 0.85rem; cursor: pointer; transition: 0.3s; white-space: nowrap; border: 1px solid transparent; color: #888; }
@@ -349,9 +361,20 @@ display: flex; align-items: center; padding: 0 25px; z-index: 8500; border-top: 
 .store-card { background: #0a0a0a; padding: 20px; border-radius: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #1a1a1a; }
 .install-btn { padding: 8px 20px; border-radius: 8px; border: none; background: var(--accent); color: white; cursor: pointer; font-weight: 700; }
 
+body.no-window-anims .window,
+body.no-start-anims #start-menu { animation: none !important; }
+body.hover-lift .task-tab:hover { transform: translateY(-2px); }
+body.icon-wiggle .icon:hover div { animation: wiggle calc(var(--anim-speed, 1) * 340ms) ease; }
+@keyframes wiggle { 0%,100% { transform: rotate(0deg); } 35% { transform: rotate(-6deg); } 70% { transform: rotate(6deg); } }
+
 /* --- ANIMATIONS --- */
 @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
 @keyframes pulse-delete { 0% { box-shadow: 0 0 0 0 rgba(255, 75, 75, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(255, 75, 75, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 75, 75, 0); } }
+@keyframes panel-pop { from { opacity: 0; transform: translateY(8px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes window-in { from { opacity: 0; transform: translateY(10px) scale(0.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes breathe-ui { 0%,100% { filter: saturate(1); } 50% { filter: saturate(1.12); } }
+@keyframes gradient-shift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+@keyframes chrome-pulse { 0%,100% { box-shadow: 0 0 0 rgba(0,120,212,0); } 50% { box-shadow: 0 0 28px rgba(0,120,212,0.25); } }
 </style>
 </head>
 <body id="os-root">
@@ -502,6 +525,16 @@ todoShowCompleted: true,
 cameraGrid: false,
 cameraShutterSound: true,
 cameraResolution: 'hd',
+uiAnimationSpeed: 'normal',
+windowOpenAnimations: true,
+taskbarGlow: true,
+startMenuAnimations: true,
+hoverLift: true,
+iconWiggle: true,
+gradientShift: false,
+pulseAccent: true,
+livelyUi: true,
+glassIntensity: 'medium',
 privacyTelemetry: false
 };
 
@@ -541,6 +574,16 @@ if (typeof raw.todoShowCompleted === 'boolean') base.todoShowCompleted = raw.tod
 if (typeof raw.cameraGrid === 'boolean') base.cameraGrid = raw.cameraGrid;
 if (typeof raw.cameraShutterSound === 'boolean') base.cameraShutterSound = raw.cameraShutterSound;
 if (['sd', 'hd', 'fhd'].includes(raw.cameraResolution)) base.cameraResolution = raw.cameraResolution;
+if (['slow', 'normal', 'fast'].includes(raw.uiAnimationSpeed)) base.uiAnimationSpeed = raw.uiAnimationSpeed;
+if (typeof raw.windowOpenAnimations === 'boolean') base.windowOpenAnimations = raw.windowOpenAnimations;
+if (typeof raw.taskbarGlow === 'boolean') base.taskbarGlow = raw.taskbarGlow;
+if (typeof raw.startMenuAnimations === 'boolean') base.startMenuAnimations = raw.startMenuAnimations;
+if (typeof raw.hoverLift === 'boolean') base.hoverLift = raw.hoverLift;
+if (typeof raw.iconWiggle === 'boolean') base.iconWiggle = raw.iconWiggle;
+if (typeof raw.gradientShift === 'boolean') base.gradientShift = raw.gradientShift;
+if (typeof raw.pulseAccent === 'boolean') base.pulseAccent = raw.pulseAccent;
+if (typeof raw.livelyUi === 'boolean') base.livelyUi = raw.livelyUi;
+if (['low', 'medium', 'high'].includes(raw.glassIntensity)) base.glassIntensity = raw.glassIntensity;
 if (typeof raw.privacyTelemetry === 'boolean') base.privacyTelemetry = raw.privacyTelemetry;
 return base;
 }
@@ -560,7 +603,7 @@ widgets: normalizeWidgetFlags(JSON.parse(localStorage.getItem("mc_widgets"))),
 widgetPositions: normalizeWidgetPositions(JSON.parse(localStorage.getItem("mc_widget_pos"))),
 weather: JSON.parse(localStorage.getItem("mc_weather")) || null,
 restricted: ["Browser", "Store", "Terminal", "Files", "Settings"],
-storeApps: ["Movies", "Games", "𝕄𝕔ℂ𝕣𝕒𝕔𝕜Chat", "Calculator", "Music", "Music2", "AppFactory", "Notepad", "WidgetCenter", "YouTube", "Paint", "ClockPro", "CodeLab", "PhotoBooth", "WeatherDesk", "TodoBoard", "UnitConverter", "HabitTracker", "QuickSketch", "FocusSounds"]
+storeApps: ["Movies", "Games", "𝕄𝕔ℂ𝕣𝕒𝕔𝕜Chat", "Calculator", "Music", "Music2", "AppFactory", "Notepad", "WidgetCenter", "YouTube", "Paint", "ClockPro", "CodeLab", "PhotoBooth", "WeatherDesk", "TodoBoard", "UnitConverter", "HabitTracker", "QuickSketch", "FocusSounds", "MarkdownPad", "FinanceTracker", "MindMap", "ColorLab", "PixelRunner"]
 };
 
 OS.settings = normalizeSettings(JSON.parse(localStorage.getItem('mc_settings')));
@@ -727,7 +770,19 @@ function applyUISettings() {
 const desktop = document.getElementById('desktop');
 document.body.classList.toggle('no-animations', !!OS.settings.reducedMotion);
 if (desktop) desktop.classList.toggle('compact-icons', !!OS.settings.compactIcons);
+const speedMap = { slow: 1.35, normal: 1, fast: 0.75 };
+const blurMap = { low: '12px', medium: '25px', high: '38px' };
+document.documentElement.style.setProperty('--anim-speed', speedMap[OS.settings.uiAnimationSpeed] || 1);
+document.documentElement.style.setProperty('--glass-blur', blurMap[OS.settings.glassIntensity] || '25px');
+document.body.classList.toggle('gradient-shift', !!OS.settings.gradientShift);
+document.body.classList.toggle('pulse-accent', !!OS.settings.pulseAccent && !!OS.settings.taskbarGlow);
+document.body.classList.toggle('lively-ui', !!OS.settings.livelyUi);
+document.body.classList.toggle('hover-lift', !!OS.settings.hoverLift);
+document.body.classList.toggle('icon-wiggle', !!OS.settings.iconWiggle);
+document.body.classList.toggle('no-window-anims', !OS.settings.windowOpenAnimations);
+document.body.classList.toggle('no-start-anims', !OS.settings.startMenuAnimations);
 }
+
 
 
 function getSavedPhotos() {
@@ -766,7 +821,7 @@ const btnStyle = (id) => `display:block;width:100%;text-align:left;padding:10px 
 const cards = {
 customization: `<div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;"><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Wallpaper</h4><p style="font-size:0.8rem; opacity:0.55; margin:8px 0 14px 0;">Pick presets, URL, or upload image.</p><label style="font-size:0.76rem; opacity:0.6;">Wallpaper Preset</label><select onchange="setWallpaperPreset(this.value)" style="margin-top:7px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;">${WALLPAPER_PRESETS.map(preset => `<option value="${preset.value}" ${OS.bg === preset.value ? 'selected' : ''}>${preset.label}</option>`).join('')}</select><input type="text" id="bg-url" placeholder="https://..." style="width:100%; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px; margin-top:12px;"><button onclick="setBG(document.getElementById('bg-url').value)" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:var(--accent); border:none; color:white; border-radius:8px;">Apply URL</button><button onclick="document.getElementById('bg-upload-settings').click()" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Upload Image</button><input type="file" id="bg-upload-settings" style="display:none" onchange="handleFileUpload(event)" accept="image/*"></div><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Theme & Branding</h4><p style="font-size:0.8rem; opacity:0.55; margin:8px 0 14px 0;">Accent colors and favicon.</p><label style="font-size:0.76rem; opacity:0.6;">Wallpaper Fit</label><select onchange="setWallpaperFit(this.value)" style="margin-top:7px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;"><option value="cover" ${OS.settings.wallpaperFit === 'cover' ? 'selected' : ''}>Fill Screen</option><option value="contain" ${OS.settings.wallpaperFit === 'contain' ? 'selected' : ''}>Fit Entire Image</option></select><input type="color" value="${OS.accent}" onchange="applyAccent(this.value)" style="margin-top:12px; width:100%; height:42px; background:#111; border:var(--border); border-radius:10px; cursor:pointer;"><button onclick="resetAccent()" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset Accent</button><input type="text" id="favicon-url" value="${OS.favicon}" placeholder="https://..." style="width:100%; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px; margin-top:12px;"><button onclick="setFavicon(document.getElementById('favicon-url').value)" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Apply Favicon</button></div></div>`,
 profile: `<div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;"><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Security & Profile</h4><div style="display:flex; align-items:center; gap:10px; margin:12px 0;"><div class="account-avatar" style="width:54px; height:54px; margin:0; font-size:22px;">${avatarMarkup(OS.account.avatar)}</div><span style="font-size:0.8rem; opacity:0.7;">Current Picture</span></div><div style="display:flex; gap:8px;"><button onclick="document.getElementById('settings-avatar-file').click()" style="flex:1; padding:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:#fff; border-radius:8px;">Upload</button><button onclick="updateAccountAvatar('')" style="flex:1; padding:10px; background:#151515; border:1px solid #2b2b2b; color:#fff; border-radius:8px;">Remove</button></div><input type="file" id="settings-avatar-file" style="display:none" accept="image/*" onchange="onSettingsAvatarSelected(event)"><input type="password" id="new-p" placeholder="New Access Key" style="width:100%; margin-top:12px; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px;"><button onclick="setPass(document.getElementById('new-p').value)" style="width:100%; margin-top:10px; padding:10px; background:#333; border:none; color:white; border-radius:8px;">Update Key</button></div><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Layout Tools</h4><button onclick="resetDesktopLayout()" style="width:100%; padding:10px; margin-top:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset App Icon Layout</button><button onclick="resetWidgetsLayout()" style="width:100%; margin-top:10px; padding:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset Widget Layout</button></div></div>`,
-system: `<div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;"><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Clock Controls</h4><label style="display:flex; justify-content:space-between; margin-top:12px;"><span>Show Seconds</span><input type="checkbox" ${OS.settings.clockSeconds ? 'checked' : ''} onchange="setSetting('clockSeconds', this.checked, 'Clock precision updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Use 24-Hour Time</span><input type="checkbox" ${OS.settings.clock24h ? 'checked' : ''} onchange="setSetting('clock24h', this.checked, 'Clock format updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Desktop Sounds</span><input type="checkbox" ${OS.settings.desktopSounds ? 'checked' : ''} onchange="setSetting('desktopSounds', this.checked, 'Sound preference updated.')"></label></div><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>System Behavior</h4><label style="display:flex; justify-content:space-between; margin-top:12px;"><span>Desktop Notifications</span><input type="checkbox" ${OS.settings.notifications ? 'checked' : ''} onchange="setSetting('notifications', this.checked, 'Notification preference updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Compact Desktop Icons</span><input type="checkbox" ${OS.settings.compactIcons ? 'checked' : ''} onchange="setSetting('compactIcons', this.checked, 'Desktop icon density updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Reduce Animations</span><input type="checkbox" ${OS.settings.reducedMotion ? 'checked' : ''} onchange="setSetting('reducedMotion', this.checked, 'Animation preference updated.')"></label><button onclick="resetSystemSettings()" style="width:100%; margin-top:12px; padding:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset System Settings</button></div></div>`,
+system: `<div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;"><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Clock & Weather</h4><label style="display:flex; justify-content:space-between; margin-top:12px;"><span>Show Seconds</span><input type="checkbox" ${OS.settings.clockSeconds ? 'checked' : ''} onchange="setSetting('clockSeconds', this.checked, 'Clock precision updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Use 24-Hour Time</span><input type="checkbox" ${OS.settings.clock24h ? 'checked' : ''} onchange="setSetting('clock24h', this.checked, 'Clock format updated.')"></label><label style="font-size:0.76rem; opacity:0.7; display:block; margin-top:10px;">Temperature Unit</label><select onchange="setSetting('temperatureUnit', this.value, 'Temperature unit updated.'); refreshWeather(true);" style="margin-top:6px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;"><option value="C" ${OS.settings.temperatureUnit === 'C' ? 'selected' : ''}>Celsius (°C)</option><option value="F" ${OS.settings.temperatureUnit === 'F' ? 'selected' : ''}>Fahrenheit (°F)</option></select><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Desktop Sounds</span><input type="checkbox" ${OS.settings.desktopSounds ? 'checked' : ''} onchange="setSetting('desktopSounds', this.checked, 'Sound preference updated.')"></label></div><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Animation & Behavior</h4><label style="display:flex; justify-content:space-between; margin-top:12px;"><span>Desktop Notifications</span><input type="checkbox" ${OS.settings.notifications ? 'checked' : ''} onchange="setSetting('notifications', this.checked, 'Notification preference updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Compact Desktop Icons</span><input type="checkbox" ${OS.settings.compactIcons ? 'checked' : ''} onchange="setSetting('compactIcons', this.checked, 'Desktop icon density updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Reduce Animations</span><input type="checkbox" ${OS.settings.reducedMotion ? 'checked' : ''} onchange="setSetting('reducedMotion', this.checked, 'Animation preference updated.')"></label><label style="font-size:0.76rem; opacity:0.7; display:block; margin-top:10px;">Animation Speed</label><select onchange="setSetting('uiAnimationSpeed', this.value, 'Animation speed updated.')" style="margin-top:6px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;"><option value="slow" ${OS.settings.uiAnimationSpeed === 'slow' ? 'selected' : ''}>Slow</option><option value="normal" ${OS.settings.uiAnimationSpeed === 'normal' ? 'selected' : ''}>Normal</option><option value="fast" ${OS.settings.uiAnimationSpeed === 'fast' ? 'selected' : ''}>Fast</option></select><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Window Opening Animations</span><input type="checkbox" ${OS.settings.windowOpenAnimations ? 'checked' : ''} onchange="setSetting('windowOpenAnimations', this.checked, 'Window animations updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Start Menu Animations</span><input type="checkbox" ${OS.settings.startMenuAnimations ? 'checked' : ''} onchange="setSetting('startMenuAnimations', this.checked, 'Start menu animations updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Taskbar Accent Pulse</span><input type="checkbox" ${OS.settings.taskbarGlow ? 'checked' : ''} onchange="setSetting('taskbarGlow', this.checked, 'Taskbar pulse updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Hover Lift Effects</span><input type="checkbox" ${OS.settings.hoverLift ? 'checked' : ''} onchange="setSetting('hoverLift', this.checked, 'Hover lift updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Icon Wiggle</span><input type="checkbox" ${OS.settings.iconWiggle ? 'checked' : ''} onchange="setSetting('iconWiggle', this.checked, 'Icon wiggle updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Animated Gradient Wallpaper</span><input type="checkbox" ${OS.settings.gradientShift ? 'checked' : ''} onchange="setSetting('gradientShift', this.checked, 'Gradient animation updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Lively UI Saturation</span><input type="checkbox" ${OS.settings.livelyUi ? 'checked' : ''} onchange="setSetting('livelyUi', this.checked, 'Lively UI updated.')"></label><label style="font-size:0.76rem; opacity:0.7; display:block; margin-top:10px;">Glass Blur Intensity</label><select onchange="setSetting('glassIntensity', this.value, 'Glass blur updated.')" style="margin-top:6px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;"><option value="low" ${OS.settings.glassIntensity === 'low' ? 'selected' : ''}>Low</option><option value="medium" ${OS.settings.glassIntensity === 'medium' ? 'selected' : ''}>Medium</option><option value="high" ${OS.settings.glassIntensity === 'high' ? 'selected' : ''}>High</option></select><button onclick="resetSystemSettings()" style="width:100%; margin-top:12px; padding:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset System Settings</button></div></div>`,
 camera: `<div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;"><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Camera Defaults</h4><label style="font-size:0.76rem; opacity:0.7; display:block; margin-top:10px;">Default Resolution</label><select onchange="setSetting('cameraResolution', this.value, 'Camera resolution preference saved.')" style="margin-top:6px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;"><option value="sd" ${OS.settings.cameraResolution === 'sd' ? 'selected' : ''}>SD</option><option value="hd" ${OS.settings.cameraResolution === 'hd' ? 'selected' : ''}>HD</option><option value="fhd" ${OS.settings.cameraResolution === 'fhd' ? 'selected' : ''}>Full HD</option></select><label style="display:flex; justify-content:space-between; margin-top:12px;"><span>Show Rule-of-Thirds Grid</span><input type="checkbox" ${OS.settings.cameraGrid ? 'checked' : ''} onchange="setSetting('cameraGrid', this.checked, 'Camera grid updated.'); applyCameraOverlay();"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Shutter Click Sound</span><input type="checkbox" ${OS.settings.cameraShutterSound ? 'checked' : ''} onchange="setSetting('cameraShutterSound', this.checked, 'Camera sound updated.')"></label></div><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Privacy</h4><label style="display:flex; justify-content:space-between; margin-top:12px;"><span>Anonymous Telemetry</span><input type="checkbox" ${OS.settings.privacyTelemetry ? 'checked' : ''} onchange="setSetting('privacyTelemetry', this.checked, 'Privacy preference updated.')"></label><button onclick="stopPhotoBooth()" style="width:100%; margin-top:12px; padding:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Stop Active Camera Stream</button></div></div>`,
 about: `<div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>About This Build</h4><p style="opacity:0.65; margin-top:10px; line-height:1.5;">Expanded settings with more sections for camera and privacy.</p></div>`
 };
@@ -832,6 +887,11 @@ ${renderStoreItem('UnitConverter', 'Convert Length, Weight, Temperature')}
 ${renderStoreItem('HabitTracker', 'Track daily streaks and habits')}
 ${renderStoreItem('QuickSketch', 'Fast doodles and idea capture')}
 ${renderStoreItem('FocusSounds', 'Ambient loops for concentration')}
+${renderStoreItem('MarkdownPad', 'Lightweight markdown editor')}
+${renderStoreItem('FinanceTracker', 'Quick income and expense logging')}
+${renderStoreItem('MindMap', 'Visual brain dump node board')}
+${renderStoreItem('ColorLab', 'Palette generator and color explorer')}
+${renderStoreItem('PixelRunner', 'Arcade mini-game')}
 </div>
 </div>` },
 Settings: { icon: "⚙️", content: () => renderSettingsApp() },
@@ -853,11 +913,16 @@ Calculator: { icon: "🧮", content: () => `<div style="padding:50px; text-align
 </div>` },
 UnitConverter: { icon: "📐", content: () => `<div style="padding:30px; max-width:560px; margin:0 auto;"><h2 style="margin-bottom:8px;">Unit Converter</h2><p style="opacity:0.6; margin-bottom:12px;">Convert quickly between common units.</p><select id="conv-type" style="width:100%; padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><option value="length">Length (m ↔ ft)</option><option value="temp">Temperature (C ↔ F)</option><option value="weight">Weight (kg ↔ lb)</option></select><input id="conv-value" type="number" placeholder="Enter value" style="margin-top:10px; width:100%; padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><button onclick="runConverter()" style="margin-top:10px; width:100%; padding:10px; border:none; border-radius:8px; background:var(--accent); color:white; font-weight:700;">Convert</button><div id="conv-output" style="margin-top:12px; font-weight:700;"></div></div>` },
 TodoBoard: { icon: "✅", content: () => `<div style="padding:30px; max-width:700px; margin:0 auto;"><h2>Todo Board</h2><p style="opacity:0.6; margin:8px 0 12px 0;">Plan tasks with priority + completion tracking.</p><div style="display:grid; grid-template-columns:1fr 140px auto; gap:8px;"><input id="todo-input" placeholder="Add a task" style="padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><select id="todo-priority" style="padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><option value="low">Low</option><option value="med" selected>Medium</option><option value="high">High</option></select><button onclick="addTodo()" style="padding:10px 14px; border:none; border-radius:8px; background:var(--accent); color:#fff;">Add</button></div><div style="margin-top:10px; display:flex; gap:8px;"><button onclick="clearCompletedTodos()" style="padding:8px 12px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Clear Completed</button><button onclick="toggleTodoFilter()" style="padding:8px 12px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Toggle Completed Visibility</button></div><div id="todo-list" style="margin-top:12px;">${renderTodos()}</div></div>` },
-WeatherDesk: { icon: "🌦️", content: () => `<div style="padding:32px; max-width:760px; margin:0 auto;"><h2>Weather Desk</h2><p style="opacity:0.58; margin:8px 0 14px 0;">Check weather by US state and refresh on demand.</p><div style="display:flex; gap:10px; margin-bottom:12px;"><select id="weather-state" onchange="chooseWeatherState(this.value)" style="flex:1; background:#111; color:#fff; border:1px solid #222; border-radius:8px; padding:10px;">${Object.entries(US_STATE_WEATHER).map(([abbr, state]) => `<option value="${abbr}" ${OS.settings.weatherState === abbr ? 'selected' : ''}>${state.name} (${abbr})</option>`).join('')}</select><button onclick="refreshWeather(true)" style="padding:10px 14px; border:none; border-radius:8px; background:var(--accent); color:white;">Refresh</button></div><div style="background:#0d0d0d; border:1px solid #242424; border-radius:12px; padding:16px;">${OS.weather ? `<div style="font-size:1.5rem; font-weight:700;">${Math.round(OS.weather.temp)}°${OS.settings.temperatureUnit}</div><div style="margin-top:4px; opacity:0.7;">${OS.weather.city}</div><div style="margin-top:6px; opacity:0.8; text-transform:capitalize;">${OS.weather.label}</div><div style="margin-top:8px; opacity:0.55;">Wind ${OS.weather.wind ?? '--'} mph • Updated ${OS.weather.updatedAt || 'just now'}</div>` : `<div style="opacity:0.6;">Weather data unavailable. Widget will refresh automatically.</div>`}</div></div>` },
+WeatherDesk: { icon: "🌦️", content: () => `<div style="padding:32px; max-width:760px; margin:0 auto;"><h2>Weather Desk</h2><p style="opacity:0.58; margin:8px 0 14px 0;">Check weather by US state and refresh on demand.</p><div style="display:flex; gap:10px; margin-bottom:12px;"><select id="weather-state" onchange="chooseWeatherState(this.value)" style="flex:1; background:#111; color:#fff; border:1px solid #222; border-radius:8px; padding:10px;">${Object.entries(US_STATE_WEATHER).map(([abbr, state]) => `<option value="${abbr}" ${OS.settings.weatherState === abbr ? 'selected' : ''}>${state.name} (${abbr})</option>`).join('')}</select><button onclick="refreshWeather(true)" style="padding:10px 14px; border:none; border-radius:8px; background:var(--accent); color:white;">Refresh</button></div><div style="background:#0d0d0d; border:1px solid #242424; border-radius:12px; padding:16px;">${OS.weather ? `<div style="font-size:1.5rem; font-weight:700;">${Math.round(OS.weather.temp)}°${OS.settings.temperatureUnit}</div><div style="margin-top:4px; opacity:0.7;">${OS.weather.city}</div><div style="margin-top:6px; opacity:0.8; text-transform:capitalize;">${OS.weather.label}</div><div style="margin-top:8px; opacity:0.55;">Wind ${OS.weather.wind ?? '--'} ${OS.settings.temperatureUnit === 'F' ? 'mph' : 'km/h'} • Updated ${OS.weather.updatedAt || 'just now'}</div>` : `<div style="opacity:0.6;">Weather data unavailable. Widget will refresh automatically.</div>`}</div></div>` },
 
 HabitTracker: { icon: "📆", content: () => `<div style="padding:30px; max-width:680px; margin:0 auto;"><h2>Habit Tracker</h2><p style="opacity:0.6; margin:8px 0 12px 0;">Create habits and keep your streak alive.</p><div style="display:flex; gap:8px;"><input id="habit-input" placeholder="Add a habit" style="flex:1; padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><button onclick="addHabit()" style="padding:10px 14px; border:none; border-radius:8px; background:var(--accent); color:#fff;">Add</button></div><div id="habit-list" style="margin-top:12px;">${renderHabits()}</div></div>` },
 QuickSketch: { icon: "🖌️", content: () => `<div style="padding:24px;"><h2 style="margin-bottom:10px;">Quick Sketch</h2><p style="opacity:0.6; margin-bottom:10px;">Draw fast ideas locally.</p><canvas id="sketch-canvas" width="760" height="380" style="width:100%; background:#fff; border-radius:12px; cursor:crosshair;"></canvas><div style="display:flex; gap:8px; margin-top:10px;"><input id="sketch-color" type="color" value="#000000" onchange="setSketchColor(this.value)"><input id="sketch-size" type="range" min="1" max="18" value="3" onchange="setSketchSize(this.value)"><button onclick="clearSketch()" style="padding:8px 12px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Clear</button></div></div>` },
 FocusSounds: { icon: "🎧", content: () => `<div style="padding:28px; max-width:660px; margin:0 auto;"><h2>Focus Sounds</h2><p style="opacity:0.6; margin:8px 0 14px 0;">Play simple ambient tones while you work.</p><div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px;"><button onclick="playFocusTone(140)" style="padding:10px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Rain</button><button onclick="playFocusTone(220)" style="padding:10px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Cafe</button><button onclick="playFocusTone(310)" style="padding:10px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Deep Space</button></div><button onclick="stopFocusTone()" style="margin-top:12px; padding:10px 14px; border:none; border-radius:8px; background:#2a1a1a; color:#fff;">Stop</button><div id="focus-status" style="margin-top:10px; opacity:0.7;">Idle</div></div>` },
+MarkdownPad: { icon: "📓", content: () => `<div style="padding:26px;"><h2>Markdown Pad</h2><p style="opacity:0.62; margin:8px 0 10px 0;">Write markdown notes with live preview.</p><div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; height:calc(100% - 70px);"><textarea id="md-input" oninput="updateMarkdownPreview()" style="width:100%; height:100%; background:#0d0d0d; color:#fff; border:1px solid #242424; border-radius:10px; padding:12px; resize:none;">${localStorage.getItem('mc_md') || '# Hello'}</textarea><div id="md-preview" style="background:#0d0d0d; border:1px solid #242424; border-radius:10px; padding:12px; overflow:auto;"></div></div></div>` },
+FinanceTracker: { icon: "💵", content: () => `<div style="padding:30px; max-width:760px; margin:0 auto;"><h2>Finance Tracker</h2><p style="opacity:0.6; margin:8px 0 12px 0;">Track simple income + expenses locally.</p><div style="display:grid; grid-template-columns:1fr 140px 120px auto; gap:8px;"><input id="money-note" placeholder="Description" style="padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><input id="money-amount" type="number" placeholder="Amount" style="padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><select id="money-kind" style="padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><option value="expense">Expense</option><option value="income">Income</option></select><button onclick="addFinanceItem()" style="padding:10px; border:none; border-radius:8px; background:var(--accent); color:#fff;">Add</button></div><div id="money-summary" style="margin-top:12px; font-weight:700;">${renderFinanceSummary()}</div><div id="money-list" style="margin-top:10px;">${renderFinanceRows()}</div></div>` },
+MindMap: { icon: "🧠", content: () => `<div style="padding:28px;"><h2>Mind Map</h2><p style="opacity:0.62; margin:8px 0 12px 0;">Rapidly connect idea nodes.</p><div style="display:flex; gap:8px;"><input id="mind-node" placeholder="New node text" style="flex:1; padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><button onclick="addMindNode()" style="padding:10px 14px; border:none; border-radius:8px; background:var(--accent); color:#fff;">Add Node</button></div><div id="mind-nodes" style="margin-top:12px; display:flex; flex-wrap:wrap; gap:10px;">${renderMindNodes()}</div></div>` },
+ColorLab: { icon: "🧪", content: () => `<div style="padding:30px; max-width:620px; margin:0 auto;"><h2>Color Lab</h2><p style="opacity:0.6; margin:8px 0 12px 0;">Generate quick palette variants from a base color.</p><input id="color-base" type="color" value="#4f46e5" onchange="renderColorLab(this.value)" style="width:100%; height:48px; border-radius:10px; border:1px solid #222; background:#111;"><div id="color-lab" style="margin-top:12px; display:grid; grid-template-columns:repeat(5,1fr); gap:8px;">${renderColorSwatches('#4f46e5')}</div></div>` },
+PixelRunner: { icon: "🕹️", content: () => `<div style="padding:24px;"><h2>Pixel Runner</h2><p style="opacity:0.6; margin:8px 0 12px 0;">Tiny keyboard mini-game. Press space to jump.</p><canvas id="runner-canvas" width="820" height="260" style="width:100%; background:#080808; border:1px solid #222; border-radius:12px;"></canvas><button onclick="startPixelRunner()" style="margin-top:10px; padding:10px 14px; border:none; border-radius:8px; background:var(--accent); color:#fff;">Start</button></div>` },
 SystemLogs: { icon: "📑", content: () => `<div style="padding:30px;">
 <h3>System Session Logs</h3><br>
 <div id="log-list" style="font-family:monospace; font-size:0.8rem; color:#aaa;">
@@ -865,6 +930,110 @@ ${OS.logs.map(l => `<div>[${l.time}] ${l.msg}</div>`).join('')}
 </div>
 </div>` }
 };
+
+function updateMarkdownPreview() {
+const input = document.getElementById('md-input');
+const preview = document.getElementById('md-preview');
+if (!input || !preview) return;
+const value = input.value || '';
+localStorage.setItem('mc_md', value);
+const escaped = value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+preview.innerHTML = escaped
+.replace(/^### (.*)$/gm, '<h3>$1</h3>')
+.replace(/^## (.*)$/gm, '<h2>$1</h2>')
+.replace(/^# (.*)$/gm, '<h1>$1</h1>')
+.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+.replace(/\*(.*?)\*/g, '<em>$1</em>')
+.replace(/\n/g, '<br>');
+}
+
+function getFinanceItems() {
+try { const data = JSON.parse(localStorage.getItem('mc_finance')); return Array.isArray(data) ? data : []; } catch (_) { return []; }
+}
+function renderFinanceSummary() {
+const list = getFinanceItems();
+const income = list.filter(i => i.kind === 'income').reduce((a, b) => a + Number(b.amount || 0), 0);
+const expense = list.filter(i => i.kind === 'expense').reduce((a, b) => a + Number(b.amount || 0), 0);
+return `Balance: $${(income - expense).toFixed(2)} • Income $${income.toFixed(2)} • Expenses $${expense.toFixed(2)}`;
+}
+function renderFinanceRows() {
+const list = getFinanceItems();
+if (!list.length) return '<div style="opacity:0.6;">No entries yet.</div>';
+return list.map(item => `<div style="display:flex; justify-content:space-between; background:#111; border:1px solid #222; border-radius:8px; padding:8px 10px; margin-bottom:8px;"><span>${item.note}</span><strong style="color:${item.kind === 'income' ? '#22c55e' : '#f87171'};">${item.kind === 'income' ? '+' : '-'}$${Number(item.amount).toFixed(2)}</strong></div>`).join('');
+}
+function addFinanceItem() {
+const note = document.getElementById('money-note')?.value?.trim();
+const amount = Number(document.getElementById('money-amount')?.value);
+const kind = document.getElementById('money-kind')?.value || 'expense';
+if (!note || !amount) return;
+const list = getFinanceItems();
+list.unshift({ note, amount, kind, at: Date.now() });
+localStorage.setItem('mc_finance', JSON.stringify(list.slice(0, 80)));
+if (OS.running['FinanceTracker']) OS.running['FinanceTracker'].querySelector('.win-body').innerHTML = Registry['FinanceTracker'].content();
+}
+function getMindNodes() {
+try { const data = JSON.parse(localStorage.getItem('mc_mind')); return Array.isArray(data) ? data : []; } catch (_) { return []; }
+}
+function renderMindNodes() {
+const nodes = getMindNodes();
+if (!nodes.length) return '<div style="opacity:0.6;">No nodes yet.</div>';
+return nodes.map((n, i) => `<button onclick="removeMindNode(${i})" style="padding:8px 12px; border-radius:999px; border:1px solid #2a2a2a; background:#111; color:#fff;">${n}</button>`).join('');
+}
+function addMindNode() {
+const input = document.getElementById('mind-node');
+const value = input?.value?.trim();
+if (!value) return;
+const nodes = getMindNodes();
+nodes.push(value);
+localStorage.setItem('mc_mind', JSON.stringify(nodes.slice(-120)));
+if (input) input.value = '';
+if (OS.running['MindMap']) OS.running['MindMap'].querySelector('.win-body').innerHTML = Registry['MindMap'].content();
+}
+function removeMindNode(index) {
+const nodes = getMindNodes();
+nodes.splice(index, 1);
+localStorage.setItem('mc_mind', JSON.stringify(nodes));
+if (OS.running['MindMap']) OS.running['MindMap'].querySelector('.win-body').innerHTML = Registry['MindMap'].content();
+}
+function renderColorSwatches(base) {
+const hex = base || '#4f46e5';
+const variants = [0.2, 0.4, 0.6, 0.8, 1].map(v => shadeColor(hex, v));
+return variants.map(color => `<div style="height:72px; border-radius:10px; border:1px solid #222; background:${color}; display:flex; align-items:flex-end; padding:6px; font-size:0.68rem;">${color}</div>`).join('');
+}
+function shadeColor(hex, factor) {
+const c = hex.replace('#', '');
+const n = parseInt(c, 16);
+const r = Math.min(255, Math.round(((n >> 16) & 255) * factor));
+const g = Math.min(255, Math.round(((n >> 8) & 255) * factor));
+const b = Math.min(255, Math.round((n & 255) * factor));
+return `#${[r, g, b].map(v => v.toString(16).padStart(2, '0')).join('')}`;
+}
+function renderColorLab(base) {
+const host = document.getElementById('color-lab');
+if (!host) return;
+host.innerHTML = renderColorSwatches(base);
+}
+function startPixelRunner() {
+const canvas = document.getElementById('runner-canvas');
+if (!canvas) return;
+const ctx = canvas.getContext('2d');
+if (!ctx) return;
+let x = 80; let y = 190; let vy = 0; let obstacle = 760; let score = 0; let run = true;
+const jump = () => { if (y >= 190) vy = -10; };
+window.onkeydown = (e) => { if (e.code === 'Space') jump(); };
+const tick = () => {
+if (!run) return;
+vy += 0.6; y = Math.min(190, y + vy); obstacle -= 5; if (obstacle < -30) { obstacle = 860; score += 1; }
+ctx.fillStyle = '#080808'; ctx.fillRect(0,0,canvas.width,canvas.height);
+ctx.fillStyle = '#fff'; ctx.fillRect(x, y, 20, 20);
+ctx.fillStyle = '#ef4444'; ctx.fillRect(obstacle, 190, 20, 20);
+ctx.fillStyle = '#888'; ctx.fillRect(0, 210, canvas.width, 2);
+ctx.fillStyle = '#fff'; ctx.fillText(`Score ${score}`, 20, 24);
+if (obstacle < x + 20 && obstacle + 20 > x && y + 20 >= 190) { run = false; ctx.fillText('Game Over', 360, 120); return; }
+requestAnimationFrame(tick);
+};
+tick();
+}
 
 /* --- DRAG & DROP LOGIC --- */
 function allowDrop(ev) {
@@ -1572,6 +1741,7 @@ addLog(`Launched module: ${id}`);
 notify(`Opened ${id}.`);
 if (id === 'PhotoBooth') setTimeout(startPhotoBooth, 40);
 if (id === 'QuickSketch') setTimeout(initSketchPad, 40);
+if (id === 'MarkdownPad') setTimeout(updateMarkdownPreview, 40);
 const w = document.createElement('div'); w.className = 'window';
 w.style.width='950px'; w.style.height='650px'; w.style.left='100px'; w.style.top='80px'; w.style.zIndex = ++OS.z;
 w.innerHTML = `<div class="win-head">
@@ -1721,7 +1891,7 @@ else if(v === "echo") print(args.join(' ') || "");
 else if(v === "pwd") print("/system/desktop");
 else if(v === "ps") print(`Running: ${Object.keys(OS.running).join(', ') || 'none'}`);
 else if(v === "weather") {
-if (OS.weather) print(`${OS.weather.name}: ${Math.round(OS.weather.temp)}°F, ${OS.weather.desc}`);
+if (OS.weather) print(`${OS.weather.city}: ${Math.round(OS.weather.temp)}°${OS.settings.temperatureUnit}, ${OS.weather.label}`);
 else print("Weather data unavailable.", "muted");
 }
 else if(v === "todo") {
