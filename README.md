@@ -1,4 +1,4 @@
-# 💻 McCrackOS
+# 💻 McCrackOS V2.5.3
 
 **McCrackOS** is a browser-based operating system built using **HTML, CSS, and JavaScript**.  
 It recreates the look and feel of a real desktop environment directly inside your web browser.
@@ -16,6 +16,9 @@ The goal of McCrackOS is to experiment with web technology and simulate how an o
 - ⚡ Fast and lightweight
 - 🌐 Runs entirely in the browser
 - 🎨 Custom UI and animations
+- 👤 Multi-step account setup
+- 🖱️ Custom cursor overlay support
+- 🚀 Roomier start hub with workspace scenes
 
 ---
 
