@@ -19,6 +19,7 @@
 --glass-blur: 25px;
 --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
 --danger: #ff4b4b;
+--cursor-custom: auto;
 }
 
 /* --- GLOBAL RESET --- */
@@ -40,6 +41,8 @@ body.high-contrast #start-menu,
 body.high-contrast .widget-card,
 body.high-contrast .login-box { border-color: rgba(255,255,255,0.35); box-shadow: 0 0 0 1px rgba(255,255,255,0.12), 0 24px 48px rgba(0,0,0,0.8); }
 body.high-contrast .task-tab.active { box-shadow: 0 0 0 1px rgba(255,255,255,0.4); }
+body.custom-cursor,
+body.custom-cursor * { cursor: var(--cursor-custom), auto !important; }
 
 /* --- TOP BAR --- */
 #top-bar {
@@ -272,50 +275,76 @@ transition: none !important;
 
 #desktop-context-menu {
 position: fixed;
-min-width: 230px;
-background: rgba(5,5,5,0.96);
-border: 1px solid rgba(255,255,255,0.12);
-border-radius: 14px;
-box-shadow: 0 24px 48px rgba(0,0,0,0.55);
-backdrop-filter: blur(18px);
-padding: 8px;
+min-width: 290px;
+max-width: 340px;
+background: linear-gradient(180deg, rgba(16,16,16,0.98), rgba(5,5,5,0.98));
+border: 1px solid rgba(255,255,255,0.14);
+border-radius: 20px;
+box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+backdrop-filter: blur(24px);
+padding: 10px;
 z-index: 9800;
 display: none;
 }
 #desktop-context-menu.menu-open { display: block; }
+.context-menu-header {
+padding: 10px 12px 12px 12px;
+border-bottom: 1px solid rgba(255,255,255,0.08);
+margin-bottom: 8px;
+}
+.context-menu-eyebrow { font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.55; }
+.context-menu-title { font-size: 0.98rem; font-weight: 700; margin-top: 5px; }
+.context-menu-desc { font-size: 0.76rem; line-height: 1.45; opacity: 0.62; margin-top: 4px; }
+.context-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin: 0 0 8px 0; }
+.context-chip {
+width: 100%;
+padding: 10px 12px;
+border-radius: 12px;
+border: 1px solid rgba(255,255,255,0.08);
+background: rgba(255,255,255,0.04);
+color: #fff;
+text-align: left;
+font-size: 0.8rem;
+cursor: pointer;
+transition: background 160ms ease, transform 160ms ease, border-color 160ms ease;
+}
+.context-chip:hover { background: rgba(0,120,212,0.14); border-color: rgba(0,120,212,0.45); transform: translateY(-1px); }
 .context-item,
 .context-subitem,
 .context-label {
 width: 100%;
 display: flex;
 align-items: center;
-gap: 10px;
+gap: 12px;
 background: transparent;
 border: none;
 color: #fff;
-padding: 10px 12px;
-border-radius: 10px;
-font-size: 0.9rem;
+padding: 11px 12px;
+border-radius: 12px;
+font-size: 0.92rem;
 text-align: left;
 cursor: pointer;
 position: relative;
+transition: background 160ms ease, transform 160ms ease;
 }
 .context-item:hover,
-.context-subitem:hover { background: rgba(255,255,255,0.08); }
+.context-subitem:hover { background: rgba(255,255,255,0.08); transform: translateX(2px); }
 .context-label { cursor: default; justify-content: space-between; }
+.context-icon { width: 20px; text-align: center; flex: 0 0 20px; }
+.context-meta { margin-left: auto; font-size: 0.72rem; opacity: 0.5; }
 .context-caret { margin-left: auto; opacity: 0.65; }
-.context-sep { height: 1px; background: rgba(255,255,255,0.08); margin: 6px 2px; }
+.context-sep { height: 1px; background: rgba(255,255,255,0.08); margin: 8px 2px; }
 .context-submenu-wrap { position: relative; }
 .context-submenu {
 position: absolute;
-left: calc(100% - 10px);
+left: calc(100% - 14px);
 top: 0;
-min-width: 210px;
-background: rgba(5,5,5,0.98);
+min-width: 240px;
+background: linear-gradient(180deg, rgba(16,16,16,0.98), rgba(5,5,5,0.98));
 border: 1px solid rgba(255,255,255,0.12);
-border-radius: 14px;
+border-radius: 18px;
 padding: 8px;
-box-shadow: 0 18px 40px rgba(0,0,0,0.45);
+box-shadow: 0 22px 44px rgba(0,0,0,0.5);
 display: none;
 }
 .context-submenu-wrap:hover .context-submenu { display: block; }
@@ -377,14 +406,33 @@ animation: toast-in 220ms ease forwards;
 
 /* --- APPLICATION LIBRARY --- */
 #start-menu {
-position: absolute; bottom: 80px; left: 20px; width: 380px; height: 550px;
-background: var(--panel); border: var(--border); border-radius: 24px;
-backdrop-filter: var(--blur); display: none; flex-direction: column; padding: 30px; z-index: 9999; box-shadow: var(--shadow);
-animation: panel-pop 240ms ease;
+position: absolute; bottom: 82px; left: 18px; width: min(520px, calc(100vw - 32px)); height: min(680px, calc(100vh - 120px));
+background: linear-gradient(180deg, rgba(12,12,12,0.98), rgba(4,4,4,0.98)); border: 1px solid rgba(255,255,255,0.12); border-radius: 30px;
+backdrop-filter: blur(30px); display: none; flex-direction: column; padding: 18px; z-index: 9999; box-shadow: var(--shadow);
+animation: panel-pop 240ms ease; gap: 14px;
 }
-.start-item { display: flex; align-items: center; gap: 18px; padding: 14px; border-radius: 14px; cursor: pointer; transition: 0.2s; }
-.start-item:hover { background: rgba(255,255,255,0.08); transform: translateX(8px); }
+.start-shell { display: grid; grid-template-rows: auto auto auto 1fr; gap: 14px; height: 100%; }
+.start-hero { padding: 18px; border-radius: 22px; background: linear-gradient(135deg, rgba(0,120,212,0.2), rgba(255,255,255,0.04)); border: 1px solid rgba(255,255,255,0.08); }
+.start-hero-top { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; }
+.start-hero h3 { font-weight: 650; letter-spacing: 0.08em; color: #fff; font-size: 1.05rem; }
+.start-hero p { opacity: 0.68; font-size: 0.82rem; margin-top: 8px; line-height: 1.6; max-width: 310px; }
+.start-session-pill { padding: 10px 12px; border-radius: 16px; background: rgba(0,0,0,0.28); border: 1px solid rgba(255,255,255,0.08); min-width: 150px; }
+.start-search-wrap { display:flex; gap:10px; align-items:center; padding: 12px 14px; border-radius: 18px; background:#0d0d0d; border:1px solid #1d1d1d; }
+#start-search { flex:1; background:transparent; border:none; color:#fff; font-size:0.95rem; outline:none; }
+.start-action-grid, .start-power-grid { display:grid; gap:10px; }
+.start-action-grid { grid-template-columns: repeat(4, 1fr); }
+.start-power-grid { grid-template-columns: repeat(2, 1fr); }
+.start-quick-btn, .start-power-btn { padding: 12px; border-radius: 14px; border:1px solid #262626; background:#131313; color:#fff; font-weight:700; cursor:pointer; transition: transform 160ms ease, border-color 160ms ease, background 160ms ease; }
+.start-quick-btn:hover, .start-power-btn:hover { transform: translateY(-1px); border-color: rgba(0,120,212,0.45); background: rgba(0,120,212,0.12); }
+.start-power-btn.shutdown { background:#241212; border-color:#4a1f1f; }
+.start-content { min-height: 0; display:grid; grid-template-columns: 1.1fr 1fr; gap: 14px; }
+.start-panel { min-height:0; background:#090909; border:1px solid #1a1a1a; border-radius: 20px; padding: 14px; }
+.start-panel h4 { font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.55; margin-bottom: 12px; }
+#lib-cont { overflow-y:auto; min-height:0; padding-right: 4px; }
+.start-item { display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: 16px; cursor: pointer; transition: 0.2s; border:1px solid transparent; }
+.start-item:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.08); transform: translateX(4px); }
 .start-item span { font-size: 28px; }
+.start-item-meta { font-size: 0.72rem; opacity: 0.54; margin-top: 4px; }
 
 /* --- MULTI-WINDOW ARCHITECTURE --- */
 .window {
@@ -408,8 +456,30 @@ position: fixed; bottom: 8px; left: 50%; transform: translateX(-50%);
 width: min(1100px, calc(100vw - 24px)); height: var(--taskbar-h);
 background: rgba(5, 5, 5, 0.9); backdrop-filter: blur(var(--glass-blur));
 display: flex; align-items: center; padding: 0 18px; z-index: 8500; border: var(--border); border-radius: 18px;
-transition: background 250ms ease, border-color 250ms ease, transform 220ms ease;
+transition: background 250ms ease, border-color 250ms ease, transform 220ms ease, opacity 220ms ease;
 }
+body.taskbar-hidden #taskbar { transform: translate(-50%, calc(100% + 20px)); opacity: 0; pointer-events: none; }
+body.taskbar-hidden.taskbar-peek #taskbar { transform: translateX(-50%); opacity: 1; pointer-events: auto; }
+#taskbar-peek-tab {
+position: fixed;
+left: 50%;
+bottom: 8px;
+transform: translateX(-50%) translateY(18px);
+padding: 8px 16px;
+border-radius: 999px;
+background: rgba(8,8,8,0.92);
+border: 1px solid rgba(255,255,255,0.12);
+box-shadow: 0 16px 32px rgba(0,0,0,0.45);
+font-size: 0.78rem;
+letter-spacing: 0.08em;
+text-transform: uppercase;
+color: #fff;
+z-index: 8450;
+cursor: pointer;
+display: none;
+}
+body.taskbar-hidden #taskbar-peek-tab { display: block; }
+body.taskbar-hidden.taskbar-peek #taskbar-peek-tab { transform: translateX(-50%) translateY(0); }
 #task-list { flex: 1; display: flex; justify-content: center; gap: 10px; margin: 0 16px; overflow-x: auto; padding: 8px 0; }
 .task-tab { padding: 10px 16px; background: rgba(255,255,255,0.04); border-radius: 12px; font-size: 0.82rem; cursor: pointer; transition: 0.3s; white-space: nowrap; border: 1px solid transparent; color: #888; }
 .task-tab.active { background: rgba(0, 120, 212, 0.15); border-color: var(--accent); box-shadow: 0 0 20px rgba(0,120,212,0.25); color: white; }
@@ -489,20 +559,7 @@ body.icon-wiggle .icon:hover div { animation: wiggle calc(var(--anim-speed, 1) *
 </div>
 
 <div id="desktop"></div>
-<div id="desktop-context-menu" aria-hidden="true">
-<button class="context-item" onclick="openPersonalizationSettings()">🎨 <span>Personalize</span></button>
-<div class="context-submenu-wrap">
-<div class="context-label">📄 <span>Create New...</span><span class="context-caret">›</span></div>
-<div class="context-submenu">
-<button class="context-subitem" onclick="createDesktopTextDocumentShortcut()">📝 <span>Text Document</span></button>
-<button class="context-subitem" onclick="spawnStickyNoteWidget()">🗒️ <span>Sticky Note Widget</span></button>
-</div>
-</div>
-<button class="context-item" onclick="refreshDesktopVisuals()">🌀 <span>Refresh</span></button>
-<button class="context-item" onclick="launchDesktopInspector()">⌨️ <span>Inspect</span></button>
-<div class="context-sep"></div>
-<button class="context-item" onclick="shuffleAccentColor()">🎲 <span>Shuffle Accent</span></button>
-</div>
+<div id="desktop-context-menu" aria-hidden="true"></div>
 <div id="notification-center"></div>
 
 <div id="delete-bin" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropDelete(event)">
@@ -511,24 +568,59 @@ body.icon-wiggle .icon:hover div { animation: wiggle calc(var(--anim-speed, 1) *
 </div>
 
 <div id="start-menu">
-<div style="border-bottom: 1px solid #222; padding-bottom: 18px; margin-bottom: 16px;">
-<div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px;">
+<div class="start-shell">
+<div class="start-hero">
+<div class="start-hero-top">
 <div>
-<h3 style="font-weight: 500; color: var(--accent); letter-spacing: 1px;">INSTALLED MODULES</h3>
-<p style="opacity:0.55; font-size:0.78rem; margin-top:8px; line-height:1.45;">Launch apps, jump into workflows, or lock and power down your McCrackOS session.</p>
+<h3>START HUB</h3>
+<p>Launch apps, continue your session, and jump into the newest McCrackOS features without everything feeling cramped together.</p>
 </div>
-<div style="padding:8px 10px; border-radius:12px; background:#101010; border:1px solid #222; font-size:0.72rem; line-height:1.4; text-align:right;">
-<div style="opacity:0.55;">SESSION</div>
-<div style="font-weight:700; margin-top:4px;">Quick Panel</div>
-<div style="font-size:0.7rem; opacity:0.6;">Operator Console</div>
+<div class="start-session-pill">
+<div style="opacity:0.55; font-size:0.68rem; letter-spacing:0.14em; text-transform:uppercase;">Session</div>
+<div style="font-weight:700; margin-top:6px;">Operator Console</div>
+<div style="font-size:0.75rem; opacity:0.62; margin-top:4px;">Quick actions + live glance</div>
 </div>
 </div>
 </div>
-<input id="start-search" oninput="filterStartMenu(this.value)" placeholder="Search apps..." style="width:100%; padding:10px; border-radius:10px; border:1px solid #222; background:#111; color:#fff; margin-bottom:10px;">
-<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:10px;"><button onclick="launch('Settings')" style="padding:8px; background:#1a1a1a; color:#fff; border:1px solid #2b2b2b; border-radius:8px;">Settings</button><button onclick="launch('Terminal')" style="padding:8px; background:#1a1a1a; color:#fff; border:1px solid #2b2b2b; border-radius:8px;">Terminal</button><button onclick="openPinnedApps()" style="padding:8px; background:#1a1a1a; color:#fff; border:1px solid #2b2b2b; border-radius:8px;">Open Pinned</button></div>
-<div style="display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:12px;"><button onclick="lockSession()" style="padding:10px; background:#141414; color:#fff; border:1px solid #2b2b2b; border-radius:10px; font-weight:700;">🔒 Lock</button><button onclick="powerDownSystem()" style="padding:10px; background:#2b1111; color:#fff; border:1px solid #4a1f1f; border-radius:10px; font-weight:700;">⏻ Power Down</button></div>
-<div id="start-glance" style="margin-bottom:12px;"></div>
-<div id="lib-cont" style="overflow-y:auto; flex:1;"></div>
+<div class="start-search-wrap">
+<span style="opacity:0.55;">🔎</span>
+<input id="start-search" oninput="filterStartMenu(this.value)" placeholder="Search apps, utilities, and docs...">
+</div>
+<div class="start-action-grid">
+<button class="start-quick-btn" onclick="launch('Settings')">⚙️ Settings</button>
+<button class="start-quick-btn" onclick="launch('Terminal')">⌨️ Terminal</button>
+<button class="start-quick-btn" onclick="launch('Whats New')">🆕 What's New</button>
+<button class="start-quick-btn" onclick="openPinnedApps()">📌 Open Pinned</button>
+</div>
+<div class="start-content">
+<div class="start-panel" style="display:flex; flex-direction:column;">
+<h4>Installed Apps</h4>
+<div id="lib-cont"></div>
+</div>
+<div style="display:grid; grid-template-rows:auto auto 1fr; gap:14px; min-height:0;">
+<div class="start-panel">
+<h4>Power</h4>
+<div class="start-power-grid">
+<button class="start-power-btn" onclick="lockSession()">🔒 Lock</button>
+<button class="start-power-btn shutdown" onclick="powerDownSystem()">⏻ Power Down</button>
+</div>
+</div>
+<div class="start-panel">
+<h4>Discover</h4>
+<div style="display:grid; grid-template-columns:repeat(2,1fr); gap:10px;">
+<button class="start-quick-btn" onclick="launch('About')">ℹ️ About</button>
+<button class="start-quick-btn" onclick="launch('WidgetCenter')">🧩 Widgets</button>
+<button class="start-quick-btn" onclick="launch('WeatherDesk')">🌦️ Weather</button>
+<button class="start-quick-btn" onclick="launch('TodoBoard')">✅ ToDo</button>
+</div>
+</div>
+<div class="start-panel" style="display:flex; flex-direction:column; min-height:0;">
+<h4>Live Glance</h4>
+<div id="start-glance" style="overflow:auto;"></div>
+</div>
+</div>
+</div>
+</div>
 </div>
 
 <div id="taskbar">
@@ -539,6 +631,7 @@ body.icon-wiggle .icon:hover div { animation: wiggle calc(var(--anim-speed, 1) *
 <div id="date" style="font-size:0.7rem; opacity:0.4; font-weight: 700; text-transform: uppercase;"></div>
 </div>
 </div>
+<div id="taskbar-peek-tab" onclick="toggleTaskbarPeek()">Taskbar</div>
 
 <script>
 /* --- KERNEL DATA & REGISTRY --- */
@@ -663,7 +756,9 @@ gradientShift: false,
 pulseAccent: true,
 livelyUi: true,
 glassIntensity: 'medium',
-privacyTelemetry: false
+privacyTelemetry: false,
+cursorUrl: '',
+cursorSource: 'default'
 };
 
 const DEFAULT_ACCOUNT = {
@@ -719,6 +814,8 @@ if (typeof raw.pulseAccent === 'boolean') base.pulseAccent = raw.pulseAccent;
 if (typeof raw.livelyUi === 'boolean') base.livelyUi = raw.livelyUi;
 if (['low', 'medium', 'high'].includes(raw.glassIntensity)) base.glassIntensity = raw.glassIntensity;
 if (typeof raw.privacyTelemetry === 'boolean') base.privacyTelemetry = raw.privacyTelemetry;
+if (typeof raw.cursorUrl === 'string') base.cursorUrl = raw.cursorUrl;
+if (['default', 'upload', 'url'].includes(raw.cursorSource)) base.cursorSource = raw.cursorSource;
 return base;
 }
 
@@ -728,7 +825,7 @@ pass: "1234",
 bg: localStorage.getItem("mc_bg") || DEFAULT_BG,
 accent: localStorage.getItem("mc_accent") || DEFAULT_ACCENT,
 favicon: localStorage.getItem("mc_favicon") || DEFAULT_FAVICON,
-installed: JSON.parse(localStorage.getItem("mc_apps")) || ["Browser", "Terminal", "Files", "Store", "Settings"],
+installed: JSON.parse(localStorage.getItem("mc_apps")) || ["Browser", "Terminal", "Files", "Store", "Settings", "Whats New", "About"],
 pos: JSON.parse(localStorage.getItem("mc_pos")) || {},
 running: {},
 battery: 100,
@@ -737,9 +834,9 @@ widgets: normalizeWidgetFlags(JSON.parse(localStorage.getItem("mc_widgets"))),
 widgetPositions: normalizeWidgetPositions(JSON.parse(localStorage.getItem("mc_widget_pos"))),
 weather: JSON.parse(localStorage.getItem("mc_weather")) || null,
 desktopShortcuts: normalizeDesktopShortcuts(JSON.parse(localStorage.getItem('mc_desktop_shortcuts') || '[]')),
-restricted: ["Browser", "Store", "Terminal", "Files", "Settings"],
+restricted: ["Browser", "Store", "Terminal", "Files", "Settings", "Whats New", "About"],
 storeApps: ["Movies", "Games", "𝕄𝕔ℂ𝕣𝕒𝕔𝕜Chat", "Calculator", "Music", "Music2", "AppFactory", "Notepad", "WidgetCenter", "YouTube", "Paint", "ClockPro", "CodeLab", "PhotoBooth", "WeatherDesk", "TodoBoard", "UnitConverter", "HabitTracker", "QuickSketch", "FocusSounds", "MarkdownPad", "FinanceTracker", "MindMap", "ColorLab", "PixelRunner"],
-pinned: JSON.parse(localStorage.getItem('mc_pinned') || 'null') || ["Browser", "Files", "Settings"]
+pinned: JSON.parse(localStorage.getItem('mc_pinned') || 'null') || ["Browser", "Files", "Settings", "Whats New"]
 };
 
 OS.settings = normalizeSettings(JSON.parse(localStorage.getItem('mc_settings')));
@@ -757,8 +854,15 @@ OS.firstRun = !localStorage.getItem('mc_account');
 OS.pendingAvatar = '';
 OS.widgetDragActive = false;
 OS.settingsSection = 'customization';
+OS.contextMenu = { type: 'desktop', key: null };
+['Whats New', 'About'].forEach((app) => {
+if (!OS.installed.includes(app)) OS.installed.push(app);
+if (!OS.restricted.includes(app)) OS.restricted.push(app);
+});
+localStorage.setItem('mc_apps', JSON.stringify([...new Set(OS.installed)]));
+localStorage.setItem('mc_pinned', JSON.stringify([...new Set(OS.pinned)]));
 
-const DEFAULT_APP_ORDER = ["Browser", "Terminal", "Files", "Store", "Settings", ...OS.storeApps];
+const DEFAULT_APP_ORDER = ["Browser", "Terminal", "Files", "Store", "Settings", "Whats New", "About", ...OS.storeApps];
 
 const WALLPAPER_PRESETS = [
 { label: 'Default Nebula', value: DEFAULT_BG },
@@ -920,7 +1024,129 @@ document.body.classList.toggle('icon-wiggle', !!OS.settings.iconWiggle);
 document.body.classList.toggle('no-window-anims', !OS.settings.windowOpenAnimations);
 document.body.classList.toggle('no-start-anims', !OS.settings.startMenuAnimations);
 updateBattery();
+applyCursorSettings();
 renderStartGlance();
+}
+
+function applyCursorSettings() {
+const cursorUrl = (OS.settings.cursorUrl || '').trim();
+if (!cursorUrl) {
+document.body.classList.remove('custom-cursor');
+document.documentElement.style.setProperty('--cursor-custom', 'auto');
+return;
+}
+document.body.classList.add('custom-cursor');
+document.documentElement.style.setProperty('--cursor-custom', `url("${cursorUrl.replace(/"/g, '\\"')}") 4 4`);
+}
+
+function applyCursorFromUrl(url) {
+const value = (url || '').trim();
+if (!value) return notify('Add a cursor image link first.', 'warning');
+OS.settings.cursorUrl = value;
+OS.settings.cursorSource = 'url';
+saveSettings();
+applyCursorSettings();
+if (OS.running['Settings']) OS.running['Settings'].querySelector('.win-body').innerHTML = Registry['Settings'].content();
+notify('Custom cursor image applied.', 'success');
+}
+
+function handleCursorUpload(event) {
+const file = event.target.files && event.target.files[0];
+if (!file) return;
+const reader = new FileReader();
+reader.onload = (e) => {
+OS.settings.cursorUrl = e.target.result || '';
+OS.settings.cursorSource = 'upload';
+saveSettings();
+applyCursorSettings();
+if (OS.running['Settings']) OS.running['Settings'].querySelector('.win-body').innerHTML = Registry['Settings'].content();
+notify('Custom cursor uploaded.', 'success');
+};
+reader.readAsDataURL(file);
+event.target.value = '';
+}
+
+function resetCursorCustomization() {
+OS.settings.cursorUrl = '';
+OS.settings.cursorSource = 'default';
+saveSettings();
+applyCursorSettings();
+if (OS.running['Settings']) OS.running['Settings'].querySelector('.win-body').innerHTML = Registry['Settings'].content();
+notify('Default cursor restored.', 'warning');
+}
+
+function toggleTaskbarPeek() {
+if (!document.body.classList.contains('taskbar-hidden')) return;
+document.body.classList.toggle('taskbar-peek');
+updateTaskbarVisibility();
+}
+
+function updateTaskbarVisibility() {
+const fullscreenActive = Object.values(OS.running).some((win) => win && win.dataset.fs === 'true' && win.style.display !== 'none');
+document.body.classList.toggle('taskbar-hidden', fullscreenActive);
+if (!fullscreenActive) document.body.classList.remove('taskbar-peek');
+const tab = document.getElementById('taskbar-peek-tab');
+if (tab) tab.textContent = document.body.classList.contains('taskbar-peek') ? 'Hide Taskbar' : 'Show Taskbar';
+}
+
+function getContextTarget() {
+if (OS.contextMenu.type === 'desktop') return null;
+if (OS.contextMenu.type === 'app') {
+const app = OS.contextMenu.key;
+if (!app) return null;
+return { id: app, name: app, kind: 'app', icon: Registry[app]?.icon || '📦', pinned: OS.pinned.includes(app), running: !!OS.running[app] };
+}
+if (OS.contextMenu.type === 'shortcut') {
+const item = OS.desktopShortcuts.find((entry) => entry.id === OS.contextMenu.key);
+if (!item) return null;
+return { id: item.id, name: item.name, target: item.target, kind: 'shortcut', icon: item.icon || '📝' };
+}
+return null;
+}
+
+function openWhatsNew() {
+launch('Whats New');
+closeDesktopContextMenu();
+}
+
+function openAboutApp() {
+launch('About');
+closeDesktopContextMenu();
+}
+
+function focusAppFromContext(id) {
+if (OS.running[id]) focusWin(id);
+else launch(id);
+closeDesktopContextMenu();
+}
+
+function duplicateShortcut(id) {
+const item = OS.desktopShortcuts.find((entry) => entry.id === id);
+if (!item) return;
+createDesktopShortcut({
+name: getNextDesktopShortcutName(item.name.replace(/\s\d+$/, '')),
+target: item.target,
+icon: item.icon,
+kind: item.kind
+});
+closeDesktopContextMenu();
+notify('Desktop shortcut duplicated.', 'success');
+}
+
+function renderDesktopContextMenu() {
+const menu = document.getElementById('desktop-context-menu');
+if (!menu) return;
+const target = getContextTarget();
+if (!target) {
+menu.innerHTML = `<div class="context-menu-header"><div class="context-menu-eyebrow">Desktop</div><div class="context-menu-title">Workspace actions</div><div class="context-menu-desc">Quickly personalize the desktop, create new items, launch system docs, or refresh the workspace.</div></div><div class="context-grid"><button class="context-chip" onclick="openPersonalizationSettings()">🎨 Personalize</button><button class="context-chip" onclick="openPinnedApps(); closeDesktopContextMenu();">📌 Open pinned</button><button class="context-chip" onclick="openWhatsNew()">🆕 What's New</button><button class="context-chip" onclick="openAboutApp()">ℹ️ About</button></div><div class="context-submenu-wrap"><div class="context-label"><span><span class="context-icon">📄</span> Create New</span><span class="context-caret">›</span></div><div class="context-submenu"><button class="context-subitem" onclick="createDesktopTextDocumentShortcut()"><span class="context-icon">📝</span><span>Text Document Shortcut</span></button><button class="context-subitem" onclick="spawnStickyNoteWidget()"><span class="context-icon">🗒️</span><span>Sticky Note Widget</span></button></div></div><div class="context-submenu-wrap"><div class="context-label"><span><span class="context-icon">🚀</span> Quick Launch</span><span class="context-caret">›</span></div><div class="context-submenu"><button class="context-subitem" onclick="launch('Settings'); closeDesktopContextMenu();"><span class="context-icon">⚙️</span><span>Settings</span></button><button class="context-subitem" onclick="launch('Terminal'); closeDesktopContextMenu();"><span class="context-icon">⌨️</span><span>Terminal</span></button><button class="context-subitem" onclick="launch('WidgetCenter'); closeDesktopContextMenu();"><span class="context-icon">🧩</span><span>Widget Center</span></button><button class="context-subitem" onclick="launch('WeatherDesk'); closeDesktopContextMenu();"><span class="context-icon">🌦️</span><span>Weather Desk</span></button></div></div><div class="context-sep"></div><button class="context-item" onclick="refreshDesktopVisuals()"><span class="context-icon">🌀</span><span>Refresh Desktop</span><span class="context-meta">Repaint</span></button><button class="context-item" onclick="shuffleAccentColor()"><span class="context-icon">🎲</span><span>Shuffle Accent Color</span><span class="context-meta">Theme</span></button><button class="context-item" onclick="resetDesktopLayout(); closeDesktopContextMenu();"><span class="context-icon">📐</span><span>Reset Icon Layout</span><span class="context-meta">Layout</span></button><button class="context-item" onclick="launchDesktopInspector()"><span class="context-icon">⌨️</span><span>Open Terminal Inspector</span><span class="context-meta">Inspect</span></button>`;
+return;
+}
+if (target.kind === 'app') {
+const deleteAction = OS.restricted.includes(target.name) ? '' : `<div class="context-sep"></div><button class="context-item" onclick="attemptDeleteApp('${target.name}'); closeDesktopContextMenu();"><span class="context-icon">🗑️</span><span>Delete app</span><span class="context-meta">Remove</span></button>`;
+menu.innerHTML = `<div class="context-menu-header"><div class="context-menu-eyebrow">App</div><div class="context-menu-title">${target.icon} ${target.name}</div><div class="context-menu-desc">Manage this installed app directly from the desktop.</div></div><div class="context-grid"><button class="context-chip" onclick="launch('${target.name}'); closeDesktopContextMenu();">Open</button><button class="context-chip" onclick="togglePinnedApp('${target.name}'); closeDesktopContextMenu();">${target.pinned ? 'Unpin' : 'Pin'} Taskbar</button></div><button class="context-item" onclick="launch('${target.name}'); closeDesktopContextMenu();"><span class="context-icon">🚀</span><span>Launch App</span><span class="context-meta">Enter</span></button><button class="context-item" onclick="togglePinnedApp('${target.name}'); closeDesktopContextMenu();"><span class="context-icon">📌</span><span>${target.pinned ? 'Unpin from taskbar' : 'Pin to taskbar'}</span><span class="context-meta">Quick access</span></button><button class="context-item" onclick="focusAppFromContext('${target.name}')"><span class="context-icon">🪟</span><span>${target.running ? 'Focus running window' : 'Launch and focus'}</span><span class="context-meta">Window</span></button>${deleteAction}`;
+return;
+}
+menu.innerHTML = `<div class="context-menu-header"><div class="context-menu-eyebrow">Shortcut</div><div class="context-menu-title">${target.icon} ${target.name}</div><div class="context-menu-desc">Shortcuts point to apps so you can keep favorite workflows on the desktop.</div></div><div class="context-grid"><button class="context-chip" onclick="launch('${target.target}'); closeDesktopContextMenu();">Open Target</button><button class="context-chip" onclick="removeDesktopShortcut('${target.id}'); closeDesktopContextMenu();">Remove</button></div><button class="context-item" onclick="launch('${target.target}'); closeDesktopContextMenu();"><span class="context-icon">🚀</span><span>Open ${target.target}</span><span class="context-meta">Launch</span></button><button class="context-item" onclick="duplicateShortcut('${target.id}')"><span class="context-icon">🪄</span><span>Duplicate shortcut</span><span class="context-meta">Clone</span></button><div class="context-sep"></div><button class="context-item" onclick="removeDesktopShortcut('${target.id}'); closeDesktopContextMenu();"><span class="context-icon">🗑️</span><span>Remove shortcut</span><span class="context-meta">Delete</span></button>`;
 }
 
 
@@ -984,7 +1210,7 @@ const shellStyle = 'background:#0a0a0a; padding:20px; border-radius:14px; border
 const widgetCards = renderSettingsWidgetControls();
 const stateOptions = Object.entries(US_STATE_WEATHER).map(([abbr, state]) => `<option value="${abbr}" ${OS.settings.weatherState === abbr ? 'selected' : ''}>${state.name} (${abbr})</option>`).join('');
 const cards = {
-customization: `<div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;"><div style="${shellStyle}"><h4>Wallpaper Studio</h4><p style="font-size:0.8rem; opacity:0.55; margin:8px 0 14px 0;">Pick presets, upload backgrounds, or paste an image URL.</p><label style="font-size:0.76rem; opacity:0.6;">Wallpaper Preset</label><select onchange="setWallpaperPreset(this.value)" style="margin-top:7px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;">${WALLPAPER_PRESETS.map(preset => `<option value="${preset.value}" ${OS.bg === preset.value ? 'selected' : ''}>${preset.label}</option>`).join('')}</select><input type="text" id="bg-url" placeholder="https://..." style="width:100%; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px; margin-top:12px;"><button onclick="setBG(document.getElementById('bg-url').value)" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:var(--accent); border:none; color:white; border-radius:8px;">Apply URL</button><button onclick="document.getElementById('bg-upload-settings').click()" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Upload Image</button><input type="file" id="bg-upload-settings" style="display:none" onchange="handleFileUpload(event)" accept="image/*"><label style="font-size:0.76rem; opacity:0.6; display:block; margin-top:14px;">Wallpaper Fit</label><select onchange="setWallpaperFit(this.value)" style="margin-top:7px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;"><option value="cover" ${OS.settings.wallpaperFit === 'cover' ? 'selected' : ''}>Fill Screen</option><option value="contain" ${OS.settings.wallpaperFit === 'contain' ? 'selected' : ''}>Fit Entire Image</option></select></div><div style="${shellStyle}"><h4>Branding & Chrome</h4><p style="font-size:0.8rem; opacity:0.55; margin:8px 0 14px 0;">Tune the McCrackOS look, icon density, and desktop identity.</p><input type="color" value="${OS.accent}" onchange="applyAccent(this.value)" style="margin-top:4px; width:100%; height:42px; background:#111; border:var(--border); border-radius:10px; cursor:pointer;"><button onclick="resetAccent()" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset Accent</button><input type="text" id="favicon-url" value="${OS.favicon}" placeholder="https://..." style="width:100%; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px; margin-top:12px;"><button onclick="setFavicon(document.getElementById('favicon-url').value)" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Apply Favicon</button><label style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:14px;"><span style="font-size:0.84rem; line-height:1.35;">Show the desktop hero logo when the wallpaper allows it</span><input type="checkbox" ${!OS.settings.hideDesktopHero ? 'checked' : ''} onchange="setSetting('hideDesktopHero', !this.checked, 'Desktop hero updated.'); renderDesktop();"></label><label style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:10px;"><span style="font-size:0.84rem; line-height:1.35;">Keep the <strong>McCrackOS • Made By Patrick_Mango</strong> branding visible on custom wallpapers</span><input type="checkbox" ${OS.settings.keepWallpaperBranding ? 'checked' : ''} onchange="toggleWallpaperBranding(this.checked)"></label><label style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:10px;"><span style="font-size:0.84rem; line-height:1.35;">Compact desktop icons for denser layouts</span><input type="checkbox" ${OS.settings.compactIcons ? 'checked' : ''} onchange="setSetting('compactIcons', this.checked, 'Desktop icon density updated.'); renderDesktop();"></label></div></div>`,
+customization: `<div style="display:grid; gap:18px;"><div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;"><div style="${shellStyle}"><h4>Wallpaper Studio</h4><p style="font-size:0.8rem; opacity:0.55; margin:8px 0 14px 0;">Pick presets, upload backgrounds, or paste an image URL.</p><label style="font-size:0.76rem; opacity:0.6;">Wallpaper Preset</label><select onchange="setWallpaperPreset(this.value)" style="margin-top:7px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;">${WALLPAPER_PRESETS.map(preset => `<option value="${preset.value}" ${OS.bg === preset.value ? 'selected' : ''}>${preset.label}</option>`).join('')}</select><input type="text" id="bg-url" placeholder="https://..." style="width:100%; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px; margin-top:12px;"><button onclick="setBG(document.getElementById('bg-url').value)" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:var(--accent); border:none; color:white; border-radius:8px;">Apply URL</button><button onclick="document.getElementById('bg-upload-settings').click()" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Upload Image</button><input type="file" id="bg-upload-settings" style="display:none" onchange="handleFileUpload(event)" accept="image/*"><label style="font-size:0.76rem; opacity:0.6; display:block; margin-top:14px;">Wallpaper Fit</label><select onchange="setWallpaperFit(this.value)" style="margin-top:7px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;"><option value="cover" ${OS.settings.wallpaperFit === 'cover' ? 'selected' : ''}>Fill Screen</option><option value="contain" ${OS.settings.wallpaperFit === 'contain' ? 'selected' : ''}>Fit Entire Image</option></select></div><div style="${shellStyle}"><h4>Branding & Chrome</h4><p style="font-size:0.8rem; opacity:0.55; margin:8px 0 14px 0;">Tune the McCrackOS look, icon density, and desktop identity.</p><input type="color" value="${OS.accent}" onchange="applyAccent(this.value)" style="margin-top:4px; width:100%; height:42px; background:#111; border:var(--border); border-radius:10px; cursor:pointer;"><button onclick="resetAccent()" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset Accent</button><input type="text" id="favicon-url" value="${OS.favicon}" placeholder="https://..." style="width:100%; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px; margin-top:12px;"><button onclick="setFavicon(document.getElementById('favicon-url').value)" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Apply Favicon</button><label style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:14px;"><span style="font-size:0.84rem; line-height:1.35;">Show the desktop hero logo when the wallpaper allows it</span><input type="checkbox" ${!OS.settings.hideDesktopHero ? 'checked' : ''} onchange="setSetting('hideDesktopHero', !this.checked, 'Desktop hero updated.'); renderDesktop();"></label><label style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:10px;"><span style="font-size:0.84rem; line-height:1.35;">Keep the <strong>McCrackOS • Made By Patrick_Mango</strong> branding visible on custom wallpapers</span><input type="checkbox" ${OS.settings.keepWallpaperBranding ? 'checked' : ''} onchange="toggleWallpaperBranding(this.checked)"></label><label style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:10px;"><span style="font-size:0.84rem; line-height:1.35;">Compact desktop icons for denser layouts</span><input type="checkbox" ${OS.settings.compactIcons ? 'checked' : ''} onchange="setSetting('compactIcons', this.checked, 'Desktop icon density updated.'); renderDesktop();"></label></div></div><div style="${shellStyle}"><h4>Cursor Studio</h4><p style="font-size:0.8rem; opacity:0.58; margin:8px 0 14px 0;">Swap the pointer with your own image. Upload a file, paste a direct image link, or restore the default cursor whenever you want.</p><div style="display:grid; grid-template-columns:1.1fr 0.9fr; gap:18px;"><div><label style="font-size:0.76rem; opacity:0.6; display:block;">Cursor Image URL</label><input type="text" id="cursor-url" value="${OS.settings.cursorSource === 'url' ? OS.settings.cursorUrl : ''}" placeholder="https://..." style="width:100%; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px; margin-top:8px;"><button onclick="applyCursorFromUrl(document.getElementById('cursor-url').value)" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:var(--accent); border:none; color:white; border-radius:8px;">Use Image Link</button><button onclick="document.getElementById('cursor-upload-settings').click()" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Upload Cursor Image</button><input type="file" id="cursor-upload-settings" style="display:none" onchange="handleCursorUpload(event)" accept="image/*"><button onclick="resetCursorCustomization()" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:#151515; border:1px solid #2b2b2b; color:white; border-radius:8px;">Restore Default Cursor</button></div><div style="background:#090909; border:1px solid #1c1c1c; border-radius:14px; padding:16px;"><div style="font-size:0.72rem; opacity:0.55; text-transform:uppercase; letter-spacing:1px;">Current Cursor</div><div style="margin-top:10px; font-weight:700;">${OS.settings.cursorUrl ? 'Custom pointer active' : 'System default active'}</div><div style="font-size:0.8rem; opacity:0.66; line-height:1.55; margin-top:8px;">Transparent PNG images around 32×32 or 48×48 pixels usually work best. Browsers may scale large images or refuse unusual formats.</div><div style="margin-top:12px; font-size:0.78rem; opacity:0.7;">Source: <strong>${OS.settings.cursorSource === 'upload' ? 'Uploaded image' : OS.settings.cursorSource === 'url' ? 'Image link' : 'Default cursor'}</strong></div></div></div></div>`,
 workspace: `<div style="display:grid; grid-template-columns:1.05fr 0.95fr; gap:18px;"><div style="${shellStyle}"><h4>Desktop Modules & Widgets</h4><p style="font-size:0.8rem; opacity:0.55; margin:8px 0 14px 0;">Enable widgets, then drag them anywhere on the desktop.</p>${widgetCards}</div><div style="display:grid; gap:18px;"><div style="${shellStyle}"><h4>Workspace Actions</h4><p style="font-size:0.8rem; opacity:0.55; margin:8px 0 14px 0;">Quickly rebuild your layout or launch a productive stack.</p><button onclick="resetDesktopLayout()" style="width:100%; padding:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset App Icon Layout</button><button onclick="resetWidgetsLayout()" style="width:100%; margin-top:10px; padding:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset Widget Layout</button><button onclick="openPinnedApps()" style="width:100%; margin-top:10px; padding:10px; background:#151515; border:1px solid #2b2b2b; color:white; border-radius:8px;">Open Pinned Apps</button><button onclick="launch('ClockPro'); launch('TodoBoard'); launch('MarkdownPad');" style="width:100%; margin-top:10px; padding:10px; background:var(--accent); border:none; color:white; border-radius:8px;">Launch Productivity Trio</button></div><div style="${shellStyle}"><h4>Always Ready Apps</h4><p style="font-size:0.8rem; opacity:0.55; margin:8px 0 14px 0;">These apps are built into McCrackOS even if they are not pinned yet.</p><div style="display:grid; grid-template-columns:repeat(2,1fr); gap:10px;"><button onclick="launch('WidgetCenter')" style="padding:10px; border-radius:8px; border:1px solid #2b2b2b; background:#111; color:#fff;">Widget Center</button><button onclick="launch('WeatherDesk')" style="padding:10px; border-radius:8px; border:1px solid #2b2b2b; background:#111; color:#fff;">Weather Desk</button><button onclick="launch('ClockPro')" style="padding:10px; border-radius:8px; border:1px solid #2b2b2b; background:#111; color:#fff;">Clock Pro</button><button onclick="launch('PhotoBooth')" style="padding:10px; border-radius:8px; border:1px solid #2b2b2b; background:#111; color:#fff;">Photo Booth</button></div></div></div></div>`,
 profile: `<div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;"><div style="${shellStyle}"><h4>Security & Profile</h4><div style="display:flex; align-items:center; gap:10px; margin:12px 0;"><div class="account-avatar" style="width:54px; height:54px; margin:0; font-size:22px;">${avatarMarkup(OS.account.avatar)}</div><span style="font-size:0.8rem; opacity:0.7;">Current Picture</span></div><div style="display:flex; gap:8px;"><button onclick="document.getElementById('settings-avatar-file').click()" style="flex:1; padding:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:#fff; border-radius:8px;">Upload</button><button onclick="updateAccountAvatar('')" style="flex:1; padding:10px; background:#151515; border:1px solid #2b2b2b; color:#fff; border-radius:8px;">Remove</button></div><input type="file" id="settings-avatar-file" style="display:none" accept="image/*" onchange="onSettingsAvatarSelected(event)"><input type="password" id="new-p" placeholder="New Access Key" style="width:100%; margin-top:12px; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px;"><button onclick="setPass(document.getElementById('new-p').value)" style="width:100%; margin-top:10px; padding:10px; background:#333; border:none; color:white; border-radius:8px;">Update Key</button><button onclick="lockSession()" style="width:100%; margin-top:10px; padding:10px; background:#171717; border:1px solid #2b2b2b; color:white; border-radius:8px;">Lock This Session</button><button onclick="factoryResetWithPassword()" style="width:100%; margin-top:10px; padding:10px; background:#4a1010; border:1px solid #7a1e1e; color:white; border-radius:8px;">Factory Reset (Password Required)</button></div><div style="${shellStyle}"><h4>Account Snapshot</h4><p style="margin-top:10px; opacity:0.72; line-height:1.6;">Username: <strong>${OS.account.username}</strong><br>Sign-in mode: <strong>${OS.account.mode === 'passwordless' ? 'Passwordless' : 'Password protected'}</strong><br>Installed apps: <strong>${OS.installed.length}</strong><br>Pinned apps: <strong>${OS.pinned.length}</strong></p><div style="margin-top:16px; padding:14px; border-radius:12px; background:#090909; border:1px solid #1d1d1d;"><div style="font-size:0.76rem; opacity:0.58; text-transform:uppercase; letter-spacing:1px;">Tip</div><p style="margin-top:8px; opacity:0.72; line-height:1.5;">Use Lock when stepping away, and Power Down when you want the same hard reset behavior as the top bar terminate session button.</p></div></div></div>`,
 system: `<div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;"><div style="${shellStyle}"><h4>Clock, Battery & Weather</h4><label style="display:flex; justify-content:space-between; margin-top:12px;"><span>Show Seconds</span><input type="checkbox" ${OS.settings.clockSeconds ? 'checked' : ''} onchange="setSetting('clockSeconds', this.checked, 'Clock precision updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Use 24-Hour Time</span><input type="checkbox" ${OS.settings.clock24h ? 'checked' : ''} onchange="setSetting('clock24h', this.checked, 'Clock format updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Show Battery Percentage</span><input type="checkbox" ${OS.settings.showBatteryPercentage ? 'checked' : ''} onchange="setSetting('showBatteryPercentage', this.checked, 'Battery indicator updated.')"></label><label style="font-size:0.76rem; opacity:0.7; display:block; margin-top:10px;">Temperature Unit</label><select onchange="setSetting('temperatureUnit', this.value, 'Temperature unit updated.'); refreshWeather(true);" style="margin-top:6px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;"><option value="C" ${OS.settings.temperatureUnit === 'C' ? 'selected' : ''}>Celsius (°C)</option><option value="F" ${OS.settings.temperatureUnit === 'F' ? 'selected' : ''}>Fahrenheit (°F)</option></select><label style="font-size:0.76rem; opacity:0.7; display:block; margin-top:10px;">Weather State</label><select onchange="chooseWeatherState(this.value)" style="margin-top:6px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;">${stateOptions}</select></div><div style="${shellStyle}"><h4>Startup & Behavior</h4><label style="display:flex; justify-content:space-between; margin-top:12px;"><span>Desktop Notifications</span><input type="checkbox" ${OS.settings.notifications ? 'checked' : ''} onchange="setSetting('notifications', this.checked, 'Notification preference updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Focus Mode</span><input type="checkbox" ${OS.settings.focusMode ? 'checked' : ''} onchange="setSetting('focusMode', this.checked, 'Focus mode updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Desktop Sounds</span><input type="checkbox" ${OS.settings.desktopSounds ? 'checked' : ''} onchange="setSetting('desktopSounds', this.checked, 'Sound preference updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Startup Chime</span><input type="checkbox" ${OS.settings.startupChime ? 'checked' : ''} onchange="setSetting('startupChime', this.checked, 'Startup chime preference updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Auto Fullscreen Prompt</span><input type="checkbox" ${OS.settings.autoFullscreen ? 'checked' : ''} onchange="setSetting('autoFullscreen', this.checked, 'Fullscreen preference updated.')"></label><label style="font-size:0.76rem; opacity:0.7; display:block; margin-top:10px;">Boot Sequence Length</label><select onchange="setSetting('bootDelay', Number(this.value), 'Boot sequence timing updated.')" style="margin-top:6px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;"><option value="3000" ${OS.settings.bootDelay === 3000 ? 'selected' : ''}>Fast (3 seconds)</option><option value="6000" ${OS.settings.bootDelay === 6000 ? 'selected' : ''}>Balanced (6 seconds)</option><option value="9000" ${OS.settings.bootDelay === 9000 ? 'selected' : ''}>Cinematic (9 seconds)</option></select></div></div>`,
@@ -1063,6 +1289,8 @@ ${renderStoreItem('PixelRunner', 'Arcade mini-game')}
 </div>
 </div>` },
 Settings: { icon: "⚙️", content: () => renderSettingsApp() },
+"Whats New": { icon: "🆕", content: () => renderWhatsNewApp() },
+About: { icon: "ℹ️", content: () => renderAboutApp() },
 Music: { icon: "🎵", content: () => `<div style="padding:30px; max-width:780px; margin:0 auto;"><h2>𝕄𝕔ℂ𝕣𝕒𝕔𝕜 Music</h2><p style="opacity:0.58; margin:8px 0 16px 0;">Build playlists, queue tracks, and keep audio running in your session.</p><div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"><input id="music-title" placeholder="Track title" style="padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><input id="music-artist" placeholder="Artist" style="padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"></div><div style="display:flex; gap:10px; margin-top:10px;"><button onclick="addMusicTrack()" style="flex:1; padding:10px; border:none; border-radius:8px; background:var(--accent); color:#fff; font-weight:700;">Add Track</button><button onclick="playNextTrack()" style="padding:10px 14px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Next</button><button onclick="clearMusicQueue()" style="padding:10px 14px; border:none; border-radius:8px; background:#2a1616; color:#ffbaba;">Clear</button></div><div id="music-now" style="margin-top:14px; font-weight:700;">${renderNowPlaying()}</div><div id="music-list" style="margin-top:12px;">${renderMusicQueue()}</div></div>` },
 AppFactory: { icon: "🛠️", content: () => `<div style="padding:50px; max-width:600px; margin:0 auto;">
 <h2>Compiler Console</h2>
@@ -1422,6 +1650,14 @@ return `<div style="display:flex; align-items:center; justify-content:space-betw
 <div><strong>${widget.title}</strong><div style="opacity:0.55; font-size:0.82rem; margin-top:3px;">${widget.desc}</div><div style="font-size:0.75rem; margin-top:7px; color:var(--accent);">${enabled ? 'Enabled' : 'Disabled'}</div></div>
 <button onclick="toggleWidget('${widget.id}')" style="padding:9px 16px; border:none; border-radius:9px; background:${enabled ? '#2f2f2f' : 'var(--accent)'}; color:white; cursor:pointer; font-weight:700;">${enabled ? 'Remove' : 'Add'}</button>
 </div>`;
+}
+
+function renderWhatsNewApp() {
+return `<div style="padding:30px; max-width:900px; margin:0 auto;"><div style="padding:22px; border-radius:20px; background:linear-gradient(135deg, rgba(0,120,212,0.2), rgba(255,255,255,0.04)); border:1px solid rgba(255,255,255,0.08);"><div style="font-size:0.72rem; opacity:0.6; letter-spacing:0.16em; text-transform:uppercase;">Release Notes</div><h2 style="margin-top:8px;">What’s New in McCrackOS</h2><p style="opacity:0.72; line-height:1.7; margin-top:10px;">This app keeps a running overview of major improvements so people can immediately see what changed, what got polished, and what they should try next.</p></div><div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:18px;"><div style="background:#0a0a0a; border:1px solid #1a1a1a; border-radius:16px; padding:18px;"><h3>Newest Highlights</h3><ul style="margin:12px 0 0 18px; line-height:1.8; opacity:0.76;"><li>Start menu expanded into a roomier launch hub with grouped actions and live glance cards.</li><li>New <strong>What’s New</strong> and <strong>About</strong> apps added to the built-in experience.</li><li>Fullscreen apps can now hide the taskbar and reveal it with a bottom tab when needed.</li><li>Desktop right-click menus now have richer quick actions, launch shortcuts, and item-specific controls.</li><li>Settings customization now supports custom cursor images by upload or direct link.</li></ul></div><div style="background:#0a0a0a; border:1px solid #1a1a1a; border-radius:16px; padding:18px;"><h3>Polish & Quality</h3><ul style="margin:12px 0 0 18px; line-height:1.8; opacity:0.76;"><li>Better spacing and visual grouping across the launcher.</li><li>Context menus restyled with headers, chips, and clearer action hierarchy.</li><li>New discover shortcuts make it easier to jump into docs and utilities.</li><li>Taskbar behavior now feels more immersive in fullscreen workflows.</li></ul></div></div><div style="margin-top:18px; background:#0a0a0a; border:1px solid #1a1a1a; border-radius:16px; padding:18px;"><h3>Feature Timeline</h3><div style="display:grid; gap:12px; margin-top:14px;"><div style="padding:14px; border-radius:12px; background:#090909; border:1px solid #1a1a1a;"><strong>Desktop Experience</strong><div style="opacity:0.68; margin-top:6px; line-height:1.6;">Windows, widgets, boot/login flow, draggable icons, and the taskbar established the core McCrackOS environment.</div></div><div style="padding:14px; border-radius:12px; background:#090909; border:1px solid #1a1a1a;"><strong>Customization & Utility Apps</strong><div style="opacity:0.68; margin-top:6px; line-height:1.6;">Wallpapers, accent colors, profile customization, productivity apps, media, and weather tools expanded the system beyond a mock desktop.</div></div><div style="padding:14px; border-radius:12px; background:#090909; border:1px solid #1a1a1a;"><strong>Current Update</strong><div style="opacity:0.68; margin-top:6px; line-height:1.6;">This release focuses on readability, discoverability, richer right-click actions, and deeper personalization through cursor theming and dedicated system info apps.</div></div></div></div></div>`;
+}
+
+function renderAboutApp() {
+return `<div style="padding:34px; max-width:980px; margin:0 auto;"><div style="display:grid; grid-template-columns:1.1fr 0.9fr; gap:18px;"><div style="background:linear-gradient(135deg, rgba(0,120,212,0.18), rgba(255,255,255,0.04)); border:1px solid rgba(255,255,255,0.08); border-radius:22px; padding:24px;"><div style="font-size:0.72rem; letter-spacing:0.16em; text-transform:uppercase; opacity:0.58;">About McCrackOS</div><h2 style="margin-top:10px; font-size:2rem;">A browser desktop meant to feel like its own operating system.</h2><p style="margin-top:12px; opacity:0.76; line-height:1.8;">McCrackOS is a web-built desktop environment that blends the structure of an operating system with the flexibility of a single HTML file. Instead of being just one app, it acts like a miniature ecosystem: boot flow, login, taskbar, launcher, windows, widgets, utilities, and visual customization all work together to create a complete desktop-style experience inside the browser.</p><p style="margin-top:12px; opacity:0.76; line-height:1.8;">The project leans into creativity on purpose. It is part interface experiment, part interactive sandbox, and part proof that a playful browser project can still feel layered, personal, and surprisingly system-like.</p></div><div style="background:#0a0a0a; border:1px solid #1a1a1a; border-radius:22px; padding:24px;"><h3>At a Glance</h3><div style="display:grid; gap:10px; margin-top:14px;"><div style="padding:12px; border-radius:12px; background:#090909; border:1px solid #1d1d1d;"><strong>Built with</strong><div style="opacity:0.68; margin-top:4px;">HTML, CSS, JavaScript, local storage, embedded apps, and browser APIs.</div></div><div style="padding:12px; border-radius:12px; background:#090909; border:1px solid #1d1d1d;"><strong>Project personality</strong><div style="opacity:0.68; margin-top:4px;">Dark futuristic styling, playful system language, and experiment-driven UX.</div></div><div style="padding:12px; border-radius:12px; background:#090909; border:1px solid #1d1d1d;"><strong>Creator focus</strong><div style="opacity:0.68; margin-top:4px;">A creative desktop concept by Patrick_Mango that keeps growing feature by feature.</div></div></div></div></div><div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:16px; margin-top:18px;"><div style="background:#0a0a0a; border:1px solid #1a1a1a; border-radius:18px; padding:18px;"><h3>Why it exists</h3><p style="opacity:0.72; line-height:1.7; margin-top:10px;">McCrackOS explores how far a desktop metaphor can go in the browser. It turns windows, shortcuts, and settings into a cohesive playground for learning layout systems, app state, animations, and interaction design.</p></div><div style="background:#0a0a0a; border:1px solid #1a1a1a; border-radius:18px; padding:18px;"><h3>What it includes</h3><p style="opacity:0.72; line-height:1.7; margin-top:10px;">A launcher, taskbar, app windows, store-style installs, widgets, notes, media, productivity tools, weather, camera, personalization controls, and session/account behaviors that make the desktop feel alive.</p></div><div style="background:#0a0a0a; border:1px solid #1a1a1a; border-radius:18px; padding:18px;"><h3>Where it can go</h3><p style="opacity:0.72; line-height:1.7; margin-top:10px;">It can keep evolving into a richer app ecosystem with more file interactions, deeper themes, smarter context menus, and stronger workspace flows that feel closer to a real OS shell.</p></div></div><div style="margin-top:18px; background:#0a0a0a; border:1px solid #1a1a1a; border-radius:18px; padding:20px;"><h3>Design Philosophy</h3><p style="opacity:0.74; line-height:1.8; margin-top:10px;">The best part of McCrackOS is that it does not have to act like a strict simulation. It can be dramatic, stylized, and opinionated while still borrowing real desktop ideas like multitasking, launch surfaces, settings categories, and quick access actions. That balance is what makes it feel both familiar and original.</p><p style="opacity:0.66; line-height:1.7; margin-top:12px;">If someone opens this app first, they should immediately understand what McCrackOS is, what it already does, and why the project matters beyond just being a single page.</p></div></div>`;
 }
 
 function toggleWidget(id) {
@@ -1865,6 +2101,7 @@ document.getElementById('desktop').style.display = 'block';
 renderWidgets();
 renderDesktop();
 renderStartGlance();
+updateTaskbarVisibility();
 if (OS.settings.startupChime) playClickSound(720, 0.08);
 addLog("User authenticated successfully.");
 }, 500);
@@ -1877,6 +2114,7 @@ const startMenu = document.getElementById('start-menu');
 if (startMenu) startMenu.style.display = 'none';
 const startBtn = document.getElementById('start-btn');
 if (startBtn) startBtn.classList.remove('menu-open');
+document.body.classList.remove('taskbar-peek');
 renderAuth();
 updateTime();
 showAuthError('');
@@ -1986,11 +2224,14 @@ if (!menu) return;
 menu.classList.remove('menu-open');
 menu.style.display = 'none';
 menu.setAttribute('aria-hidden', 'true');
+OS.contextMenu = { type: 'desktop', key: null };
 }
 
-function openDesktopContextMenu(x, y) {
+function openDesktopContextMenu(x, y, target = { type: 'desktop', key: null }) {
 const menu = document.getElementById('desktop-context-menu');
 if (!menu) return;
+OS.contextMenu = target;
+renderDesktopContextMenu();
 menu.style.display = 'block';
 menu.classList.add('menu-open');
 menu.setAttribute('aria-hidden', 'false');
@@ -2008,7 +2249,7 @@ if (!desktop || !menu || desktop.dataset.contextMenuReady === '1') return;
 desktop.addEventListener('contextmenu', (event) => {
 if (event.target.closest('.icon') || event.target.closest('.widget-card')) return;
 event.preventDefault();
-openDesktopContextMenu(event.clientX, event.clientY);
+openDesktopContextMenu(event.clientX, event.clientY, { type: 'desktop', key: null });
 });
 document.addEventListener('click', (event) => {
 if (!event.target.closest('#desktop-context-menu')) closeDesktopContextMenu();
@@ -2062,6 +2303,10 @@ el.innerHTML = `<div>${entry.icon}</div><span>${entry.name}</span>`;
 el.ondragstart = (e) => startDrag(e, entry.key);
 el.ondragend = (e) => endDrag(e);
 el.ondblclick = () => entry.open();
+el.oncontextmenu = (event) => {
+event.preventDefault();
+openDesktopContextMenu(event.clientX, event.clientY, { type: entry.type === 'app' ? 'app' : 'shortcut', key: entry.key });
+};
 let iconOffsetX = 0;
 let iconOffsetY = 0;
 attachMouseDrag(el, {
@@ -2098,7 +2343,7 @@ OS.installed.filter(id => id.toLowerCase().includes(term)).forEach(id => {
 if(!Registry[id]) return;
 const i = document.createElement('div'); i.className = 'start-item';
 const pinned = OS.pinned.includes(id);
-i.innerHTML = `<span>${Registry[id].icon}</span><strong style="flex:1;">${id}</strong><button onclick="event.stopPropagation(); togglePinnedApp('${id}')" style="padding:6px 10px; border-radius:8px; border:1px solid #2d2d2d; background:${pinned ? 'rgba(0,120,212,0.25)' : '#151515'}; color:#fff;">${pinned ? 'Unpin' : 'Pin'}</button>`;
+i.innerHTML = `<span>${Registry[id].icon}</span><div style="flex:1; min-width:0;"><strong style="display:block;">${id}</strong><div class="start-item-meta">${pinned ? 'Pinned for quick access' : 'Available to launch'}</div></div><button onclick="event.stopPropagation(); togglePinnedApp('${id}')" style="padding:6px 10px; border-radius:10px; border:1px solid #2d2d2d; background:${pinned ? 'rgba(0,120,212,0.25)' : '#151515'}; color:#fff;">${pinned ? 'Unpin' : 'Pin'}</button>`;
 i.onclick = () => { launch(id); toggleStart(); };
 c.appendChild(i);
 });
@@ -2130,6 +2375,8 @@ if (show) {
 const search = document.getElementById('start-search');
 renderStartGlance();
 if (search) { search.value = ''; renderLib(''); search.focus(); }
+} else {
+closeDesktopContextMenu();
 }
 }
 
@@ -2141,6 +2388,9 @@ notify(`Opened ${id}.`);
 if (id === 'PhotoBooth') setTimeout(startPhotoBooth, 40);
 if (id === 'QuickSketch') setTimeout(initSketchPad, 40);
 if (id === 'MarkdownPad') setTimeout(updateMarkdownPreview, 40);
+const startMenu = document.getElementById('start-menu');
+if (startMenu) startMenu.style.display = 'none';
+document.getElementById('start-btn')?.classList.remove('menu-open');
 const w = document.createElement('div'); w.className = 'window';
 w.style.width='950px'; w.style.height='650px'; w.style.left='100px'; w.style.top='80px'; w.style.zIndex = ++OS.z;
 w.innerHTML = `<div class="win-head">
@@ -2215,18 +2465,20 @@ window.addEventListener('mousemove', onMove);
 window.addEventListener('mouseup', onUp);
 };
 updateTask();
+updateTaskbarVisibility();
 }
 
 function focusWin(id) { if(OS.running[id]) OS.running[id].style.zIndex = ++OS.z; updateTask(); }
-function closeW(id) { if(OS.running[id]) { OS.running[id].remove(); delete OS.running[id]; updateTask(); addLog(`Closed module: ${id}`); notify(`Closed ${id}.`, "warning"); } }
-function min(id) { if(OS.running[id]) { OS.running[id].style.display = 'none'; updateTask(); } }
+function closeW(id) { if(OS.running[id]) { OS.running[id].remove(); delete OS.running[id]; updateTask(); updateTaskbarVisibility(); addLog(`Closed module: ${id}`); notify(`Closed ${id}.`, "warning"); } }
+function min(id) { if(OS.running[id]) { OS.running[id].style.display = 'none'; updateTask(); updateTaskbarVisibility(); } }
 
 function toggleIntegratedFullscreen(id) {
 const w = OS.running[id];
+if(!w) return;
 if(w.dataset.fs !== "true") {
 w.dataset.oldW = w.style.width; w.dataset.oldH = w.style.height;
 w.dataset.oldL = w.style.left; w.dataset.oldT = w.style.top;
-w.style.width = '100vw'; w.style.height = `calc(100vh - var(--top-bar-h) - var(--taskbar-h))`;
+w.style.width = '100vw'; w.style.height = `calc(100vh - var(--top-bar-h))`;
 w.style.top = `var(--top-bar-h)`; w.style.left = '0';
 w.style.borderRadius = '0'; w.dataset.fs = "true";
 } else {
@@ -2234,6 +2486,8 @@ w.style.width = w.dataset.oldW; w.style.height = w.dataset.oldH;
 w.style.left = w.dataset.oldL; w.style.top = w.dataset.oldT;
 w.style.borderRadius = '20px'; w.dataset.fs = "false";
 }
+focusWin(id);
+updateTaskbarVisibility();
 }
 
 function updateTask() {
@@ -2253,6 +2507,7 @@ return;
 if(OS.running[id].style.display === 'none') {
 OS.running[id].style.display = 'flex';
 focusWin(id);
+updateTaskbarVisibility();
 } else {
 focusWin(id);
 }
