@@ -41,8 +41,13 @@ body.high-contrast #start-menu,
 body.high-contrast .widget-card,
 body.high-contrast .login-box { border-color: rgba(255,255,255,0.35); box-shadow: 0 0 0 1px rgba(255,255,255,0.12), 0 24px 48px rgba(0,0,0,0.8); }
 body.high-contrast .task-tab.active { box-shadow: 0 0 0 1px rgba(255,255,255,0.4); }
-body.custom-cursor,
-body.custom-cursor * { cursor: var(--cursor-custom), auto !important; }
+html.custom-cursor,
+html.custom-cursor body,
+html.custom-cursor body *,
+html.custom-cursor button,
+html.custom-cursor input,
+html.custom-cursor textarea,
+html.custom-cursor select { cursor: var(--cursor-custom) !important; }
 
 /* --- TOP BAR --- */
 #top-bar {
@@ -419,15 +424,21 @@ animation: panel-pop 240ms ease; gap: 14px;
 .start-session-pill { padding: 10px 12px; border-radius: 16px; background: rgba(0,0,0,0.28); border: 1px solid rgba(255,255,255,0.08); min-width: 150px; }
 .start-search-wrap { display:flex; gap:10px; align-items:center; padding: 12px 14px; border-radius: 18px; background:#0d0d0d; border:1px solid #1d1d1d; }
 #start-search { flex:1; background:transparent; border:none; color:#fff; font-size:0.95rem; outline:none; }
-.start-action-grid, .start-power-grid { display:grid; gap:10px; }
+.start-action-grid, .start-power-grid, .start-tool-grid, .start-stat-grid { display:grid; gap:10px; }
 .start-action-grid { grid-template-columns: repeat(4, 1fr); }
-.start-power-grid { grid-template-columns: repeat(2, 1fr); }
+.start-power-grid, .start-tool-grid { grid-template-columns: repeat(2, 1fr); }
+.start-stat-grid { grid-template-columns: repeat(2, 1fr); }
 .start-quick-btn, .start-power-btn { padding: 12px; border-radius: 14px; border:1px solid #262626; background:#131313; color:#fff; font-weight:700; cursor:pointer; transition: transform 160ms ease, border-color 160ms ease, background 160ms ease; }
 .start-quick-btn:hover, .start-power-btn:hover { transform: translateY(-1px); border-color: rgba(0,120,212,0.45); background: rgba(0,120,212,0.12); }
 .start-power-btn.shutdown { background:#241212; border-color:#4a1f1f; }
-.start-content { min-height: 0; display:grid; grid-template-columns: 1.1fr 1fr; gap: 14px; }
+.start-content { min-height: 0; display:grid; grid-template-columns: minmax(0, 1.45fr) minmax(260px, 0.85fr); gap: 14px; }
+.start-side-stack { min-height:0; display:grid; gap:14px; grid-template-rows:auto auto 1fr; }
 .start-panel { min-height:0; background:#090909; border:1px solid #1a1a1a; border-radius: 20px; padding: 14px; }
 .start-panel h4 { font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.55; margin-bottom: 12px; }
+.start-stat-card { padding:12px; border-radius:14px; background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)); border:1px solid #1e1e1e; }
+.start-stat-card strong { display:block; font-size:1rem; margin-top:6px; }
+.start-stat-card span { font-size:0.72rem; opacity:0.6; text-transform:uppercase; letter-spacing:0.12em; }
+.start-stat-card p { font-size:0.76rem; opacity:0.62; margin-top:6px; line-height:1.45; }
 #lib-cont { overflow-y:auto; min-height:0; padding-right: 4px; }
 .start-item { display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: 16px; cursor: pointer; transition: 0.2s; border:1px solid transparent; }
 .start-item:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.08); transform: translateX(4px); }
@@ -500,7 +511,11 @@ body.taskbar-hidden.taskbar-peek #taskbar-peek-tab { transform: translateX(-50%)
 body.no-window-anims .window,
 body.no-start-anims #start-menu { animation: none !important; }
 body.hover-lift .task-tab:hover { transform: translateY(-2px); }
+body.hover-lift #taskbar { animation: taskbar-float calc(var(--anim-speed, 1) * 5.5s) ease-in-out infinite; }
 body.icon-wiggle .icon:hover div { animation: wiggle calc(var(--anim-speed, 1) * 340ms) ease; }
+body.lively-ui .start-hero { animation: aurora-float calc(var(--anim-speed, 1) * 8s) ease-in-out infinite; }
+.window.active-window { box-shadow: 0 0 0 1px rgba(255,255,255,0.06), 0 26px 60px rgba(0,0,0,0.9), 0 0 36px rgba(0,120,212,0.18); }
+.start-item:hover span, .start-quick-btn:hover, .start-power-btn:hover { animation: hover-bob calc(var(--anim-speed, 1) * 420ms) ease; }
 @keyframes wiggle { 0%,100% { transform: rotate(0deg); } 35% { transform: rotate(-6deg); } 70% { transform: rotate(6deg); } }
 
 /* --- ANIMATIONS --- */
@@ -517,6 +532,9 @@ body.icon-wiggle .icon:hover div { animation: wiggle calc(var(--anim-speed, 1) *
 100% { opacity: 1; filter: none; transform: translateY(0) scale(1); }
 }
 @keyframes chrome-pulse { 0%,100% { box-shadow: 0 0 0 rgba(0,120,212,0); } 50% { box-shadow: 0 0 28px rgba(0,120,212,0.25); } }
+@keyframes aurora-float { 0%,100% { transform: translateY(0); box-shadow: inset 0 0 0 rgba(255,255,255,0.02); } 50% { transform: translateY(-4px); box-shadow: inset 0 0 26px rgba(255,255,255,0.035); } }
+@keyframes taskbar-float { 0%,100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-3px); } }
+@keyframes hover-bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
 </style>
 </head>
 <body id="os-root">
@@ -573,12 +591,12 @@ body.icon-wiggle .icon:hover div { animation: wiggle calc(var(--anim-speed, 1) *
 <div class="start-hero-top">
 <div>
 <h3>START HUB</h3>
-<p>Launch apps, continue your session, and jump into the newest McCrackOS features without everything feeling cramped together.</p>
+<p>Launch apps faster with a cleaner, more open layout, lighter side panels, and quick workspace controls.</p>
 </div>
 <div class="start-session-pill">
 <div style="opacity:0.55; font-size:0.68rem; letter-spacing:0.14em; text-transform:uppercase;">Session</div>
 <div style="font-weight:700; margin-top:6px;">Operator Console</div>
-<div style="font-size:0.75rem; opacity:0.62; margin-top:4px;">Quick actions + live glance</div>
+<div style="font-size:0.75rem; opacity:0.62; margin-top:4px;">Cleaner launcher + faster jump-in</div>
 </div>
 </div>
 </div>
@@ -597,7 +615,7 @@ body.icon-wiggle .icon:hover div { animation: wiggle calc(var(--anim-speed, 1) *
 <h4>Installed Apps</h4>
 <div id="lib-cont"></div>
 </div>
-<div style="display:grid; grid-template-rows:auto auto 1fr; gap:14px; min-height:0;">
+<div class="start-side-stack">
 <div class="start-panel">
 <h4>Power</h4>
 <div class="start-power-grid">
@@ -606,8 +624,8 @@ body.icon-wiggle .icon:hover div { animation: wiggle calc(var(--anim-speed, 1) *
 </div>
 </div>
 <div class="start-panel">
-<h4>Discover</h4>
-<div style="display:grid; grid-template-columns:repeat(2,1fr); gap:10px;">
+<h4>Quick Tools</h4>
+<div class="start-tool-grid">
 <button class="start-quick-btn" onclick="launch('About')">ℹ️ About</button>
 <button class="start-quick-btn" onclick="launch('WidgetCenter')">🧩 Widgets</button>
 <button class="start-quick-btn" onclick="launch('WeatherDesk')">🌦️ Weather</button>
@@ -615,8 +633,8 @@ body.icon-wiggle .icon:hover div { animation: wiggle calc(var(--anim-speed, 1) *
 </div>
 </div>
 <div class="start-panel" style="display:flex; flex-direction:column; min-height:0;">
-<h4>Live Glance</h4>
-<div id="start-glance" style="overflow:auto;"></div>
+<h4>Session Snapshot</h4>
+<div id="start-snapshot" style="overflow:auto;"></div>
 </div>
 </div>
 </div>
@@ -758,7 +776,9 @@ livelyUi: true,
 glassIntensity: 'medium',
 privacyTelemetry: false,
 cursorUrl: '',
-cursorSource: 'default'
+cursorSource: 'default',
+cursorHotspotX: 8,
+cursorHotspotY: 8
 };
 
 const DEFAULT_ACCOUNT = {
@@ -816,6 +836,8 @@ if (['low', 'medium', 'high'].includes(raw.glassIntensity)) base.glassIntensity 
 if (typeof raw.privacyTelemetry === 'boolean') base.privacyTelemetry = raw.privacyTelemetry;
 if (typeof raw.cursorUrl === 'string') base.cursorUrl = raw.cursorUrl;
 if (['default', 'upload', 'url'].includes(raw.cursorSource)) base.cursorSource = raw.cursorSource;
+if (Number.isFinite(raw.cursorHotspotX)) base.cursorHotspotX = Math.max(0, Math.min(32, raw.cursorHotspotX));
+if (Number.isFinite(raw.cursorHotspotY)) base.cursorHotspotY = Math.max(0, Math.min(32, raw.cursorHotspotY));
 return base;
 }
 
@@ -835,7 +857,7 @@ widgetPositions: normalizeWidgetPositions(JSON.parse(localStorage.getItem("mc_wi
 weather: JSON.parse(localStorage.getItem("mc_weather")) || null,
 desktopShortcuts: normalizeDesktopShortcuts(JSON.parse(localStorage.getItem('mc_desktop_shortcuts') || '[]')),
 restricted: ["Browser", "Store", "Terminal", "Files", "Settings", "Whats New", "About"],
-storeApps: ["Movies", "Games", "𝕄𝕔ℂ𝕣𝕒𝕔𝕜Chat", "Calculator", "Music", "Music2", "AppFactory", "Notepad", "WidgetCenter", "YouTube", "Paint", "ClockPro", "CodeLab", "PhotoBooth", "WeatherDesk", "TodoBoard", "UnitConverter", "HabitTracker", "QuickSketch", "FocusSounds", "MarkdownPad", "FinanceTracker", "MindMap", "ColorLab", "PixelRunner"],
+storeApps: ["Movies", "Games", "𝕄𝕔ℂ𝕣𝕒𝕔𝕜Chat", "Calculator", "Music", "AppFactory", "Notepad", "WidgetCenter", "YouTube", "Paint", "ClockPro", "CodeLab", "PhotoBooth", "WeatherDesk", "TodoBoard", "UnitConverter", "HabitTracker", "QuickSketch", "FocusSounds", "MarkdownPad", "FinanceTracker", "MindMap", "ColorLab", "PixelRunner"],
 pinned: JSON.parse(localStorage.getItem('mc_pinned') || 'null') || ["Browser", "Files", "Settings", "Whats New"]
 };
 
@@ -845,10 +867,14 @@ OS.pass = localStorage.getItem("mc_pass") || OS.account.pass || "1234";
 if (!localStorage.getItem('mc_account') && localStorage.getItem('mc_pass')) {
 OS.account.pass = OS.pass;
 }
-if (OS.installed.includes('News')) {
-OS.installed = OS.installed.map((app) => app === 'News' ? 'Music2' : app);
+if (OS.installed.includes('News') || OS.installed.includes('Music2')) {
+OS.installed = OS.installed.map((app) => app === 'News' || app === 'Music2' ? 'Music' : app);
 OS.installed = [...new Set(OS.installed)];
 localStorage.setItem('mc_apps', JSON.stringify(OS.installed));
+}
+if (OS.pinned.includes('Music2')) {
+OS.pinned = OS.pinned.map((app) => app === 'Music2' ? 'Music' : app);
+localStorage.setItem('mc_pinned', JSON.stringify([...new Set(OS.pinned)]));
 }
 OS.firstRun = !localStorage.getItem('mc_account');
 OS.pendingAvatar = '';
@@ -1031,23 +1057,39 @@ renderStartGlance();
 function applyCursorSettings() {
 const cursorUrl = (OS.settings.cursorUrl || '').trim();
 if (!cursorUrl) {
-document.body.classList.remove('custom-cursor');
+document.documentElement.classList.remove('custom-cursor');
 document.documentElement.style.setProperty('--cursor-custom', 'auto');
+document.body.style.cursor = 'auto';
 return;
 }
-document.body.classList.add('custom-cursor');
-document.documentElement.style.setProperty('--cursor-custom', `url("${cursorUrl.replace(/"/g, '\\"')}") 4 4`);
+const hotspotX = Number.isFinite(OS.settings.cursorHotspotX) ? OS.settings.cursorHotspotX : 8;
+const hotspotY = Number.isFinite(OS.settings.cursorHotspotY) ? OS.settings.cursorHotspotY : 8;
+const cursorValue = `url("${cursorUrl.replace(/"/g, '\"')}") ${hotspotX} ${hotspotY}, auto`;
+document.documentElement.classList.add('custom-cursor');
+document.documentElement.style.setProperty('--cursor-custom', cursorValue);
+document.body.style.cursor = cursorValue;
+}
+
+function setCustomCursor(url, source, successMessage) {
+const value = (url || '').trim();
+if (!value) return notify('Add a cursor image first.', 'warning');
+const img = new Image();
+img.onload = () => {
+OS.settings.cursorUrl = value;
+OS.settings.cursorSource = source;
+saveSettings();
+applyCursorSettings();
+if (OS.running['Settings']) OS.running['Settings'].querySelector('.win-body').innerHTML = Registry['Settings'].content();
+notify(successMessage, 'success');
+};
+img.onerror = () => notify('Cursor image could not be loaded. Try a direct PNG or JPG image link.', 'error');
+img.src = value;
 }
 
 function applyCursorFromUrl(url) {
 const value = (url || '').trim();
 if (!value) return notify('Add a cursor image link first.', 'warning');
-OS.settings.cursorUrl = value;
-OS.settings.cursorSource = 'url';
-saveSettings();
-applyCursorSettings();
-if (OS.running['Settings']) OS.running['Settings'].querySelector('.win-body').innerHTML = Registry['Settings'].content();
-notify('Custom cursor image applied.', 'success');
+setCustomCursor(value, 'url', 'Custom cursor image applied.');
 }
 
 function handleCursorUpload(event) {
@@ -1055,12 +1097,7 @@ const file = event.target.files && event.target.files[0];
 if (!file) return;
 const reader = new FileReader();
 reader.onload = (e) => {
-OS.settings.cursorUrl = e.target.result || '';
-OS.settings.cursorSource = 'upload';
-saveSettings();
-applyCursorSettings();
-if (OS.running['Settings']) OS.running['Settings'].querySelector('.win-body').innerHTML = Registry['Settings'].content();
-notify('Custom cursor uploaded.', 'success');
+setCustomCursor(e.target.result || '', 'upload', 'Custom cursor uploaded.');
 };
 reader.readAsDataURL(file);
 event.target.value = '';
@@ -1193,7 +1230,7 @@ return defs.map((item) => renderWidgetControl(item)).join('');
 }
 
 function renderStartGlance() {
-const target = document.getElementById('start-glance');
+const target = document.getElementById('start-snapshot');
 if (!target) return;
 const activeWidgets = Object.values(OS.widgets).filter(Boolean).length;
 const weatherText = OS.weather ? `${Math.round(OS.weather.temp)}°${OS.settings.temperatureUnit} • ${OS.weather.city}` : 'Weather loading';
@@ -1230,33 +1267,11 @@ Games: { icon: "🎮", content: () => buildAppFrame("https://online.notes.dinpri
 𝕄𝕔ℂ𝕣𝕒𝕔𝕜Chat: { icon: "💬", content: () => buildAppFrame("https://patrickmango49.github.io/McCrack-Chat/") },
 YouTube: { icon: "📺", content: () => buildAppFrame("https://online.notes.dinprima.ro/os/youtube.html") },
 Paint: { icon: "🎨", content: () => buildAppFrame("https://jspaint.app") },
-Music2: { icon: "🎶", content: () => buildAppFrame("https://freefy.app/") },
 ClockPro: { icon: "⏱️", content: () => `<div style="padding:34px;"><h2 style="margin-bottom:8px;">Clock Pro</h2><p style="opacity:0.6; margin-bottom:16px;">Pomodoro + stopwatch + alarms + world time zones.</p><div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px;"><button onclick="startPomodoro(25)" style="padding:12px; border:none; border-radius:10px; background:var(--accent); color:white; font-weight:700;">25m Focus</button><button onclick="startPomodoro(15)" style="padding:12px; border:none; border-radius:10px; background:#1f1f1f; color:white; font-weight:700;">15m Sprint</button><button onclick="startPomodoro(5)" style="padding:12px; border:none; border-radius:10px; background:#1f1f1f; color:white; font-weight:700;">5m Break</button><button onclick="stopPomodoro()" style="padding:12px; border:none; border-radius:10px; background:#3a2020; color:white; font-weight:700;">Stop</button></div><div id="pomodoro-status" style="margin-top:16px; font-size:1.05rem; font-weight:700;">Timer idle</div><div style="margin-top:18px; display:grid; grid-template-columns:1fr auto auto; gap:8px;"><input id="alarm-mins" type="number" min="1" placeholder="Alarm in minutes" style="padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><button onclick="setClockAlarm()" style="padding:10px 12px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Set Alarm</button><button onclick="clearClockAlarm()" style="padding:10px 12px; border:none; border-radius:8px; background:#2a1a1a; color:#fff;">Clear</button></div><div id="clock-alarm-status" style="margin-top:8px; opacity:0.75;">No alarm set.</div><div style="margin-top:18px; display:grid; grid-template-columns:1fr auto auto; gap:8px; align-items:center;"><div id="clock-stopwatch" style="padding:10px; background:#0f0f0f; border:1px solid #222; border-radius:8px; font-family:monospace; font-size:1.1rem;">00:00.0</div><button onclick="startStopwatch()" style="padding:10px 12px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Start/Stop</button><button onclick="resetStopwatch()" style="padding:10px 12px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Reset</button></div><div style="margin-top:18px; background:#0f0f0f; border:1px solid #222; border-radius:10px; padding:12px;">${renderWorldClocks()}</div></div>` },
 CodeLab: { icon: "🧪", content: () => buildAppFrame("https://onecompiler.com/html/3y5x8jr6s") },
 PhotoBooth: { icon: "📸", content: () => `<div style="padding:36px;"><h2 style="margin-bottom:8px;">Photo Booth</h2><p style="opacity:0.58; margin-bottom:16px;">Capture webcam shots with pro filters and camera controls.</p><div style="position:relative;"><video id="photo-video" autoplay playsinline style="width:100%; max-height:330px; border-radius:14px; border:1px solid #222; background:#000;"></video><div id="camera-grid-overlay" style="display:none; position:absolute; inset:0; pointer-events:none; border-radius:14px; background-image:linear-gradient(to right, transparent 32%, rgba(255,255,255,0.2) 33%, transparent 34%, transparent 65%, rgba(255,255,255,0.2) 66%, transparent 67%), linear-gradient(to bottom, transparent 32%, rgba(255,255,255,0.2) 33%, transparent 34%, transparent 65%, rgba(255,255,255,0.2) 66%, transparent 67%);"></div></div><canvas id="photo-canvas" style="display:none;"></canvas><div style="display:grid; grid-template-columns:1fr 160px 160px; gap:12px; margin-top:14px;"><select id="photo-filter" onchange="applyPhotoFilter(this.value)" style="padding:10px; border-radius:10px; border:1px solid #222; background:#111; color:#fff;"><option value="none">No Filter</option><option value="grayscale(1)">B&W</option><option value="sepia(0.8)">Sepia</option><option value="contrast(1.3) saturate(1.3)">Vivid</option><option value="brightness(1.2) contrast(1.15)">Bright</option><option value="hue-rotate(35deg) saturate(1.2)">Warm Glow</option><option value="hue-rotate(200deg) contrast(1.15)">Cool Night</option><option value="invert(1)">Inverted</option></select><select id="photo-timer" style="padding:10px; border-radius:10px; border:1px solid #222; background:#111; color:#fff;"><option value="0">No Timer</option><option value="3">3 Seconds</option><option value="5">5 Seconds</option><option value="10">10 Seconds</option></select><select id="photo-quality" style="padding:10px; border-radius:10px; border:1px solid #222; background:#111; color:#fff;"><option value="0.7">Standard JPG</option><option value="0.9">High JPG</option><option value="1">Max JPG</option></select></div><div style="display:flex; gap:12px; margin-top:14px;"><button onclick="capturePhoto()" style="flex:1; padding:12px; border:none; border-radius:10px; background:var(--accent); color:#fff; font-weight:700;">Capture</button><button onclick="startPhotoBooth()" style="flex:1; padding:12px; border:none; border-radius:10px; background:#1f1f1f; color:#fff; font-weight:700;">Restart Camera</button><button onclick="mirrorPhotoPreview()" style="padding:12px; border:none; border-radius:10px; background:#1f1f1f; color:#fff; font-weight:700;">Mirror</button><button onclick="toggleCameraGrid()" style="padding:12px; border:none; border-radius:10px; background:#1f1f1f; color:#fff; font-weight:700;">Grid</button></div><div id="photo-status" style="margin-top:10px; opacity:0.7;"></div><img id="photo-output" alt="Captured photo" style="width:100%; margin-top:14px; border-radius:14px; border:1px solid #222; display:none;"></div>` },
 Terminal: { icon: "⌨️", content: () => `<div id="t-out" style="padding:25px;color:#0f0;font-family:monospace;height:calc(100% - 60px);overflow:auto;line-height:1.5;font-size:0.9rem;">𝕄𝕔ℂ𝕣𝕒𝕔𝕜 Kernel Console [Version19.0.4]<br>(c) 2026 𝕄𝕔ℂ𝕣𝕒𝕔𝕜 Industries.<br><br></div><input onkeydown="cmd(event, this)" style="width:100%;background:#050505;border:none;border-top:1px solid #222;color:#0f0;padding:18px;outline:none;font-family:monospace;font-size:1rem;">` },
-Files: { icon: "📁", content: () => `<div style="padding:30px;">
-<div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
-<h2>File Explorer</h2>
-<button onclick="document.getElementById('bg-upload').click()" style="padding:8px 15px; border-radius:8px; background:var(--accent); color:white; border:none; cursor:pointer;">Upload BG Image</button>
-<input type="file" id="bg-upload" style="display:none" onchange="handleFileUpload(event)" accept="image/*">
-</div>
-<hr style="opacity:0.1; margin:20px 0;">
-<div class="explorer-grid">
-<div class="file-item">📁<br><br>Root</div>
-<div class="file-item">📁<br><br>System</div>
-<div class="file-item">📁<br><br>Users</div>
-<div class="file-item" onclick="launch('Settings')">🖼️<br><br>Wallpapers</div>
-<div class="file-item">📷<br><br>Camera Booth</div>
-</div>
-<div style="margin-top:20px;">
-<h3 style="margin-bottom:10px;">Camera Booth Folder</h3>
-<p style="opacity:0.58; font-size:0.82rem; margin-bottom:14px;">All photos captured in Photo Booth are saved here.</p>
-<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(160px,1fr)); gap:10px;">
-${getSavedPhotos().length ? getSavedPhotos().map(photo => `<div style="border:1px solid #242424; border-radius:10px; overflow:hidden; background:#090909;"><img src="${photo.src}" alt="Captured photo" style="width:100%; height:120px; object-fit:cover; display:block;"><div style="padding:8px;"><div style="font-size:0.7rem; opacity:0.65; margin-bottom:7px;">${new Date(photo.createdAt).toLocaleString()}</div><button onclick="deleteCapturedPhoto('${photo.id}')" style="width:100%; border:none; border-radius:7px; background:#241515; color:#ff8787; padding:6px; cursor:pointer;">Delete</button></div></div>`).join('') : `<div style="font-size:0.86rem; opacity:0.5;">No photos yet. Open Photo Booth and capture one.</div>`}
-</div>
-</div>
-</div>` },
+Files: { icon: "📁", content: () => renderFilesApp() },
 Store: { icon: "🛒", content: () => `<div style="padding:40px;">
 <h1 style="font-weight:300; margin-bottom:10px;">Integrated Store</h1>
 <p style="opacity:0.4; margin-bottom:30px;">Acquire and deploy official system modules.</p>
@@ -1271,7 +1286,6 @@ ${renderStoreItem('Notepad', 'Secure Text Buffer')}
 ${renderStoreItem('WidgetCenter', 'Desktop Widget Manager')}
 ${renderStoreItem('YouTube', 'YouTube Video Streamer')}
 ${renderStoreItem('Paint', 'Retro Drawing Studio')}
-${renderStoreItem('Music2', 'Stream Player Module')}
 ${renderStoreItem('ClockPro', 'Focus Timer & Clock Toolkit')}
 ${renderStoreItem('CodeLab', 'Cloud Coding Workspace')}
 ${renderStoreItem('PhotoBooth', 'Camera Snapshot Studio')}
@@ -1291,7 +1305,7 @@ ${renderStoreItem('PixelRunner', 'Arcade mini-game')}
 Settings: { icon: "⚙️", content: () => renderSettingsApp() },
 "Whats New": { icon: "🆕", content: () => renderWhatsNewApp() },
 About: { icon: "ℹ️", content: () => renderAboutApp() },
-Music: { icon: "🎵", content: () => `<div style="padding:30px; max-width:780px; margin:0 auto;"><h2>𝕄𝕔ℂ𝕣𝕒𝕔𝕜 Music</h2><p style="opacity:0.58; margin:8px 0 16px 0;">Build playlists, queue tracks, and keep audio running in your session.</p><div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"><input id="music-title" placeholder="Track title" style="padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><input id="music-artist" placeholder="Artist" style="padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"></div><div style="display:flex; gap:10px; margin-top:10px;"><button onclick="addMusicTrack()" style="flex:1; padding:10px; border:none; border-radius:8px; background:var(--accent); color:#fff; font-weight:700;">Add Track</button><button onclick="playNextTrack()" style="padding:10px 14px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Next</button><button onclick="clearMusicQueue()" style="padding:10px 14px; border:none; border-radius:8px; background:#2a1616; color:#ffbaba;">Clear</button></div><div id="music-now" style="margin-top:14px; font-weight:700;">${renderNowPlaying()}</div><div id="music-list" style="margin-top:12px;">${renderMusicQueue()}</div></div>` },
+Music: { icon: "🎶", content: () => renderMusicStreamingApp() },
 AppFactory: { icon: "🛠️", content: () => `<div style="padding:50px; max-width:600px; margin:0 auto;">
 <h2>Compiler Console</h2>
 <p style="opacity:0.4; margin-bottom:10px;">Encapsulate any web protocol into a local app.</p>
@@ -1303,15 +1317,12 @@ AppFactory: { icon: "🛠️", content: () => `<div style="padding:50px; max-wid
 <button onclick="createCustomApp()" style="width:100%; padding:18px; background:white; color:black; font-weight:900; border-radius:12px; cursor:pointer; border:none; transition:0.3s;">COMPILE MODULE</button>
 </div>` },
 WidgetCenter: { icon: "🧩", content: () => renderWidgetCenter() },
-Calculator: { icon: "🧮", content: () => `<div style="padding:50px; text-align:center;">
-<input id="c-in" style="width:100%; font-size:45px; background:#000; color:white; border:2px solid #222; padding:30px; text-align:right; border-radius:20px; margin-bottom:20px; font-family:monospace;">
-<button onclick="calcResult()" style="width:100%; padding:25px; background:var(--accent); color:white; border:none; border-radius:15px; font-size:1.5rem; font-weight:bold; cursor:pointer;">RUN CALCULATION</button>
-</div>` },
-UnitConverter: { icon: "📐", content: () => `<div style="padding:30px; max-width:560px; margin:0 auto;"><h2 style="margin-bottom:8px;">Unit Converter</h2><p style="opacity:0.6; margin-bottom:12px;">Convert quickly between common units.</p><select id="conv-type" style="width:100%; padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><option value="length">Length (m ↔ ft)</option><option value="temp">Temperature (C ↔ F)</option><option value="weight">Weight (kg ↔ lb)</option></select><input id="conv-value" type="number" placeholder="Enter value" style="margin-top:10px; width:100%; padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><button onclick="runConverter()" style="margin-top:10px; width:100%; padding:10px; border:none; border-radius:8px; background:var(--accent); color:white; font-weight:700;">Convert</button><div id="conv-output" style="margin-top:12px; font-weight:700;"></div></div>` },
-TodoBoard: { icon: "✅", content: () => `<div style="padding:30px; max-width:700px; margin:0 auto;"><h2>Todo Board</h2><p style="opacity:0.6; margin:8px 0 12px 0;">Plan tasks with priority + completion tracking.</p><div style="display:grid; grid-template-columns:1fr 140px auto; gap:8px;"><input id="todo-input" placeholder="Add a task" style="padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><select id="todo-priority" style="padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><option value="low">Low</option><option value="med" selected>Medium</option><option value="high">High</option></select><button onclick="addTodo()" style="padding:10px 14px; border:none; border-radius:8px; background:var(--accent); color:#fff;">Add</button></div><div style="margin-top:10px; display:flex; gap:8px;"><button onclick="clearCompletedTodos()" style="padding:8px 12px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Clear Completed</button><button onclick="toggleTodoFilter()" style="padding:8px 12px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Toggle Completed Visibility</button></div><div id="todo-list" style="margin-top:12px;">${renderTodos()}</div></div>` },
+Calculator: { icon: "🧮", content: () => renderCalculatorApp() },
+UnitConverter: { icon: "📐", content: () => renderConverterApp() },
+TodoBoard: { icon: "✅", content: () => renderTodoBoardApp() },
 WeatherDesk: { icon: "🌦️", content: () => `<div style="padding:32px; max-width:760px; margin:0 auto;"><h2>Weather Desk</h2><p style="opacity:0.58; margin:8px 0 14px 0;">Check weather by US state and refresh on demand.</p><div style="display:flex; gap:10px; margin-bottom:12px;"><select id="weather-state" onchange="chooseWeatherState(this.value)" style="flex:1; background:#111; color:#fff; border:1px solid #222; border-radius:8px; padding:10px;">${Object.entries(US_STATE_WEATHER).map(([abbr, state]) => `<option value="${abbr}" ${OS.settings.weatherState === abbr ? 'selected' : ''}>${state.name} (${abbr})</option>`).join('')}</select><button onclick="refreshWeather(true)" style="padding:10px 14px; border:none; border-radius:8px; background:var(--accent); color:white;">Refresh</button></div><div style="background:#0d0d0d; border:1px solid #242424; border-radius:12px; padding:16px;">${OS.weather ? `<div style="font-size:1.5rem; font-weight:700;">${Math.round(OS.weather.temp)}°${OS.settings.temperatureUnit}</div><div style="margin-top:4px; opacity:0.7;">${OS.weather.city}</div><div style="margin-top:6px; opacity:0.8; text-transform:capitalize;">${OS.weather.label}</div><div style="margin-top:8px; opacity:0.55;">Wind ${OS.weather.wind ?? '--'} ${OS.settings.temperatureUnit === 'F' ? 'mph' : 'km/h'} • Updated ${OS.weather.updatedAt || 'just now'}</div>` : `<div style="opacity:0.6;">Weather data unavailable. Widget will refresh automatically.</div>`}</div></div>` },
 
-HabitTracker: { icon: "📆", content: () => `<div style="padding:30px; max-width:680px; margin:0 auto;"><h2>Habit Tracker</h2><p style="opacity:0.6; margin:8px 0 12px 0;">Create habits and keep your streak alive.</p><div style="display:flex; gap:8px;"><input id="habit-input" placeholder="Add a habit" style="flex:1; padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><button onclick="addHabit()" style="padding:10px 14px; border:none; border-radius:8px; background:var(--accent); color:#fff;">Add</button></div><div id="habit-list" style="margin-top:12px;">${renderHabits()}</div></div>` },
+HabitTracker: { icon: "📆", content: () => renderHabitTrackerApp() },
 QuickSketch: { icon: "🖌️", content: () => `<div style="padding:24px;"><h2 style="margin-bottom:10px;">Quick Sketch</h2><p style="opacity:0.6; margin-bottom:10px;">Draw fast ideas locally.</p><canvas id="sketch-canvas" width="760" height="380" style="width:100%; background:#fff; border-radius:12px; cursor:crosshair;"></canvas><div style="display:flex; gap:8px; margin-top:10px;"><input id="sketch-color" type="color" value="#000000" onchange="setSketchColor(this.value)"><input id="sketch-size" type="range" min="1" max="18" value="3" onchange="setSketchSize(this.value)"><button onclick="clearSketch()" style="padding:8px 12px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Clear</button></div></div>` },
 FocusSounds: { icon: "🎧", content: () => `<div style="padding:28px; max-width:660px; margin:0 auto;"><h2>Focus Sounds</h2><p style="opacity:0.6; margin:8px 0 14px 0;">Play simple ambient tones while you work.</p><div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px;"><button onclick="playFocusTone(140)" style="padding:10px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Rain</button><button onclick="playFocusTone(220)" style="padding:10px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Cafe</button><button onclick="playFocusTone(310)" style="padding:10px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Deep Space</button></div><button onclick="stopFocusTone()" style="margin-top:12px; padding:10px 14px; border:none; border-radius:8px; background:#2a1a1a; color:#fff;">Stop</button><div id="focus-status" style="margin-top:10px; opacity:0.7;">Idle</div></div>` },
 MarkdownPad: { icon: "📓", content: () => `<div style="padding:26px;"><h2>Markdown Pad</h2><p style="opacity:0.62; margin:8px 0 10px 0;">Write markdown notes with live preview.</p><div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; height:calc(100% - 70px);"><textarea id="md-input" oninput="updateMarkdownPreview()" style="width:100%; height:100%; background:#0d0d0d; color:#fff; border:1px solid #242424; border-radius:10px; padding:12px; resize:none;">${localStorage.getItem('mc_md') || '# Hello'}</textarea><div id="md-preview" style="background:#0d0d0d; border:1px solid #242424; border-radius:10px; padding:12px; overflow:auto;"></div></div></div>` },
@@ -2406,7 +2417,7 @@ w.innerHTML = `<div class="win-head">
 </div>
 <div class="win-body">${Registry[id].content()}</div>
 <div class="resizer"></div>`
-; document.body.appendChild(w); OS.running[id] = w;
+; document.body.appendChild(w); OS.running[id] = w; w.classList.add('active-window');
 w.querySelector('.win-head').onmousedown = (e) => {
 if(w.dataset.fs === "true" || e.button !== 0) return;
 focusWin(id);
@@ -2468,7 +2479,7 @@ updateTask();
 updateTaskbarVisibility();
 }
 
-function focusWin(id) { if(OS.running[id]) OS.running[id].style.zIndex = ++OS.z; updateTask(); }
+function focusWin(id) { Object.values(OS.running).forEach((win) => win.classList.remove('active-window')); if(OS.running[id]) { OS.running[id].style.zIndex = ++OS.z; OS.running[id].classList.add('active-window'); } updateTask(); }
 function closeW(id) { if(OS.running[id]) { OS.running[id].remove(); delete OS.running[id]; updateTask(); updateTaskbarVisibility(); addLog(`Closed module: ${id}`); notify(`Closed ${id}.`, "warning"); } }
 function min(id) { if(OS.running[id]) { OS.running[id].style.display = 'none'; updateTask(); updateTaskbarVisibility(); } }
 
@@ -2863,6 +2874,91 @@ localStorage.removeItem('mc_now_playing');
 refreshMusicApp();
 }
 
+function renderMusicStreamingApp() {
+const weatherText = OS.weather ? `${Math.round(OS.weather.temp)}°${OS.settings.temperatureUnit} • ${OS.weather.label}` : 'Weather syncing';
+return `<div style="display:grid; grid-template-columns:320px 1fr; height:100%;"><aside style="padding:28px; border-right:1px solid #1a1a1a; background:linear-gradient(180deg, rgba(0,120,212,0.12), rgba(0,0,0,0));"><div style="font-size:0.72rem; letter-spacing:0.18em; text-transform:uppercase; opacity:0.6;">Now Streaming</div><h2 style="margin-top:10px;">Music</h2><p style="opacity:0.72; line-height:1.7; margin-top:10px;">The old local queue app has been replaced with the upgraded stream player from Music2, now promoted to the main Music app.</p><div style="display:grid; gap:10px; margin-top:18px;"><button onclick="launch('FocusSounds')" style="padding:10px 12px; border:none; border-radius:10px; background:var(--accent); color:#fff; font-weight:700;">Open Focus Sounds</button><button onclick="launch('YouTube')" style="padding:10px 12px; border:none; border-radius:10px; background:#141414; color:#fff;">Open YouTube</button><button onclick="launch('ClockPro')" style="padding:10px 12px; border:none; border-radius:10px; background:#141414; color:#fff;">Pair with Clock Pro</button></div><div style="margin-top:18px; padding:14px; border-radius:14px; background:#0b0b0b; border:1px solid #1d1d1d;"><div style="font-size:0.74rem; opacity:0.55; text-transform:uppercase; letter-spacing:1px;">Session Mix</div><div style="margin-top:8px; font-weight:700;">${weatherText}</div><div style="font-size:0.8rem; opacity:0.66; line-height:1.55; margin-top:6px;">Use this with Todo Board or Focus Sounds for a cleaner work session.</div></div></aside><div style="padding:16px; height:100%;"><div style="height:100%; border-radius:18px; overflow:hidden; border:1px solid #1f1f1f; background:#050505;"><iframe class="app-iframe" src="https://freefy.app/"></iframe></div></div></div>`;
+}
+
+function renderFilesApp() {
+const photos = getSavedPhotos();
+const customApps = Object.keys(JSON.parse(localStorage.getItem('mc_custom_apps') || '{}')).length;
+return `<div style="padding:30px;"><div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;"><div><h2>File Explorer</h2><p style="opacity:0.58; margin-top:6px;">A broader system view with faster shortcuts and session storage stats.</p></div><div style="display:flex; gap:10px; flex-wrap:wrap;"><button onclick="document.getElementById('bg-upload').click()" style="padding:8px 15px; border-radius:8px; background:var(--accent); color:white; border:none; cursor:pointer;">Upload BG Image</button><button onclick="createDesktopTextDocumentShortcut()" style="padding:8px 15px; border-radius:8px; background:#151515; color:white; border:1px solid #252525; cursor:pointer;">New Desktop Note</button><input type="file" id="bg-upload" style="display:none" onchange="handleFileUpload(event)" accept="image/*"></div></div><div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:18px;"><div class="start-stat-card"><span>Installed</span><strong>${OS.installed.length}</strong><p>Apps available on this desktop.</p></div><div class="start-stat-card"><span>Pinned</span><strong>${OS.pinned.length}</strong><p>Quick-launch items on the taskbar.</p></div><div class="start-stat-card"><span>Photos</span><strong>${photos.length}</strong><p>Camera Booth captures saved locally.</p></div><div class="start-stat-card"><span>Custom Apps</span><strong>${customApps}</strong><p>User-compiled modules in AppFactory.</p></div></div><hr style="opacity:0.1; margin:20px 0;"><div class="explorer-grid"><div class="file-item">📁<br><br>Root</div><div class="file-item">📁<br><br>System</div><div class="file-item">📁<br><br>Users</div><div class="file-item" onclick="launch('Settings')">🖼️<br><br>Wallpapers</div><div class="file-item" onclick="launch('PhotoBooth')">📷<br><br>Camera Booth</div><div class="file-item" onclick="launch('WidgetCenter')">🧩<br><br>Widgets</div><div class="file-item" onclick="launch('MarkdownPad')">📘<br><br>Markdown Pad</div><div class="file-item" onclick="launch('TodoBoard')">✅<br><br>Tasks</div></div><div style="margin-top:22px;"><h3 style="margin-bottom:10px;">Camera Booth Folder</h3><p style="opacity:0.58; font-size:0.82rem; margin-bottom:14px;">All photos captured in Photo Booth are saved here.</p><div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(160px,1fr)); gap:10px;">${photos.length ? photos.map(photo => `<div style="border:1px solid #242424; border-radius:10px; overflow:hidden; background:#090909;"><img src="${photo.src}" alt="Captured photo" style="width:100%; height:120px; object-fit:cover; display:block;"><div style="padding:8px;"><div style="font-size:0.7rem; opacity:0.65; margin-bottom:7px;">${new Date(photo.createdAt).toLocaleString()}</div><button onclick="deleteCapturedPhoto('${photo.id}')" style="width:100%; border:none; border-radius:7px; background:#241515; color:#ff8787; padding:6px; cursor:pointer;">Delete</button></div></div>`).join('') : `<div style="font-size:0.86rem; opacity:0.5;">No photos yet. Open Photo Booth and capture one.</div>`}</div></div></div>`;
+}
+
+function getCalcHistoryMarkup() {
+try {
+const parsed = JSON.parse(localStorage.getItem('mc_calc_history'));
+return Array.isArray(parsed) && parsed.length ? parsed.map(item => `<button onclick="useCalcHistory('${String(item.result).replace(/'/g, "&#39;")}')" style="text-align:left; padding:8px 10px; border:none; border-radius:10px; background:#101010; color:#fff;">${item.expr} = <strong>${item.result}</strong></button>`).join('') : '<div style="opacity:0.55;">No saved calculations yet.</div>';
+} catch (_) { return '<div style="opacity:0.55;">No saved calculations yet.</div>'; }
+}
+
+function renderCalculatorApp() {
+return `<div style="padding:34px; max-width:860px; margin:0 auto;"><h2>Calculator</h2><p style="opacity:0.6; margin:8px 0 14px 0;">Now with memory shortcuts, quick buttons, and local history.</p><input id="c-in" style="width:100%; font-size:42px; background:#000; color:white; border:2px solid #222; padding:24px; text-align:right; border-radius:20px; margin-bottom:14px; font-family:monospace;"><div style="display:grid; grid-template-columns:repeat(6,1fr); gap:8px; margin-bottom:12px;"><button onclick="appendCalcValue('(')" style="padding:12px; border:none; border-radius:10px; background:#111; color:#fff;">(</button><button onclick="appendCalcValue(')')" style="padding:12px; border:none; border-radius:10px; background:#111; color:#fff;">)</button><button onclick="appendCalcValue('**2')" style="padding:12px; border:none; border-radius:10px; background:#111; color:#fff;">x²</button><button onclick="appendCalcValue('Math.sqrt(')" style="padding:12px; border:none; border-radius:10px; background:#111; color:#fff;">√</button><button onclick="appendCalcValue('/100')" style="padding:12px; border:none; border-radius:10px; background:#111; color:#fff;">%</button><button onclick="clearCalcInput()" style="padding:12px; border:none; border-radius:10px; background:#2a1616; color:#fff;">Clear</button></div><div style="display:grid; grid-template-columns:2fr 1fr 1fr; gap:10px;"><button onclick="calcResult()" style="padding:18px; background:var(--accent); color:white; border:none; border-radius:15px; font-size:1.1rem; font-weight:bold; cursor:pointer;">Run Calculation</button><button onclick="saveCalcMemory()" style="padding:18px; background:#161616; color:white; border:none; border-radius:15px; cursor:pointer;">Save</button><button onclick="recallCalcMemory()" style="padding:18px; background:#161616; color:white; border:none; border-radius:15px; cursor:pointer;">Recall</button></div><div style="margin-top:16px; display:grid; grid-template-columns:1.2fr 0.8fr; gap:14px;"><div style="background:#0a0a0a; border:1px solid #1a1a1a; border-radius:16px; padding:16px;"><div style="font-size:0.76rem; opacity:0.58; text-transform:uppercase; letter-spacing:1px;">Helper Keys</div><div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;"><button onclick="appendCalcValue('7')" style="padding:8px 12px; border:none; border-radius:999px; background:#111; color:#fff;">7</button><button onclick="appendCalcValue('8')" style="padding:8px 12px; border:none; border-radius:999px; background:#111; color:#fff;">8</button><button onclick="appendCalcValue('9')" style="padding:8px 12px; border:none; border-radius:999px; background:#111; color:#fff;">9</button><button onclick="appendCalcValue('+')" style="padding:8px 12px; border:none; border-radius:999px; background:#111; color:#fff;">+</button><button onclick="appendCalcValue('-')" style="padding:8px 12px; border:none; border-radius:999px; background:#111; color:#fff;">-</button><button onclick="appendCalcValue('*')" style="padding:8px 12px; border:none; border-radius:999px; background:#111; color:#fff;">×</button><button onclick="appendCalcValue('/')" style="padding:8px 12px; border:none; border-radius:999px; background:#111; color:#fff;">÷</button><button onclick="appendCalcValue('.')" style="padding:8px 12px; border:none; border-radius:999px; background:#111; color:#fff;">.</button></div></div><div style="background:#0a0a0a; border:1px solid #1a1a1a; border-radius:16px; padding:16px;"><div style="font-size:0.76rem; opacity:0.58; text-transform:uppercase; letter-spacing:1px;">Recent History</div><div id="calc-history" style="margin-top:10px; display:grid; gap:8px;">${getCalcHistoryMarkup()}</div></div></div></div>`;
+}
+
+function renderConverterApp() {
+const last = localStorage.getItem('mc_converter_last') || 'No conversions run yet.';
+return `<div style="padding:30px; max-width:620px; margin:0 auto;"><h2 style="margin-bottom:8px;">Unit Converter</h2><p style="opacity:0.6; margin-bottom:12px;">Expanded with speed and storage conversions plus remembered output.</p><select id="conv-type" style="width:100%; padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><option value="length">Length (m ↔ ft)</option><option value="temp">Temperature (C ↔ F)</option><option value="weight">Weight (kg ↔ lb)</option><option value="speed">Speed (km/h ↔ mph)</option><option value="storage">Storage (MB ↔ GB)</option></select><input id="conv-value" type="number" placeholder="Enter value" style="margin-top:10px; width:100%; padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;"><button onclick="runConverter()" style="width:100%; padding:10px; border:none; border-radius:8px; background:var(--accent); color:white; font-weight:700;">Convert</button><button onclick="swapConverterPreset()" style="width:100%; padding:10px; border:none; border-radius:8px; background:#151515; color:white;">Swap Preset</button></div><div id="conv-output" style="margin-top:12px; font-weight:700;"></div><div style="margin-top:14px; padding:12px; border-radius:12px; background:#0c0c0c; border:1px solid #1d1d1d;"><div style="font-size:0.75rem; opacity:0.55; text-transform:uppercase; letter-spacing:1px;">Last Result</div><div style="margin-top:8px; opacity:0.72; line-height:1.5;">${last}</div></div></div>`;
+}
+
+function renderTodoBoardApp() {
+const todos = getTodos();
+const done = todos.filter(item => item.done).length;
+const percent = todos.length ? Math.round((done / todos.length) * 100) : 0;
+return `<div style="padding:30px; max-width:760px; margin:0 auto;"><h2>Todo Board</h2><p style="opacity:0.6; margin:8px 0 12px 0;">Plan tasks with priority, due dates, completion tracking, and progress stats.</p><div style="display:grid; grid-template-columns:1fr 130px 150px auto; gap:8px;"><input id="todo-input" placeholder="Add a task" style="padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><select id="todo-priority" style="padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><option value="low">Low</option><option value="med" selected>Medium</option><option value="high">High</option></select><input id="todo-due" type="date" style="padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><button onclick="addTodo()" style="padding:10px 14px; border:none; border-radius:8px; background:var(--accent); color:#fff;">Add</button></div><div style="margin-top:12px; display:grid; grid-template-columns:repeat(3,1fr); gap:10px;"><div class="start-stat-card"><span>Total</span><strong>${todos.length}</strong><p>Tasks in the board.</p></div><div class="start-stat-card"><span>Done</span><strong>${done}</strong><p>Completed right now.</p></div><div class="start-stat-card"><span>Progress</span><strong>${percent}%</strong><p>Completion across all tasks.</p></div></div><div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;"><button onclick="clearCompletedTodos()" style="padding:8px 12px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Clear Completed</button><button onclick="toggleTodoFilter()" style="padding:8px 12px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Toggle Completed Visibility</button><button onclick="sortTodosByPriority()" style="padding:8px 12px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Sort by Priority</button></div><div id="todo-list" style="margin-top:12px;">${renderTodos()}</div></div>`;
+}
+
+function renderHabitTrackerApp() {
+const habits = getHabits();
+const best = habits.reduce((max, item) => Math.max(max, item.bestStreak || item.streak || 0), 0);
+return `<div style="padding:30px; max-width:720px; margin:0 auto;"><h2>Habit Tracker</h2><p style="opacity:0.6; margin:8px 0 12px 0;">Track streaks, notes, and resets with a stronger dashboard.</p><div style="display:grid; grid-template-columns:1fr 1fr auto; gap:8px;"><input id="habit-input" placeholder="Add a habit" style="padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><input id="habit-note" placeholder="Optional note" style="padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><button onclick="addHabit()" style="padding:10px 14px; border:none; border-radius:8px; background:var(--accent); color:#fff;">Add</button></div><div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:12px;"><div class="start-stat-card"><span>Habits</span><strong>${habits.length}</strong><p>Active routines tracked.</p></div><div class="start-stat-card"><span>Best Streak</span><strong>${best}</strong><p>Top streak across the board.</p></div><div class="start-stat-card"><span>Checked Today</span><strong>${habits.filter(item => item.lastCheck === new Date().toISOString().slice(0,10)).length}</strong><p>Habits marked today.</p></div></div><div id="habit-list" style="margin-top:12px;">${renderHabits()}</div></div>`;
+}
+
+function appendCalcValue(value) {
+const input = document.getElementById('c-in');
+if (!input) return;
+input.value += value;
+input.focus();
+}
+
+function clearCalcInput() {
+const input = document.getElementById('c-in');
+if (input) input.value = '';
+}
+
+function saveCalcMemory() {
+const input = document.getElementById('c-in');
+if (!input) return;
+localStorage.setItem('mc_calc_memory', input.value);
+notify('Calculator memory saved.', 'success');
+}
+
+function recallCalcMemory() {
+const input = document.getElementById('c-in');
+if (!input) return;
+input.value = localStorage.getItem('mc_calc_memory') || input.value;
+}
+
+function useCalcHistory(value) {
+const input = document.getElementById('c-in');
+if (input) input.value = value;
+}
+
+function sortTodosByPriority() {
+const rank = { high: 0, med: 1, low: 2 };
+const todos = getTodos().sort((a, b) => (rank[a.priority || 'med'] ?? 1) - (rank[b.priority || 'med'] ?? 1));
+localStorage.setItem('mc_todos', JSON.stringify(todos));
+refreshTodoBoard();
+}
+
+function swapConverterPreset() {
+const el = document.getElementById('conv-type');
+if (!el) return;
+const order = ['length', 'temp', 'weight', 'speed', 'storage'];
+const idx = order.indexOf(el.value);
+el.value = order[(idx + 1) % order.length];
+}
+
 function getTodos() {
 try {
 const parsed = JSON.parse(localStorage.getItem('mc_todos'));
@@ -2875,6 +2971,7 @@ return [];
 function refreshTodoBoard() {
 const list = document.getElementById('todo-list');
 if (list) list.innerHTML = renderTodos();
+if (OS.running['TodoBoard']) OS.running['TodoBoard'].querySelector('.win-body').innerHTML = Registry['TodoBoard'].content();
 }
 
 function renderTodos() {
@@ -2884,7 +2981,9 @@ if (!filtered.length) return '<div style="opacity:0.55;">No tasks yet.</div>';
 return filtered.map((item, idx) => {
 const realIndex = todos.indexOf(item);
 const priorityColor = item.priority === 'high' ? '#ff7a7a' : item.priority === 'med' ? '#ffc66d' : '#9ed6ff';
-return `<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; background:#101010; border:1px solid #222; border-radius:8px; padding:8px 10px; margin-bottom:6px;"><div style="display:flex; align-items:center; gap:8px;"><input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleTodoDone(${realIndex})"><span style="${item.done ? 'text-decoration:line-through; opacity:0.55;' : ''}">${item.text}</span><span style="font-size:0.7rem; color:${priorityColor}; border:1px solid ${priorityColor}; padding:1px 6px; border-radius:999px; text-transform:uppercase;">${item.priority || 'med'}</span></div><button onclick="removeTodo(${realIndex})" style="border:none; background:#261818; color:#ff9999; border-radius:6px; padding:4px 8px; cursor:pointer;">X</button></div>`;
+const due = item.due ? new Date(`${item.due}T00:00:00`) : null;
+const overdue = due && !item.done && due < new Date(new Date().toDateString());
+return `<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; background:#101010; border:1px solid ${overdue ? '#5a2020' : '#222'}; border-radius:10px; padding:10px 12px; margin-bottom:8px;"><div style="display:flex; align-items:flex-start; gap:10px;"><input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleTodoDone(${realIndex})"><div><div style="${item.done ? 'text-decoration:line-through; opacity:0.55;' : ''}">${item.text}</div><div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:6px;"><span style="font-size:0.7rem; color:${priorityColor}; border:1px solid ${priorityColor}; padding:1px 6px; border-radius:999px; text-transform:uppercase;">${item.priority || 'med'}</span>${item.due ? `<span style="font-size:0.7rem; color:${overdue ? '#ff9b9b' : '#9ad1ff'}; border:1px solid ${overdue ? '#5a2020' : '#24445f'}; padding:1px 6px; border-radius:999px;">Due ${item.due}</span>` : ''}</div></div></div><button onclick="removeTodo(${realIndex})" style="border:none; background:#261818; color:#ff9999; border-radius:6px; padding:4px 8px; cursor:pointer;">X</button></div>`;
 }).join('');
 }
 
@@ -2895,9 +2994,11 @@ if (!input) return;
 const value = input.value.trim();
 if (!value) return;
 const todos = getTodos();
-todos.push({ text: value, done: false, priority: priority ? priority.value : 'med', createdAt: new Date().toISOString() });
+const dueInput = document.getElementById('todo-due');
+todos.push({ text: value, done: false, priority: priority ? priority.value : 'med', due: dueInput && dueInput.value ? dueInput.value : '', createdAt: new Date().toISOString() });
 localStorage.setItem('mc_todos', JSON.stringify(todos));
 input.value = '';
+if (dueInput) dueInput.value = '';
 refreshTodoBoard();
 playClickSound(480, 0.05);
 }
@@ -2941,8 +3042,12 @@ return;
 let result = '';
 if (type.value === 'length') result = `${value} m = ${(value * 3.28084).toFixed(2)} ft | ${value} ft = ${(value / 3.28084).toFixed(2)} m`;
 else if (type.value === 'temp') result = `${value}°C = ${(value * 9 / 5 + 32).toFixed(2)}°F | ${value}°F = ${((value - 32) * 5 / 9).toFixed(2)}°C`;
-else result = `${value} kg = ${(value * 2.20462).toFixed(2)} lb | ${value} lb = ${(value / 2.20462).toFixed(2)} kg`;
+else if (type.value === 'weight') result = `${value} kg = ${(value * 2.20462).toFixed(2)} lb | ${value} lb = ${(value / 2.20462).toFixed(2)} kg`;
+else if (type.value === 'speed') result = `${value} km/h = ${(value * 0.621371).toFixed(2)} mph | ${value} mph = ${(value / 0.621371).toFixed(2)} km/h`;
+else result = `${value} MB = ${(value / 1024).toFixed(2)} GB | ${value} GB = ${(value * 1024).toFixed(2)} MB`;
 output.textContent = result;
+localStorage.setItem('mc_converter_last', result);
+if (OS.running['UnitConverter']) OS.running['UnitConverter'].querySelector('.win-body').innerHTML = Registry['UnitConverter'].content();
 }
 
 
@@ -3019,7 +3124,7 @@ localStorage.setItem('mc_habits', JSON.stringify(habits.slice(0, 50)));
 function renderHabits() {
 const habits = getHabits();
 if (!habits.length) return '<div style="opacity:0.55;">No habits yet.</div>';
-return habits.map((h, i) => `<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; background:#101010; border:1px solid #222; border-radius:8px; padding:8px 10px; margin-bottom:6px;"><span>${h.name} <span style="opacity:0.55;">🔥 ${h.streak || 0}</span></span><div><button onclick="checkHabit(${i})" style="border:none; background:#1f1f1f; color:#fff; border-radius:6px; padding:4px 8px; margin-right:6px;">Check</button><button onclick="removeHabit(${i})" style="border:none; background:#261818; color:#ff9999; border-radius:6px; padding:4px 8px;">X</button></div></div>`).join('');
+return habits.map((h, i) => `<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; background:#101010; border:1px solid #222; border-radius:10px; padding:10px 12px; margin-bottom:8px;"><div><div>${h.name} <span style="opacity:0.55;">🔥 ${h.streak || 0}</span> <span style="opacity:0.45;">🏆 ${h.bestStreak || h.streak || 0}</span></div><div style="font-size:0.76rem; opacity:0.62; margin-top:5px;">${h.note || 'No note added.'}${h.lastCheck ? ` • Last check ${h.lastCheck}` : ''}</div></div><div><button onclick="checkHabit(${i})" style="border:none; background:#1f1f1f; color:#fff; border-radius:6px; padding:4px 8px; margin-right:6px;">Check</button><button onclick="resetHabit(${i})" style="border:none; background:#221f11; color:#ffe08a; border-radius:6px; padding:4px 8px; margin-right:6px;">Reset</button><button onclick="removeHabit(${i})" style="border:none; background:#261818; color:#ff9999; border-radius:6px; padding:4px 8px;">X</button></div></div>`).join('');
 }
 
 function refreshHabitTracker() {
@@ -3033,9 +3138,11 @@ if (!input) return;
 const value = input.value.trim();
 if (!value) return;
 const habits = getHabits();
-habits.push({ name: value, streak: 0, lastCheck: '' });
+const noteInput = document.getElementById('habit-note');
+habits.push({ name: value, note: noteInput && noteInput.value ? noteInput.value.trim() : '', streak: 0, bestStreak: 0, lastCheck: '' });
 saveHabits(habits);
 input.value = '';
+if (noteInput) noteInput.value = '';
 refreshHabitTracker();
 }
 
@@ -3045,8 +3152,18 @@ if (!habits[index]) return;
 const today = new Date().toISOString().slice(0,10);
 if (habits[index].lastCheck !== today) {
 habits[index].streak = (habits[index].streak || 0) + 1;
+habits[index].bestStreak = Math.max(habits[index].bestStreak || 0, habits[index].streak || 0);
 habits[index].lastCheck = today;
 }
+saveHabits(habits);
+refreshHabitTracker();
+}
+
+function resetHabit(index) {
+const habits = getHabits();
+if (!habits[index]) return;
+habits[index].streak = 0;
+habits[index].lastCheck = '';
 saveHabits(habits);
 refreshHabitTracker();
 }
@@ -3112,11 +3229,19 @@ if (status) status.textContent = 'Idle';
 
 /* --- MATH ENGINE --- */
 function calcResult() {
+const input = document.getElementById('c-in');
+if (!input) return;
 try {
-const res = eval(document.getElementById('c-in').value);
-document.getElementById('c-in').value = res;
+const expr = input.value;
+const res = eval(expr);
+input.value = res;
+const history = JSON.parse(localStorage.getItem('mc_calc_history') || '[]');
+history.unshift({ expr, result: res });
+localStorage.setItem('mc_calc_history', JSON.stringify(history.slice(0, 8)));
+const historyBox = document.getElementById('calc-history');
+if (historyBox) historyBox.innerHTML = getCalcHistoryMarkup();
 } catch(e) {
-document.getElementById('c-in').value = "ERROR";
+input.value = "ERROR";
 }
 }
 </script>
