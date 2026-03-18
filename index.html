@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>𝕄𝕔ℂ𝕣𝕒𝕔𝕜OS V1.0</title>
+<title>𝕄𝕔ℂ𝕣𝕒𝕔𝕜OS V2.5.3</title>
 <link id="favicon-link" rel="icon" type="image/png" href="https://i.imgur.com/HfPyMtK.png">
 <style>
 /* --- CORE SYSTEM VARIABLES --- */
@@ -191,6 +191,19 @@ overflow: hidden;
 .auth-row { display: flex; gap: 10px; margin-top: 12px; }
 .auth-row button { flex: 1; padding: 12px; font-size: 0.86rem; }
 .auth-sub { font-size: 0.8rem; opacity: 0.66; margin-top: 8px; }
+.auth-page-tag { display:inline-flex; align-items:center; gap:8px; padding:7px 12px; border-radius:999px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08); font-size:0.72rem; letter-spacing:0.14em; text-transform:uppercase; opacity:0.75; }
+.auth-progress { display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin:18px 0 24px 0; }
+.auth-step-badge { padding:10px 12px; border-radius:14px; background:#101010; border:1px solid rgba(255,255,255,0.08); text-align:left; }
+.auth-step-badge strong { display:block; font-size:0.82rem; }
+.auth-step-badge span { display:block; margin-top:4px; font-size:0.68rem; opacity:0.58; text-transform:uppercase; letter-spacing:0.12em; }
+.auth-step-badge.active { border-color:rgba(0,120,212,0.48); background:rgba(0,120,212,0.16); }
+.auth-step-badge.done { border-color:rgba(34,197,94,0.38); background:rgba(34,197,94,0.12); }
+.auth-choice-grid { display:grid; gap:12px; margin-top:16px; }
+.auth-option { width:100%; background:#111; border:1px solid rgba(255,255,255,0.12); border-radius:18px; padding:16px; color:#fff; text-align:left; cursor:pointer; }
+.auth-option:hover { border-color:rgba(0,120,212,0.45); transform:translateY(-1px); }
+.auth-option strong { display:block; font-size:1rem; }
+.auth-option span { display:block; margin-top:6px; font-size:0.8rem; opacity:0.66; line-height:1.45; }
+.auth-back { background:#1b1b1b !important; border:1px solid rgba(255,255,255,0.08) !important; }
 
 @media (max-width: 860px) {
 .lockscreen-shell { grid-template-columns: 1fr; gap: 18px; }
@@ -411,12 +424,12 @@ animation: toast-in 220ms ease forwards;
 
 /* --- APPLICATION LIBRARY --- */
 #start-menu {
-position: absolute; bottom: 82px; left: 18px; width: min(520px, calc(100vw - 32px)); height: min(680px, calc(100vh - 120px));
-background: linear-gradient(180deg, rgba(12,12,12,0.98), rgba(4,4,4,0.98)); border: 1px solid rgba(255,255,255,0.12); border-radius: 30px;
-backdrop-filter: blur(30px); display: none; flex-direction: column; padding: 18px; z-index: 9999; box-shadow: var(--shadow);
-animation: panel-pop 240ms ease; gap: 14px;
+position: absolute; bottom: 84px; left: 18px; width: min(760px, calc(100vw - 36px)); height: min(760px, calc(100vh - 118px));
+background: linear-gradient(180deg, rgba(12,12,12,0.99), rgba(4,4,4,0.98)); border: 1px solid rgba(255,255,255,0.12); border-radius: 34px;
+backdrop-filter: blur(34px); display: none; flex-direction: column; padding: 22px; z-index: 9999; box-shadow: var(--shadow);
+animation: panel-pop 240ms ease; gap: 18px;
 }
-.start-shell { display: grid; grid-template-rows: auto auto auto 1fr; gap: 14px; height: 100%; }
+.start-shell { display: grid; grid-template-rows: auto auto auto 1fr; gap: 18px; height: 100%; }
 .start-hero { padding: 18px; border-radius: 22px; background: linear-gradient(135deg, rgba(0,120,212,0.2), rgba(255,255,255,0.04)); border: 1px solid rgba(255,255,255,0.08); }
 .start-hero-top { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; }
 .start-hero h3 { font-weight: 650; letter-spacing: 0.08em; color: #fff; font-size: 1.05rem; }
@@ -425,15 +438,15 @@ animation: panel-pop 240ms ease; gap: 14px;
 .start-search-wrap { display:flex; gap:10px; align-items:center; padding: 12px 14px; border-radius: 18px; background:#0d0d0d; border:1px solid #1d1d1d; }
 #start-search { flex:1; background:transparent; border:none; color:#fff; font-size:0.95rem; outline:none; }
 .start-action-grid, .start-power-grid, .start-tool-grid, .start-stat-grid { display:grid; gap:10px; }
-.start-action-grid { grid-template-columns: repeat(4, 1fr); }
+.start-action-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .start-power-grid, .start-tool-grid { grid-template-columns: repeat(2, 1fr); }
 .start-stat-grid { grid-template-columns: repeat(2, 1fr); }
-.start-quick-btn, .start-power-btn { padding: 12px; border-radius: 14px; border:1px solid #262626; background:#131313; color:#fff; font-weight:700; cursor:pointer; transition: transform 160ms ease, border-color 160ms ease, background 160ms ease; }
+.start-quick-btn, .start-power-btn { padding: 16px 14px; border-radius: 18px; border:1px solid #262626; background:#131313; color:#fff; font-weight:700; cursor:pointer; transition: transform 160ms ease, border-color 160ms ease, background 160ms ease; min-height:54px; }
 .start-quick-btn:hover, .start-power-btn:hover { transform: translateY(-1px); border-color: rgba(0,120,212,0.45); background: rgba(0,120,212,0.12); }
 .start-power-btn.shutdown { background:#241212; border-color:#4a1f1f; }
-.start-content { min-height: 0; display:grid; grid-template-columns: minmax(0, 1.45fr) minmax(260px, 0.85fr); gap: 14px; }
-.start-side-stack { min-height:0; display:grid; gap:14px; grid-template-rows:auto auto 1fr; }
-.start-panel { min-height:0; background:#090909; border:1px solid #1a1a1a; border-radius: 20px; padding: 14px; }
+.start-content { min-height: 0; display:grid; grid-template-columns: minmax(0, 1.45fr) minmax(300px, 0.95fr); gap: 18px; }
+.start-side-stack { min-height:0; display:grid; gap:18px; grid-template-rows:auto auto auto 1fr; }
+.start-panel { min-height:0; background:#090909; border:1px solid #1a1a1a; border-radius: 24px; padding: 18px; }
 .start-panel h4 { font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.55; margin-bottom: 12px; }
 .start-stat-card { padding:12px; border-radius:14px; background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)); border:1px solid #1e1e1e; }
 .start-stat-card strong { display:block; font-size:1rem; margin-top:6px; }
@@ -464,9 +477,9 @@ animation: window-in 220ms ease;
 /* --- SYSTEM TASKBAR --- */
 #taskbar {
 position: fixed; bottom: 8px; left: 50%; transform: translateX(-50%);
-width: min(1100px, calc(100vw - 24px)); height: var(--taskbar-h);
+width: min(1180px, calc(100vw - 24px)); height: calc(var(--taskbar-h) + 4px);
 background: rgba(5, 5, 5, 0.9); backdrop-filter: blur(var(--glass-blur));
-display: flex; align-items: center; padding: 0 18px; z-index: 8500; border: var(--border); border-radius: 18px;
+display: flex; align-items: center; padding: 0 24px; z-index: 8500; border: var(--border); border-radius: 24px;
 transition: background 250ms ease, border-color 250ms ease, transform 220ms ease, opacity 220ms ease;
 }
 body.taskbar-hidden #taskbar { transform: translate(-50%, calc(100% + 20px)); opacity: 0; pointer-events: none; }
@@ -491,12 +504,14 @@ display: none;
 }
 body.taskbar-hidden #taskbar-peek-tab { display: block; }
 body.taskbar-hidden.taskbar-peek #taskbar-peek-tab { transform: translateX(-50%) translateY(0); }
-#task-list { flex: 1; display: flex; justify-content: center; gap: 10px; margin: 0 16px; overflow-x: auto; padding: 8px 0; }
-.task-tab { padding: 10px 16px; background: rgba(255,255,255,0.04); border-radius: 12px; font-size: 0.82rem; cursor: pointer; transition: 0.3s; white-space: nowrap; border: 1px solid transparent; color: #888; }
+#task-list { flex: 1; display: flex; justify-content: center; gap: 12px; margin: 0 20px; overflow-x: auto; padding: 10px 0; }
+.task-tab { padding: 12px 18px; background: rgba(255,255,255,0.04); border-radius: 14px; font-size: 0.84rem; cursor: pointer; transition: 0.3s; white-space: nowrap; border: 1px solid transparent; color: #888; }
 .task-tab.active { background: rgba(0, 120, 212, 0.15); border-color: var(--accent); box-shadow: 0 0 20px rgba(0,120,212,0.25); color: white; }
 .task-tab.pinned-only { border-style: dashed; color: #b9b9b9; }
-#start-btn { transform: rotate(180deg); }
-#start-btn:hover, #start-btn:active, #start-btn.menu-open { transform: rotate(0deg) scale(1.06); }
+#start-btn { width: 74px; height: 74px; display:flex; align-items:center; justify-content:center; border-radius:24px; background:linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04)); border:1px solid rgba(255,255,255,0.12); font-size:34px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 12px 24px rgba(0,0,0,0.28); transform: rotate(180deg); transition: transform 220ms ease, background 220ms ease, box-shadow 220ms ease; }
+#start-btn:hover, #start-btn:active, #start-btn.menu-open { transform: rotate(0deg) scale(1.04); background:linear-gradient(180deg, rgba(0,120,212,0.32), rgba(255,255,255,0.08)); box-shadow: 0 18px 34px rgba(0,0,0,0.34), 0 0 24px rgba(0,120,212,0.22); }
+#cursor-overlay { position:fixed; inset:auto auto 0 0; width:32px; height:32px; background-position:center; background-repeat:no-repeat; background-size:contain; pointer-events:none; z-index:20000; display:none; transform:translate(-999px,-999px); }
+html.cursor-overlay-on, html.cursor-overlay-on body, html.cursor-overlay-on body * { cursor:none !important; }
 
 /* --- APP CONTENT STYLING --- */
 .full-app-view { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #000; }
@@ -540,7 +555,7 @@ body.lively-ui .start-hero { animation: aurora-float calc(var(--anim-speed, 1) *
 <body id="os-root">
 
 <div id="top-bar">
-<div>𝕄𝕔ℂ𝕣𝕒𝕔𝕜OS <span style="opacity:0.3; margin-left:10px;">V1.0.4</span></div>
+<div>𝕄𝕔ℂ𝕣𝕒𝕔𝕜OS <span style="opacity:0.3; margin-left:10px;">V2.5.3</span></div>
 <div class="top-right">
 <div id="battery-stat"><span>100%</span> 🔋</div>
 <div id="lock-btn" onclick="lockSystem()">TERMINATE SESSION</div>
@@ -579,6 +594,7 @@ body.lively-ui .start-hero { animation: aurora-float calc(var(--anim-speed, 1) *
 <div id="desktop"></div>
 <div id="desktop-context-menu" aria-hidden="true"></div>
 <div id="notification-center"></div>
+<div id="cursor-overlay" aria-hidden="true"></div>
 
 <div id="delete-bin" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropDelete(event)">
 <div>🗑️</div>
@@ -632,6 +648,15 @@ body.lively-ui .start-hero { animation: aurora-float calc(var(--anim-speed, 1) *
 <button class="start-quick-btn" onclick="launch('TodoBoard')">✅ ToDo</button>
 </div>
 </div>
+<div class="start-panel">
+<h4>Workspace Scenes</h4>
+<div class="start-tool-grid">
+<button class="start-quick-btn" onclick="launchWorkspaceScene('study')">📚 Study</button>
+<button class="start-quick-btn" onclick="launchWorkspaceScene('creator')">🎬 Creator</button>
+<button class="start-quick-btn" onclick="launchWorkspaceScene('music')">🎧 Chill</button>
+<button class="start-quick-btn" onclick="launchWorkspaceScene('focus')">🚀 Focus</button>
+</div>
+</div>
 <div class="start-panel" style="display:flex; flex-direction:column; min-height:0;">
 <h4>Session Snapshot</h4>
 <div id="start-snapshot" style="overflow:auto;"></div>
@@ -642,7 +667,7 @@ body.lively-ui .start-hero { animation: aurora-float calc(var(--anim-speed, 1) *
 </div>
 
 <div id="taskbar">
-<div id="start-btn" onclick="toggleStart()" style="cursor:pointer; font-size:30px; width:55px; height:55px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.06); border-radius:15px; transition: 0.3s;">💠</div>
+<div id="start-btn" onclick="toggleStart()" style="cursor:pointer;">💠</div>
 <div id="task-list"></div>
 <div style="text-align:right; border-left: 1px solid #222; padding-left:25px;">
 <div id="clock" style="font-weight:800; font-size:1.1rem; letter-spacing: 1px; color: #fff;"></div>
@@ -878,6 +903,7 @@ localStorage.setItem('mc_pinned', JSON.stringify([...new Set(OS.pinned)]));
 }
 OS.firstRun = !localStorage.getItem('mc_account');
 OS.pendingAvatar = '';
+OS.authSetup = { step: 1, username: '', mode: 'password', pass: '', avatar: '' };
 OS.widgetDragActive = false;
 OS.settingsSection = 'customization';
 OS.contextMenu = { type: 'desktop', key: null };
@@ -1054,20 +1080,38 @@ applyCursorSettings();
 renderStartGlance();
 }
 
+function syncCursorOverlayPosition(event) {
+const overlay = document.getElementById('cursor-overlay');
+if (!overlay) return;
+const hotspotX = Number.isFinite(OS.settings.cursorHotspotX) ? OS.settings.cursorHotspotX : 8;
+const hotspotY = Number.isFinite(OS.settings.cursorHotspotY) ? OS.settings.cursorHotspotY : 8;
+overlay.style.transform = `translate(${event.clientX - hotspotX}px, ${event.clientY - hotspotY}px)`;
+}
+
 function applyCursorSettings() {
+const overlay = document.getElementById('cursor-overlay');
 const cursorUrl = (OS.settings.cursorUrl || '').trim();
-if (!cursorUrl) {
-document.documentElement.classList.remove('custom-cursor');
+if (!overlay || !cursorUrl) {
+if (overlay) {
+overlay.style.display = 'none';
+overlay.style.backgroundImage = 'none';
+}
+document.documentElement.classList.remove('custom-cursor', 'cursor-overlay-on');
 document.documentElement.style.setProperty('--cursor-custom', 'auto');
 document.body.style.cursor = 'auto';
+window.removeEventListener('mousemove', syncCursorOverlayPosition);
 return;
 }
 const hotspotX = Number.isFinite(OS.settings.cursorHotspotX) ? OS.settings.cursorHotspotX : 8;
 const hotspotY = Number.isFinite(OS.settings.cursorHotspotY) ? OS.settings.cursorHotspotY : 8;
 const cursorValue = `url("${cursorUrl.replace(/"/g, '\"')}") ${hotspotX} ${hotspotY}, auto`;
-document.documentElement.classList.add('custom-cursor');
+document.documentElement.classList.add('custom-cursor', 'cursor-overlay-on');
 document.documentElement.style.setProperty('--cursor-custom', cursorValue);
-document.body.style.cursor = cursorValue;
+document.body.style.cursor = 'none';
+overlay.style.display = 'block';
+overlay.style.backgroundImage = `url("${cursorUrl.replace(/"/g, '\"')}")`;
+window.removeEventListener('mousemove', syncCursorOverlayPosition);
+window.addEventListener('mousemove', syncCursorOverlayPosition);
 }
 
 function setCustomCursor(url, source, successMessage) {
@@ -1229,6 +1273,21 @@ const defs = [
 return defs.map((item) => renderWidgetControl(item)).join('');
 }
 
+function launchWorkspaceScene(scene) {
+const scenes = {
+study: ['ClockPro', 'TodoBoard', 'MarkdownPad'],
+creator: ['Music', 'PhotoBooth', 'QuickSketch'],
+music: ['Music', 'FocusSounds', 'WeatherDesk'],
+focus: ['ClockPro', 'TodoBoard', 'FocusSounds', 'UnitConverter']
+};
+(scenes[scene] || []).forEach((app) => launch(app));
+notify(`Workspace scene loaded: ${scene}.`, 'success');
+const startMenu = document.getElementById('start-menu');
+if (startMenu) startMenu.style.display = 'none';
+const startBtn = document.getElementById('start-btn');
+if (startBtn) startBtn.classList.remove('menu-open');
+}
+
 function renderStartGlance() {
 const target = document.getElementById('start-snapshot');
 if (!target) return;
@@ -1260,8 +1319,8 @@ return `<div style="padding:28px; height:100%;"><div style="display:flex; align-
 }
 
 const Registry = {
-Notepad: { icon: "📝", content: () => `<textarea oninput="localStorage.setItem('mc_note', this.value)" style="width:100%;height:100%;background:transparent;color:#ddd;padding:40px;border:none;outline:none;resize:none;font-family:monospace;font-size:1.2rem;line-height:1.6;">${localStorage.getItem('mc_note')||''}</textarea>` },
-Browser: { icon: "🌐", content: () => buildAppFrame("https://online.notes.dinprima.ro/browser/browser.html") },
+Notepad: { icon: "📝", content: () => renderNotepadApp() },
+Browser: { icon: "🌐", content: () => renderBrowserApp() },
 Movies: { icon: "📺", content: () => buildAppFrame("https://ww8.123moviesfree.net/") },
 Games: { icon: "🎮", content: () => buildAppFrame("https://online.notes.dinprima.ro/browser/gapps.html") },
 𝕄𝕔ℂ𝕣𝕒𝕔𝕜Chat: { icon: "💬", content: () => buildAppFrame("https://patrickmango49.github.io/McCrack-Chat/") },
@@ -1270,7 +1329,7 @@ Paint: { icon: "🎨", content: () => buildAppFrame("https://jspaint.app") },
 ClockPro: { icon: "⏱️", content: () => `<div style="padding:34px;"><h2 style="margin-bottom:8px;">Clock Pro</h2><p style="opacity:0.6; margin-bottom:16px;">Pomodoro + stopwatch + alarms + world time zones.</p><div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px;"><button onclick="startPomodoro(25)" style="padding:12px; border:none; border-radius:10px; background:var(--accent); color:white; font-weight:700;">25m Focus</button><button onclick="startPomodoro(15)" style="padding:12px; border:none; border-radius:10px; background:#1f1f1f; color:white; font-weight:700;">15m Sprint</button><button onclick="startPomodoro(5)" style="padding:12px; border:none; border-radius:10px; background:#1f1f1f; color:white; font-weight:700;">5m Break</button><button onclick="stopPomodoro()" style="padding:12px; border:none; border-radius:10px; background:#3a2020; color:white; font-weight:700;">Stop</button></div><div id="pomodoro-status" style="margin-top:16px; font-size:1.05rem; font-weight:700;">Timer idle</div><div style="margin-top:18px; display:grid; grid-template-columns:1fr auto auto; gap:8px;"><input id="alarm-mins" type="number" min="1" placeholder="Alarm in minutes" style="padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><button onclick="setClockAlarm()" style="padding:10px 12px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Set Alarm</button><button onclick="clearClockAlarm()" style="padding:10px 12px; border:none; border-radius:8px; background:#2a1a1a; color:#fff;">Clear</button></div><div id="clock-alarm-status" style="margin-top:8px; opacity:0.75;">No alarm set.</div><div style="margin-top:18px; display:grid; grid-template-columns:1fr auto auto; gap:8px; align-items:center;"><div id="clock-stopwatch" style="padding:10px; background:#0f0f0f; border:1px solid #222; border-radius:8px; font-family:monospace; font-size:1.1rem;">00:00.0</div><button onclick="startStopwatch()" style="padding:10px 12px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Start/Stop</button><button onclick="resetStopwatch()" style="padding:10px 12px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Reset</button></div><div style="margin-top:18px; background:#0f0f0f; border:1px solid #222; border-radius:10px; padding:12px;">${renderWorldClocks()}</div></div>` },
 CodeLab: { icon: "🧪", content: () => buildAppFrame("https://onecompiler.com/html/3y5x8jr6s") },
 PhotoBooth: { icon: "📸", content: () => `<div style="padding:36px;"><h2 style="margin-bottom:8px;">Photo Booth</h2><p style="opacity:0.58; margin-bottom:16px;">Capture webcam shots with pro filters and camera controls.</p><div style="position:relative;"><video id="photo-video" autoplay playsinline style="width:100%; max-height:330px; border-radius:14px; border:1px solid #222; background:#000;"></video><div id="camera-grid-overlay" style="display:none; position:absolute; inset:0; pointer-events:none; border-radius:14px; background-image:linear-gradient(to right, transparent 32%, rgba(255,255,255,0.2) 33%, transparent 34%, transparent 65%, rgba(255,255,255,0.2) 66%, transparent 67%), linear-gradient(to bottom, transparent 32%, rgba(255,255,255,0.2) 33%, transparent 34%, transparent 65%, rgba(255,255,255,0.2) 66%, transparent 67%);"></div></div><canvas id="photo-canvas" style="display:none;"></canvas><div style="display:grid; grid-template-columns:1fr 160px 160px; gap:12px; margin-top:14px;"><select id="photo-filter" onchange="applyPhotoFilter(this.value)" style="padding:10px; border-radius:10px; border:1px solid #222; background:#111; color:#fff;"><option value="none">No Filter</option><option value="grayscale(1)">B&W</option><option value="sepia(0.8)">Sepia</option><option value="contrast(1.3) saturate(1.3)">Vivid</option><option value="brightness(1.2) contrast(1.15)">Bright</option><option value="hue-rotate(35deg) saturate(1.2)">Warm Glow</option><option value="hue-rotate(200deg) contrast(1.15)">Cool Night</option><option value="invert(1)">Inverted</option></select><select id="photo-timer" style="padding:10px; border-radius:10px; border:1px solid #222; background:#111; color:#fff;"><option value="0">No Timer</option><option value="3">3 Seconds</option><option value="5">5 Seconds</option><option value="10">10 Seconds</option></select><select id="photo-quality" style="padding:10px; border-radius:10px; border:1px solid #222; background:#111; color:#fff;"><option value="0.7">Standard JPG</option><option value="0.9">High JPG</option><option value="1">Max JPG</option></select></div><div style="display:flex; gap:12px; margin-top:14px;"><button onclick="capturePhoto()" style="flex:1; padding:12px; border:none; border-radius:10px; background:var(--accent); color:#fff; font-weight:700;">Capture</button><button onclick="startPhotoBooth()" style="flex:1; padding:12px; border:none; border-radius:10px; background:#1f1f1f; color:#fff; font-weight:700;">Restart Camera</button><button onclick="mirrorPhotoPreview()" style="padding:12px; border:none; border-radius:10px; background:#1f1f1f; color:#fff; font-weight:700;">Mirror</button><button onclick="toggleCameraGrid()" style="padding:12px; border:none; border-radius:10px; background:#1f1f1f; color:#fff; font-weight:700;">Grid</button></div><div id="photo-status" style="margin-top:10px; opacity:0.7;"></div><img id="photo-output" alt="Captured photo" style="width:100%; margin-top:14px; border-radius:14px; border:1px solid #222; display:none;"></div>` },
-Terminal: { icon: "⌨️", content: () => `<div id="t-out" style="padding:25px;color:#0f0;font-family:monospace;height:calc(100% - 60px);overflow:auto;line-height:1.5;font-size:0.9rem;">𝕄𝕔ℂ𝕣𝕒𝕔𝕜 Kernel Console [Version19.0.4]<br>(c) 2026 𝕄𝕔ℂ𝕣𝕒𝕔𝕜 Industries.<br><br></div><input onkeydown="cmd(event, this)" style="width:100%;background:#050505;border:none;border-top:1px solid #222;color:#0f0;padding:18px;outline:none;font-family:monospace;font-size:1rem;">` },
+Terminal: { icon: "⌨️", content: () => `<div id="t-out" style="padding:25px;color:#0f0;font-family:monospace;height:calc(100% - 60px);overflow:auto;line-height:1.5;font-size:0.9rem;">𝕄𝕔ℂ𝕣𝕒𝕔𝕜 Kernel Console [Version 2.5.3]<br>(c) 2026 𝕄𝕔ℂ𝕣𝕒𝕔𝕜 Industries.<br><br></div><input onkeydown="cmd(event, this)" style="width:100%;background:#050505;border:none;border-top:1px solid #222;color:#0f0;padding:18px;outline:none;font-family:monospace;font-size:1rem;">` },
 Files: { icon: "📁", content: () => renderFilesApp() },
 Store: { icon: "🛒", content: () => `<div style="padding:40px;">
 <h1 style="font-weight:300; margin-bottom:10px;">Integrated Store</h1>
@@ -1324,12 +1383,12 @@ WeatherDesk: { icon: "🌦️", content: () => `<div style="padding:32px; max-wi
 
 HabitTracker: { icon: "📆", content: () => renderHabitTrackerApp() },
 QuickSketch: { icon: "🖌️", content: () => `<div style="padding:24px;"><h2 style="margin-bottom:10px;">Quick Sketch</h2><p style="opacity:0.6; margin-bottom:10px;">Draw fast ideas locally.</p><canvas id="sketch-canvas" width="760" height="380" style="width:100%; background:#fff; border-radius:12px; cursor:crosshair;"></canvas><div style="display:flex; gap:8px; margin-top:10px;"><input id="sketch-color" type="color" value="#000000" onchange="setSketchColor(this.value)"><input id="sketch-size" type="range" min="1" max="18" value="3" onchange="setSketchSize(this.value)"><button onclick="clearSketch()" style="padding:8px 12px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Clear</button></div></div>` },
-FocusSounds: { icon: "🎧", content: () => `<div style="padding:28px; max-width:660px; margin:0 auto;"><h2>Focus Sounds</h2><p style="opacity:0.6; margin:8px 0 14px 0;">Play simple ambient tones while you work.</p><div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px;"><button onclick="playFocusTone(140)" style="padding:10px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Rain</button><button onclick="playFocusTone(220)" style="padding:10px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Cafe</button><button onclick="playFocusTone(310)" style="padding:10px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Deep Space</button></div><button onclick="stopFocusTone()" style="margin-top:12px; padding:10px 14px; border:none; border-radius:8px; background:#2a1a1a; color:#fff;">Stop</button><div id="focus-status" style="margin-top:10px; opacity:0.7;">Idle</div></div>` },
+FocusSounds: { icon: "🎧", content: () => renderFocusSoundsApp() },
 MarkdownPad: { icon: "📓", content: () => `<div style="padding:26px;"><h2>Markdown Pad</h2><p style="opacity:0.62; margin:8px 0 10px 0;">Write markdown notes with live preview.</p><div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; height:calc(100% - 70px);"><textarea id="md-input" oninput="updateMarkdownPreview()" style="width:100%; height:100%; background:#0d0d0d; color:#fff; border:1px solid #242424; border-radius:10px; padding:12px; resize:none;">${localStorage.getItem('mc_md') || '# Hello'}</textarea><div id="md-preview" style="background:#0d0d0d; border:1px solid #242424; border-radius:10px; padding:12px; overflow:auto;"></div></div></div>` },
-FinanceTracker: { icon: "💵", content: () => `<div style="padding:30px; max-width:760px; margin:0 auto;"><h2>Finance Tracker</h2><p style="opacity:0.6; margin:8px 0 12px 0;">Track simple income + expenses locally.</p><div style="display:grid; grid-template-columns:1fr 140px 120px auto; gap:8px;"><input id="money-note" placeholder="Description" style="padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><input id="money-amount" type="number" placeholder="Amount" style="padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><select id="money-kind" style="padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><option value="expense">Expense</option><option value="income">Income</option></select><button onclick="addFinanceItem()" style="padding:10px; border:none; border-radius:8px; background:var(--accent); color:#fff;">Add</button></div><div id="money-summary" style="margin-top:12px; font-weight:700;">${renderFinanceSummary()}</div><div id="money-list" style="margin-top:10px;">${renderFinanceRows()}</div></div>` },
+FinanceTracker: { icon: "💵", content: () => renderFinanceTrackerApp() },
 MindMap: { icon: "🧠", content: () => `<div style="padding:28px;"><h2>Mind Map</h2><p style="opacity:0.62; margin:8px 0 12px 0;">Rapidly connect idea nodes.</p><div style="display:flex; gap:8px;"><input id="mind-node" placeholder="New node text" style="flex:1; padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><button onclick="addMindNode()" style="padding:10px 14px; border:none; border-radius:8px; background:var(--accent); color:#fff;">Add Node</button></div><div id="mind-nodes" style="margin-top:12px; display:flex; flex-wrap:wrap; gap:10px;">${renderMindNodes()}</div></div>` },
 ColorLab: { icon: "🧪", content: () => `<div style="padding:30px; max-width:620px; margin:0 auto;"><h2>Color Lab</h2><p style="opacity:0.6; margin:8px 0 12px 0;">Generate quick palette variants from a base color.</p><input id="color-base" type="color" value="#4f46e5" onchange="renderColorLab(this.value)" style="width:100%; height:48px; border-radius:10px; border:1px solid #222; background:#111;"><div id="color-lab" style="margin-top:12px; display:grid; grid-template-columns:repeat(5,1fr); gap:8px;">${renderColorSwatches('#4f46e5')}</div></div>` },
-PixelRunner: { icon: "🕹️", content: () => `<div style="padding:24px;"><h2>Pixel Runner</h2><p style="opacity:0.6; margin:8px 0 12px 0;">Tiny keyboard mini-game. Press space to jump.</p><canvas id="runner-canvas" width="820" height="260" style="width:100%; background:#080808; border:1px solid #222; border-radius:12px;"></canvas><button onclick="startPixelRunner()" style="margin-top:10px; padding:10px 14px; border:none; border-radius:8px; background:var(--accent); color:#fff;">Start</button></div>` },
+PixelRunner: { icon: "🕹️", content: () => renderPixelRunnerApp() },
 SystemLogs: { icon: "📑", content: () => `<div style="padding:30px;">
 <h3>System Session Logs</h3><br>
 <div id="log-list" style="font-family:monospace; font-size:0.8rem; color:#aaa;">
@@ -1337,6 +1396,97 @@ ${OS.logs.map(l => `<div>[${l.time}] ${l.msg}</div>`).join('')}
 </div>
 </div>` }
 };
+
+function renderNotepadApp() {
+const note = localStorage.getItem('mc_note') || '';
+const words = note.trim() ? note.trim().split(/\s+/).length : 0;
+const chars = note.length;
+return `<div style="display:grid; grid-template-rows:auto 1fr; height:100%;"><div style="padding:20px 24px; border-bottom:1px solid #1a1a1a; display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap;"><div><h2>Notepad</h2><p style="opacity:0.6; margin-top:6px;">Write with autosave, quick export, import, and live stats.</p></div><div style="display:flex; gap:10px; flex-wrap:wrap;"><button onclick="exportNote()" style="padding:10px 14px; border:none; border-radius:10px; background:var(--accent); color:#fff;">Export .txt</button><button onclick="document.getElementById('note-import').click()" style="padding:10px 14px; border:1px solid #2a2a2a; border-radius:10px; background:#151515; color:#fff;">Import</button><button onclick="clearNote()" style="padding:10px 14px; border:1px solid #4b1f1f; border-radius:10px; background:#241212; color:#ffb4b4;">Clear</button><input id="note-import" type="file" accept=".txt,text/plain" style="display:none" onchange="importNote(event)"></div></div><div style="display:grid; grid-template-columns:minmax(0, 1fr) 260px; min-height:0;"><textarea id="note-editor" oninput="updateNoteContent(this.value)" style="width:100%; height:100%; background:transparent; color:#ddd; padding:28px; border:none; outline:none; resize:none; font-family:monospace; font-size:1.05rem; line-height:1.7;">${note}</textarea><aside style="border-left:1px solid #1a1a1a; padding:24px; background:#080808;"><div style="font-size:0.72rem; letter-spacing:0.14em; text-transform:uppercase; opacity:0.55;">Session Stats</div><div style="margin-top:12px; display:grid; gap:10px;"><div class="start-stat-card"><span>Words</span><strong id="note-word-count">${words}</strong><p>Live word count in this note.</p></div><div class="start-stat-card"><span>Characters</span><strong id="note-char-count">${chars}</strong><p>Total characters saved locally.</p></div><div class="start-stat-card"><span>Status</span><strong>Autosaving</strong><p>Every edit is stored in this browser immediately.</p></div></div></aside></div></div>`;
+}
+
+function updateNoteContent(value) {
+localStorage.setItem('mc_note', value);
+const words = value.trim() ? value.trim().split(/\s+/).length : 0;
+const wordEl = document.getElementById('note-word-count');
+const charEl = document.getElementById('note-char-count');
+if (wordEl) wordEl.textContent = String(words);
+if (charEl) charEl.textContent = String(value.length);
+}
+
+function exportNote() {
+const blob = new Blob([localStorage.getItem('mc_note') || ''], { type: 'text/plain;charset=utf-8' });
+const url = URL.createObjectURL(blob);
+const a = document.createElement('a');
+a.href = url;
+a.download = 'mc-crack-note.txt';
+a.click();
+setTimeout(() => URL.revokeObjectURL(url), 200);
+notify('Note exported.', 'success');
+}
+
+function importNote(event) {
+const file = event.target.files && event.target.files[0];
+if (!file) return;
+const reader = new FileReader();
+reader.onload = (e) => {
+localStorage.setItem('mc_note', e.target.result || '');
+if (OS.running['Notepad']) OS.running['Notepad'].querySelector('.win-body').innerHTML = Registry['Notepad'].content();
+notify('Note imported.', 'success');
+};
+reader.readAsText(file);
+event.target.value = '';
+}
+
+function clearNote() {
+localStorage.setItem('mc_note', '');
+if (OS.running['Notepad']) OS.running['Notepad'].querySelector('.win-body').innerHTML = Registry['Notepad'].content();
+notify('Note cleared.', 'warning');
+}
+
+function normalizeBrowserUrl(value) {
+const raw = (value || '').trim();
+if (!raw) return 'https://example.com';
+if (/^https?:\/\//i.test(raw)) return raw;
+if (raw.includes('.') && !raw.includes(' ')) return `https://${raw}`;
+return `https://www.google.com/search?q=${encodeURIComponent(raw)}`;
+}
+
+function renderBrowserApp() {
+const saved = localStorage.getItem('mc_browser_url') || 'https://example.com';
+return `<div style="display:grid; grid-template-rows:auto auto 1fr; height:100%;"><div style="padding:18px 22px; border-bottom:1px solid #1a1a1a;"><div style="display:flex; gap:10px;"><input id="browser-url" value="${saved}" placeholder="Type a URL or search" style="flex:1; padding:12px 14px; background:#101010; color:#fff; border:1px solid #242424; border-radius:12px;"><button onclick="openBrowserUrl()" style="padding:12px 16px; border:none; border-radius:12px; background:var(--accent); color:#fff;">Go</button></div></div><div style="padding:14px 22px; border-bottom:1px solid #121212; display:flex; gap:10px; flex-wrap:wrap;"><button class="start-quick-btn" onclick="visitBrowserPreset('https://example.com')">🌍 Home</button><button class="start-quick-btn" onclick="visitBrowserPreset('https://www.google.com')">🔎 Google</button><button class="start-quick-btn" onclick="visitBrowserPreset('https://developer.mozilla.org')">📘 MDN</button><button class="start-quick-btn" onclick="visitBrowserPreset('https://openai.com')">✨ OpenAI</button></div><div style="padding:14px; height:100%;"><iframe class="app-iframe" src="${saved}" referrerpolicy="no-referrer"></iframe></div></div>`;
+}
+
+function refreshBrowserApp() {
+if (OS.running['Browser']) OS.running['Browser'].querySelector('.win-body').innerHTML = Registry['Browser'].content();
+}
+
+function openBrowserUrl() {
+const input = document.getElementById('browser-url');
+const next = normalizeBrowserUrl(input?.value || '');
+localStorage.setItem('mc_browser_url', next);
+refreshBrowserApp();
+}
+
+function visitBrowserPreset(url) {
+localStorage.setItem('mc_browser_url', url);
+refreshBrowserApp();
+}
+
+function renderFocusSoundsApp() {
+const volume = Number(localStorage.getItem('mc_focus_volume') || '0.04');
+return `<div style="padding:28px; max-width:760px; margin:0 auto;"><div style="display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap;"><div><h2>Focus Sounds</h2><p style="opacity:0.6; margin:8px 0 14px 0;">Layer a simple ambient generator with session presets and volume control.</p></div><div style="min-width:220px; padding:14px; border-radius:16px; background:#0b0b0b; border:1px solid #1d1d1d;"><div style="font-size:0.72rem; letter-spacing:0.14em; text-transform:uppercase; opacity:0.55;">Output</div><div id="focus-status" style="margin-top:8px; opacity:0.78;">Idle</div></div></div><div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px;"><button onclick="playFocusTone(140, 'Rain')" class="start-quick-btn">🌧️ Rain</button><button onclick="playFocusTone(220, 'Cafe')" class="start-quick-btn">☕ Cafe</button><button onclick="playFocusTone(310, 'Deep Space')" class="start-quick-btn">🌌 Deep Space</button></div><div style="margin-top:16px; display:grid; grid-template-columns:1fr auto; gap:12px; align-items:center;"><input type="range" min="0.01" max="0.12" step="0.01" value="${volume}" onchange="setFocusVolume(this.value)" style="width:100%;"><button onclick="stopFocusTone()" style="padding:10px 14px; border:none; border-radius:8px; background:#2a1a1a; color:#fff;">Stop</button></div><div style="margin-top:18px; display:grid; grid-template-columns:repeat(3,1fr); gap:12px;"><div class="start-stat-card"><span>Preset</span><strong>Ambient</strong><p>Pick a sound bed for work, studying, or unwinding.</p></div><div class="start-stat-card"><span>Volume</span><strong>${Math.round(volume * 1000)}%</strong><p>Saved locally and reused next time.</p></div><div class="start-stat-card"><span>Tip</span><strong>Pair it</strong><p>Use with Clock Pro or Todo Board for a stronger focus flow.</p></div></div></div>`;
+}
+
+function renderFinanceTrackerApp() {
+const budget = Number(localStorage.getItem('mc_budget_target') || '0');
+const summary = renderFinanceSummary(true);
+return `<div style="padding:30px; max-width:860px; margin:0 auto;"><h2>Finance Tracker</h2><p style="opacity:0.6; margin:8px 0 12px 0;">Track income, expenses, plus a simple budget target.</p><div style="display:grid; grid-template-columns:1fr 140px 120px auto; gap:8px;"><input id="money-note" placeholder="Description" style="padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><input id="money-amount" type="number" placeholder="Amount" style="padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><select id="money-kind" style="padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><option value="expense">Expense</option><option value="income">Income</option></select><button onclick="addFinanceItem()" style="padding:10px; border:none; border-radius:8px; background:var(--accent); color:#fff;">Add</button></div><div style="display:grid; grid-template-columns:1fr auto; gap:10px; margin-top:12px;"><input id="budget-target" type="number" value="${budget || ''}" placeholder="Monthly budget target" style="padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><button onclick="setBudgetTarget()" style="padding:10px 14px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Save Budget</button></div><div id="money-summary" style="margin-top:12px; font-weight:700;">${summary.text}</div><div style="margin-top:12px; display:grid; grid-template-columns:repeat(3,1fr); gap:10px;"><div class="start-stat-card"><span>Balance</span><strong>$${summary.balance.toFixed(2)}</strong><p>Income minus expenses.</p></div><div class="start-stat-card"><span>Budget</span><strong>${budget ? `${Math.max(0, Math.round((summary.expense / budget) * 100))}%` : '—'}</strong><p>${budget ? `$${summary.expense.toFixed(2)} of $${budget.toFixed(2)} spent.` : 'Set a target to track spend.'}</p></div><div class="start-stat-card"><span>Entries</span><strong>${summary.count}</strong><p>Total saved finance rows.</p></div></div><div id="money-list" style="margin-top:12px;">${renderFinanceRows()}</div></div>`;
+}
+
+function renderPixelRunnerApp() {
+const high = Number(localStorage.getItem('mc_runner_high') || '0');
+return `<div style="padding:24px;"><div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;"><div><h2>Pixel Runner</h2><p style="opacity:0.6; margin:8px 0 12px 0;">Tiny keyboard mini-game. Press space to jump.</p></div><div class="start-stat-card" style="min-width:180px;"><span>High Score</span><strong>${high}</strong><p>Best local run on this browser.</p></div></div><canvas id="runner-canvas" width="820" height="260" style="width:100%; background:#080808; border:1px solid #222; border-radius:12px;"></canvas><div style="display:flex; gap:10px; margin-top:10px;"><button onclick="startPixelRunner()" style="padding:10px 14px; border:none; border-radius:8px; background:var(--accent); color:#fff;">Start</button><button onclick="startPixelRunner()" style="padding:10px 14px; border:none; border-radius:8px; background:#1f1f1f; color:#fff;">Restart</button></div></div>`;
+}
 
 function updateMarkdownPreview() {
 const input = document.getElementById('md-input');
@@ -1357,11 +1507,13 @@ preview.innerHTML = escaped
 function getFinanceItems() {
 try { const data = JSON.parse(localStorage.getItem('mc_finance')); return Array.isArray(data) ? data : []; } catch (_) { return []; }
 }
-function renderFinanceSummary() {
+function renderFinanceSummary(detail = false) {
 const list = getFinanceItems();
 const income = list.filter(i => i.kind === 'income').reduce((a, b) => a + Number(b.amount || 0), 0);
 const expense = list.filter(i => i.kind === 'expense').reduce((a, b) => a + Number(b.amount || 0), 0);
-return `Balance: $${(income - expense).toFixed(2)} • Income $${income.toFixed(2)} • Expenses $${expense.toFixed(2)}`;
+const balance = income - expense;
+const result = { income, expense, balance, count: list.length, text: `Balance: $${balance.toFixed(2)} • Income $${income.toFixed(2)} • Expenses $${expense.toFixed(2)}` };
+return detail ? result : result.text;
 }
 function renderFinanceRows() {
 const list = getFinanceItems();
@@ -1377,6 +1529,12 @@ const list = getFinanceItems();
 list.unshift({ note, amount, kind, at: Date.now() });
 localStorage.setItem('mc_finance', JSON.stringify(list.slice(0, 80)));
 if (OS.running['FinanceTracker']) OS.running['FinanceTracker'].querySelector('.win-body').innerHTML = Registry['FinanceTracker'].content();
+}
+function setBudgetTarget() {
+const value = Number(document.getElementById('budget-target')?.value || 0);
+localStorage.setItem('mc_budget_target', String(Math.max(0, value)));
+if (OS.running['FinanceTracker']) OS.running['FinanceTracker'].querySelector('.win-body').innerHTML = Registry['FinanceTracker'].content();
+notify('Budget target saved.', 'success');
 }
 function getMindNodes() {
 try { const data = JSON.parse(localStorage.getItem('mc_mind')); return Array.isArray(data) ? data : []; } catch (_) { return []; }
@@ -1435,8 +1593,16 @@ ctx.fillStyle = '#080808'; ctx.fillRect(0,0,canvas.width,canvas.height);
 ctx.fillStyle = '#fff'; ctx.fillRect(x, y, 20, 20);
 ctx.fillStyle = '#ef4444'; ctx.fillRect(obstacle, 190, 20, 20);
 ctx.fillStyle = '#888'; ctx.fillRect(0, 210, canvas.width, 2);
-ctx.fillStyle = '#fff'; ctx.fillText(`Score ${score}`, 20, 24);
-if (obstacle < x + 20 && obstacle + 20 > x && y + 20 >= 190) { run = false; ctx.fillText('Game Over', 360, 120); return; }
+ctx.fillStyle = '#fff'; ctx.font = '16px sans-serif'; ctx.fillText(`Score ${score}`, 20, 24);
+if (obstacle < x + 20 && obstacle + 20 > x && y + 20 >= 190) {
+run = false;
+const high = Math.max(score, Number(localStorage.getItem('mc_runner_high') || '0'));
+localStorage.setItem('mc_runner_high', String(high));
+ctx.fillText('Game Over', 360, 120);
+ctx.fillText(`High Score ${high}`, 340, 150);
+if (OS.running['PixelRunner']) OS.running['PixelRunner'].querySelector('.win-body').innerHTML = Registry['PixelRunner'].content();
+return;
+}
 requestAnimationFrame(tick);
 };
 tick();
@@ -1612,7 +1778,7 @@ const panel = document.getElementById('boot-logs');
 if(!panel) return;
 const bootLines = [
 "[BOOT] Power rails stabilized at 12.0V",
-"[KERNEL] Loading microkernel v1.0.4",
+"[KERNEL] Loading microkernel v2.5.3",
 "[MEMORY] Mapping core pages... OK",
 "[SECURITY] Initializing access-control matrix",
 "[DRIVER] Mounting synthetic file system",
@@ -1664,7 +1830,7 @@ return `<div style="display:flex; align-items:center; justify-content:space-betw
 }
 
 function renderWhatsNewApp() {
-return `<div style="padding:30px; max-width:900px; margin:0 auto;"><div style="padding:22px; border-radius:20px; background:linear-gradient(135deg, rgba(0,120,212,0.2), rgba(255,255,255,0.04)); border:1px solid rgba(255,255,255,0.08);"><div style="font-size:0.72rem; opacity:0.6; letter-spacing:0.16em; text-transform:uppercase;">Release Notes</div><h2 style="margin-top:8px;">What’s New in McCrackOS</h2><p style="opacity:0.72; line-height:1.7; margin-top:10px;">This app keeps a running overview of major improvements so people can immediately see what changed, what got polished, and what they should try next.</p></div><div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:18px;"><div style="background:#0a0a0a; border:1px solid #1a1a1a; border-radius:16px; padding:18px;"><h3>Newest Highlights</h3><ul style="margin:12px 0 0 18px; line-height:1.8; opacity:0.76;"><li>Start menu expanded into a roomier launch hub with grouped actions and live glance cards.</li><li>New <strong>What’s New</strong> and <strong>About</strong> apps added to the built-in experience.</li><li>Fullscreen apps can now hide the taskbar and reveal it with a bottom tab when needed.</li><li>Desktop right-click menus now have richer quick actions, launch shortcuts, and item-specific controls.</li><li>Settings customization now supports custom cursor images by upload or direct link.</li></ul></div><div style="background:#0a0a0a; border:1px solid #1a1a1a; border-radius:16px; padding:18px;"><h3>Polish & Quality</h3><ul style="margin:12px 0 0 18px; line-height:1.8; opacity:0.76;"><li>Better spacing and visual grouping across the launcher.</li><li>Context menus restyled with headers, chips, and clearer action hierarchy.</li><li>New discover shortcuts make it easier to jump into docs and utilities.</li><li>Taskbar behavior now feels more immersive in fullscreen workflows.</li></ul></div></div><div style="margin-top:18px; background:#0a0a0a; border:1px solid #1a1a1a; border-radius:16px; padding:18px;"><h3>Feature Timeline</h3><div style="display:grid; gap:12px; margin-top:14px;"><div style="padding:14px; border-radius:12px; background:#090909; border:1px solid #1a1a1a;"><strong>Desktop Experience</strong><div style="opacity:0.68; margin-top:6px; line-height:1.6;">Windows, widgets, boot/login flow, draggable icons, and the taskbar established the core McCrackOS environment.</div></div><div style="padding:14px; border-radius:12px; background:#090909; border:1px solid #1a1a1a;"><strong>Customization & Utility Apps</strong><div style="opacity:0.68; margin-top:6px; line-height:1.6;">Wallpapers, accent colors, profile customization, productivity apps, media, and weather tools expanded the system beyond a mock desktop.</div></div><div style="padding:14px; border-radius:12px; background:#090909; border:1px solid #1a1a1a;"><strong>Current Update</strong><div style="opacity:0.68; margin-top:6px; line-height:1.6;">This release focuses on readability, discoverability, richer right-click actions, and deeper personalization through cursor theming and dedicated system info apps.</div></div></div></div></div>`;
+return `<div style="padding:30px; max-width:900px; margin:0 auto;"><div style="padding:22px; border-radius:20px; background:linear-gradient(135deg, rgba(0,120,212,0.2), rgba(255,255,255,0.04)); border:1px solid rgba(255,255,255,0.08);"><div style="font-size:0.72rem; opacity:0.6; letter-spacing:0.16em; text-transform:uppercase;">Release Notes</div><h2 style="margin-top:8px;">What’s New in McCrackOS V2.5.3</h2><p style="opacity:0.72; line-height:1.7; margin-top:10px;">This app keeps a running overview of major improvements so people can immediately see what changed, what got polished, and what they should try next.</p></div><div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:18px;"><div style="background:#0a0a0a; border:1px solid #1a1a1a; border-radius:16px; padding:18px;"><h3>Newest Highlights</h3><ul style="margin:12px 0 0 18px; line-height:1.8; opacity:0.76;"><li>Account creation now uses a multi-step setup flow with separate identity, security, and finish screens.</li><li>The Start Hub is wider, roomier, and includes one-click workspace scenes for study, focus, music, and creator setups.</li><li>Fullscreen apps can now hide the taskbar and reveal it with a bottom tab when needed.</li><li>Desktop right-click menus now have richer quick actions, launch shortcuts, and item-specific controls.</li><li>Custom cursor support now uses a visual overlay fallback so uploaded cursor images actually show up reliably.</li></ul></div><div style="background:#0a0a0a; border:1px solid #1a1a1a; border-radius:16px; padding:18px;"><h3>Polish & Quality</h3><ul style="margin:12px 0 0 18px; line-height:1.8; opacity:0.76;"><li>Better spacing and visual grouping across the launcher.</li><li>Context menus restyled with headers, chips, and clearer action hierarchy.</li><li>New discover shortcuts make it easier to jump into docs and utilities.</li><li>Taskbar behavior now feels more immersive in fullscreen workflows.</li></ul></div></div><div style="margin-top:18px; background:#0a0a0a; border:1px solid #1a1a1a; border-radius:16px; padding:18px;"><h3>Feature Timeline</h3><div style="display:grid; gap:12px; margin-top:14px;"><div style="padding:14px; border-radius:12px; background:#090909; border:1px solid #1a1a1a;"><strong>Desktop Experience</strong><div style="opacity:0.68; margin-top:6px; line-height:1.6;">Windows, widgets, boot/login flow, draggable icons, and the taskbar established the core McCrackOS environment.</div></div><div style="padding:14px; border-radius:12px; background:#090909; border:1px solid #1a1a1a;"><strong>Customization & Utility Apps</strong><div style="opacity:0.68; margin-top:6px; line-height:1.6;">Wallpapers, accent colors, profile customization, productivity apps, media, and weather tools expanded the system beyond a mock desktop.</div></div><div style="padding:14px; border-radius:12px; background:#090909; border:1px solid #1a1a1a;"><strong>Current Update</strong><div style="opacity:0.68; margin-top:6px; line-height:1.6;">This release focuses on readability, discoverability, richer right-click actions, and deeper personalization through cursor theming and dedicated system info apps.</div></div></div></div></div>`;
 }
 
 function renderAboutApp() {
@@ -1960,6 +2126,64 @@ function avatarMarkup(src) {
 return src ? `<img src="${src}" alt="profile avatar">` : '👤';
 }
 
+function getAuthSetup() {
+if (!OS.authSetup) OS.authSetup = { step: 1, username: '', mode: 'password', pass: '', avatar: '' };
+return OS.authSetup;
+}
+
+function syncAuthSetupFromInputs() {
+const setup = getAuthSetup();
+const nameInput = document.getElementById('new-user');
+const passInput = document.getElementById('new-pass');
+if (nameInput) setup.username = nameInput.value.trim().slice(0, 24);
+if (passInput) setup.pass = passInput.value;
+}
+
+function chooseAuthMode(mode) {
+const setup = getAuthSetup();
+setup.mode = mode === 'passwordless' ? 'passwordless' : 'password';
+renderAuth();
+}
+
+function goAuthStep(step) {
+const setup = getAuthSetup();
+if (step < 1 || step > 3) return;
+if (setup.step === 1) syncAuthSetupFromInputs();
+if (step === 2) {
+const username = setup.username || (document.getElementById('new-user')?.value || '').trim();
+if (!username) return showAuthError('ADD YOUR NAME FIRST');
+setup.username = username.slice(0, 24);
+}
+if (step === 3) {
+if (setup.mode === 'password') {
+const pass = setup.pass || document.getElementById('new-pass')?.value || '';
+if (pass.trim().length < 3) return showAuthError('PASSWORD TOO SHORT');
+setup.pass = pass.trim();
+} else {
+setup.pass = '';
+}
+}
+setup.step = step;
+showAuthError('');
+renderAuth();
+}
+
+function resetPendingAvatar() {
+const setup = getAuthSetup();
+setup.avatar = '';
+OS.pendingAvatar = '';
+renderAuth();
+}
+
+function renderAuthProgress(activeStep) {
+const labels = [
+{ step: 1, title: 'Name', desc: 'Who is this desktop for?' },
+{ step: 2, title: 'Security', desc: 'Pick password or passwordless.' },
+{ step: 3, title: 'Finish', desc: 'Avatar and final review.' }
+];
+return `<div class="auth-progress">${labels.map((item) => `<div class="auth-step-badge ${activeStep === item.step ? 'active' : activeStep > item.step ? 'done' : ''}"><strong>${item.step}. ${item.title}</strong><span>${item.desc}</span></div>`).join('')}</div>`;
+}
+
 function showAuthError(message = '') {
 const msg = document.getElementById('log-msg');
 if (msg) msg.innerText = message;
@@ -1979,9 +2203,11 @@ const file = event.target.files && event.target.files[0];
 if (!file) return;
 const reader = new FileReader();
 reader.onload = (e) => {
-OS.pendingAvatar = e.target.result || '';
+const value = e.target.result || '';
+OS.pendingAvatar = value;
+getAuthSetup().avatar = value;
 const preview = document.getElementById('avatar-preview');
-if (preview) preview.innerHTML = avatarMarkup(OS.pendingAvatar);
+if (preview) preview.innerHTML = avatarMarkup(value);
 };
 reader.readAsDataURL(file);
 }
@@ -2008,26 +2234,53 @@ function renderAuth() {
 const box = document.getElementById('auth-box');
 if (!box) return;
 if (OS.firstRun) {
-box.innerHTML = `
-<div id="avatar-preview" class="account-avatar">${avatarMarkup(OS.pendingAvatar)}</div>
-<div class="auth-title">Create Account</div>
-<p class="auth-card-sub">Welcome to 𝕄𝕔ℂ𝕣𝕒𝕔𝕜OS</p>
-<p class="auth-sub">Set up your username, sign-in mode, and avatar.</p>
-<input type="text" id="new-user" maxlength="24" placeholder="Choose a username">
-<select id="acc-mode" onchange="updateModeUI()">
-<option value="password">Password Protected</option>
-<option value="passwordless">Passwordless</option>
-</select>
-<input type="password" id="new-pass" placeholder="Create password">
+const setup = getAuthSetup();
+const step = setup.step || 1;
+let inner = '';
+if (step === 1) {
+inner = `
+<div class="auth-page-tag">Step 1 <span>Identity</span></div>
+<div id="avatar-preview" class="account-avatar">${avatarMarkup(setup.avatar || OS.pendingAvatar)}</div>
+<div class="auth-title">What should we call you?</div>
+<p class="auth-card-sub">Welcome to 𝕄𝕔ℂ𝕣𝕒𝕔𝕜OS V2.5.3</p>
+<p class="auth-sub">Start with the account name that should appear on the lock screen, taskbar session hub, and profile settings.</p>
+${renderAuthProgress(1)}
+<input type="text" id="new-user" maxlength="24" placeholder="Choose a username" value="${setup.username || ''}" oninput="syncAuthSetupFromInputs()">
+<button onclick="goAuthStep(2)" style="margin-top:4px;">Continue to Security</button>`;
+} else if (step === 2) {
+inner = `
+<div class="auth-page-tag">Step 2 <span>Security</span></div>
+<div class="auth-title">How should ${setup.username || 'your account'} sign in?</div>
+<p class="auth-card-sub">Choose your unlock method</p>
+<p class="auth-sub">Pick a password if you want the lock screen to ask for one, or keep it passwordless for instant access.</p>
+${renderAuthProgress(2)}
+<div class="auth-choice-grid">
+<button class="auth-option" onclick="chooseAuthMode('password')"><strong>🔐 Password Protected</strong><span>Create an access key and require it whenever the desktop is unlocked.</span></button>
+<button class="auth-option" onclick="chooseAuthMode('passwordless')"><strong>✨ Passwordless Account</strong><span>Skip the password prompt and jump into the desktop faster.</span></button>
+</div>
+${setup.mode === 'password' ? `<input type="password" id="new-pass" placeholder="Create password" value="${setup.pass || ''}" oninput="syncAuthSetupFromInputs()">` : `<div style="margin-top:16px; padding:16px; border-radius:16px; background:#0d0d0d; border:1px solid #1d1d1d; font-size:0.86rem; opacity:0.76; line-height:1.6;">Passwordless mode enabled. You can still add or change an access key later in Settings → Profile & Security.</div>`}
+<div class="auth-row"><button class="auth-back" onclick="goAuthStep(1)">Back</button><button onclick="goAuthStep(3)">${setup.mode === 'password' ? 'Continue to Finish' : 'Continue with Passwordless'}</button></div>`;
+} else {
+inner = `
+<div class="auth-page-tag">Step 3 <span>Finish</span></div>
+<div id="avatar-preview" class="account-avatar">${avatarMarkup(setup.avatar || OS.pendingAvatar)}</div>
+<div class="auth-title">Finish creating ${setup.username || 'your profile'}</div>
+<p class="auth-card-sub">Review and personalize</p>
+<p class="auth-sub">Add a profile picture if you want, then create the account and enter the desktop.</p>
+${renderAuthProgress(3)}
+<div style="padding:16px; border-radius:18px; background:#0d0d0d; border:1px solid #1d1d1d; text-align:left; line-height:1.7; font-size:0.86rem;">
+<div><strong>Name:</strong> ${setup.username || 'Operator'}</div>
+<div><strong>Sign-in:</strong> ${setup.mode === 'passwordless' ? 'Passwordless account' : 'Password protected'}</div>
+<div><strong>Avatar:</strong> ${setup.avatar || OS.pendingAvatar ? 'Custom picture ready' : 'Default profile icon'}</div>
+</div>
 <div class="auth-row">
 <button onclick="document.getElementById('avatar-file').click()" style="background:#2a2a2a;">Choose Picture</button>
-<button onclick="OS.pendingAvatar=''; renderAuth();" style="background:#202020;">Reset Avatar</button>
+<button onclick="resetPendingAvatar()" style="background:#202020;">Reset Avatar</button>
 </div>
 <input id="avatar-file" type="file" accept="image/*" style="display:none" onchange="onAvatarSelected(event)">
-<button onclick="createAccount()" style="margin-top:14px;">Create Profile</button>
-<p id="log-msg" style="color:#ff4b4b; font-size:0.75rem; margin-top:20px; font-weight: 800; letter-spacing:1px;"></p>
-`;
-updateModeUI();
+<div class="auth-row"><button class="auth-back" onclick="goAuthStep(2)">Back</button><button onclick="createAccount()">Create Profile</button></div>`;
+}
+box.innerHTML = `${inner}<p id="log-msg" style="color:#ff4b4b; font-size:0.75rem; margin-top:20px; font-weight: 800; letter-spacing:1px;"></p>`;
 return;
 }
 box.innerHTML = `
@@ -2042,19 +2295,21 @@ ${OS.account.mode === 'password' ? '<button onclick="forgotPasswordReset()" styl
 }
 
 function createAccount() {
-const username = (document.getElementById('new-user')?.value || '').trim();
-const mode = document.getElementById('acc-mode')?.value || 'password';
-const pass = (document.getElementById('new-pass')?.value || '').trim();
+const setup = getAuthSetup();
+const username = (setup.username || document.getElementById('new-user')?.value || '').trim();
+const mode = setup.mode || 'password';
+const pass = (setup.pass || document.getElementById('new-pass')?.value || '').trim();
 if (!username) return showAuthError('USERNAME REQUIRED');
 if (mode === 'password' && pass.length < 3) return showAuthError('PASSWORD TOO SHORT');
 OS.account.username = username.slice(0, 24);
 OS.account.mode = mode === 'passwordless' ? 'passwordless' : 'password';
-OS.account.avatar = OS.pendingAvatar || '';
+OS.account.avatar = setup.avatar || OS.pendingAvatar || '';
 OS.pass = OS.account.mode === 'password' ? pass : '';
 OS.account.pass = OS.pass;
 setPass(OS.pass);
 persistAccount();
 OS.firstRun = false;
+OS.authSetup = { step: 1, username: '', mode: 'password', pass: '', avatar: '' };
 renderAuth();
 updateLockscreenHeader();
 showAuthError('');
@@ -2555,7 +2810,7 @@ print("help, clear, exit, logs, apps, ver, time, date, battery, whoami, echo, ca
 else if(v === "clear") out.innerHTML = "";
 else if(v === "logs") print(`Total session events: ${OS.logs.length}`);
 else if(v === "apps" || v === "ls") print(`Installed: ${OS.installed.join(', ')}`);
-else if(v === "ver") print("𝕄𝕔ℂ𝕣𝕒𝕔𝕜OS Kernel v1.0.4. Build 2026.03.10");
+else if(v === "ver") print("𝕄𝕔ℂ𝕣𝕒𝕔𝕜OS Kernel v2.5.3. Build 2026.03.18");
 else if(v === "time") print(new Date().toLocaleTimeString());
 else if(v === "date") print(new Date().toLocaleDateString());
 else if(v === "battery") print(`Battery status: ${OS.battery}%`);
@@ -2596,7 +2851,7 @@ else { applyAccent(color); print(`Accent set to ${color}`); }
 }
 else if(v === "reboot") {
 print('Rebooting 𝕄𝕔ℂ𝕣𝕒𝕔𝕜OS shell session...');
-setTimeout(() => { out.innerHTML = '𝕄𝕔ℂ𝕣𝕒𝕔𝕜 Kernel Console [Version19.0.4]<br>(c) 2026 𝕄𝕔ℂ𝕣𝕒𝕔𝕜 Industries.<br><br>'; }, 300);
+setTimeout(() => { out.innerHTML = '𝕄𝕔ℂ𝕣𝕒𝕔𝕜 Kernel Console [Version 2.5.3]<br>(c) 2026 𝕄𝕔ℂ𝕣𝕒𝕔𝕜 Industries.<br><br>'; }, 300);
 }
 else if(v === "calc") {
 const expr = args.join(' ');
@@ -3200,31 +3455,42 @@ function setSketchColor(color) { window.mcSketchColor = color; const canvas=docu
 function setSketchSize(size) { window.mcSketchSize = Number(size); const canvas=document.getElementById('sketch-canvas'); if (!canvas) return; canvas.getContext('2d').lineWidth = Number(size); }
 function clearSketch() { const canvas=document.getElementById('sketch-canvas'); if (!canvas) return; const ctx=canvas.getContext('2d'); ctx.clearRect(0,0,canvas.width,canvas.height); }
 
-function playFocusTone(freq = 140) {
+function playFocusTone(freq = 140, label = 'Custom') {
 const AudioCtx = window.AudioContext || window.webkitAudioContext;
-if (!AudioCtx) return;
+if (!AudioCtx) return notify('Web audio is not supported in this browser.', 'error');
 if (!window.mcFocusCtx) window.mcFocusCtx = new AudioCtx();
-stopFocusTone();
+stopFocusTone(false);
 const osc = window.mcFocusCtx.createOscillator();
 const gain = window.mcFocusCtx.createGain();
+const volume = Number(localStorage.getItem('mc_focus_volume') || '0.04');
 osc.type = 'sine';
 osc.frequency.value = freq;
-gain.gain.value = 0.03;
+gain.gain.value = volume;
 osc.connect(gain);
 gain.connect(window.mcFocusCtx.destination);
 osc.start();
 window.mcFocusOsc = osc;
+window.mcFocusGain = gain;
 const status = document.getElementById('focus-status');
-if (status) status.textContent = `Playing tone ${freq}Hz`;
+if (status) status.textContent = `${label} preset playing at ${Math.round(volume * 1000)}% volume.`;
 }
 
-function stopFocusTone() {
+function setFocusVolume(value) {
+const volume = Number(value || 0.04);
+localStorage.setItem('mc_focus_volume', String(volume));
+if (window.mcFocusGain) window.mcFocusGain.gain.value = volume;
+if (OS.running['FocusSounds']) OS.running['FocusSounds'].querySelector('.win-body').innerHTML = Registry['FocusSounds'].content();
+}
+
+function stopFocusTone(showNotice = true) {
 if (window.mcFocusOsc) {
-window.mcFocusOsc.stop();
+try { window.mcFocusOsc.stop(); } catch (_) {}
 window.mcFocusOsc = null;
 }
+window.mcFocusGain = null;
 const status = document.getElementById('focus-status');
 if (status) status.textContent = 'Idle';
+if (showNotice) notify('Focus sound stopped.', 'warning');
 }
 
 /* --- MATH ENGINE --- */
