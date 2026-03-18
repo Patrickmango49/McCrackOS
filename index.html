@@ -259,6 +259,59 @@ transition: none !important;
 #desktop.compact-icons .icon div { font-size: 44px; margin-bottom: 8px; }
 #desktop.compact-icons .icon span { font-size: 0.72rem; }
 
+.icon.desktop-refresh { animation: desktop-refresh 520ms ease; }
+
+#desktop-context-menu {
+position: fixed;
+min-width: 230px;
+background: rgba(5,5,5,0.96);
+border: 1px solid rgba(255,255,255,0.12);
+border-radius: 14px;
+box-shadow: 0 24px 48px rgba(0,0,0,0.55);
+backdrop-filter: blur(18px);
+padding: 8px;
+z-index: 9800;
+display: none;
+}
+#desktop-context-menu.menu-open { display: block; }
+.context-item,
+.context-subitem,
+.context-label {
+width: 100%;
+display: flex;
+align-items: center;
+gap: 10px;
+background: transparent;
+border: none;
+color: #fff;
+padding: 10px 12px;
+border-radius: 10px;
+font-size: 0.9rem;
+text-align: left;
+cursor: pointer;
+position: relative;
+}
+.context-item:hover,
+.context-subitem:hover { background: rgba(255,255,255,0.08); }
+.context-label { cursor: default; justify-content: space-between; }
+.context-caret { margin-left: auto; opacity: 0.65; }
+.context-sep { height: 1px; background: rgba(255,255,255,0.08); margin: 6px 2px; }
+.context-submenu-wrap { position: relative; }
+.context-submenu {
+position: absolute;
+left: calc(100% - 10px);
+top: 0;
+min-width: 210px;
+background: rgba(5,5,5,0.98);
+border: 1px solid rgba(255,255,255,0.12);
+border-radius: 14px;
+padding: 8px;
+box-shadow: 0 18px 40px rgba(0,0,0,0.45);
+display: none;
+}
+.context-submenu-wrap:hover .context-submenu { display: block; }
+
+
 /* --- DELETE BIN --- */
 #delete-bin {
 position: absolute; bottom: 120px; right: 30px; width: 100px; height: 120px;
@@ -378,6 +431,12 @@ body.icon-wiggle .icon:hover div { animation: wiggle calc(var(--anim-speed, 1) *
 @keyframes window-in { from { opacity: 0; transform: translateY(10px) scale(0.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @keyframes breathe-ui { 0%,100% { filter: saturate(1); } 50% { filter: saturate(1.12); } }
 @keyframes gradient-shift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+@keyframes desktop-refresh {
+0% { opacity: 0.38; filter: blur(1.5px); transform: translateY(0) scale(0.98); }
+40% { opacity: 0.82; filter: blur(0.4px); transform: translateY(-4px) scale(1.02); }
+70% { opacity: 1; filter: none; transform: translateY(2px) scale(0.995); }
+100% { opacity: 1; filter: none; transform: translateY(0) scale(1); }
+}
 @keyframes chrome-pulse { 0%,100% { box-shadow: 0 0 0 rgba(0,120,212,0); } 50% { box-shadow: 0 0 28px rgba(0,120,212,0.25); } }
 </style>
 </head>
@@ -421,6 +480,20 @@ body.icon-wiggle .icon:hover div { animation: wiggle calc(var(--anim-speed, 1) *
 </div>
 
 <div id="desktop"></div>
+<div id="desktop-context-menu" aria-hidden="true">
+<button class="context-item" onclick="openPersonalizationSettings()">🎨 <span>Personalize</span></button>
+<div class="context-submenu-wrap">
+<div class="context-label">📄 <span>Create New...</span><span class="context-caret">›</span></div>
+<div class="context-submenu">
+<button class="context-subitem" onclick="createDesktopTextDocumentShortcut()">📝 <span>Text Document</span></button>
+<button class="context-subitem" onclick="spawnStickyNoteWidget()">🗒️ <span>Sticky Note Widget</span></button>
+</div>
+</div>
+<button class="context-item" onclick="refreshDesktopVisuals()">🌀 <span>Refresh</span></button>
+<button class="context-item" onclick="launchDesktopInspector()">⌨️ <span>Inspect</span></button>
+<div class="context-sep"></div>
+<button class="context-item" onclick="shuffleAccentColor()">🎲 <span>Shuffle Accent</span></button>
+</div>
 <div id="notification-center"></div>
 
 <div id="delete-bin" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropDelete(event)">
@@ -454,6 +527,28 @@ calendar: { x: null, y: 24 },
 system: { x: 24, y: 420 },
 notes: { x: 24, y: 554 }
 };
+const DEFAULT_DESKTOP_SHORTCUTS = [];
+
+function normalizeDesktopShortcuts(raw) {
+if (!Array.isArray(raw)) return [...DEFAULT_DESKTOP_SHORTCUTS];
+return raw.slice(0, 30).map((item, index) => {
+const name = typeof item?.name === 'string' && item.name.trim() ? item.name.trim().slice(0, 28) : `Shortcut ${index + 1}`;
+const target = typeof item?.target === 'string' && item.target.trim() ? item.target.trim() : 'Notepad';
+return {
+id: typeof item?.id === 'string' && item.id.trim() ? item.id.trim() : `shortcut-${Date.now()}-${index}`,
+name,
+icon: typeof item?.icon === 'string' && item.icon.trim() ? item.icon.trim().slice(0, 3) : '📝',
+kind: typeof item?.kind === 'string' && item.kind.trim() ? item.kind.trim() : 'shortcut',
+ target,
+ x: Number.isFinite(item?.x) ? item.x : null,
+ y: Number.isFinite(item?.y) ? item.y : null
+};
+});
+}
+
+function saveDesktopShortcuts() {
+localStorage.setItem('mc_desktop_shortcuts', JSON.stringify(OS.desktopShortcuts));
+}
 
 function getDefaultWidgetPosition(id) {
 const fallback = DEFAULT_WIDGET_POSITIONS[id] || { x: 24, y: 24 };
@@ -518,6 +613,7 @@ clock24h: false,
 notifications: true,
 autoFullscreen: true,
 wallpaperFit: 'cover',
+keepWallpaperBranding: true,
 bootDelay: 6000,
 compactIcons: false,
 reducedMotion: false,
@@ -567,6 +663,7 @@ if (typeof raw.clock24h === 'boolean') base.clock24h = raw.clock24h;
 if (typeof raw.notifications === 'boolean') base.notifications = raw.notifications;
 if (typeof raw.autoFullscreen === 'boolean') base.autoFullscreen = raw.autoFullscreen;
 if (['cover', 'contain'].includes(raw.wallpaperFit)) base.wallpaperFit = raw.wallpaperFit;
+if (typeof raw.keepWallpaperBranding === 'boolean') base.keepWallpaperBranding = raw.keepWallpaperBranding;
 if ([3000, 6000, 9000].includes(raw.bootDelay)) base.bootDelay = raw.bootDelay;
 if (typeof raw.compactIcons === 'boolean') base.compactIcons = raw.compactIcons;
 if (typeof raw.reducedMotion === 'boolean') base.reducedMotion = raw.reducedMotion;
@@ -606,6 +703,7 @@ logs: [],
 widgets: normalizeWidgetFlags(JSON.parse(localStorage.getItem("mc_widgets"))),
 widgetPositions: normalizeWidgetPositions(JSON.parse(localStorage.getItem("mc_widget_pos"))),
 weather: JSON.parse(localStorage.getItem("mc_weather")) || null,
+desktopShortcuts: normalizeDesktopShortcuts(JSON.parse(localStorage.getItem('mc_desktop_shortcuts') || '[]')),
 restricted: ["Browser", "Store", "Terminal", "Files", "Settings"],
 storeApps: ["Movies", "Games", "𝕄𝕔ℂ𝕣𝕒𝕔𝕜Chat", "Calculator", "Music", "Music2", "AppFactory", "Notepad", "WidgetCenter", "YouTube", "Paint", "ClockPro", "CodeLab", "PhotoBooth", "WeatherDesk", "TodoBoard", "UnitConverter", "HabitTracker", "QuickSketch", "FocusSounds", "MarkdownPad", "FinanceTracker", "MindMap", "ColorLab", "PixelRunner"],
 pinned: JSON.parse(localStorage.getItem('mc_pinned') || 'null') || ["Browser", "Files", "Settings"]
@@ -824,7 +922,7 @@ function renderSettingsApp() {
 const section = OS.settingsSection || 'customization';
 const btnStyle = (id) => `display:block;width:100%;text-align:left;padding:10px 12px;border-radius:10px;border:1px solid ${section === id ? 'var(--accent)' : '#242424'};background:${section === id ? 'rgba(0,120,212,0.18)' : '#101010'};color:#fff;cursor:pointer;font-weight:600;margin-bottom:8px;`;
 const cards = {
-customization: `<div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;"><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Wallpaper</h4><p style="font-size:0.8rem; opacity:0.55; margin:8px 0 14px 0;">Pick presets, URL, or upload image.</p><label style="font-size:0.76rem; opacity:0.6;">Wallpaper Preset</label><select onchange="setWallpaperPreset(this.value)" style="margin-top:7px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;">${WALLPAPER_PRESETS.map(preset => `<option value="${preset.value}" ${OS.bg === preset.value ? 'selected' : ''}>${preset.label}</option>`).join('')}</select><input type="text" id="bg-url" placeholder="https://..." style="width:100%; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px; margin-top:12px;"><button onclick="setBG(document.getElementById('bg-url').value)" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:var(--accent); border:none; color:white; border-radius:8px;">Apply URL</button><button onclick="document.getElementById('bg-upload-settings').click()" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Upload Image</button><input type="file" id="bg-upload-settings" style="display:none" onchange="handleFileUpload(event)" accept="image/*"></div><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Theme & Branding</h4><p style="font-size:0.8rem; opacity:0.55; margin:8px 0 14px 0;">Accent colors and favicon.</p><label style="font-size:0.76rem; opacity:0.6;">Wallpaper Fit</label><select onchange="setWallpaperFit(this.value)" style="margin-top:7px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;"><option value="cover" ${OS.settings.wallpaperFit === 'cover' ? 'selected' : ''}>Fill Screen</option><option value="contain" ${OS.settings.wallpaperFit === 'contain' ? 'selected' : ''}>Fit Entire Image</option></select><input type="color" value="${OS.accent}" onchange="applyAccent(this.value)" style="margin-top:12px; width:100%; height:42px; background:#111; border:var(--border); border-radius:10px; cursor:pointer;"><button onclick="resetAccent()" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset Accent</button><input type="text" id="favicon-url" value="${OS.favicon}" placeholder="https://..." style="width:100%; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px; margin-top:12px;"><button onclick="setFavicon(document.getElementById('favicon-url').value)" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Apply Favicon</button></div></div>`,
+customization: `<div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;"><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Wallpaper</h4><p style="font-size:0.8rem; opacity:0.55; margin:8px 0 14px 0;">Pick presets, URL, or upload image.</p><label style="font-size:0.76rem; opacity:0.6;">Wallpaper Preset</label><select onchange="setWallpaperPreset(this.value)" style="margin-top:7px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;">${WALLPAPER_PRESETS.map(preset => `<option value="${preset.value}" ${OS.bg === preset.value ? 'selected' : ''}>${preset.label}</option>`).join('')}</select><input type="text" id="bg-url" placeholder="https://..." style="width:100%; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px; margin-top:12px;"><button onclick="setBG(document.getElementById('bg-url').value)" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:var(--accent); border:none; color:white; border-radius:8px;">Apply URL</button><button onclick="document.getElementById('bg-upload-settings').click()" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Upload Image</button><input type="file" id="bg-upload-settings" style="display:none" onchange="handleFileUpload(event)" accept="image/*"><label style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:14px;"><span style="font-size:0.84rem; line-height:1.35;">Keep the <strong>McCrackOS • Made By Patrick_Mango</strong> branding visible over uploaded wallpapers</span><input type="checkbox" ${OS.settings.keepWallpaperBranding ? 'checked' : ''} onchange="toggleWallpaperBranding(this.checked)"></label><p style="font-size:0.75rem; opacity:0.52; margin-top:8px;">Turn this off if you want a completely clean custom wallpaper.</p></div><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Theme & Branding</h4><p style="font-size:0.8rem; opacity:0.55; margin:8px 0 14px 0;">Accent colors and favicon.</p><label style="font-size:0.76rem; opacity:0.6;">Wallpaper Fit</label><select onchange="setWallpaperFit(this.value)" style="margin-top:7px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;"><option value="cover" ${OS.settings.wallpaperFit === 'cover' ? 'selected' : ''}>Fill Screen</option><option value="contain" ${OS.settings.wallpaperFit === 'contain' ? 'selected' : ''}>Fit Entire Image</option></select><input type="color" value="${OS.accent}" onchange="applyAccent(this.value)" style="margin-top:12px; width:100%; height:42px; background:#111; border:var(--border); border-radius:10px; cursor:pointer;"><button onclick="resetAccent()" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset Accent</button><input type="text" id="favicon-url" value="${OS.favicon}" placeholder="https://..." style="width:100%; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px; margin-top:12px;"><button onclick="setFavicon(document.getElementById('favicon-url').value)" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Apply Favicon</button></div></div>`,
 profile: `<div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;"><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Security & Profile</h4><div style="display:flex; align-items:center; gap:10px; margin:12px 0;"><div class="account-avatar" style="width:54px; height:54px; margin:0; font-size:22px;">${avatarMarkup(OS.account.avatar)}</div><span style="font-size:0.8rem; opacity:0.7;">Current Picture</span></div><div style="display:flex; gap:8px;"><button onclick="document.getElementById('settings-avatar-file').click()" style="flex:1; padding:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:#fff; border-radius:8px;">Upload</button><button onclick="updateAccountAvatar('')" style="flex:1; padding:10px; background:#151515; border:1px solid #2b2b2b; color:#fff; border-radius:8px;">Remove</button></div><input type="file" id="settings-avatar-file" style="display:none" accept="image/*" onchange="onSettingsAvatarSelected(event)"><input type="password" id="new-p" placeholder="New Access Key" style="width:100%; margin-top:12px; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px;"><button onclick="setPass(document.getElementById('new-p').value)" style="width:100%; margin-top:10px; padding:10px; background:#333; border:none; color:white; border-radius:8px;">Update Key</button><button onclick="factoryResetWithPassword()" style="width:100%; margin-top:10px; padding:10px; background:#4a1010; border:1px solid #7a1e1e; color:white; border-radius:8px;">Factory Reset (Password Required)</button></div><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Layout Tools</h4><button onclick="resetDesktopLayout()" style="width:100%; padding:10px; margin-top:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset App Icon Layout</button><button onclick="resetWidgetsLayout()" style="width:100%; margin-top:10px; padding:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset Widget Layout</button></div></div>`,
 system: `<div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;"><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Clock & Weather</h4><label style="display:flex; justify-content:space-between; margin-top:12px;"><span>Show Seconds</span><input type="checkbox" ${OS.settings.clockSeconds ? 'checked' : ''} onchange="setSetting('clockSeconds', this.checked, 'Clock precision updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Use 24-Hour Time</span><input type="checkbox" ${OS.settings.clock24h ? 'checked' : ''} onchange="setSetting('clock24h', this.checked, 'Clock format updated.')"></label><label style="font-size:0.76rem; opacity:0.7; display:block; margin-top:10px;">Temperature Unit</label><select onchange="setSetting('temperatureUnit', this.value, 'Temperature unit updated.'); refreshWeather(true);" style="margin-top:6px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;"><option value="C" ${OS.settings.temperatureUnit === 'C' ? 'selected' : ''}>Celsius (°C)</option><option value="F" ${OS.settings.temperatureUnit === 'F' ? 'selected' : ''}>Fahrenheit (°F)</option></select><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Desktop Sounds</span><input type="checkbox" ${OS.settings.desktopSounds ? 'checked' : ''} onchange="setSetting('desktopSounds', this.checked, 'Sound preference updated.')"></label></div><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Animation & Behavior</h4><label style="display:flex; justify-content:space-between; margin-top:12px;"><span>Desktop Notifications</span><input type="checkbox" ${OS.settings.notifications ? 'checked' : ''} onchange="setSetting('notifications', this.checked, 'Notification preference updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Compact Desktop Icons</span><input type="checkbox" ${OS.settings.compactIcons ? 'checked' : ''} onchange="setSetting('compactIcons', this.checked, 'Desktop icon density updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Reduce Animations</span><input type="checkbox" ${OS.settings.reducedMotion ? 'checked' : ''} onchange="setSetting('reducedMotion', this.checked, 'Animation preference updated.')"></label><label style="font-size:0.76rem; opacity:0.7; display:block; margin-top:10px;">Animation Speed</label><select onchange="setSetting('uiAnimationSpeed', this.value, 'Animation speed updated.')" style="margin-top:6px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;"><option value="slow" ${OS.settings.uiAnimationSpeed === 'slow' ? 'selected' : ''}>Slow</option><option value="normal" ${OS.settings.uiAnimationSpeed === 'normal' ? 'selected' : ''}>Normal</option><option value="fast" ${OS.settings.uiAnimationSpeed === 'fast' ? 'selected' : ''}>Fast</option></select><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Window Opening Animations</span><input type="checkbox" ${OS.settings.windowOpenAnimations ? 'checked' : ''} onchange="setSetting('windowOpenAnimations', this.checked, 'Window animations updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Start Menu Animations</span><input type="checkbox" ${OS.settings.startMenuAnimations ? 'checked' : ''} onchange="setSetting('startMenuAnimations', this.checked, 'Start menu animations updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Taskbar Accent Pulse</span><input type="checkbox" ${OS.settings.taskbarGlow ? 'checked' : ''} onchange="setSetting('taskbarGlow', this.checked, 'Taskbar pulse updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Hover Lift Effects</span><input type="checkbox" ${OS.settings.hoverLift ? 'checked' : ''} onchange="setSetting('hoverLift', this.checked, 'Hover lift updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Icon Wiggle</span><input type="checkbox" ${OS.settings.iconWiggle ? 'checked' : ''} onchange="setSetting('iconWiggle', this.checked, 'Icon wiggle updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Animated Gradient Wallpaper</span><input type="checkbox" ${OS.settings.gradientShift ? 'checked' : ''} onchange="setSetting('gradientShift', this.checked, 'Gradient animation updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Lively UI Saturation</span><input type="checkbox" ${OS.settings.livelyUi ? 'checked' : ''} onchange="setSetting('livelyUi', this.checked, 'Lively UI updated.')"></label><label style="font-size:0.76rem; opacity:0.7; display:block; margin-top:10px;">Glass Blur Intensity</label><select onchange="setSetting('glassIntensity', this.value, 'Glass blur updated.')" style="margin-top:6px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;"><option value="low" ${OS.settings.glassIntensity === 'low' ? 'selected' : ''}>Low</option><option value="medium" ${OS.settings.glassIntensity === 'medium' ? 'selected' : ''}>Medium</option><option value="high" ${OS.settings.glassIntensity === 'high' ? 'selected' : ''}>High</option></select><button onclick="resetSystemSettings()" style="width:100%; margin-top:12px; padding:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset System Settings</button></div></div>`,
 camera: `<div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;"><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Camera Defaults</h4><label style="font-size:0.76rem; opacity:0.7; display:block; margin-top:10px;">Default Resolution</label><select onchange="setSetting('cameraResolution', this.value, 'Camera resolution preference saved.')" style="margin-top:6px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;"><option value="sd" ${OS.settings.cameraResolution === 'sd' ? 'selected' : ''}>SD</option><option value="hd" ${OS.settings.cameraResolution === 'hd' ? 'selected' : ''}>HD</option><option value="fhd" ${OS.settings.cameraResolution === 'fhd' ? 'selected' : ''}>Full HD</option></select><label style="display:flex; justify-content:space-between; margin-top:12px;"><span>Show Rule-of-Thirds Grid</span><input type="checkbox" ${OS.settings.cameraGrid ? 'checked' : ''} onchange="setSetting('cameraGrid', this.checked, 'Camera grid updated.'); applyCameraOverlay();"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Shutter Click Sound</span><input type="checkbox" ${OS.settings.cameraShutterSound ? 'checked' : ''} onchange="setSetting('cameraShutterSound', this.checked, 'Camera sound updated.')"></label></div><div style="background:#0a0a0a; padding:20px; border-radius:14px; border:1px solid #1a1a1a;"><h4>Privacy</h4><label style="display:flex; justify-content:space-between; margin-top:12px;"><span>Anonymous Telemetry</span><input type="checkbox" ${OS.settings.privacyTelemetry ? 'checked' : ''} onchange="setSetting('privacyTelemetry', this.checked, 'Privacy preference updated.')"></label><button onclick="stopPhotoBooth()" style="width:100%; margin-top:12px; padding:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Stop Active Camera Stream</button></div></div>`,
@@ -1145,6 +1243,7 @@ applyAccent(OS.accent);
 setFavicon(OS.favicon, false);
 syncFullscreenPreference();
 applyUISettings();
+setupDesktopContextMenu();
 simulateHackBootLogs(OS.settings.bootDelay || 6000);
 const customs = JSON.parse(localStorage.getItem("mc_custom_apps")) || {};
 Object.keys(customs).forEach(name => {
@@ -1697,23 +1796,176 @@ addLog("User authenticated successfully.");
 
 function lockSystem() { location.reload(); }
 
+function toggleWallpaperBranding(enabled) {
+setSetting('keepWallpaperBranding', !!enabled, enabled ? 'Wallpaper branding restored.' : 'Wallpaper branding hidden.');
+renderDesktop();
+}
+
+function openPersonalizationSettings() {
+setSettingsSection('customization');
+launch('Settings');
+closeDesktopContextMenu();
+}
+
+function launchDesktopInspector() {
+launch('Terminal');
+closeDesktopContextMenu();
+}
+
+function refreshDesktopVisuals() {
+closeDesktopContextMenu();
+const icons = Array.from(document.querySelectorAll('#desktop .icon'));
+icons.forEach((icon, index) => {
+icon.classList.remove('desktop-refresh');
+setTimeout(() => icon.classList.add('desktop-refresh'), index * 28);
+setTimeout(() => icon.classList.remove('desktop-refresh'), 650 + index * 28);
+});
+notify('Desktop refreshed.', 'info');
+}
+
+function shuffleAccentColor() {
+const palette = ['#0078d4', '#8b5cf6', '#ef4444', '#10b981', '#f59e0b', '#06b6d4'];
+const next = palette[Math.floor(Math.random() * palette.length)];
+applyAccent(next);
+closeDesktopContextMenu();
+notify('Accent color shuffled.', 'success');
+}
+
+function getNextDesktopShortcutName(baseName) {
+const existing = OS.desktopShortcuts
+.filter(item => item.name.startsWith(baseName))
+.map(item => Number((item.name.match(/(\d+)$/) || [])[1] || 0));
+const next = Math.max(0, ...existing) + 1;
+return `${baseName} ${next}`;
+}
+
+function getDefaultShortcutPosition(index) {
+const desktop = document.getElementById('desktop');
+const desktopWidth = desktop ? desktop.clientWidth : window.innerWidth;
+return {
+x: Math.max(50 + ((index * 130) % Math.max(desktopWidth - 220, 130)), 20),
+y: 170 + (Math.floor(index / 6) * 130)
+};
+}
+
+function createDesktopShortcut({ name, target = 'Notepad', icon = '📝', kind = 'shortcut' }) {
+const position = getDefaultShortcutPosition(OS.desktopShortcuts.length + OS.installed.length);
+OS.desktopShortcuts.push({
+id: `shortcut-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+name,
+target,
+icon,
+kind,
+x: position.x,
+y: position.y
+});
+saveDesktopShortcuts();
+renderDesktop();
+}
+
+function createDesktopTextDocumentShortcut() {
+createDesktopShortcut({ name: getNextDesktopShortcutName('Text Document'), target: 'Notepad', icon: '📝', kind: 'text-document' });
+closeDesktopContextMenu();
+notify('New text document shortcut added to the desktop.', 'success');
+}
+
+function spawnStickyNoteWidget() {
+OS.widgets.notes = true;
+saveWidgetState();
+renderWidgets();
+closeDesktopContextMenu();
+notify('Sticky note widget dropped onto the desktop.', 'success');
+}
+
+function removeDesktopShortcut(id) {
+OS.desktopShortcuts = OS.desktopShortcuts.filter(item => item.id !== id);
+saveDesktopShortcuts();
+renderDesktop();
+notify('Desktop shortcut removed.', 'warning');
+}
+
+function closeDesktopContextMenu() {
+const menu = document.getElementById('desktop-context-menu');
+if (!menu) return;
+menu.classList.remove('menu-open');
+menu.style.display = 'none';
+menu.setAttribute('aria-hidden', 'true');
+}
+
+function openDesktopContextMenu(x, y) {
+const menu = document.getElementById('desktop-context-menu');
+if (!menu) return;
+menu.style.display = 'block';
+menu.classList.add('menu-open');
+menu.setAttribute('aria-hidden', 'false');
+const rect = menu.getBoundingClientRect();
+const left = Math.min(x, window.innerWidth - rect.width - 12);
+const top = Math.min(y, window.innerHeight - rect.height - 12);
+menu.style.left = `${Math.max(12, left)}px`;
+menu.style.top = `${Math.max(12, top)}px`;
+}
+
+function setupDesktopContextMenu() {
+const desktop = document.getElementById('desktop');
+const menu = document.getElementById('desktop-context-menu');
+if (!desktop || !menu || desktop.dataset.contextMenuReady === '1') return;
+desktop.addEventListener('contextmenu', (event) => {
+if (event.target.closest('.icon') || event.target.closest('.widget-card')) return;
+event.preventDefault();
+openDesktopContextMenu(event.clientX, event.clientY);
+});
+document.addEventListener('click', (event) => {
+if (!event.target.closest('#desktop-context-menu')) closeDesktopContextMenu();
+});
+document.addEventListener('contextmenu', (event) => {
+if (!event.target.closest('#desktop') && !event.target.closest('#desktop-context-menu')) closeDesktopContextMenu();
+});
+window.addEventListener('resize', closeDesktopContextMenu);
+desktop.dataset.contextMenuReady = '1';
+}
+
+function getDesktopEntries() {
+const appEntries = OS.installed.map((id, index) => ({
+type: 'app',
+key: id,
+name: id,
+icon: Registry[id] ? Registry[id].icon : '📦',
+position: OS.pos[id] || getDefaultDesktopPosition(id, index),
+open: () => launch(id),
+onMove: (x, y) => { OS.pos[id] = { x, y }; localStorage.setItem('mc_pos', JSON.stringify(OS.pos)); },
+onDelete: () => attemptDeleteApp(id)
+}));
+const shortcutEntries = OS.desktopShortcuts.map((item, index) => ({
+type: item.kind || 'shortcut',
+key: item.id,
+name: item.name,
+icon: item.icon || '📝',
+position: Number.isFinite(item.x) && Number.isFinite(item.y) ? { x: item.x, y: item.y } : getDefaultShortcutPosition(index + OS.installed.length),
+open: () => launch(item.target || 'Notepad'),
+onMove: (x, y) => { item.x = x; item.y = y; saveDesktopShortcuts(); },
+onDelete: () => removeDesktopShortcut(item.id)
+}));
+return [...appEntries, ...shortcutEntries];
+}
+
 function renderDesktop() {
 const d = document.getElementById('desktop'); d.innerHTML = "";
-if(!hasCustomWallpaper() && !OS.settings.hideDesktopHero) {
+const showBranding = !OS.settings.hideDesktopHero && (!hasCustomWallpaper() || OS.settings.keepWallpaperBranding);
+if(showBranding) {
 const hero = document.createElement('div');
 hero.className = 'desktop-hero';
 hero.innerHTML = '<h1>𝕄𝕔ℂ𝕣𝕒𝕔𝕜OS</h1><p>Made By: Patrick_Mango</p>';
 d.appendChild(hero);
 }
-OS.installed.forEach((id, index) => {
-const p = OS.pos[id] || getDefaultDesktopPosition(id, index);
+getDesktopEntries().forEach((entry) => {
+const p = entry.position;
 const el = document.createElement('div'); el.className = 'icon';
 el.style.left = p.x+'px'; el.style.top = p.y+'px';
 el.setAttribute("draggable", "true");
-el.innerHTML = `<div>${Registry[id] ? Registry[id].icon : "📦"}</div><span>${id}</span>`;
-el.ondragstart = (e) => startDrag(e, id);
+el.innerHTML = `<div>${entry.icon}</div><span>${entry.name}</span>`;
+el.ondragstart = (e) => startDrag(e, entry.key);
 el.ondragend = (e) => endDrag(e);
-el.ondblclick = () => launch(id);
+el.ondblclick = () => entry.open();
 let iconOffsetX = 0;
 let iconOffsetY = 0;
 attachMouseDrag(el, {
@@ -1727,20 +1979,15 @@ const nx = ev.clientX - iconOffsetX;
 const ny = ev.clientY - iconOffsetY;
 el.style.left = nx + 'px';
 el.style.top = ny + 'px';
-OS.pos[id] = {x: nx, y: ny};
+entry.onMove(nx, ny);
 document.getElementById('delete-bin').classList.toggle('delete-ready', iconOverDeleteBin(el));
 },
 onEnd: () => {
 el.classList.remove('dragging');
-
 const bin = document.getElementById('delete-bin');
 const overlapsBin = iconOverDeleteBin(el);
-
 bin.classList.remove('delete-ready');
-
-if (overlapsBin) attemptDeleteApp(id);
-
-localStorage.setItem("mc_pos", JSON.stringify(OS.pos));
+if (overlapsBin) entry.onDelete();
 }
 });
 d.appendChild(el);
