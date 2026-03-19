@@ -26,7 +26,7 @@
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font); -webkit-user-select: none; user-select: none; }
 body {
 height: 100vh; width: 100vw; overflow: hidden;
-background: radial-gradient(120% 90% at 50% 44%, #1a1a1a 0%, #121212 30%, #0b0b0b 62%, #050505 82%, #010101 100%); color: white; transition: background 0.6s cubic-bezier(0.4, 0, 0.2, 1), font-size 0.25s ease, filter 0.25s ease;
+background: url('https://imgur.com/a/9JQTt2J') center/cover no-repeat; color: white; transition: background 0.6s cubic-bezier(0.4, 0, 0.2, 1), font-size 0.25s ease, filter 0.25s ease;
 }
 body.lively-ui { animation: breathe-ui calc(var(--anim-speed, 1) * 10s) ease-in-out infinite; }
 body.gradient-shift { background-size: 160% 160%; animation: gradient-shift calc(var(--anim-speed, 1) * 18s) ease infinite; }
@@ -790,7 +790,7 @@ y: Math.min(Math.max(pos.y, 0), maxY)
 };
 }
 
-const DEFAULT_BG = "radial-gradient(120% 90% at 50% 44%, #1a1a1a 0%, #121212 30%, #0b0b0b 62%, #050505 82%, #010101 100%)";
+const DEFAULT_BG = "url('https://imgur.com/a/9JQTt2J') center/cover no-repeat";
 const DEFAULT_ACCENT = "#0078d4";
 const DEFAULT_FAVICON = "https://i.imgur.com/HfPyMtK.png";
 const DEFAULT_SETTINGS = {
@@ -938,7 +938,7 @@ normalizeDesktopLayoutToViewport();
 const DEFAULT_APP_ORDER = ["Browser", "Terminal", "Files", "Store", "Settings", "Whats New", "About", ...OS.storeApps];
 
 const WALLPAPER_PRESETS = [
-{ label: 'Default Nebula', value: DEFAULT_BG },
+{ label: 'Requested Wallpaper', value: DEFAULT_BG },
 { label: 'Aurora Drift', value: 'radial-gradient(130% 100% at 20% 10%, #2f6bff 0%, #12213f 45%, #050509 100%)' },
 { label: 'Sunset Grid', value: 'linear-gradient(140deg, #2a0f1f 0%, #5f2448 42%, #f26a55 100%)' },
 { label: 'Midnight Matrix', value: 'linear-gradient(160deg, #001f0f 0%, #033a22 45%, #020507 100%)' }
