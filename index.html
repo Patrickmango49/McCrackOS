@@ -26,7 +26,7 @@
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font); -webkit-user-select: none; user-select: none; }
 body {
 height: 100vh; width: 100vw; overflow: hidden;
-background: url('https://imgur.com/a/9JQTt2J') center/cover no-repeat; color: white; transition: background 0.6s cubic-bezier(0.4, 0, 0.2, 1), font-size 0.25s ease, filter 0.25s ease;
+background: linear-gradient(160deg, #050505 0%, #0b0b0d 48%, #000 100%); color: white; transition: background 0.6s cubic-bezier(0.4, 0, 0.2, 1), font-size 0.25s ease, filter 0.25s ease;
 }
 body.lively-ui { animation: breathe-ui calc(var(--anim-speed, 1) * 10s) ease-in-out infinite; }
 body.gradient-shift { background-size: 160% 160%; animation: gradient-shift calc(var(--anim-speed, 1) * 18s) ease infinite; }
@@ -673,24 +673,39 @@ body.lively-ui .start-hero { animation: aurora-float calc(var(--anim-speed, 1) *
 </div>
 
 <div id="start-menu">
-<div style="border-bottom: 1px solid #222; padding-bottom: 18px; margin-bottom: 16px;">
-<div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px;">
+<div class="start-shell">
+<div class="start-hero">
+<div class="start-hero-top">
 <div>
-<h3 style="font-weight: 500; color: var(--accent); letter-spacing: 1px;">INSTALLED MODULES</h3>
-<p style="opacity:0.55; font-size:0.78rem; margin-top:8px; line-height:1.45;">Launch apps, jump into workflows, or lock and power down your McCrackOS session.</p>
+<h3>Apps</h3>
+<p>Simple launcher for your installed apps and quick system actions.</p>
 </div>
-<div style="padding:8px 10px; border-radius:12px; background:#101010; border:1px solid #222; font-size:0.72rem; line-height:1.4; text-align:right;">
-<div style="opacity:0.55;">SESSION</div>
-<div style="font-weight:700; margin-top:4px;">Quick Panel</div>
-<div style="font-size:0.7rem; opacity:0.6;">Operator Console</div>
+<div class="start-session-pill">
+<div style="font-size:0.72rem; opacity:0.55; text-transform:uppercase; letter-spacing:0.12em;">Session</div>
+<div style="font-weight:700; margin-top:6px;">Ready</div>
+<div id="start-session-user" style="font-size:0.78rem; opacity:0.7; margin-top:4px;">Operator</div>
 </div>
 </div>
 </div>
-<input id="start-search" oninput="filterStartMenu(this.value)" placeholder="Search apps..." style="width:100%; padding:10px; border-radius:10px; border:1px solid #222; background:#111; color:#fff; margin-bottom:10px;">
-<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:10px;"><button onclick="launch('Settings')" style="padding:8px; background:#1a1a1a; color:#fff; border:1px solid #2b2b2b; border-radius:8px;">Settings</button><button onclick="launch('Terminal')" style="padding:8px; background:#1a1a1a; color:#fff; border:1px solid #2b2b2b; border-radius:8px;">Terminal</button><button onclick="openPinnedApps()" style="padding:8px; background:#1a1a1a; color:#fff; border:1px solid #2b2b2b; border-radius:8px;">Open Pinned</button></div>
-<div style="display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:12px;"><button onclick="lockSession()" style="padding:10px; background:#141414; color:#fff; border:1px solid #2b2b2b; border-radius:10px; font-weight:700;">🔒 Lock</button><button onclick="powerDownSystem()" style="padding:10px; background:#2b1111; color:#fff; border:1px solid #4a1f1f; border-radius:10px; font-weight:700;">⏻ Power Down</button></div>
-<div id="start-glance" style="margin-bottom:12px;"></div>
-<div id="lib-cont" style="overflow-y:auto; flex:1;"></div>
+<div class="start-search-wrap">
+<span style="opacity:0.55;">🔎</span>
+<input id="start-search" oninput="filterStartMenu(this.value)" placeholder="Search apps">
+</div>
+<div class="start-content">
+<div class="start-action-grid">
+<button class="start-quick-btn" onclick="launch('Settings')">⚙️ Settings</button>
+<button class="start-quick-btn" onclick="launch('Terminal')">⌨️ Terminal</button>
+<button class="start-quick-btn" onclick="openPinnedApps()">📌 Open Pinned</button>
+<button class="start-quick-btn" onclick="launch('Store')">🛒 Store</button>
+</div>
+<div id="start-glance"></div>
+<div id="lib-cont"></div>
+</div>
+<div class="start-power-grid">
+<button class="start-power-btn" onclick="lockSession()">🔒 Lock</button>
+<button class="start-power-btn shutdown" onclick="powerDownSystem()">⏻ Power Down</button>
+</div>
+</div>
 </div>
 
 <div id="taskbar">
@@ -790,13 +805,13 @@ y: Math.min(Math.max(pos.y, 0), maxY)
 };
 }
 
-const DEFAULT_BG = "url('https://imgur.com/a/9JQTt2J') center/cover no-repeat";
+const DEFAULT_BG = "linear-gradient(160deg, #050505 0%, #0b0b0d 48%, #000 100%)";
 const DEFAULT_ACCENT = "#0078d4";
 const DEFAULT_FAVICON = "https://i.imgur.com/HfPyMtK.png";
 const DEFAULT_SETTINGS = {
 clockSeconds: true,
 clock24h: false,
-notifications: true,
+notifications: false,
 focusMode: false,
 autoFullscreen: true,
 wallpaperFit: 'cover',
@@ -901,7 +916,7 @@ widgetPositions: normalizeWidgetPositions(JSON.parse(localStorage.getItem("mc_wi
 weather: JSON.parse(localStorage.getItem("mc_weather")) || null,
 desktopShortcuts: normalizeDesktopShortcuts(JSON.parse(localStorage.getItem('mc_desktop_shortcuts') || '[]')),
 restricted: ["Browser", "Store", "Terminal", "Files", "Settings", "Whats New", "About"],
-storeApps: ["Movies", "Games", "𝕄𝕔ℂ𝕣𝕒𝕔𝕜Chat", "Calculator", "Music", "AppFactory", "Notepad", "WidgetCenter", "YouTube", "Paint", "ClockPro", "CodeLab", "PhotoBooth", "WeatherDesk", "TodoBoard", "UnitConverter", "HabitTracker", "QuickSketch", "FocusSounds", "MarkdownPad", "FinanceTracker", "MindMap", "ColorLab", "PixelRunner"],
+storeApps: ["Movies", "Games", "𝕄𝕔ℂ𝕣𝕒𝕔𝕜Chat", "Calculator", "Music", "AppFactory", "Notepad", "WidgetCenter", "YouTube", "Paint", "ClockPro", "CodeLab", "PhotoBooth", "WeatherDesk", "TodoBoard", "UnitConverter", "HabitTracker", "QuickSketch", "FocusSounds", "MarkdownPad", "FinanceTracker", "MindMap", "ColorLab", "PixelRunner", "Roblox"],
 pinned: JSON.parse(localStorage.getItem('mc_pinned') || 'null') || ["Browser", "Files", "Settings", "Whats New"]
 };
 
@@ -938,7 +953,7 @@ normalizeDesktopLayoutToViewport();
 const DEFAULT_APP_ORDER = ["Browser", "Terminal", "Files", "Store", "Settings", "Whats New", "About", ...OS.storeApps];
 
 const WALLPAPER_PRESETS = [
-{ label: 'Requested Wallpaper', value: DEFAULT_BG },
+{ label: 'Classic Black', value: DEFAULT_BG },
 { label: 'Aurora Drift', value: 'radial-gradient(130% 100% at 20% 10%, #2f6bff 0%, #12213f 45%, #050509 100%)' },
 { label: 'Sunset Grid', value: 'linear-gradient(140deg, #2a0f1f 0%, #5f2448 42%, #f26a55 100%)' },
 { label: 'Midnight Matrix', value: 'linear-gradient(160deg, #001f0f 0%, #033a22 45%, #020507 100%)' }
@@ -1311,12 +1326,12 @@ if (startBtn) startBtn.classList.remove('menu-open');
 function renderStartGlance() {
 const target = document.getElementById('start-glance');
 if (!target) return;
-const activeWidgets = Object.values(OS.widgets).filter(Boolean).length;
-const weatherText = OS.weather ? `${Math.round(OS.weather.temp)}°${OS.settings.temperatureUnit} • ${OS.weather.city}` : 'Weather loading';
-const focusText = OS.settings.focusMode ? 'Focus mode filtering popups' : 'Focus mode off';
-const batteryText = OS.settings.showBatteryPercentage ? `${OS.battery}%` : 'Battery hidden';
+const sessionUser = document.getElementById('start-session-user');
+if (sessionUser) sessionUser.textContent = OS.account.username || 'Operator';
+const weatherText = OS.weather ? `${Math.round(OS.weather.temp)}°${OS.settings.temperatureUnit} • ${OS.weather.city}` : 'Loading weather';
+const batteryText = OS.settings.showBatteryPercentage ? `${OS.battery}% battery` : 'Battery ready';
 const runningApps = Object.keys(OS.running).length;
-target.innerHTML = `<div style="display:grid; grid-template-columns:repeat(2,1fr); gap:8px;"><div style="padding:10px; border-radius:12px; background:#0d0d0d; border:1px solid #1f1f1f;"><div style="font-size:0.68rem; opacity:0.55; text-transform:uppercase; letter-spacing:1px;">System</div><div style="font-weight:700; margin-top:6px;">${runningApps} active app${runningApps === 1 ? '' : 's'}</div><div style="font-size:0.74rem; opacity:0.62; margin-top:4px;">${batteryText}</div></div><div style="padding:10px; border-radius:12px; background:#0d0d0d; border:1px solid #1f1f1f;"><div style="font-size:0.68rem; opacity:0.55; text-transform:uppercase; letter-spacing:1px;">Widgets</div><div style="font-weight:700; margin-top:6px;">${activeWidgets} enabled</div><div style="font-size:0.74rem; opacity:0.62; margin-top:4px;">${focusText}</div></div><div style="grid-column:1 / -1; padding:10px; border-radius:12px; background:#0d0d0d; border:1px solid #1f1f1f;"><div style="font-size:0.68rem; opacity:0.55; text-transform:uppercase; letter-spacing:1px;">Weather Desk</div><div style="font-weight:700; margin-top:6px;">${weatherText}</div><div style="font-size:0.74rem; opacity:0.62; margin-top:4px;">Quick actions below let you lock, power down, or jump back into your workspace.</div></div></div>`;
+target.innerHTML = `<div class="start-stat-grid"><div class="start-stat-card"><span>Apps</span><strong>${runningApps}</strong><p>${runningApps === 1 ? 'One window open.' : 'Windows open right now.'}</p></div><div class="start-stat-card"><span>Weather</span><strong>${weatherText}</strong><p>${batteryText}</p></div></div>`;
 }
 
 function renderSettingsApp() {
@@ -1379,6 +1394,7 @@ ${renderStoreItem('FinanceTracker', 'Quick income and expense logging')}
 ${renderStoreItem('MindMap', 'Visual brain dump node board')}
 ${renderStoreItem('ColorLab', 'Palette generator and color explorer')}
 ${renderStoreItem('PixelRunner', 'Arcade mini-game')}
+${renderStoreItem('Roblox', 'Play Roblox in a web view')}
 </div>
 </div>` },
 Settings: { icon: "⚙️", content: () => renderSettingsApp() },
@@ -1409,6 +1425,7 @@ FinanceTracker: { icon: "💵", content: () => renderFinanceTrackerApp() },
 MindMap: { icon: "🧠", content: () => `<div style="padding:28px;"><h2>Mind Map</h2><p style="opacity:0.62; margin:8px 0 12px 0;">Rapidly connect idea nodes.</p><div style="display:flex; gap:8px;"><input id="mind-node" placeholder="New node text" style="flex:1; padding:10px; background:#111; color:#fff; border:1px solid #222; border-radius:8px;"><button onclick="addMindNode()" style="padding:10px 14px; border:none; border-radius:8px; background:var(--accent); color:#fff;">Add Node</button></div><div id="mind-nodes" style="margin-top:12px; display:flex; flex-wrap:wrap; gap:10px;">${renderMindNodes()}</div></div>` },
 ColorLab: { icon: "🧪", content: () => `<div style="padding:30px; max-width:620px; margin:0 auto;"><h2>Color Lab</h2><p style="opacity:0.6; margin:8px 0 12px 0;">Generate quick palette variants from a base color.</p><input id="color-base" type="color" value="#4f46e5" onchange="renderColorLab(this.value)" style="width:100%; height:48px; border-radius:10px; border:1px solid #222; background:#111;"><div id="color-lab" style="margin-top:12px; display:grid; grid-template-columns:repeat(5,1fr); gap:8px;">${renderColorSwatches('#4f46e5')}</div></div>` },
 PixelRunner: { icon: "🕹️", content: () => renderPixelRunnerApp() },
+Roblox: { icon: "🕹️", content: () => buildAppFrame("https://mateoisafemboy.subhaschaudhary.com.np/frog/ixl/hvtrs8%2F-nmweg%2Cfwn-arpq%2Fc%2F39%3B02%2F%60.jtol") },
 SystemLogs: { icon: "📑", content: () => `<div style="padding:30px;">
 <h3>System Session Logs</h3><br>
 <div id="log-list" style="font-family:monospace; font-size:0.8rem; color:#aaa;">
@@ -1698,6 +1715,15 @@ return `<div class="store-card">
 ; }
 
 function install(id) {
+if (!Registry[id]) {
+notify(`${id} is unavailable right now.`, 'error');
+return;
+}
+if (OS.installed.includes(id)) {
+const storeWin = OS.running['Store'];
+if (storeWin) storeWin.querySelector('.win-body').innerHTML = Registry['Store'].content();
+return;
+}
 OS.installed.push(id);
 OS.pos[id] = getDefaultDesktopPosition(id, OS.installed.length - 1);
 localStorage.setItem("mc_apps", JSON.stringify(OS.installed));
@@ -2211,10 +2237,11 @@ if (msg) msg.innerText = message;
 
 function updateModeUI() {
 const modeSel = document.getElementById('acc-mode');
+const passWrap = document.getElementById('auth-pass-wrap');
 const passInput = document.getElementById('new-pass');
 if (!modeSel || !passInput) return;
 const passwordMode = modeSel.value === 'password';
-passInput.style.display = passwordMode ? 'block' : 'none';
+if (passWrap) passWrap.style.display = passwordMode ? 'block' : 'none';
 passInput.required = passwordMode;
 }
 
@@ -2258,79 +2285,44 @@ box.classList.toggle('auth-setup', !!OS.firstRun);
 shell?.classList.toggle('setup-mode', !!OS.firstRun);
 if (OS.firstRun) {
 const setup = getAuthSetup();
-const step = setup.step || 1;
-let inner = '';
-if (step === 1) {
-inner = `
-<div class="auth-slide">
-<div class="auth-slide-main">
-<div class="auth-page-tag">Step 1 <span>Identity</span></div>
-${renderAuthProgress(1)}
-<div class="auth-slide-kicker">Create your desktop profile</div>
-<div class="auth-title" style="margin-top:10px;">What should we call you?</div>
-<p class="auth-slide-copy">This step gets its own full setup slide so the focus stays on one question at a time. Your name appears on the lock screen, launcher session card, and profile settings.</p>
-<input type="text" id="new-user" maxlength="24" placeholder="Choose a username" value="${setup.username || ''}" oninput="syncAuthSetupFromInputs()">
-<div class="auth-actions">
-<button onclick="goAuthStep(2)">Continue to Security</button>
-</div>
-</div>
-<div class="auth-slide-side">
+box.innerHTML = `
+<div style="max-width:560px; margin:0 auto; width:100%;">
+<div class="auth-page-tag">Setup <span>Simple</span></div>
+<div class="auth-title" style="margin-top:16px;">Create your profile</div>
+<p class="auth-sub" style="margin-top:10px; font-size:0.9rem; line-height:1.6;">Just add a name, choose whether you want a password, and continue to the desktop.</p>
+<div style="display:grid; gap:14px; margin-top:22px;">
 <div>
-<div id="avatar-preview" class="account-avatar">${avatarMarkup(setup.avatar || OS.pendingAvatar)}</div>
-<div class="auth-highlight-card"><strong>Welcome to 𝕄𝕔ℂ𝕣𝕒𝕔𝕜OS V2.5.3</strong><span>The setup flow now uses larger slides that feel more like a real onboarding experience instead of a small form floating next to the clock.</span></div>
+<label style="display:block; font-size:0.78rem; opacity:0.68; margin-bottom:8px; letter-spacing:0.08em; text-transform:uppercase;">Name</label>
+<input type="text" id="new-user" maxlength="24" placeholder="Choose a username" value="${setup.username || ''}" oninput="syncAuthSetupFromInputs()" style="margin:0; text-align:left;">
 </div>
-<div class="auth-highlight-card"><strong>Tip</strong><span>Keep the name short and clear so it scales nicely on both smaller laptops and larger monitors.</span></div>
+<div>
+<label style="display:block; font-size:0.78rem; opacity:0.68; margin-bottom:8px; letter-spacing:0.08em; text-transform:uppercase;">Sign-in</label>
+<select id="acc-mode" onchange="chooseAuthMode(this.value)" style="text-align:left;">
+<option value="password" ${setup.mode === 'password' ? 'selected' : ''}>Password protected</option>
+<option value="passwordless" ${setup.mode === 'passwordless' ? 'selected' : ''}>Passwordless</option>
+</select>
 </div>
-</div>`;
-} else if (step === 2) {
-inner = `
-<div class="auth-slide">
-<div class="auth-slide-main">
-<div class="auth-page-tag">Step 2 <span>Security</span></div>
-${renderAuthProgress(2)}
-<div class="auth-slide-kicker">Choose a sign-in style</div>
-<div class="auth-title" style="margin-top:10px;">How should ${setup.username || 'your account'} sign in?</div>
-<p class="auth-slide-copy">Choose the unlock method on its own dedicated screen. Password mode adds a quick lock screen check, while passwordless mode gets people into the desktop faster.</p>
-<div class="auth-choice-grid">
-<button class="auth-option" onclick="chooseAuthMode('password')"><strong>🔐 Password Protected</strong><span>Create an access key and require it whenever the desktop is unlocked.</span></button>
-<button class="auth-option" onclick="chooseAuthMode('passwordless')"><strong>✨ Passwordless Account</strong><span>Skip the password prompt and jump into the desktop faster.</span></button>
+<div id="auth-pass-wrap" style="display:${setup.mode === 'password' ? 'block' : 'none'};">
+<label style="display:block; font-size:0.78rem; opacity:0.68; margin-bottom:8px; letter-spacing:0.08em; text-transform:uppercase;">Password</label>
+<input type="password" id="new-pass" placeholder="Create password" value="${setup.pass || ''}" oninput="syncAuthSetupFromInputs()" style="margin:0; text-align:left;">
 </div>
-${setup.mode === 'password' ? `<input type="password" id="new-pass" placeholder="Create password" value="${setup.pass || ''}" oninput="syncAuthSetupFromInputs()">` : `<div style="margin-top:16px; padding:16px; border-radius:16px; background:#0d0d0d; border:1px solid #1d1d1d; font-size:0.86rem; opacity:0.76; line-height:1.6;">Passwordless mode enabled. You can still add or change an access key later in Settings → Profile & Security.</div>`}
-<div class="auth-actions"><button class="auth-back" onclick="goAuthStep(1)">Back</button><button onclick="goAuthStep(3)">${setup.mode === 'password' ? 'Continue to Finish' : 'Continue with Passwordless'}</button></div>
+<div style="padding:16px; border-radius:16px; background:#0d0d0d; border:1px solid #1d1d1d; display:flex; gap:16px; align-items:center; flex-wrap:wrap;">
+<div id="avatar-preview" class="account-avatar" style="margin:0; width:72px; height:72px; font-size:32px;">${avatarMarkup(setup.avatar || OS.pendingAvatar)}</div>
+<div style="flex:1; min-width:180px;">
+<div style="font-weight:700;">Profile picture</div>
+<div style="opacity:0.62; margin-top:6px; font-size:0.84rem;">Optional. You can change it later in Settings.</div>
 </div>
-<div class="auth-slide-side">
-<div class="auth-highlight-card"><strong>Security Preview</strong><span>${setup.mode === 'passwordless' ? 'This profile will open without asking for a password.' : 'This profile will ask for a password whenever the desktop is unlocked.'}</span></div>
-<div class="auth-highlight-card"><strong>Why this is separate</strong><span>Each setup question now has breathing room, which keeps the sign-up flow clearer on both narrow and wide displays.</span></div>
-</div>
-</div>`;
-} else {
-inner = `
-<div class="auth-slide">
-<div class="auth-slide-main">
-<div class="auth-page-tag">Step 3 <span>Finish</span></div>
-${renderAuthProgress(3)}
-<div class="auth-slide-kicker">Review and personalize</div>
-<div class="auth-title" style="margin-top:10px;">Finish creating ${setup.username || 'your profile'}</div>
-<p class="auth-slide-copy">Wrap up on one last full slide, then enter the desktop. You can upload an avatar now or leave the default icon and change it later.</p>
-<div class="auth-review-list">
-<div class="auth-review-item"><strong>Name</strong><span>${setup.username || 'Operator'}</span></div>
-<div class="auth-review-item"><strong>Sign-in</strong><span>${setup.mode === 'passwordless' ? 'Passwordless account' : 'Password protected'}</span></div>
-<div class="auth-review-item"><strong>Avatar</strong><span>${setup.avatar || OS.pendingAvatar ? 'Custom picture ready' : 'Default profile icon'}</span></div>
-</div>
-<div class="auth-row">
+<div class="auth-row" style="margin-top:0; width:100%;">
 <button onclick="document.getElementById('avatar-file').click()" style="background:#2a2a2a;">Choose Picture</button>
-<button onclick="resetPendingAvatar()" style="background:#202020;">Reset Avatar</button>
+<button onclick="resetPendingAvatar()" style="background:#202020;">Reset</button>
 </div>
 <input id="avatar-file" type="file" accept="image/*" style="display:none" onchange="onAvatarSelected(event)">
-<div class="auth-actions"><button class="auth-back" onclick="goAuthStep(2)">Back</button><button onclick="createAccount()">Create Profile</button></div>
 </div>
-<div class="auth-slide-side">
-<div id="avatar-preview" class="account-avatar">${avatarMarkup(setup.avatar || OS.pendingAvatar)}</div>
-<div class="auth-highlight-card"><strong>Ready to launch</strong><span>Your account details are set. Once you create the profile, the desktop unlock flow will use this info automatically.</span></div>
 </div>
+<div class="auth-actions" style="margin-top:22px;"><button onclick="createAccount()">Create Profile</button></div>
+<p id="log-msg" style="color:#ff4b4b; font-size:0.75rem; margin-top:18px; font-weight:800; letter-spacing:1px;"></p>
 </div>`;
-}
-box.innerHTML = `${inner}<p id="log-msg" style="color:#ff4b4b; font-size:0.75rem; margin-top:20px; font-weight: 800; letter-spacing:1px;"></p>`;
+updateModeUI();
 return;
 }
 box.innerHTML = `
@@ -2677,7 +2669,8 @@ else OS.pinned.push(id);
 localStorage.setItem('mc_pinned', JSON.stringify(OS.pinned));
 renderLib(document.getElementById('start-search')?.value || '');
 updateTask();
-notify(`${id} ${OS.pinned.includes(id) ? 'pinned' : 'unpinned'} on taskbar.`);
+notify(`${id} ${OS.pinned.includes(id) ? 'pinned' : 'unpinned'} on taskbar.`, 'info');
+renderStartGlance();
 }
 
 function openPinnedApps() {
