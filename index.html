@@ -9,7 +9,8 @@
 :root {
 --accent: #0078d4;
 --top-bar-h: 32px;
---taskbar-h: 65px;
+--taskbar-h: 54px;
+--screen-pad: clamp(12px, 2vw, 30px);
 --panel: rgba(10, 10, 10, 0.98);
 --win-bg: #050505;
 --border: 1px solid rgba(255, 255, 255, 0.12);
@@ -19,7 +20,6 @@
 --glass-blur: 25px;
 --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
 --danger: #ff4b4b;
---cursor-custom: auto;
 }
 
 /* --- GLOBAL RESET --- */
@@ -41,13 +41,6 @@ body.high-contrast #start-menu,
 body.high-contrast .widget-card,
 body.high-contrast .login-box { border-color: rgba(255,255,255,0.35); box-shadow: 0 0 0 1px rgba(255,255,255,0.12), 0 24px 48px rgba(0,0,0,0.8); }
 body.high-contrast .task-tab.active { box-shadow: 0 0 0 1px rgba(255,255,255,0.4); }
-html.custom-cursor,
-html.custom-cursor body,
-html.custom-cursor body *,
-html.custom-cursor button,
-html.custom-cursor input,
-html.custom-cursor textarea,
-html.custom-cursor select { cursor: var(--cursor-custom) !important; }
 
 /* --- TOP BAR --- */
 #top-bar {
@@ -112,14 +105,20 @@ text-align: left;
 #login {
 position: fixed; inset: 0; display: none; background: linear-gradient(160deg, rgba(5,5,5,0.84), rgba(0,0,0,0.95));
 backdrop-filter: var(--blur); z-index: 9900; align-items: center; justify-content: center;
+padding: var(--screen-pad);
 }
 .lockscreen-shell {
-width: min(980px, 92vw);
+width: min(1180px, 100%);
 display: grid;
-grid-template-columns: 1fr minmax(330px, 430px);
-gap: 30px;
-align-items: center;
+grid-template-columns: minmax(260px, 0.95fr) minmax(0, 1.15fr);
+gap: clamp(18px, 3vw, 34px);
+align-items: stretch;
 }
+.lockscreen-shell.setup-mode {
+grid-template-columns: minmax(220px, 0.72fr) minmax(0, 1.28fr);
+}
+.lockscreen-shell.setup-mode .lockscreen-time-wrap { display: none; }
+.lockscreen-shell.setup-mode .lockscreen-top { display: grid; align-content: start; }
 .lockscreen-top p {
 font-size: clamp(1.1rem, 2vw, 1.45rem);
 opacity: 0.82;
@@ -149,12 +148,21 @@ text-transform: uppercase;
 }
 .login-box {
 background: linear-gradient(165deg, rgba(15,15,15,0.98), rgba(0,0,0,0.96));
-padding: 38px;
+padding: clamp(24px, 4vw, 40px);
 border-radius: 26px;
 border: 1px solid rgba(255,255,255,0.16);
 width: 100%;
 text-align: center;
 box-shadow: var(--shadow);
+min-height: min(72vh, 760px);
+display: flex;
+flex-direction: column;
+justify-content: center;
+}
+.login-box.auth-setup {
+text-align: left;
+min-height: min(78vh, 860px);
+padding: clamp(28px, 4.5vw, 52px);
 }
 .login-box h2 { font-weight: 300; letter-spacing: 1px; }
 .auth-title { font-size: 1.7rem; font-weight: 700; letter-spacing: 0.07em; }
@@ -192,7 +200,7 @@ overflow: hidden;
 .auth-row button { flex: 1; padding: 12px; font-size: 0.86rem; }
 .auth-sub { font-size: 0.8rem; opacity: 0.66; margin-top: 8px; }
 .auth-page-tag { display:inline-flex; align-items:center; gap:8px; padding:7px 12px; border-radius:999px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08); font-size:0.72rem; letter-spacing:0.14em; text-transform:uppercase; opacity:0.75; }
-.auth-progress { display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin:18px 0 24px 0; }
+.auth-progress { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:10px; margin:22px 0 28px 0; }
 .auth-step-badge { padding:10px 12px; border-radius:14px; background:#101010; border:1px solid rgba(255,255,255,0.08); text-align:left; }
 .auth-step-badge strong { display:block; font-size:0.82rem; }
 .auth-step-badge span { display:block; margin-top:4px; font-size:0.68rem; opacity:0.58; text-transform:uppercase; letter-spacing:0.12em; }
@@ -204,15 +212,66 @@ overflow: hidden;
 .auth-option strong { display:block; font-size:1rem; }
 .auth-option span { display:block; margin-top:6px; font-size:0.8rem; opacity:0.66; line-height:1.45; }
 .auth-back { background:#1b1b1b !important; border:1px solid rgba(255,255,255,0.08) !important; }
+.auth-slide {
+display:grid;
+grid-template-columns: minmax(0, 1.15fr) minmax(260px, 0.85fr);
+gap: clamp(18px, 3vw, 34px);
+align-items: stretch;
+min-height: 100%;
+}
+.auth-slide-main,
+.auth-slide-side {
+border-radius: 24px;
+border: 1px solid rgba(255,255,255,0.08);
+}
+.auth-slide-main {
+padding: clamp(24px, 4vw, 42px);
+background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015));
+display:flex;
+flex-direction:column;
+justify-content:center;
+}
+.auth-slide-side {
+padding: clamp(20px, 3vw, 30px);
+background: radial-gradient(circle at top, rgba(0,120,212,0.18), rgba(255,255,255,0.02));
+display:flex;
+flex-direction:column;
+justify-content:space-between;
+gap: 18px;
+}
+.auth-slide-kicker { font-size:0.75rem; letter-spacing:0.18em; text-transform:uppercase; opacity:0.58; }
+.auth-slide-copy { font-size:0.92rem; opacity:0.72; line-height:1.7; margin-top:14px; max-width: 54ch; }
+.auth-highlight-card { padding:18px; border-radius:18px; background:rgba(0,0,0,0.28); border:1px solid rgba(255,255,255,0.08); }
+.auth-highlight-card strong { display:block; font-size:1rem; }
+.auth-highlight-card span { display:block; margin-top:7px; font-size:0.82rem; line-height:1.55; opacity:0.72; }
+.auth-review-list { display:grid; gap:12px; margin-top:20px; }
+.auth-review-item { padding:14px 16px; border-radius:16px; background:#0d0d0d; border:1px solid #1d1d1d; }
+.auth-review-item strong { display:block; font-size:0.76rem; letter-spacing:0.14em; text-transform:uppercase; opacity:0.58; }
+.auth-review-item span { display:block; margin-top:8px; font-size:1rem; }
+.auth-actions { display:flex; gap:12px; margin-top:20px; flex-wrap:wrap; }
+.auth-actions button { flex:1; min-width:180px; }
 
-@media (max-width: 860px) {
-.lockscreen-shell { grid-template-columns: 1fr; gap: 18px; }
+@media (max-width: 980px) {
+.lockscreen-shell,
+.lockscreen-shell.setup-mode,
+.auth-slide { grid-template-columns: 1fr; }
 #lock-time { font-size: clamp(3.1rem, 15vw, 6rem); }
-.login-box { max-width: 480px; }
+.login-box { max-width: 100%; min-height: auto; }
+.login-box.auth-setup { min-height: auto; }
+}
+
+@media (max-width: 640px) {
+#login { align-items: stretch; overflow: auto; }
+.lockscreen-shell { width: 100%; }
+.login-box,
+.login-box.auth-setup { padding: 22px; border-radius: 22px; }
+.auth-progress { grid-template-columns: 1fr; }
+.auth-actions button,
+.auth-row button { min-width: 0; }
 }
 
 /* --- WORKSPACE --- */
-#desktop { position: absolute; inset: var(--top-bar-h) 0 var(--taskbar-h) 0; display: none; z-index: 100; padding: 30px; }
+#desktop { position: absolute; inset: var(--top-bar-h) 0 var(--taskbar-h) 0; display: none; z-index: 100; padding: var(--screen-pad); overflow: hidden; }
 .desktop-hero {
 position: absolute;
 left: 50%;
@@ -242,7 +301,7 @@ z-index: 240;
 pointer-events: none;
 }
 .widget-card {
-width: 260px;
+width: min(260px, calc(100vw - 32px));
 position: absolute;
 background: rgba(0,0,0,0.58);
 border: 1px solid rgba(255,255,255,0.15);
@@ -370,7 +429,7 @@ display: none;
 
 /* --- DELETE BIN --- */
 #delete-bin {
-position: absolute; bottom: 120px; right: 30px; width: 100px; height: 120px;
+position: absolute; bottom: calc(var(--taskbar-h) + 34px); right: var(--screen-pad); width: clamp(76px, 10vw, 100px); height: clamp(92px, 13vw, 120px);
 display: flex; flex-direction: column; align-items: center; justify-content: center;
 background: rgba(255, 75, 75, 0.05); border: 2px dashed rgba(255, 75, 75, 0.2);
 border-radius: 20px; transition: 0.3s; z-index: 110;
@@ -424,12 +483,12 @@ animation: toast-in 220ms ease forwards;
 
 /* --- APPLICATION LIBRARY --- */
 #start-menu {
-position: absolute; bottom: 84px; left: 18px; width: min(760px, calc(100vw - 36px)); height: min(760px, calc(100vh - 118px));
+position: absolute; bottom: calc(var(--taskbar-h) + 22px); left: 50%; transform: translateX(-50%); width: min(640px, calc(100vw - 24px)); height: min(560px, calc(100vh - 104px));
 background: linear-gradient(180deg, rgba(12,12,12,0.99), rgba(4,4,4,0.98)); border: 1px solid rgba(255,255,255,0.12); border-radius: 34px;
 backdrop-filter: blur(34px); display: none; flex-direction: column; padding: 22px; z-index: 9999; box-shadow: var(--shadow);
 animation: panel-pop 240ms ease; gap: 18px;
 }
-.start-shell { display: grid; grid-template-rows: auto auto auto 1fr; gap: 18px; height: 100%; }
+.start-shell { display: grid; grid-template-rows: auto auto 1fr auto; gap: 16px; height: 100%; }
 .start-hero { padding: 18px; border-radius: 22px; background: linear-gradient(135deg, rgba(0,120,212,0.2), rgba(255,255,255,0.04)); border: 1px solid rgba(255,255,255,0.08); }
 .start-hero-top { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; }
 .start-hero h3 { font-weight: 650; letter-spacing: 0.08em; color: #fff; font-size: 1.05rem; }
@@ -444,8 +503,8 @@ animation: panel-pop 240ms ease; gap: 18px;
 .start-quick-btn, .start-power-btn { padding: 16px 14px; border-radius: 18px; border:1px solid #262626; background:#131313; color:#fff; font-weight:700; cursor:pointer; transition: transform 160ms ease, border-color 160ms ease, background 160ms ease; min-height:54px; }
 .start-quick-btn:hover, .start-power-btn:hover { transform: translateY(-1px); border-color: rgba(0,120,212,0.45); background: rgba(0,120,212,0.12); }
 .start-power-btn.shutdown { background:#241212; border-color:#4a1f1f; }
-.start-content { min-height: 0; display:grid; grid-template-columns: minmax(0, 1.45fr) minmax(300px, 0.95fr); gap: 18px; }
-.start-side-stack { min-height:0; display:grid; gap:18px; grid-template-rows:auto auto auto 1fr; }
+.start-content { min-height: 0; display:grid; grid-template-columns: 1fr; gap: 16px; }
+.start-side-stack { min-height:0; display:grid; gap:16px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .start-panel { min-height:0; background:#090909; border:1px solid #1a1a1a; border-radius: 24px; padding: 18px; }
 .start-panel h4 { font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.55; margin-bottom: 12px; }
 .start-stat-card { padding:12px; border-radius:14px; background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)); border:1px solid #1e1e1e; }
@@ -477,9 +536,9 @@ animation: window-in 220ms ease;
 /* --- SYSTEM TASKBAR --- */
 #taskbar {
 position: fixed; bottom: 8px; left: 50%; transform: translateX(-50%);
-width: min(1180px, calc(100vw - 24px)); height: calc(var(--taskbar-h) + 4px);
+width: min(1040px, calc(100vw - 16px)); height: calc(var(--taskbar-h) + 2px);
 background: rgba(5, 5, 5, 0.9); backdrop-filter: blur(var(--glass-blur));
-display: flex; align-items: center; padding: 0 24px; z-index: 8500; border: var(--border); border-radius: 24px;
+display: flex; align-items: center; padding: 0 16px; z-index: 8500; border: var(--border); border-radius: 20px;
 transition: background 250ms ease, border-color 250ms ease, transform 220ms ease, opacity 220ms ease;
 }
 body.taskbar-hidden #taskbar { transform: translate(-50%, calc(100% + 20px)); opacity: 0; pointer-events: none; }
@@ -504,14 +563,27 @@ display: none;
 }
 body.taskbar-hidden #taskbar-peek-tab { display: block; }
 body.taskbar-hidden.taskbar-peek #taskbar-peek-tab { transform: translateX(-50%) translateY(0); }
-#task-list { flex: 1; display: flex; justify-content: center; gap: 12px; margin: 0 20px; overflow-x: auto; padding: 10px 0; }
+#task-list { flex: 1; display: flex; justify-content: center; gap: 10px; margin: 0 14px; overflow-x: auto; padding: 8px 0; min-width: 0; }
 .task-tab { padding: 12px 18px; background: rgba(255,255,255,0.04); border-radius: 14px; font-size: 0.84rem; cursor: pointer; transition: 0.3s; white-space: nowrap; border: 1px solid transparent; color: #888; }
 .task-tab.active { background: rgba(0, 120, 212, 0.15); border-color: var(--accent); box-shadow: 0 0 20px rgba(0,120,212,0.25); color: white; }
 .task-tab.pinned-only { border-style: dashed; color: #b9b9b9; }
-#start-btn { width: 74px; height: 74px; display:flex; align-items:center; justify-content:center; border-radius:24px; background:linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04)); border:1px solid rgba(255,255,255,0.12); font-size:34px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 12px 24px rgba(0,0,0,0.28); transform: rotate(180deg); transition: transform 220ms ease, background 220ms ease, box-shadow 220ms ease; }
-#start-btn:hover, #start-btn:active, #start-btn.menu-open { transform: rotate(0deg) scale(1.04); background:linear-gradient(180deg, rgba(0,120,212,0.32), rgba(255,255,255,0.08)); box-shadow: 0 18px 34px rgba(0,0,0,0.34), 0 0 24px rgba(0,120,212,0.22); }
-#cursor-overlay { position:fixed; inset:auto auto 0 0; width:32px; height:32px; background-position:center; background-repeat:no-repeat; background-size:contain; pointer-events:none; z-index:20000; display:none; transform:translate(-999px,-999px); }
-html.cursor-overlay-on, html.cursor-overlay-on body, html.cursor-overlay-on body * { cursor:none !important; }
+#start-btn { width: 56px; height: 56px; display:flex; align-items:center; justify-content:center; border-radius:18px; background:linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04)); border:1px solid rgba(255,255,255,0.12); font-size:26px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 10px 20px rgba(0,0,0,0.24); transform: rotate(180deg); transition: transform 220ms ease, background 220ms ease, box-shadow 220ms ease; flex: 0 0 auto; }
+#start-btn:hover, #start-btn:active, #start-btn.menu-open { transform: rotate(0deg) scale(1.04); background:linear-gradient(180deg, rgba(0,120,212,0.32), rgba(255,255,255,0.08)); box-shadow: 0 14px 28px rgba(0,0,0,0.32), 0 0 20px rgba(0,120,212,0.22); }
+
+@media (max-width: 820px) {
+#start-menu { height: min(76vh, calc(100vh - 92px)); }
+.start-side-stack { grid-template-columns: 1fr; }
+.start-action-grid { grid-template-columns: 1fr; }
+#taskbar { padding: 0 12px; }
+.task-tab { padding: 10px 14px; }
+}
+
+@media (max-width: 560px) {
+#taskbar { width: calc(100vw - 10px); }
+#task-list { gap: 8px; margin: 0 10px; }
+.task-tab { font-size: 0.76rem; padding: 9px 12px; }
+#start-btn { width: 50px; height: 50px; font-size: 22px; }
+}
 
 /* --- APP CONTENT STYLING --- */
 .full-app-view { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #000; }
@@ -594,7 +666,6 @@ body.lively-ui .start-hero { animation: aurora-float calc(var(--anim-speed, 1) *
 <div id="desktop"></div>
 <div id="desktop-context-menu" aria-hidden="true"></div>
 <div id="notification-center"></div>
-<div id="cursor-overlay" aria-hidden="true"></div>
 
 <div id="delete-bin" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropDelete(event)">
 <div>🗑️</div>
@@ -607,59 +678,40 @@ body.lively-ui .start-hero { animation: aurora-float calc(var(--anim-speed, 1) *
 <div class="start-hero-top">
 <div>
 <h3>START HUB</h3>
-<p>Launch apps faster with a cleaner, more open layout, lighter side panels, and quick workspace controls.</p>
+<p>A smaller, cleaner launcher focused on the essentials so it stays easier to use on every screen size.</p>
 </div>
 <div class="start-session-pill">
 <div style="opacity:0.55; font-size:0.68rem; letter-spacing:0.14em; text-transform:uppercase;">Session</div>
 <div style="font-weight:700; margin-top:6px;">Operator Console</div>
-<div style="font-size:0.75rem; opacity:0.62; margin-top:4px;">Cleaner launcher + faster jump-in</div>
+<div style="font-size:0.75rem; opacity:0.62; margin-top:4px;">Quick launch essentials</div>
 </div>
 </div>
 </div>
 <div class="start-search-wrap">
 <span style="opacity:0.55;">🔎</span>
-<input id="start-search" oninput="filterStartMenu(this.value)" placeholder="Search apps, utilities, and docs...">
-</div>
-<div class="start-action-grid">
-<button class="start-quick-btn" onclick="launch('Settings')">⚙️ Settings</button>
-<button class="start-quick-btn" onclick="launch('Terminal')">⌨️ Terminal</button>
-<button class="start-quick-btn" onclick="launch('Whats New')">🆕 What's New</button>
-<button class="start-quick-btn" onclick="openPinnedApps()">📌 Open Pinned</button>
+<input id="start-search" oninput="filterStartMenu(this.value)" placeholder="Search apps...">
 </div>
 <div class="start-content">
 <div class="start-panel" style="display:flex; flex-direction:column;">
 <h4>Installed Apps</h4>
 <div id="lib-cont"></div>
 </div>
+</div>
 <div class="start-side-stack">
+<div class="start-panel">
+<h4>Quick Actions</h4>
+<div class="start-action-grid">
+<button class="start-quick-btn" onclick="launch('Settings')">⚙️ Settings</button>
+<button class="start-quick-btn" onclick="launch('Terminal')">⌨️ Terminal</button>
+<button class="start-quick-btn" onclick="launch('Whats New')">🆕 What's New</button>
+<button class="start-quick-btn" onclick="openPinnedApps()">📌 Open Pinned</button>
+</div>
+</div>
 <div class="start-panel">
 <h4>Power</h4>
 <div class="start-power-grid">
 <button class="start-power-btn" onclick="lockSession()">🔒 Lock</button>
 <button class="start-power-btn shutdown" onclick="powerDownSystem()">⏻ Power Down</button>
-</div>
-</div>
-<div class="start-panel">
-<h4>Quick Tools</h4>
-<div class="start-tool-grid">
-<button class="start-quick-btn" onclick="launch('About')">ℹ️ About</button>
-<button class="start-quick-btn" onclick="launch('WidgetCenter')">🧩 Widgets</button>
-<button class="start-quick-btn" onclick="launch('WeatherDesk')">🌦️ Weather</button>
-<button class="start-quick-btn" onclick="launch('TodoBoard')">✅ ToDo</button>
-</div>
-</div>
-<div class="start-panel">
-<h4>Workspace Scenes</h4>
-<div class="start-tool-grid">
-<button class="start-quick-btn" onclick="launchWorkspaceScene('study')">📚 Study</button>
-<button class="start-quick-btn" onclick="launchWorkspaceScene('creator')">🎬 Creator</button>
-<button class="start-quick-btn" onclick="launchWorkspaceScene('music')">🎧 Chill</button>
-<button class="start-quick-btn" onclick="launchWorkspaceScene('focus')">🚀 Focus</button>
-</div>
-</div>
-<div class="start-panel" style="display:flex; flex-direction:column; min-height:0;">
-<h4>Session Snapshot</h4>
-<div id="start-snapshot" style="overflow:auto;"></div>
 </div>
 </div>
 </div>
@@ -799,11 +851,7 @@ gradientShift: false,
 pulseAccent: true,
 livelyUi: true,
 glassIntensity: 'medium',
-privacyTelemetry: false,
-cursorUrl: '',
-cursorSource: 'default',
-cursorHotspotX: 8,
-cursorHotspotY: 8
+privacyTelemetry: false
 };
 
 const DEFAULT_ACCOUNT = {
@@ -859,10 +907,6 @@ if (typeof raw.pulseAccent === 'boolean') base.pulseAccent = raw.pulseAccent;
 if (typeof raw.livelyUi === 'boolean') base.livelyUi = raw.livelyUi;
 if (['low', 'medium', 'high'].includes(raw.glassIntensity)) base.glassIntensity = raw.glassIntensity;
 if (typeof raw.privacyTelemetry === 'boolean') base.privacyTelemetry = raw.privacyTelemetry;
-if (typeof raw.cursorUrl === 'string') base.cursorUrl = raw.cursorUrl;
-if (['default', 'upload', 'url'].includes(raw.cursorSource)) base.cursorSource = raw.cursorSource;
-if (Number.isFinite(raw.cursorHotspotX)) base.cursorHotspotX = Math.max(0, Math.min(32, raw.cursorHotspotX));
-if (Number.isFinite(raw.cursorHotspotY)) base.cursorHotspotY = Math.max(0, Math.min(32, raw.cursorHotspotY));
 return base;
 }
 
@@ -900,6 +944,7 @@ localStorage.setItem('mc_apps', JSON.stringify(OS.installed));
 if (OS.pinned.includes('Music2')) {
 OS.pinned = OS.pinned.map((app) => app === 'Music2' ? 'Music' : app);
 localStorage.setItem('mc_pinned', JSON.stringify([...new Set(OS.pinned)]));
+normalizeDesktopLayoutToViewport();
 }
 OS.firstRun = !localStorage.getItem('mc_account');
 OS.pendingAvatar = '';
@@ -913,6 +958,7 @@ if (!OS.restricted.includes(app)) OS.restricted.push(app);
 });
 localStorage.setItem('mc_apps', JSON.stringify([...new Set(OS.installed)]));
 localStorage.setItem('mc_pinned', JSON.stringify([...new Set(OS.pinned)]));
+normalizeDesktopLayoutToViewport();
 
 const DEFAULT_APP_ORDER = ["Browser", "Terminal", "Files", "Store", "Settings", "Whats New", "About", ...OS.storeApps];
 
@@ -962,6 +1008,82 @@ return {
 x: 50 + ((appIndex * 130) % Math.max(desktopWidth - 300, 130)),
 y: 50 + (Math.floor(appIndex / 8) * 150)
 };
+}
+
+
+function getDesktopMetrics() {
+const desktop = document.getElementById('desktop');
+return {
+width: desktop?.clientWidth || window.innerWidth,
+height: desktop?.clientHeight || Math.max(window.innerHeight - 140, 320)
+};
+}
+
+function clampDesktopPosition(pos, width = 110, height = 120) {
+const metrics = getDesktopMetrics();
+return {
+x: Math.min(Math.max(pos.x, 8), Math.max(metrics.width - width - 8, 0)),
+y: Math.min(Math.max(pos.y, 8), Math.max(metrics.height - height - 8, 0))
+};
+}
+
+function normalizeDesktopLayoutToViewport() {
+Object.keys(OS.pos).forEach((key) => {
+OS.pos[key] = clampDesktopPosition(OS.pos[key] || { x: 0, y: 0 });
+});
+OS.desktopShortcuts = OS.desktopShortcuts.map((item) => ({
+...item,
+x: clampDesktopPosition({ x: item.x ?? 0, y: item.y ?? 0 }).x,
+y: clampDesktopPosition({ x: item.x ?? 0, y: item.y ?? 0 }).y
+}));
+Object.keys(OS.widgetPositions).forEach((id) => {
+const fallback = getDefaultWidgetPosition(id);
+OS.widgetPositions[id] = clampDesktopPosition({
+x: typeof OS.widgetPositions[id]?.x === 'number' ? OS.widgetPositions[id].x : fallback.x,
+y: typeof OS.widgetPositions[id]?.y === 'number' ? OS.widgetPositions[id].y : fallback.y
+}, 260, 140);
+});
+localStorage.setItem('mc_pos', JSON.stringify(OS.pos));
+saveDesktopShortcuts();
+saveWidgetState();
+}
+
+function getWindowViewportBounds() {
+const top = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--top-bar-h')) || 32;
+const bottom = (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--taskbar-h')) || 54) + 18;
+return {
+left: 12,
+top: top + 12,
+width: Math.max(window.innerWidth - 24, 320),
+height: Math.max(window.innerHeight - top - bottom - 12, 240)
+};
+}
+
+function getResponsiveWindowRect() {
+const bounds = getWindowViewportBounds();
+const width = Math.min(Math.max(Math.round(bounds.width * 0.78), 320), 950);
+const height = Math.min(Math.max(Math.round(bounds.height * 0.82), 260), 680);
+return {
+width,
+height,
+left: bounds.left + Math.max(Math.round((bounds.width - width) / 2), 0),
+top: bounds.top + Math.max(Math.round((bounds.height - height) / 2), 0)
+};
+}
+
+function constrainWindowToViewport(win) {
+if (!win || win.dataset.fs === 'true') return;
+const bounds = getWindowViewportBounds();
+const currentWidth = parseFloat(win.style.width) || win.offsetWidth || 950;
+const currentHeight = parseFloat(win.style.height) || win.offsetHeight || 650;
+const width = Math.min(Math.max(currentWidth, 320), bounds.width);
+const height = Math.min(Math.max(currentHeight, 240), bounds.height);
+const left = Math.min(Math.max(parseFloat(win.style.left) || bounds.left, bounds.left), bounds.left + Math.max(bounds.width - width, 0));
+const top = Math.min(Math.max(parseFloat(win.style.top) || bounds.top, bounds.top), bounds.top + Math.max(bounds.height - height, 0));
+win.style.width = `${width}px`;
+win.style.height = `${height}px`;
+win.style.left = `${left}px`;
+win.style.top = `${top}px`;
 }
 
 function iconOverDeleteBin(iconEl) {
@@ -1076,84 +1198,7 @@ document.body.classList.toggle('icon-wiggle', !!OS.settings.iconWiggle);
 document.body.classList.toggle('no-window-anims', !OS.settings.windowOpenAnimations);
 document.body.classList.toggle('no-start-anims', !OS.settings.startMenuAnimations);
 updateBattery();
-applyCursorSettings();
 renderStartGlance();
-}
-
-function syncCursorOverlayPosition(event) {
-const overlay = document.getElementById('cursor-overlay');
-if (!overlay) return;
-const hotspotX = Number.isFinite(OS.settings.cursorHotspotX) ? OS.settings.cursorHotspotX : 8;
-const hotspotY = Number.isFinite(OS.settings.cursorHotspotY) ? OS.settings.cursorHotspotY : 8;
-overlay.style.transform = `translate(${event.clientX - hotspotX}px, ${event.clientY - hotspotY}px)`;
-}
-
-function applyCursorSettings() {
-const overlay = document.getElementById('cursor-overlay');
-const cursorUrl = (OS.settings.cursorUrl || '').trim();
-if (!overlay || !cursorUrl) {
-if (overlay) {
-overlay.style.display = 'none';
-overlay.style.backgroundImage = 'none';
-}
-document.documentElement.classList.remove('custom-cursor', 'cursor-overlay-on');
-document.documentElement.style.setProperty('--cursor-custom', 'auto');
-document.body.style.cursor = 'auto';
-window.removeEventListener('mousemove', syncCursorOverlayPosition);
-return;
-}
-const hotspotX = Number.isFinite(OS.settings.cursorHotspotX) ? OS.settings.cursorHotspotX : 8;
-const hotspotY = Number.isFinite(OS.settings.cursorHotspotY) ? OS.settings.cursorHotspotY : 8;
-const cursorValue = `url("${cursorUrl.replace(/"/g, '\"')}") ${hotspotX} ${hotspotY}, auto`;
-document.documentElement.classList.add('custom-cursor', 'cursor-overlay-on');
-document.documentElement.style.setProperty('--cursor-custom', cursorValue);
-document.body.style.cursor = 'none';
-overlay.style.display = 'block';
-overlay.style.backgroundImage = `url("${cursorUrl.replace(/"/g, '\"')}")`;
-window.removeEventListener('mousemove', syncCursorOverlayPosition);
-window.addEventListener('mousemove', syncCursorOverlayPosition);
-}
-
-function setCustomCursor(url, source, successMessage) {
-const value = (url || '').trim();
-if (!value) return notify('Add a cursor image first.', 'warning');
-const img = new Image();
-img.onload = () => {
-OS.settings.cursorUrl = value;
-OS.settings.cursorSource = source;
-saveSettings();
-applyCursorSettings();
-if (OS.running['Settings']) OS.running['Settings'].querySelector('.win-body').innerHTML = Registry['Settings'].content();
-notify(successMessage, 'success');
-};
-img.onerror = () => notify('Cursor image could not be loaded. Try a direct PNG or JPG image link.', 'error');
-img.src = value;
-}
-
-function applyCursorFromUrl(url) {
-const value = (url || '').trim();
-if (!value) return notify('Add a cursor image link first.', 'warning');
-setCustomCursor(value, 'url', 'Custom cursor image applied.');
-}
-
-function handleCursorUpload(event) {
-const file = event.target.files && event.target.files[0];
-if (!file) return;
-const reader = new FileReader();
-reader.onload = (e) => {
-setCustomCursor(e.target.result || '', 'upload', 'Custom cursor uploaded.');
-};
-reader.readAsDataURL(file);
-event.target.value = '';
-}
-
-function resetCursorCustomization() {
-OS.settings.cursorUrl = '';
-OS.settings.cursorSource = 'default';
-saveSettings();
-applyCursorSettings();
-if (OS.running['Settings']) OS.running['Settings'].querySelector('.win-body').innerHTML = Registry['Settings'].content();
-notify('Default cursor restored.', 'warning');
 }
 
 function toggleTaskbarPeek() {
@@ -1306,7 +1351,7 @@ const shellStyle = 'background:#0a0a0a; padding:20px; border-radius:14px; border
 const widgetCards = renderSettingsWidgetControls();
 const stateOptions = Object.entries(US_STATE_WEATHER).map(([abbr, state]) => `<option value="${abbr}" ${OS.settings.weatherState === abbr ? 'selected' : ''}>${state.name} (${abbr})</option>`).join('');
 const cards = {
-customization: `<div style="display:grid; gap:18px;"><div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;"><div style="${shellStyle}"><h4>Wallpaper Studio</h4><p style="font-size:0.8rem; opacity:0.55; margin:8px 0 14px 0;">Pick presets, upload backgrounds, or paste an image URL.</p><label style="font-size:0.76rem; opacity:0.6;">Wallpaper Preset</label><select onchange="setWallpaperPreset(this.value)" style="margin-top:7px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;">${WALLPAPER_PRESETS.map(preset => `<option value="${preset.value}" ${OS.bg === preset.value ? 'selected' : ''}>${preset.label}</option>`).join('')}</select><input type="text" id="bg-url" placeholder="https://..." style="width:100%; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px; margin-top:12px;"><button onclick="setBG(document.getElementById('bg-url').value)" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:var(--accent); border:none; color:white; border-radius:8px;">Apply URL</button><button onclick="document.getElementById('bg-upload-settings').click()" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Upload Image</button><input type="file" id="bg-upload-settings" style="display:none" onchange="handleFileUpload(event)" accept="image/*"><label style="font-size:0.76rem; opacity:0.6; display:block; margin-top:14px;">Wallpaper Fit</label><select onchange="setWallpaperFit(this.value)" style="margin-top:7px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;"><option value="cover" ${OS.settings.wallpaperFit === 'cover' ? 'selected' : ''}>Fill Screen</option><option value="contain" ${OS.settings.wallpaperFit === 'contain' ? 'selected' : ''}>Fit Entire Image</option></select></div><div style="${shellStyle}"><h4>Branding & Chrome</h4><p style="font-size:0.8rem; opacity:0.55; margin:8px 0 14px 0;">Tune the McCrackOS look, icon density, and desktop identity.</p><input type="color" value="${OS.accent}" onchange="applyAccent(this.value)" style="margin-top:4px; width:100%; height:42px; background:#111; border:var(--border); border-radius:10px; cursor:pointer;"><button onclick="resetAccent()" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset Accent</button><input type="text" id="favicon-url" value="${OS.favicon}" placeholder="https://..." style="width:100%; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px; margin-top:12px;"><button onclick="setFavicon(document.getElementById('favicon-url').value)" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Apply Favicon</button><label style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:14px;"><span style="font-size:0.84rem; line-height:1.35;">Show the desktop hero logo when the wallpaper allows it</span><input type="checkbox" ${!OS.settings.hideDesktopHero ? 'checked' : ''} onchange="setSetting('hideDesktopHero', !this.checked, 'Desktop hero updated.'); renderDesktop();"></label><label style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:10px;"><span style="font-size:0.84rem; line-height:1.35;">Keep the <strong>McCrackOS • Made By Patrick_Mango</strong> branding visible on custom wallpapers</span><input type="checkbox" ${OS.settings.keepWallpaperBranding ? 'checked' : ''} onchange="toggleWallpaperBranding(this.checked)"></label><label style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:10px;"><span style="font-size:0.84rem; line-height:1.35;">Compact desktop icons for denser layouts</span><input type="checkbox" ${OS.settings.compactIcons ? 'checked' : ''} onchange="setSetting('compactIcons', this.checked, 'Desktop icon density updated.'); renderDesktop();"></label></div></div><div style="${shellStyle}"><h4>Cursor Studio</h4><p style="font-size:0.8rem; opacity:0.58; margin:8px 0 14px 0;">Swap the pointer with your own image. Upload a file, paste a direct image link, or restore the default cursor whenever you want.</p><div style="display:grid; grid-template-columns:1.1fr 0.9fr; gap:18px;"><div><label style="font-size:0.76rem; opacity:0.6; display:block;">Cursor Image URL</label><input type="text" id="cursor-url" value="${OS.settings.cursorSource === 'url' ? OS.settings.cursorUrl : ''}" placeholder="https://..." style="width:100%; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px; margin-top:8px;"><button onclick="applyCursorFromUrl(document.getElementById('cursor-url').value)" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:var(--accent); border:none; color:white; border-radius:8px;">Use Image Link</button><button onclick="document.getElementById('cursor-upload-settings').click()" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Upload Cursor Image</button><input type="file" id="cursor-upload-settings" style="display:none" onchange="handleCursorUpload(event)" accept="image/*"><button onclick="resetCursorCustomization()" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:#151515; border:1px solid #2b2b2b; color:white; border-radius:8px;">Restore Default Cursor</button></div><div style="background:#090909; border:1px solid #1c1c1c; border-radius:14px; padding:16px;"><div style="font-size:0.72rem; opacity:0.55; text-transform:uppercase; letter-spacing:1px;">Current Cursor</div><div style="margin-top:10px; font-weight:700;">${OS.settings.cursorUrl ? 'Custom pointer active' : 'System default active'}</div><div style="font-size:0.8rem; opacity:0.66; line-height:1.55; margin-top:8px;">Transparent PNG images around 32×32 or 48×48 pixels usually work best. Browsers may scale large images or refuse unusual formats.</div><div style="margin-top:12px; font-size:0.78rem; opacity:0.7;">Source: <strong>${OS.settings.cursorSource === 'upload' ? 'Uploaded image' : OS.settings.cursorSource === 'url' ? 'Image link' : 'Default cursor'}</strong></div></div></div></div>`,
+customization: `<div style="display:grid; gap:18px;"><div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;"><div style="${shellStyle}"><h4>Wallpaper Studio</h4><p style="font-size:0.8rem; opacity:0.55; margin:8px 0 14px 0;">Pick presets, upload backgrounds, or paste an image URL.</p><label style="font-size:0.76rem; opacity:0.6;">Wallpaper Preset</label><select onchange="setWallpaperPreset(this.value)" style="margin-top:7px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;">${WALLPAPER_PRESETS.map(preset => `<option value="${preset.value}" ${OS.bg === preset.value ? 'selected' : ''}>${preset.label}</option>`).join('')}</select><input type="text" id="bg-url" placeholder="https://..." style="width:100%; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px; margin-top:12px;"><button onclick="setBG(document.getElementById('bg-url').value)" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:var(--accent); border:none; color:white; border-radius:8px;">Apply URL</button><button onclick="document.getElementById('bg-upload-settings').click()" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Upload Image</button><input type="file" id="bg-upload-settings" style="display:none" onchange="handleFileUpload(event)" accept="image/*"><label style="font-size:0.76rem; opacity:0.6; display:block; margin-top:14px;">Wallpaper Fit</label><select onchange="setWallpaperFit(this.value)" style="margin-top:7px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;"><option value="cover" ${OS.settings.wallpaperFit === 'cover' ? 'selected' : ''}>Fill Screen</option><option value="contain" ${OS.settings.wallpaperFit === 'contain' ? 'selected' : ''}>Fit Entire Image</option></select></div><div style="${shellStyle}"><h4>Branding & Chrome</h4><p style="font-size:0.8rem; opacity:0.55; margin:8px 0 14px 0;">Tune the McCrackOS look, icon density, and desktop identity.</p><input type="color" value="${OS.accent}" onchange="applyAccent(this.value)" style="margin-top:4px; width:100%; height:42px; background:#111; border:var(--border); border-radius:10px; cursor:pointer;"><button onclick="resetAccent()" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset Accent</button><input type="text" id="favicon-url" value="${OS.favicon}" placeholder="https://..." style="width:100%; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px; margin-top:12px;"><button onclick="setFavicon(document.getElementById('favicon-url').value)" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Apply Favicon</button><label style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:14px;"><span style="font-size:0.84rem; line-height:1.35;">Show the desktop hero logo when the wallpaper allows it</span><input type="checkbox" ${!OS.settings.hideDesktopHero ? 'checked' : ''} onchange="setSetting('hideDesktopHero', !this.checked, 'Desktop hero updated.'); renderDesktop();"></label><label style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:10px;"><span style="font-size:0.84rem; line-height:1.35;">Keep the <strong>McCrackOS • Made By Patrick_Mango</strong> branding visible on custom wallpapers</span><input type="checkbox" ${OS.settings.keepWallpaperBranding ? 'checked' : ''} onchange="toggleWallpaperBranding(this.checked)"></label><label style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:10px;"><span style="font-size:0.84rem; line-height:1.35;">Compact desktop icons for denser layouts</span><input type="checkbox" ${OS.settings.compactIcons ? 'checked' : ''} onchange="setSetting('compactIcons', this.checked, 'Desktop icon density updated.'); renderDesktop();"></label></div></div>`,
 workspace: `<div style="display:grid; grid-template-columns:1.05fr 0.95fr; gap:18px;"><div style="${shellStyle}"><h4>Desktop Modules & Widgets</h4><p style="font-size:0.8rem; opacity:0.55; margin:8px 0 14px 0;">Enable widgets, then drag them anywhere on the desktop.</p>${widgetCards}</div><div style="display:grid; gap:18px;"><div style="${shellStyle}"><h4>Workspace Actions</h4><p style="font-size:0.8rem; opacity:0.55; margin:8px 0 14px 0;">Quickly rebuild your layout or launch a productive stack.</p><button onclick="resetDesktopLayout()" style="width:100%; padding:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset App Icon Layout</button><button onclick="resetWidgetsLayout()" style="width:100%; margin-top:10px; padding:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:white; border-radius:8px;">Reset Widget Layout</button><button onclick="openPinnedApps()" style="width:100%; margin-top:10px; padding:10px; background:#151515; border:1px solid #2b2b2b; color:white; border-radius:8px;">Open Pinned Apps</button><button onclick="launch('ClockPro'); launch('TodoBoard'); launch('MarkdownPad');" style="width:100%; margin-top:10px; padding:10px; background:var(--accent); border:none; color:white; border-radius:8px;">Launch Productivity Trio</button></div><div style="${shellStyle}"><h4>Always Ready Apps</h4><p style="font-size:0.8rem; opacity:0.55; margin:8px 0 14px 0;">These apps are built into McCrackOS even if they are not pinned yet.</p><div style="display:grid; grid-template-columns:repeat(2,1fr); gap:10px;"><button onclick="launch('WidgetCenter')" style="padding:10px; border-radius:8px; border:1px solid #2b2b2b; background:#111; color:#fff;">Widget Center</button><button onclick="launch('WeatherDesk')" style="padding:10px; border-radius:8px; border:1px solid #2b2b2b; background:#111; color:#fff;">Weather Desk</button><button onclick="launch('ClockPro')" style="padding:10px; border-radius:8px; border:1px solid #2b2b2b; background:#111; color:#fff;">Clock Pro</button><button onclick="launch('PhotoBooth')" style="padding:10px; border-radius:8px; border:1px solid #2b2b2b; background:#111; color:#fff;">Photo Booth</button></div></div></div></div>`,
 profile: `<div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;"><div style="${shellStyle}"><h4>Security & Profile</h4><div style="display:flex; align-items:center; gap:10px; margin:12px 0;"><div class="account-avatar" style="width:54px; height:54px; margin:0; font-size:22px;">${avatarMarkup(OS.account.avatar)}</div><span style="font-size:0.8rem; opacity:0.7;">Current Picture</span></div><div style="display:flex; gap:8px;"><button onclick="document.getElementById('settings-avatar-file').click()" style="flex:1; padding:10px; background:#1e1e1e; border:1px solid #2b2b2b; color:#fff; border-radius:8px;">Upload</button><button onclick="updateAccountAvatar('')" style="flex:1; padding:10px; background:#151515; border:1px solid #2b2b2b; color:#fff; border-radius:8px;">Remove</button></div><input type="file" id="settings-avatar-file" style="display:none" accept="image/*" onchange="onSettingsAvatarSelected(event)"><input type="password" id="new-p" placeholder="New Access Key" style="width:100%; margin-top:12px; background:#111; border:var(--border); color:white; padding:12px; border-radius:10px;"><button onclick="setPass(document.getElementById('new-p').value)" style="width:100%; margin-top:10px; padding:10px; background:#333; border:none; color:white; border-radius:8px;">Update Key</button><button onclick="lockSession()" style="width:100%; margin-top:10px; padding:10px; background:#171717; border:1px solid #2b2b2b; color:white; border-radius:8px;">Lock This Session</button><button onclick="factoryResetWithPassword()" style="width:100%; margin-top:10px; padding:10px; background:#4a1010; border:1px solid #7a1e1e; color:white; border-radius:8px;">Factory Reset (Password Required)</button></div><div style="${shellStyle}"><h4>Account Snapshot</h4><p style="margin-top:10px; opacity:0.72; line-height:1.6;">Username: <strong>${OS.account.username}</strong><br>Sign-in mode: <strong>${OS.account.mode === 'passwordless' ? 'Passwordless' : 'Password protected'}</strong><br>Installed apps: <strong>${OS.installed.length}</strong><br>Pinned apps: <strong>${OS.pinned.length}</strong></p><div style="margin-top:16px; padding:14px; border-radius:12px; background:#090909; border:1px solid #1d1d1d;"><div style="font-size:0.76rem; opacity:0.58; text-transform:uppercase; letter-spacing:1px;">Tip</div><p style="margin-top:8px; opacity:0.72; line-height:1.5;">Use Lock when stepping away, and Power Down when you want the same hard reset behavior as the top bar terminate session button.</p></div></div></div>`,
 system: `<div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;"><div style="${shellStyle}"><h4>Clock, Battery & Weather</h4><label style="display:flex; justify-content:space-between; margin-top:12px;"><span>Show Seconds</span><input type="checkbox" ${OS.settings.clockSeconds ? 'checked' : ''} onchange="setSetting('clockSeconds', this.checked, 'Clock precision updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Use 24-Hour Time</span><input type="checkbox" ${OS.settings.clock24h ? 'checked' : ''} onchange="setSetting('clock24h', this.checked, 'Clock format updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Show Battery Percentage</span><input type="checkbox" ${OS.settings.showBatteryPercentage ? 'checked' : ''} onchange="setSetting('showBatteryPercentage', this.checked, 'Battery indicator updated.')"></label><label style="font-size:0.76rem; opacity:0.7; display:block; margin-top:10px;">Temperature Unit</label><select onchange="setSetting('temperatureUnit', this.value, 'Temperature unit updated.'); refreshWeather(true);" style="margin-top:6px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;"><option value="C" ${OS.settings.temperatureUnit === 'C' ? 'selected' : ''}>Celsius (°C)</option><option value="F" ${OS.settings.temperatureUnit === 'F' ? 'selected' : ''}>Fahrenheit (°F)</option></select><label style="font-size:0.76rem; opacity:0.7; display:block; margin-top:10px;">Weather State</label><select onchange="chooseWeatherState(this.value)" style="margin-top:6px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;">${stateOptions}</select></div><div style="${shellStyle}"><h4>Startup & Behavior</h4><label style="display:flex; justify-content:space-between; margin-top:12px;"><span>Desktop Notifications</span><input type="checkbox" ${OS.settings.notifications ? 'checked' : ''} onchange="setSetting('notifications', this.checked, 'Notification preference updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Focus Mode</span><input type="checkbox" ${OS.settings.focusMode ? 'checked' : ''} onchange="setSetting('focusMode', this.checked, 'Focus mode updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Desktop Sounds</span><input type="checkbox" ${OS.settings.desktopSounds ? 'checked' : ''} onchange="setSetting('desktopSounds', this.checked, 'Sound preference updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Startup Chime</span><input type="checkbox" ${OS.settings.startupChime ? 'checked' : ''} onchange="setSetting('startupChime', this.checked, 'Startup chime preference updated.')"></label><label style="display:flex; justify-content:space-between; margin-top:10px;"><span>Auto Fullscreen Prompt</span><input type="checkbox" ${OS.settings.autoFullscreen ? 'checked' : ''} onchange="setSetting('autoFullscreen', this.checked, 'Fullscreen preference updated.')"></label><label style="font-size:0.76rem; opacity:0.7; display:block; margin-top:10px;">Boot Sequence Length</label><select onchange="setSetting('bootDelay', Number(this.value), 'Boot sequence timing updated.')" style="margin-top:6px; width:100%; background:#111; color:#fff; border:var(--border); border-radius:9px; padding:10px;"><option value="3000" ${OS.settings.bootDelay === 3000 ? 'selected' : ''}>Fast (3 seconds)</option><option value="6000" ${OS.settings.bootDelay === 6000 ? 'selected' : ''}>Balanced (6 seconds)</option><option value="9000" ${OS.settings.bootDelay === 9000 ? 'selected' : ''}>Cinematic (9 seconds)</option></select></div></div>`,
@@ -1830,7 +1875,7 @@ return `<div style="display:flex; align-items:center; justify-content:space-betw
 }
 
 function renderWhatsNewApp() {
-return `<div style="padding:30px; max-width:900px; margin:0 auto;"><div style="padding:22px; border-radius:20px; background:linear-gradient(135deg, rgba(0,120,212,0.2), rgba(255,255,255,0.04)); border:1px solid rgba(255,255,255,0.08);"><div style="font-size:0.72rem; opacity:0.6; letter-spacing:0.16em; text-transform:uppercase;">Release Notes</div><h2 style="margin-top:8px;">What’s New in McCrackOS V2.5.3</h2><p style="opacity:0.72; line-height:1.7; margin-top:10px;">This app keeps a running overview of major improvements so people can immediately see what changed, what got polished, and what they should try next.</p></div><div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:18px;"><div style="background:#0a0a0a; border:1px solid #1a1a1a; border-radius:16px; padding:18px;"><h3>Newest Highlights</h3><ul style="margin:12px 0 0 18px; line-height:1.8; opacity:0.76;"><li>Account creation now uses a multi-step setup flow with separate identity, security, and finish screens.</li><li>The Start Hub is wider, roomier, and includes one-click workspace scenes for study, focus, music, and creator setups.</li><li>Fullscreen apps can now hide the taskbar and reveal it with a bottom tab when needed.</li><li>Desktop right-click menus now have richer quick actions, launch shortcuts, and item-specific controls.</li><li>Custom cursor support now uses a visual overlay fallback so uploaded cursor images actually show up reliably.</li></ul></div><div style="background:#0a0a0a; border:1px solid #1a1a1a; border-radius:16px; padding:18px;"><h3>Polish & Quality</h3><ul style="margin:12px 0 0 18px; line-height:1.8; opacity:0.76;"><li>Better spacing and visual grouping across the launcher.</li><li>Context menus restyled with headers, chips, and clearer action hierarchy.</li><li>New discover shortcuts make it easier to jump into docs and utilities.</li><li>Taskbar behavior now feels more immersive in fullscreen workflows.</li></ul></div></div><div style="margin-top:18px; background:#0a0a0a; border:1px solid #1a1a1a; border-radius:16px; padding:18px;"><h3>Feature Timeline</h3><div style="display:grid; gap:12px; margin-top:14px;"><div style="padding:14px; border-radius:12px; background:#090909; border:1px solid #1a1a1a;"><strong>Desktop Experience</strong><div style="opacity:0.68; margin-top:6px; line-height:1.6;">Windows, widgets, boot/login flow, draggable icons, and the taskbar established the core McCrackOS environment.</div></div><div style="padding:14px; border-radius:12px; background:#090909; border:1px solid #1a1a1a;"><strong>Customization & Utility Apps</strong><div style="opacity:0.68; margin-top:6px; line-height:1.6;">Wallpapers, accent colors, profile customization, productivity apps, media, and weather tools expanded the system beyond a mock desktop.</div></div><div style="padding:14px; border-radius:12px; background:#090909; border:1px solid #1a1a1a;"><strong>Current Update</strong><div style="opacity:0.68; margin-top:6px; line-height:1.6;">This release focuses on readability, discoverability, richer right-click actions, and deeper personalization through cursor theming and dedicated system info apps.</div></div></div></div></div>`;
+return `<div style="padding:30px; max-width:900px; margin:0 auto;"><div style="padding:22px; border-radius:20px; background:linear-gradient(135deg, rgba(0,120,212,0.2), rgba(255,255,255,0.04)); border:1px solid rgba(255,255,255,0.08);"><div style="font-size:0.72rem; opacity:0.6; letter-spacing:0.16em; text-transform:uppercase;">Release Notes</div><h2 style="margin-top:8px;">What’s New in McCrackOS V2.5.3</h2><p style="opacity:0.72; line-height:1.7; margin-top:10px;">This app keeps a running overview of major improvements so people can immediately see what changed, what got polished, and what they should try next.</p></div><div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:18px;"><div style="background:#0a0a0a; border:1px solid #1a1a1a; border-radius:16px; padding:18px;"><h3>Newest Highlights</h3><ul style="margin:12px 0 0 18px; line-height:1.8; opacity:0.76;"><li>Account creation now uses a multi-step setup flow with separate identity, security, and finish screens.</li><li>The Start Hub is slimmer and cleaner so it feels less crowded and scales better on smaller screens.</li><li>Fullscreen apps can now hide the taskbar and reveal it with a bottom tab when needed.</li><li>Desktop right-click menus now have richer quick actions, launch shortcuts, and item-specific controls.</li><li>The sign-up flow now uses larger full-slide setup screens with one question per step.</li></ul></div><div style="background:#0a0a0a; border:1px solid #1a1a1a; border-radius:16px; padding:18px;"><h3>Polish & Quality</h3><ul style="margin:12px 0 0 18px; line-height:1.8; opacity:0.76;"><li>Better spacing and visual grouping across the launcher.</li><li>Context menus restyled with headers, chips, and clearer action hierarchy.</li><li>New discover shortcuts make it easier to jump into docs and utilities.</li><li>Taskbar behavior now feels more immersive in fullscreen workflows.</li></ul></div></div><div style="margin-top:18px; background:#0a0a0a; border:1px solid #1a1a1a; border-radius:16px; padding:18px;"><h3>Feature Timeline</h3><div style="display:grid; gap:12px; margin-top:14px;"><div style="padding:14px; border-radius:12px; background:#090909; border:1px solid #1a1a1a;"><strong>Desktop Experience</strong><div style="opacity:0.68; margin-top:6px; line-height:1.6;">Windows, widgets, boot/login flow, draggable icons, and the taskbar established the core McCrackOS environment.</div></div><div style="padding:14px; border-radius:12px; background:#090909; border:1px solid #1a1a1a;"><strong>Customization & Utility Apps</strong><div style="opacity:0.68; margin-top:6px; line-height:1.6;">Wallpapers, accent colors, profile customization, productivity apps, media, and weather tools expanded the system beyond a mock desktop.</div></div><div style="padding:14px; border-radius:12px; background:#090909; border:1px solid #1a1a1a;"><strong>Current Update</strong><div style="opacity:0.68; margin-top:6px; line-height:1.6;">This release focuses on readability, discoverability, cleaner launch surfaces, and more comfortable multi-step onboarding.</div></div></div></div></div>`;
 }
 
 function renderAboutApp() {
@@ -2232,53 +2277,83 @@ event.target.value = '';
 
 function renderAuth() {
 const box = document.getElementById('auth-box');
+const shell = document.querySelector('.lockscreen-shell');
 if (!box) return;
+box.classList.toggle('auth-setup', !!OS.firstRun);
+shell?.classList.toggle('setup-mode', !!OS.firstRun);
 if (OS.firstRun) {
 const setup = getAuthSetup();
 const step = setup.step || 1;
 let inner = '';
 if (step === 1) {
 inner = `
+<div class="auth-slide">
+<div class="auth-slide-main">
 <div class="auth-page-tag">Step 1 <span>Identity</span></div>
-<div id="avatar-preview" class="account-avatar">${avatarMarkup(setup.avatar || OS.pendingAvatar)}</div>
-<div class="auth-title">What should we call you?</div>
-<p class="auth-card-sub">Welcome to 𝕄𝕔ℂ𝕣𝕒𝕔𝕜OS V2.5.3</p>
-<p class="auth-sub">Start with the account name that should appear on the lock screen, taskbar session hub, and profile settings.</p>
 ${renderAuthProgress(1)}
+<div class="auth-slide-kicker">Create your desktop profile</div>
+<div class="auth-title" style="margin-top:10px;">What should we call you?</div>
+<p class="auth-slide-copy">This step gets its own full setup slide so the focus stays on one question at a time. Your name appears on the lock screen, launcher session card, and profile settings.</p>
 <input type="text" id="new-user" maxlength="24" placeholder="Choose a username" value="${setup.username || ''}" oninput="syncAuthSetupFromInputs()">
-<button onclick="goAuthStep(2)" style="margin-top:4px;">Continue to Security</button>`;
+<div class="auth-actions">
+<button onclick="goAuthStep(2)">Continue to Security</button>
+</div>
+</div>
+<div class="auth-slide-side">
+<div>
+<div id="avatar-preview" class="account-avatar">${avatarMarkup(setup.avatar || OS.pendingAvatar)}</div>
+<div class="auth-highlight-card"><strong>Welcome to 𝕄𝕔ℂ𝕣𝕒𝕔𝕜OS V2.5.3</strong><span>The setup flow now uses larger slides that feel more like a real onboarding experience instead of a small form floating next to the clock.</span></div>
+</div>
+<div class="auth-highlight-card"><strong>Tip</strong><span>Keep the name short and clear so it scales nicely on both smaller laptops and larger monitors.</span></div>
+</div>
+</div>`;
 } else if (step === 2) {
 inner = `
+<div class="auth-slide">
+<div class="auth-slide-main">
 <div class="auth-page-tag">Step 2 <span>Security</span></div>
-<div class="auth-title">How should ${setup.username || 'your account'} sign in?</div>
-<p class="auth-card-sub">Choose your unlock method</p>
-<p class="auth-sub">Pick a password if you want the lock screen to ask for one, or keep it passwordless for instant access.</p>
 ${renderAuthProgress(2)}
+<div class="auth-slide-kicker">Choose a sign-in style</div>
+<div class="auth-title" style="margin-top:10px;">How should ${setup.username || 'your account'} sign in?</div>
+<p class="auth-slide-copy">Choose the unlock method on its own dedicated screen. Password mode adds a quick lock screen check, while passwordless mode gets people into the desktop faster.</p>
 <div class="auth-choice-grid">
 <button class="auth-option" onclick="chooseAuthMode('password')"><strong>🔐 Password Protected</strong><span>Create an access key and require it whenever the desktop is unlocked.</span></button>
 <button class="auth-option" onclick="chooseAuthMode('passwordless')"><strong>✨ Passwordless Account</strong><span>Skip the password prompt and jump into the desktop faster.</span></button>
 </div>
 ${setup.mode === 'password' ? `<input type="password" id="new-pass" placeholder="Create password" value="${setup.pass || ''}" oninput="syncAuthSetupFromInputs()">` : `<div style="margin-top:16px; padding:16px; border-radius:16px; background:#0d0d0d; border:1px solid #1d1d1d; font-size:0.86rem; opacity:0.76; line-height:1.6;">Passwordless mode enabled. You can still add or change an access key later in Settings → Profile & Security.</div>`}
-<div class="auth-row"><button class="auth-back" onclick="goAuthStep(1)">Back</button><button onclick="goAuthStep(3)">${setup.mode === 'password' ? 'Continue to Finish' : 'Continue with Passwordless'}</button></div>`;
+<div class="auth-actions"><button class="auth-back" onclick="goAuthStep(1)">Back</button><button onclick="goAuthStep(3)">${setup.mode === 'password' ? 'Continue to Finish' : 'Continue with Passwordless'}</button></div>
+</div>
+<div class="auth-slide-side">
+<div class="auth-highlight-card"><strong>Security Preview</strong><span>${setup.mode === 'passwordless' ? 'This profile will open without asking for a password.' : 'This profile will ask for a password whenever the desktop is unlocked.'}</span></div>
+<div class="auth-highlight-card"><strong>Why this is separate</strong><span>Each setup question now has breathing room, which keeps the sign-up flow clearer on both narrow and wide displays.</span></div>
+</div>
+</div>`;
 } else {
 inner = `
+<div class="auth-slide">
+<div class="auth-slide-main">
 <div class="auth-page-tag">Step 3 <span>Finish</span></div>
-<div id="avatar-preview" class="account-avatar">${avatarMarkup(setup.avatar || OS.pendingAvatar)}</div>
-<div class="auth-title">Finish creating ${setup.username || 'your profile'}</div>
-<p class="auth-card-sub">Review and personalize</p>
-<p class="auth-sub">Add a profile picture if you want, then create the account and enter the desktop.</p>
 ${renderAuthProgress(3)}
-<div style="padding:16px; border-radius:18px; background:#0d0d0d; border:1px solid #1d1d1d; text-align:left; line-height:1.7; font-size:0.86rem;">
-<div><strong>Name:</strong> ${setup.username || 'Operator'}</div>
-<div><strong>Sign-in:</strong> ${setup.mode === 'passwordless' ? 'Passwordless account' : 'Password protected'}</div>
-<div><strong>Avatar:</strong> ${setup.avatar || OS.pendingAvatar ? 'Custom picture ready' : 'Default profile icon'}</div>
+<div class="auth-slide-kicker">Review and personalize</div>
+<div class="auth-title" style="margin-top:10px;">Finish creating ${setup.username || 'your profile'}</div>
+<p class="auth-slide-copy">Wrap up on one last full slide, then enter the desktop. You can upload an avatar now or leave the default icon and change it later.</p>
+<div class="auth-review-list">
+<div class="auth-review-item"><strong>Name</strong><span>${setup.username || 'Operator'}</span></div>
+<div class="auth-review-item"><strong>Sign-in</strong><span>${setup.mode === 'passwordless' ? 'Passwordless account' : 'Password protected'}</span></div>
+<div class="auth-review-item"><strong>Avatar</strong><span>${setup.avatar || OS.pendingAvatar ? 'Custom picture ready' : 'Default profile icon'}</span></div>
 </div>
 <div class="auth-row">
 <button onclick="document.getElementById('avatar-file').click()" style="background:#2a2a2a;">Choose Picture</button>
 <button onclick="resetPendingAvatar()" style="background:#202020;">Reset Avatar</button>
 </div>
 <input id="avatar-file" type="file" accept="image/*" style="display:none" onchange="onAvatarSelected(event)">
-<div class="auth-row"><button class="auth-back" onclick="goAuthStep(2)">Back</button><button onclick="createAccount()">Create Profile</button></div>`;
+<div class="auth-actions"><button class="auth-back" onclick="goAuthStep(2)">Back</button><button onclick="createAccount()">Create Profile</button></div>
+</div>
+<div class="auth-slide-side">
+<div id="avatar-preview" class="account-avatar">${avatarMarkup(setup.avatar || OS.pendingAvatar)}</div>
+<div class="auth-highlight-card"><strong>Ready to launch</strong><span>Your account details are set. Once you create the profile, the desktop unlock flow will use this info automatically.</span></div>
+</div>
+</div>`;
 }
 box.innerHTML = `${inner}<p id="log-msg" style="color:#ff4b4b; font-size:0.75rem; margin-top:20px; font-weight: 800; letter-spacing:1px;"></p>`;
 return;
@@ -2523,7 +2598,12 @@ if (!event.target.closest('#desktop-context-menu')) closeDesktopContextMenu();
 document.addEventListener('contextmenu', (event) => {
 if (!event.target.closest('#desktop') && !event.target.closest('#desktop-context-menu')) closeDesktopContextMenu();
 });
-window.addEventListener('resize', closeDesktopContextMenu);
+window.addEventListener('resize', () => {
+closeDesktopContextMenu();
+normalizeDesktopLayoutToViewport();
+Object.values(OS.running).forEach((win) => constrainWindowToViewport(win));
+renderDesktop();
+});
 desktop.dataset.contextMenuReady = '1';
 }
 
@@ -2561,7 +2641,7 @@ hero.innerHTML = '<h1>𝕄𝕔ℂ𝕣𝕒𝕔𝕜OS</h1><p>Made By: Patrick_Mang
 d.appendChild(hero);
 }
 getDesktopEntries().forEach((entry) => {
-const p = entry.position;
+const p = clampDesktopPosition(entry.position || { x: 0, y: 0 });
 const el = document.createElement('div'); el.className = 'icon';
 el.style.left = p.x+'px'; el.style.top = p.y+'px';
 el.setAttribute("draggable", "true");
@@ -2582,11 +2662,10 @@ iconOffsetY = e.clientY - el.offsetTop;
 el.classList.add('dragging');
 },
 onMove: (ev) => {
-const nx = ev.clientX - iconOffsetX;
-const ny = ev.clientY - iconOffsetY;
-el.style.left = nx + 'px';
-el.style.top = ny + 'px';
-entry.onMove(nx, ny);
+const nextPos = clampDesktopPosition({ x: ev.clientX - iconOffsetX, y: ev.clientY - iconOffsetY });
+el.style.left = nextPos.x + 'px';
+el.style.top = nextPos.y + 'px';
+entry.onMove(nextPos.x, nextPos.y);
 document.getElementById('delete-bin').classList.toggle('delete-ready', iconOverDeleteBin(el));
 },
 onEnd: () => {
@@ -2657,8 +2736,9 @@ if (id === 'MarkdownPad') setTimeout(updateMarkdownPreview, 40);
 const startMenu = document.getElementById('start-menu');
 if (startMenu) startMenu.style.display = 'none';
 document.getElementById('start-btn')?.classList.remove('menu-open');
+const rect = getResponsiveWindowRect();
 const w = document.createElement('div'); w.className = 'window';
-w.style.width='950px'; w.style.height='650px'; w.style.left='100px'; w.style.top='80px'; w.style.zIndex = ++OS.z;
+w.style.width = rect.width + 'px'; w.style.height = rect.height + 'px'; w.style.left = rect.left + 'px'; w.style.top = rect.top + 'px'; w.style.zIndex = ++OS.z;
 w.innerHTML = `<div class="win-head">
 <div style="display:flex; align-items:center; gap:10px;">
 <span style="font-size:1.2rem;">${Registry[id].icon}</span>
@@ -2685,8 +2765,11 @@ const applyMove = () => {
 if(!pending) return;
 const nx = pending.clientX - ox;
 const ny = pending.clientY - oy;
-w.style.left = nx + 'px';
-w.style.top = ny + 'px';
+const bounds = getWindowViewportBounds();
+const nextLeft = Math.min(Math.max(nx, bounds.left), bounds.left + Math.max(bounds.width - w.offsetWidth, 0));
+const nextTop = Math.min(Math.max(ny, bounds.top), bounds.top + Math.max(bounds.height - w.offsetHeight, 0));
+w.style.left = nextLeft + 'px';
+w.style.top = nextTop + 'px';
 raf = null;
 };
 const onMove = (ev) => {
@@ -2711,10 +2794,12 @@ let raf = null;
 let pending = null;
 const applyResize = () => {
 if(!pending) return;
-const nw = Math.max(420, sw + (pending.clientX - sx));
-const nh = Math.max(280, sh + (pending.clientY - sy));
+const bounds = getWindowViewportBounds();
+const nw = Math.min(Math.max(320, sw + (pending.clientX - sx)), bounds.width);
+const nh = Math.min(Math.max(240, sh + (pending.clientY - sy)), bounds.height);
 w.style.width = nw + 'px';
 w.style.height = nh + 'px';
+constrainWindowToViewport(w);
 raf = null;
 };
 const onMove = (ev) => {
