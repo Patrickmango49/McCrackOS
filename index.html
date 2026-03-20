@@ -57,26 +57,125 @@ transition: transform 260ms ease, background 260ms ease, border-color 260ms ease
 #battery-stat { display: flex; align-items: center; gap: 6px; color: #44ff44; }
 
 /* --- BOOT SEQUENCE --- */
-#boot { position: fixed; inset: 0; background: #000; display: flex; align-items: center; justify-content: center; z-index: 10000; }
-.boot-stage { width: min(860px, 90vw); }
+#boot {
+position: fixed;
+inset: 0;
+background:
+radial-gradient(circle at top, rgba(25, 255, 121, 0.14), transparent 28%),
+radial-gradient(circle at bottom, rgba(0, 120, 212, 0.12), transparent 24%),
+linear-gradient(180deg, #020403 0%, #000 52%, #010101 100%);
+display: flex;
+align-items: center;
+justify-content: center;
+z-index: 10000;
+padding: clamp(14px, 3vw, 28px);
+overflow: hidden;
+}
+#boot::before {
+content: '';
+position: absolute;
+inset: 0;
+background: repeating-linear-gradient(180deg, rgba(255,255,255,0.02) 0, rgba(255,255,255,0.02) 1px, transparent 1px, transparent 4px);
+opacity: 0.14;
+pointer-events: none;
+}
+.boot-stage { width: min(960px, 100%); position: relative; z-index: 1; }
 #boot-terminal {
-min-height: 390px;
-border: 1px solid rgba(72, 255, 137, 0.35);
-border-radius: 12px;
-padding: 16px;
-background: radial-gradient(circle at top, rgba(0, 40, 10, 0.5), rgba(0, 0, 0, 0.95));
-box-shadow: inset 0 0 28px rgba(40, 255, 120, 0.18), 0 0 45px rgba(0,0,0,0.85);
+min-height: min(560px, calc(100vh - 70px));
+border: 1px solid rgba(72, 255, 137, 0.32);
+border-radius: 20px;
+padding: clamp(18px, 3vw, 26px);
+background: linear-gradient(180deg, rgba(3, 18, 8, 0.96), rgba(0, 0, 0, 0.96));
+box-shadow: inset 0 0 36px rgba(40, 255, 120, 0.12), 0 0 65px rgba(0,0,0,0.9), 0 0 28px rgba(0, 255, 153, 0.08);
 font-family: monospace;
 color: #45ff95;
-}
-#boot-terminal h2 { font-size: 0.95rem; font-weight: 600; letter-spacing: 0.24em; margin-bottom: 12px; opacity: 0.88; }
-#hack-logs {
-height: 305px;
+display: grid;
+gap: 18px;
 overflow: hidden;
-font-size: 0.8rem;
-line-height: 1.35;
 }
-.hack-line { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0.9; }
+#boot-terminal h2 { font-size: clamp(0.9rem, 1.4vw, 1rem); font-weight: 700; letter-spacing: 0.24em; margin-bottom: 0; opacity: 0.92; }
+.boot-topline {
+display: flex;
+justify-content: space-between;
+align-items: center;
+gap: 16px;
+flex-wrap: wrap;
+}
+.boot-status-row {
+display: flex;
+flex-wrap: wrap;
+gap: 8px;
+}
+.boot-status-pill {
+padding: 7px 10px;
+border-radius: 999px;
+border: 1px solid rgba(69, 255, 149, 0.18);
+background: rgba(69, 255, 149, 0.08);
+font-size: 0.7rem;
+letter-spacing: 0.12em;
+text-transform: uppercase;
+color: rgba(190, 255, 218, 0.9);
+}
+.boot-shell {
+display: grid;
+grid-template-columns: minmax(0, 1.4fr) minmax(220px, 0.72fr);
+gap: 18px;
+min-height: 0;
+flex: 1;
+}
+#hack-logs {
+height: 100%;
+min-height: 280px;
+overflow: hidden;
+font-size: 0.82rem;
+line-height: 1.45;
+padding: 18px;
+border-radius: 18px;
+border: 1px solid rgba(72, 255, 137, 0.18);
+background: radial-gradient(circle at top, rgba(20, 70, 30, 0.2), rgba(0, 0, 0, 0.78));
+box-shadow: inset 0 0 24px rgba(40, 255, 120, 0.08);
+}
+.hack-line { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0.92; }
+.boot-aside {
+display: grid;
+gap: 12px;
+align-content: start;
+}
+.boot-metric,
+.boot-seal {
+padding: 16px;
+border-radius: 18px;
+border: 1px solid rgba(255,255,255,0.08);
+background: rgba(255,255,255,0.03);
+}
+.boot-metric-label {
+font-size: 0.68rem;
+letter-spacing: 0.16em;
+text-transform: uppercase;
+opacity: 0.58;
+}
+.boot-metric strong {
+display: block;
+margin-top: 10px;
+font-size: 1.5rem;
+letter-spacing: 0.1em;
+}
+.boot-metric span,
+.boot-seal p {
+display: block;
+margin-top: 8px;
+font-size: 0.8rem;
+line-height: 1.6;
+opacity: 0.72;
+}
+.boot-seal {
+background: linear-gradient(180deg, rgba(0,120,212,0.12), rgba(255,255,255,0.02));
+}
+.boot-seal strong {
+font-size: 0.86rem;
+letter-spacing: 0.14em;
+text-transform: uppercase;
+}
 .boot-cursor { display: inline-block; width: 9px; height: 16px; margin-left: 6px; background: #45ff95; animation: blink 0.9s steps(1, end) infinite; }
 .boot-loading { text-align: center; display: none; }
 .spin { width: 60px; height: 60px; border: 4px solid #111; border-top-color: var(--accent); border-radius: 50%; animation: s 0.8s linear infinite; margin: 20px auto 24px auto; }
@@ -109,6 +208,7 @@ padding: var(--screen-pad);
 }
 .lockscreen-shell {
 width: min(1180px, 100%);
+min-height: min(100%, calc(100vh - (var(--screen-pad) * 2)));
 display: grid;
 grid-template-columns: minmax(260px, 0.95fr) minmax(0, 1.15fr);
 gap: clamp(18px, 3vw, 34px);
@@ -155,14 +255,17 @@ width: 100%;
 text-align: center;
 box-shadow: var(--shadow);
 min-height: min(72vh, 760px);
+max-height: calc(100vh - (var(--screen-pad) * 2));
 display: flex;
 flex-direction: column;
 justify-content: center;
+overflow: auto;
 }
 .login-box.auth-setup {
 text-align: left;
 min-height: min(78vh, 860px);
 padding: clamp(28px, 4.5vw, 52px);
+justify-content: flex-start;
 }
 .login-box h2 { font-weight: 300; letter-spacing: 1px; }
 .auth-title { font-size: 1.7rem; font-weight: 700; letter-spacing: 0.07em; }
@@ -254,20 +357,37 @@ gap: 18px;
 @media (max-width: 980px) {
 .lockscreen-shell,
 .lockscreen-shell.setup-mode,
-.auth-slide { grid-template-columns: 1fr; }
+.auth-slide,
+.boot-shell { grid-template-columns: 1fr; }
 #lock-time { font-size: clamp(3.1rem, 15vw, 6rem); }
 .login-box { max-width: 100%; min-height: auto; }
 .login-box.auth-setup { min-height: auto; }
+.boot-aside { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 640px) {
 #login { align-items: stretch; overflow: auto; }
 .lockscreen-shell { width: 100%; }
 .login-box,
-.login-box.auth-setup { padding: 22px; border-radius: 22px; }
-.auth-progress { grid-template-columns: 1fr; }
+.login-box.auth-setup { padding: 22px; border-radius: 22px; max-height: none; }
+.auth-progress,
+.boot-aside { grid-template-columns: 1fr; }
 .auth-actions button,
 .auth-row button { min-width: 0; }
+#boot { padding: 14px; }
+#boot-terminal { min-height: auto; }
+#hack-logs { min-height: 220px; }
+}
+
+@media (max-width: 480px) {
+.login-box,
+.login-box.auth-setup { padding: 18px; border-radius: 18px; }
+.auth-row,
+.auth-actions { flex-direction: column; }
+.auth-actions button,
+.auth-row button { width: 100%; }
+.auth-title { font-size: 1.45rem; }
+.auth-sub { line-height: 1.5; }
 }
 
 /* --- WORKSPACE --- */
@@ -546,23 +666,36 @@ body.taskbar-hidden.taskbar-peek #taskbar { transform: translateX(-50%); opacity
 #taskbar-peek-tab {
 position: fixed;
 left: 50%;
-bottom: 8px;
+bottom: 10px;
 transform: translateX(-50%) translateY(18px);
-padding: 8px 16px;
+padding: 8px 16px 10px 16px;
 border-radius: 999px;
-background: rgba(8,8,8,0.92);
+background: rgba(8,8,8,0.94);
 border: 1px solid rgba(255,255,255,0.12);
 box-shadow: 0 16px 32px rgba(0,0,0,0.45);
-font-size: 0.78rem;
-letter-spacing: 0.08em;
+font-size: 0.72rem;
+letter-spacing: 0.12em;
 text-transform: uppercase;
 color: #fff;
 z-index: 8450;
 cursor: pointer;
 display: none;
+transition: transform 220ms ease, bottom 220ms ease, opacity 220ms ease;
+}
+#taskbar-peek-tab::before {
+content: '▴';
+display: block;
+font-size: 0.78rem;
+line-height: 1;
+margin-bottom: 2px;
+opacity: 0.78;
 }
 body.taskbar-hidden #taskbar-peek-tab { display: block; }
-body.taskbar-hidden.taskbar-peek #taskbar-peek-tab { transform: translateX(-50%) translateY(0); }
+body.taskbar-hidden.taskbar-peek #taskbar-peek-tab {
+transform: translateX(-50%) translateY(0);
+bottom: calc(var(--taskbar-h) + 16px);
+}
+body.taskbar-hidden.taskbar-peek #taskbar-peek-tab::before { content: '▾'; }
 #task-list { flex: 1; display: flex; justify-content: center; gap: 10px; margin: 0 14px; overflow-x: auto; padding: 8px 0; min-width: 0; }
 .task-tab { padding: 12px 18px; background: rgba(255,255,255,0.04); border-radius: 14px; font-size: 0.84rem; cursor: pointer; transition: 0.3s; white-space: nowrap; border: 1px solid transparent; color: #888; }
 .task-tab.active { background: rgba(0, 120, 212, 0.15); border-color: var(--accent); box-shadow: 0 0 20px rgba(0,120,212,0.25); color: white; }
@@ -586,7 +719,20 @@ body.taskbar-hidden.taskbar-peek #taskbar-peek-tab { transform: translateX(-50%)
 }
 
 /* --- APP CONTENT STYLING --- */
-.full-app-view { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #000; }
+.full-app-view { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #000; padding: 16px; overflow: auto; }
+.embed-shell { width: 100%; min-height: 100%; display: flex; align-items: center; justify-content: center; }
+.embed-frame-wrap { width: 100%; text-align: center; margin: 30px 0; }
+.embed-frame {
+width: 95%;
+height: min(700px, calc(100vh - 140px));
+min-height: 320px;
+border: none;
+border-radius: 12px;
+box-shadow: 0 0 25px rgba(0,0,0,0.5);
+max-width: 1200px;
+aspect-ratio: 16 / 9;
+background: #000;
+}
 .app-iframe { width: 100%; height: 100%; border: none; background: #000; }
 .explorer-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 20px; padding: 30px; }
 .file-item { text-align: center; padding: 20px; border-radius: 12px; background: #0a0a0a; border: 1px solid #1a1a1a; cursor: pointer; transition: 0.2s; }
@@ -636,13 +782,27 @@ body.lively-ui .start-hero { animation: aurora-float calc(var(--anim-speed, 1) *
 
 <div id="boot">
 <div id="boot-terminal" class="boot-stage">
+<div class="boot-topline">
 <h2>ROOT@𝕄𝕔ℂ𝕣𝕒𝕔𝕜OS://BOOT_MATRIX <span class="boot-cursor"></span></h2>
+<div class="boot-status-row">
+<div class="boot-status-pill">Encrypted Tunnel</div>
+<div class="boot-status-pill">Ghost Mode</div>
+<div class="boot-status-pill">Kernel Hijack</div>
+</div>
+</div>
+<div class="boot-shell">
 <div id="hack-logs"></div>
+<div class="boot-aside">
+<div class="boot-metric"><div class="boot-metric-label">Threat Level</div><strong>OMEGA</strong><span>Privilege escalation in progress across synthetic system sectors.</span></div>
+<div class="boot-metric"><div class="boot-metric-label">Relay Mesh</div><strong>11 NODES</strong><span>Loopback mirrors online and routing McCrackOS through the stealth grid.</span></div>
+<div class="boot-seal"><strong>Black Terminal / Live Feed</strong><p>Signal trace masked. Firmware shell rewritten. Awaiting final launch handshake.</p></div>
+</div>
+</div>
 </div>
 <div id="boot-loading" class="boot-stage boot-loading">
 <h1 style="letter-spacing: 12px; font-weight: 200; font-size: 2.5rem;">𝕄𝕔ℂ𝕣𝕒𝕔𝕜<span style="font-weight:700;">OS</span></h1>
 <div class="spin"></div>
-<p class="boot-text">INITIALIZING OPERATING SYSTEM...</p>
+<p class="boot-text">PATCHING SHELL • STAGING USERLAND • OPENING DESKTOP CORE...</p>
 <div id="boot-logs" class="boot-log-box"></div>
 </div>
 </div>
@@ -716,7 +876,7 @@ body.lively-ui .start-hero { animation: aurora-float calc(var(--anim-speed, 1) *
 <div id="date" style="font-size:0.7rem; opacity:0.4; font-weight: 700; text-transform: uppercase;"></div>
 </div>
 </div>
-<div id="taskbar-peek-tab" onclick="toggleTaskbarPeek()">Taskbar</div>
+<div id="taskbar-peek-tab" onclick="toggleTaskbarPeek()">Show Taskbar</div>
 
 <script>
 /* --- KERNEL DATA & REGISTRY --- */
@@ -1482,15 +1642,21 @@ notify('Note cleared.', 'warning');
 
 function normalizeBrowserUrl(value) {
 const raw = (value || '').trim();
-if (!raw) return 'https://example.com';
+if (!raw) return 'https://online.notes.dinprima.ro/browser/browser.html';
 if (/^https?:\/\//i.test(raw)) return raw;
 if (raw.includes('.') && !raw.includes(' ')) return `https://${raw}`;
 return `https://www.google.com/search?q=${encodeURIComponent(raw)}`;
 }
 
+function renderEmbeddedPage(url) {
+const safeUrl = normalizeBrowserUrl(url);
+return `<div class="full-app-view"><div class="embed-shell"><div class="embed-frame-wrap"><iframe class="embed-frame app-iframe" src="${safeUrl}" referrerpolicy="no-referrer"></iframe></div></div></div>`;
+}
+
 function renderBrowserApp() {
-const saved = localStorage.getItem('mc_browser_url') || 'https://example.com';
-return `<div style="display:grid; grid-template-rows:auto auto 1fr; height:100%;"><div style="padding:18px 22px; border-bottom:1px solid #1a1a1a;"><div style="display:flex; gap:10px;"><input id="browser-url" value="${saved}" placeholder="Type a URL or search" style="flex:1; padding:12px 14px; background:#101010; color:#fff; border:1px solid #242424; border-radius:12px;"><button onclick="openBrowserUrl()" style="padding:12px 16px; border:none; border-radius:12px; background:var(--accent); color:#fff;">Go</button></div></div><div style="padding:14px 22px; border-bottom:1px solid #121212; display:flex; gap:10px; flex-wrap:wrap;"><button class="start-quick-btn" onclick="visitBrowserPreset('https://example.com')">🌍 Home</button><button class="start-quick-btn" onclick="visitBrowserPreset('https://www.google.com')">🔎 Google</button><button class="start-quick-btn" onclick="visitBrowserPreset('https://developer.mozilla.org')">📘 MDN</button><button class="start-quick-btn" onclick="visitBrowserPreset('https://openai.com')">✨ OpenAI</button></div><div style="padding:14px; height:100%;"><iframe class="app-iframe" src="${saved}" referrerpolicy="no-referrer"></iframe></div></div>`;
+const saved = 'https://online.notes.dinprima.ro/browser/browser.html';
+localStorage.setItem('mc_browser_url', saved);
+return renderEmbeddedPage(saved);
 }
 
 function refreshBrowserApp() {
@@ -1498,14 +1664,11 @@ if (OS.running['Browser']) OS.running['Browser'].querySelector('.win-body').inne
 }
 
 function openBrowserUrl() {
-const input = document.getElementById('browser-url');
-const next = normalizeBrowserUrl(input?.value || '');
-localStorage.setItem('mc_browser_url', next);
 refreshBrowserApp();
 }
 
 function visitBrowserPreset(url) {
-localStorage.setItem('mc_browser_url', url);
+localStorage.setItem('mc_browser_url', normalizeBrowserUrl(url));
 refreshBrowserApp();
 }
 
@@ -1701,10 +1864,8 @@ notify(`${id} removed from system.`, "success");
 
 /* --- FRAMEWORK FUNCTIONS --- */
 function buildAppFrame(url) {
-return `<div class="full-app-view">
-<iframe class="app-iframe" src="${url}"></iframe>
-</div>`
-; }
+return renderEmbeddedPage(url);
+}
 
 function renderStoreItem(id, desc) {
 const isInst = OS.installed.includes(id);
@@ -1790,17 +1951,18 @@ function simulateHackBootLogs(durationMs = 6000) {
 const panel = document.getElementById('hack-logs');
 if(!panel) return;
 const hackLines = [
-"> root@mc-node:~$ ./init-zero-day --force",
-"[SCAN] Enumerating secure kernel sectors ...",
-"[BYPASS] Signature firewall neutralized",
-"[INJECT] Uploading quantum payload chunk 01/04",
-"[INJECT] Uploading quantum payload chunk 02/04",
-"[INJECT] Uploading quantum payload chunk 03/04",
-"[INJECT] Uploading quantum payload chunk 04/04",
-"[CRYPT] Rotating ephemeral access keys",
-"[TRACE] Ghost route established :: 127.0.0.1",
-"[SYNC] Handshake with 𝕄𝕔ℂ𝕣𝕒𝕔𝕜 core completed",
-"> root@mc-node:~$ launch --profile 𝕄𝕔ℂ𝕣𝕒𝕔𝕜os"
+"> root@mc-node:~$ ./black-ice --breach --mask trace",
+"[SCAN] Enumerating cold-boot sectors and dormant ports ...",
+"[BYPASS] ICE wall signatures spoofed with phantom checksum",
+"[INJECT] Uploading stealth shard 01/05 to kernel relay",
+"[INJECT] Uploading stealth shard 02/05 to kernel relay",
+"[INJECT] Uploading stealth shard 03/05 to kernel relay",
+"[INJECT] Uploading stealth shard 04/05 to kernel relay",
+"[INJECT] Uploading stealth shard 05/05 to kernel relay",
+"[CRYPT] Cycling cipher mesh and burning transient keys",
+"[TRACE] Shadow route established :: 127.0.0.1 > /mc/core",
+"[SIGIL] Root shell imprint accepted by McCrack daemon",
+"> root@mc-node:~$ exec --uplink 𝕄𝕔ℂ𝕣𝕒𝕔𝕜os --visual hacker"
 ];
 panel.innerHTML = '';
 let idx = 0;
@@ -1823,16 +1985,16 @@ function simulateBootLogs() {
 const panel = document.getElementById('boot-logs');
 if(!panel) return;
 const bootLines = [
-"[BOOT] Power rails stabilized at 12.0V",
-"[KERNEL] Loading microkernel v2.5.3",
-"[MEMORY] Mapping core pages... OK",
-"[SECURITY] Initializing access-control matrix",
-"[DRIVER] Mounting synthetic file system",
-"[NET] Negotiating loopback interface",
-"[AUDIO] DSP handoff complete",
-"[GPU] Shader cache restored",
-"[SERVICES] Spawning userland daemons",
-"[SYSTEM] Startup checks complete"
+"[BOOT] Power rails stabilized and stealth rails locked",
+"[KERNEL] Loading microkernel v2.5.3 // blacksite branch",
+"[MEMORY] Mapping encrypted core pages... OK",
+"[SECURITY] Initializing intrusion mask and access lattice",
+"[DRIVER] Mounting synthetic file system overlays",
+"[NET] Negotiating loopback tunnel and ghost socket",
+"[AUDIO] DSP handoff complete // startup tone armed",
+"[GPU] Shader cache restored with neon overlay pack",
+"[SERVICES] Spawning userland daemons and taskbar hooks",
+"[SYSTEM] Startup checks complete // desktop core online"
 ];
 panel.innerHTML = '';
 let idx = 0;
@@ -2286,11 +2448,11 @@ shell?.classList.toggle('setup-mode', !!OS.firstRun);
 if (OS.firstRun) {
 const setup = getAuthSetup();
 box.innerHTML = `
-<div style="max-width:560px; margin:0 auto; width:100%;">
+<div style="max-width:min(560px, 100%); margin:0 auto; width:100%;">
 <div class="auth-page-tag">Setup <span>Simple</span></div>
 <div class="auth-title" style="margin-top:16px;">Create your profile</div>
-<p class="auth-sub" style="margin-top:10px; font-size:0.9rem; line-height:1.6;">Just add a name, choose whether you want a password, and continue to the desktop.</p>
-<div style="display:grid; gap:14px; margin-top:22px;">
+<p class="auth-sub" style="margin-top:10px; font-size:0.9rem; line-height:1.6;">A cleaner setup that scales down for smaller screens. Add a name, choose sign-in, and go straight to the desktop.</p>
+<div style="display:grid; gap:14px; margin-top:22px; width:100%;">
 <div>
 <label style="display:block; font-size:0.78rem; opacity:0.68; margin-bottom:8px; letter-spacing:0.08em; text-transform:uppercase;">Name</label>
 <input type="text" id="new-user" maxlength="24" placeholder="Choose a username" value="${setup.username || ''}" oninput="syncAuthSetupFromInputs()" style="margin:0; text-align:left;">
@@ -3184,7 +3346,7 @@ refreshMusicApp();
 
 function renderMusicStreamingApp() {
 const weatherText = OS.weather ? `${Math.round(OS.weather.temp)}°${OS.settings.temperatureUnit} • ${OS.weather.label}` : 'Weather syncing';
-return `<div style="display:grid; grid-template-columns:320px 1fr; height:100%;"><aside style="padding:28px; border-right:1px solid #1a1a1a; background:linear-gradient(180deg, rgba(0,120,212,0.12), rgba(0,0,0,0));"><div style="font-size:0.72rem; letter-spacing:0.18em; text-transform:uppercase; opacity:0.6;">Now Streaming</div><h2 style="margin-top:10px;">Music</h2><p style="opacity:0.72; line-height:1.7; margin-top:10px;">The old local queue app has been replaced with the upgraded stream player from Music2, now promoted to the main Music app.</p><div style="display:grid; gap:10px; margin-top:18px;"><button onclick="launch('FocusSounds')" style="padding:10px 12px; border:none; border-radius:10px; background:var(--accent); color:#fff; font-weight:700;">Open Focus Sounds</button><button onclick="launch('YouTube')" style="padding:10px 12px; border:none; border-radius:10px; background:#141414; color:#fff;">Open YouTube</button><button onclick="launch('ClockPro')" style="padding:10px 12px; border:none; border-radius:10px; background:#141414; color:#fff;">Pair with Clock Pro</button></div><div style="margin-top:18px; padding:14px; border-radius:14px; background:#0b0b0b; border:1px solid #1d1d1d;"><div style="font-size:0.74rem; opacity:0.55; text-transform:uppercase; letter-spacing:1px;">Session Mix</div><div style="margin-top:8px; font-weight:700;">${weatherText}</div><div style="font-size:0.8rem; opacity:0.66; line-height:1.55; margin-top:6px;">Use this with Todo Board or Focus Sounds for a cleaner work session.</div></div></aside><div style="padding:16px; height:100%;"><div style="height:100%; border-radius:18px; overflow:hidden; border:1px solid #1f1f1f; background:#050505;"><iframe class="app-iframe" src="https://freefy.app/"></iframe></div></div></div>`;
+return `<div style="display:grid; grid-template-columns:minmax(250px, 320px) minmax(0, 1fr); height:100%;"><aside style="padding:28px; border-right:1px solid #1a1a1a; background:linear-gradient(180deg, rgba(0,120,212,0.12), rgba(0,0,0,0));"><div style="font-size:0.72rem; letter-spacing:0.18em; text-transform:uppercase; opacity:0.6;">Now Streaming</div><h2 style="margin-top:10px;">Music</h2><p style="opacity:0.72; line-height:1.7; margin-top:10px;">The old local queue app has been replaced with the upgraded stream player from Music2, now promoted to the main Music app.</p><div style="display:grid; gap:10px; margin-top:18px;"><button onclick="launch('FocusSounds')" style="padding:10px 12px; border:none; border-radius:10px; background:var(--accent); color:#fff; font-weight:700;">Open Focus Sounds</button><button onclick="launch('YouTube')" style="padding:10px 12px; border:none; border-radius:10px; background:#141414; color:#fff;">Open YouTube</button><button onclick="launch('ClockPro')" style="padding:10px 12px; border:none; border-radius:10px; background:#141414; color:#fff;">Pair with Clock Pro</button></div><div style="margin-top:18px; padding:14px; border-radius:14px; background:#0b0b0b; border:1px solid #1d1d1d;"><div style="font-size:0.74rem; opacity:0.55; text-transform:uppercase; letter-spacing:1px;">Session Mix</div><div style="margin-top:8px; font-weight:700;">${weatherText}</div><div style="font-size:0.8rem; opacity:0.66; line-height:1.55; margin-top:6px;">Use this with Todo Board or Focus Sounds for a cleaner work session.</div></div></aside><div style="padding:16px; height:100%;">${renderEmbeddedPage('https://freefy.app/')}</div></div>`;
 }
 
 function renderFilesApp() {
