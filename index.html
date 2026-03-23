@@ -1649,9 +1649,11 @@ if (OS.running['Notepad']) OS.running['Notepad'].querySelector('.win-body').inne
 notify('Note cleared.', 'warning');
 }
 
+const DEFAULT_BROWSER_URL = 'https://patrickmango49.github.io/McCrack-Browser/';
+
 function normalizeBrowserUrl(value) {
 const raw = (value || '').trim();
-if (!raw) return 'https://patrickmango49.github.io/McCrack-Browser/';
+if (!raw) return DEFAULT_BROWSER_URL;
 if (/^https?:\/\//i.test(raw)) return raw;
 if (raw.includes('.') && !raw.includes(' ')) return `https://${raw}`;
 return `https://www.google.com/search?q=${encodeURIComponent(raw)}`;
@@ -1662,10 +1664,15 @@ const safeUrl = normalizeBrowserUrl(url);
 return `<div class="full-app-view"><div class="embed-shell"><div class="embed-frame-wrap"><iframe class="embed-frame app-iframe" src="${safeUrl}" referrerpolicy="no-referrer"></iframe></div></div></div>`;
 }
 
+function getBrowserUrl() {
+const saved = localStorage.getItem('mc_browser_url');
+const normalized = normalizeBrowserUrl(saved || DEFAULT_BROWSER_URL);
+if (saved !== normalized) localStorage.setItem('mc_browser_url', normalized);
+return normalized;
+}
+
 function renderBrowserApp() {
-const saved = 'https://patrickmango49.github.io/McCrack-Browser/';
-localStorage.setItem('mc_browser_url', saved);
-return renderEmbeddedPage(saved);
+return renderEmbeddedPage(getBrowserUrl());
 }
 
 function refreshBrowserApp() {
