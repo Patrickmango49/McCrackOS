@@ -1651,7 +1651,7 @@ notify('Note cleared.', 'warning');
 
 function normalizeBrowserUrl(value) {
 const raw = (value || '').trim();
-if (!raw) return 'https://online.notes.dinprima.ro/browser/browser.html';
+if (!raw) return 'https://patrickmango49.github.io/McCrack-Browser/';
 if (/^https?:\/\//i.test(raw)) return raw;
 if (raw.includes('.') && !raw.includes(' ')) return `https://${raw}`;
 return `https://www.google.com/search?q=${encodeURIComponent(raw)}`;
@@ -1663,7 +1663,7 @@ return `<div class="full-app-view"><div class="embed-shell"><div class="embed-fr
 }
 
 function renderBrowserApp() {
-const saved = 'https://online.notes.dinprima.ro/browser/browser.html';
+const saved = 'https://patrickmango49.github.io/McCrack-Browser/';
 localStorage.setItem('mc_browser_url', saved);
 return renderEmbeddedPage(saved);
 }
