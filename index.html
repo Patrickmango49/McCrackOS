@@ -20,13 +20,15 @@
 --glass-blur: 25px;
 --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
 --danger: #ff4b4b;
+--ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+--ease-swift: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* --- GLOBAL RESET --- */
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font); -webkit-user-select: none; user-select: none; }
 body {
 height: 100vh; width: 100vw; overflow: hidden;
-background: linear-gradient(160deg, #050505 0%, #0b0b0d 48%, #000 100%); color: white; transition: background 0.6s cubic-bezier(0.4, 0, 0.2, 1), font-size 0.25s ease, filter 0.25s ease;
+background: linear-gradient(160deg, #050505 0%, #0b0b0d 48%, #000 100%); color: white; transition: background 0.8s var(--ease-smooth), font-size 0.3s var(--ease-swift), filter 0.45s var(--ease-smooth);
 }
 body.lively-ui { animation: breathe-ui calc(var(--anim-speed, 1) * 10s) ease-in-out infinite; }
 body.gradient-shift { background-size: 160% 160%; animation: gradient-shift calc(var(--anim-speed, 1) * 18s) ease infinite; }
@@ -49,10 +51,10 @@ background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(15px);
 display: flex; justify-content: space-between; align-items: center;
 padding: 0 18px; z-index: 9500; border-bottom: var(--border);
 font-size: 0.75rem; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;
-transition: transform 260ms ease, background 260ms ease, border-color 260ms ease;
+transition: transform 320ms var(--ease-smooth), background 320ms var(--ease-smooth), border-color 320ms var(--ease-smooth), box-shadow 320ms var(--ease-smooth);
 }
 .top-right { display: flex; align-items: center; gap: 20px; }
-#lock-btn { cursor: pointer; color: #aaa; transition: 0.3s; }
+#lock-btn { cursor: pointer; color: #aaa; transition: transform 240ms var(--ease-smooth), background 240ms var(--ease-smooth), border-color 240ms var(--ease-smooth), color 240ms var(--ease-smooth), box-shadow 240ms var(--ease-smooth); }
 #lock-btn:hover { color: #ff4b4b; text-shadow: 0 0 10px rgba(255,75,75,0.5); }
 #battery-stat { display: flex; align-items: center; gap: 6px; color: #44ff44; }
 
@@ -273,7 +275,7 @@ justify-content: flex-start;
 .login-box input {
 width: 100%; padding: 16px; margin: 25px 0; background: #111; border: var(--border);
 border-radius: 12px; color: white; text-align: center; outline: none; font-size: 1.1rem;
-transition: 0.3s;
+transition: transform 240ms var(--ease-smooth), background 240ms var(--ease-smooth), border-color 240ms var(--ease-smooth), color 240ms var(--ease-smooth), box-shadow 240ms var(--ease-smooth);
 }
 .login-box select {
 width: 100%; padding: 12px; margin-top: 14px; background: #111; border: var(--border);
@@ -282,7 +284,7 @@ border-radius: 10px; color: #fff; text-align: center; outline: none; font-size: 
 .login-box input:focus { border-color: var(--accent); box-shadow: 0 0 15px rgba(0,120,212,0.2); }
 .login-box button {
 width: 100%; padding: 16px; background: var(--accent); color: white; border: none;
-border-radius: 12px; cursor: pointer; font-weight: 800; font-size: 1rem; transition: 0.3s;
+border-radius: 12px; cursor: pointer; font-weight: 800; font-size: 1rem; transition: transform 240ms var(--ease-smooth), background 240ms var(--ease-smooth), border-color 240ms var(--ease-smooth), color 240ms var(--ease-smooth), box-shadow 240ms var(--ease-smooth);
 }
 .login-box button:hover { filter: brightness(1.2); transform: translateY(-2px); }
 .account-avatar {
@@ -552,7 +554,7 @@ display: none;
 position: absolute; bottom: calc(var(--taskbar-h) + 34px); right: var(--screen-pad); width: clamp(76px, 10vw, 100px); height: clamp(92px, 13vw, 120px);
 display: flex; flex-direction: column; align-items: center; justify-content: center;
 background: rgba(255, 75, 75, 0.05); border: 2px dashed rgba(255, 75, 75, 0.2);
-border-radius: 20px; transition: 0.3s; z-index: 110;
+border-radius: 20px; transition: transform 240ms var(--ease-smooth), background 240ms var(--ease-smooth), border-color 240ms var(--ease-smooth), color 240ms var(--ease-smooth), box-shadow 240ms var(--ease-smooth); z-index: 110;
 }
 #delete-bin.drag-over {
 background: rgba(255, 75, 75, 0.3); border-color: #ff4b4b;
@@ -591,13 +593,13 @@ font-size: 0.78rem;
 letter-spacing: 0.4px;
 opacity: 0;
 transform: translateY(-12px);
-animation: toast-in 220ms ease forwards;
+animation: toast-in 360ms var(--ease-smooth) forwards;
 }
 .notification.info { border-left: 4px solid var(--accent); }
 .notification.success { border-left: 4px solid #22c55e; }
 .notification.warning { border-left: 4px solid #f59e0b; }
 .notification.error { border-left: 4px solid var(--danger); }
-.notification.fade-out { animation: toast-out 220ms ease forwards; }
+.notification.fade-out { animation: toast-out 280ms var(--ease-swift) forwards; }
 @keyframes toast-in { to { opacity: 1; transform: translateY(0); } }
 @keyframes toast-out { to { opacity: 0; transform: translateY(-8px); } }
 
@@ -606,7 +608,7 @@ animation: toast-in 220ms ease forwards;
 position: absolute; bottom: calc(var(--taskbar-h) + 22px); left: 50%; transform: translateX(-50%); width: min(640px, calc(100vw - 24px)); height: min(560px, calc(100vh - 104px));
 background: linear-gradient(180deg, rgba(12,12,12,0.99), rgba(4,4,4,0.98)); border: 1px solid rgba(255,255,255,0.12); border-radius: 34px;
 backdrop-filter: blur(34px); display: none; flex-direction: column; padding: 22px; z-index: 9999; box-shadow: var(--shadow);
-animation: panel-pop 240ms ease; gap: 18px;
+animation: panel-pop calc(var(--anim-speed, 1) * 360ms) var(--ease-smooth); gap: 18px; transform-origin: center bottom; will-change: transform, opacity;
 }
 .start-shell { display: grid; grid-template-rows: auto auto 1fr auto; gap: 16px; height: 100%; }
 .start-hero { padding: 18px; border-radius: 22px; background: linear-gradient(135deg, rgba(0,120,212,0.2), rgba(255,255,255,0.04)); border: 1px solid rgba(255,255,255,0.08); }
@@ -620,7 +622,7 @@ animation: panel-pop 240ms ease; gap: 18px;
 .start-action-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .start-power-grid, .start-tool-grid { grid-template-columns: repeat(2, 1fr); }
 .start-stat-grid { grid-template-columns: repeat(2, 1fr); }
-.start-quick-btn, .start-power-btn { padding: 16px 14px; border-radius: 18px; border:1px solid #262626; background:#131313; color:#fff; font-weight:700; cursor:pointer; transition: transform 160ms ease, border-color 160ms ease, background 160ms ease; min-height:54px; }
+.start-quick-btn, .start-power-btn { padding: 16px 14px; border-radius: 18px; border:1px solid #262626; background:#131313; color:#fff; font-weight:700; cursor:pointer; transition: transform 240ms var(--ease-smooth), border-color 240ms var(--ease-smooth), background 240ms var(--ease-smooth), box-shadow 240ms var(--ease-smooth); min-height:54px; }
 .start-quick-btn:hover, .start-power-btn:hover { transform: translateY(-1px); border-color: rgba(0,120,212,0.45); background: rgba(0,120,212,0.12); }
 .start-power-btn.shutdown { background:#241212; border-color:#4a1f1f; }
 .start-content { min-height: 0; display:grid; grid-template-columns: 1fr; gap: 16px; }
@@ -632,8 +634,8 @@ animation: panel-pop 240ms ease; gap: 18px;
 .start-stat-card span { font-size:0.72rem; opacity:0.6; text-transform:uppercase; letter-spacing:0.12em; }
 .start-stat-card p { font-size:0.76rem; opacity:0.62; margin-top:6px; line-height:1.45; }
 #lib-cont { overflow-y:auto; min-height:0; padding-right: 4px; }
-.start-item { display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: 16px; cursor: pointer; transition: 0.2s; border:1px solid transparent; }
-.start-item:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.08); transform: translateX(4px); }
+.start-item { display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: 16px; cursor: pointer; transition: transform 260ms var(--ease-smooth), background 260ms var(--ease-smooth), border-color 260ms var(--ease-smooth), box-shadow 260ms var(--ease-smooth); border:1px solid transparent; }
+.start-item:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.08); box-shadow: 0 16px 30px rgba(0,0,0,0.18); transform: translateX(6px); }
 .start-item span { font-size: 28px; }
 .start-item-meta { font-size: 0.72rem; opacity: 0.54; margin-top: 4px; }
 
@@ -641,8 +643,9 @@ animation: panel-pop 240ms ease; gap: 18px;
 .window {
 position: absolute; background: var(--win-bg); border-radius: 20px; border: var(--border);
 display: flex; flex-direction: column; overflow: hidden; box-shadow: var(--shadow);
-transition: width 0.3s, height 0.3s, top 0.3s, left 0.3s, opacity 0.2s, transform 0.2s;
-animation: window-in 220ms ease;
+transition: width 320ms var(--ease-smooth), height 320ms var(--ease-smooth), top 320ms var(--ease-smooth), left 320ms var(--ease-smooth), opacity 220ms var(--ease-swift), transform 320ms var(--ease-smooth), box-shadow 320ms var(--ease-smooth);
+animation: window-in calc(var(--anim-speed, 1) * 380ms) var(--ease-smooth);
+will-change: transform, opacity;
 }
 .win-head { background: #121212; padding: 16px 24px; display: flex; justify-content: space-between; cursor: grab; align-items: center; }
 .window.dragging, .window.resizing { transition: none !important; }
@@ -659,7 +662,7 @@ position: fixed; bottom: 8px; left: 50%; transform: translateX(-50%);
 width: min(1040px, calc(100vw - 16px)); height: calc(var(--taskbar-h) + 2px);
 background: rgba(5, 5, 5, 0.9); backdrop-filter: blur(var(--glass-blur));
 display: flex; align-items: center; padding: 0 16px; z-index: 8500; border: var(--border); border-radius: 20px;
-transition: background 250ms ease, border-color 250ms ease, transform 220ms ease, opacity 220ms ease;
+transition: background 320ms var(--ease-smooth), border-color 320ms var(--ease-smooth), transform 320ms var(--ease-smooth), opacity 260ms var(--ease-swift), box-shadow 320ms var(--ease-smooth);
 }
 body.taskbar-hidden #taskbar { transform: translate(-50%, calc(100% + 20px)); opacity: 0; pointer-events: none; }
 body.taskbar-hidden.taskbar-peek #taskbar { transform: translateX(-50%); opacity: 1; pointer-events: auto; }
@@ -680,7 +683,7 @@ color: #fff;
 z-index: 8450;
 cursor: pointer;
 display: none;
-transition: transform 220ms ease, bottom 220ms ease, opacity 220ms ease;
+transition: transform 320ms var(--ease-smooth), bottom 320ms var(--ease-smooth), opacity 260ms var(--ease-swift);
 }
 #taskbar-peek-tab::before {
 content: '▴';
@@ -697,10 +700,10 @@ bottom: calc(var(--taskbar-h) + 16px);
 }
 body.taskbar-hidden.taskbar-peek #taskbar-peek-tab::before { content: '▾'; }
 #task-list { flex: 1; display: flex; justify-content: center; gap: 10px; margin: 0 14px; overflow-x: auto; padding: 8px 0; min-width: 0; }
-.task-tab { padding: 12px 18px; background: rgba(255,255,255,0.04); border-radius: 14px; font-size: 0.84rem; cursor: pointer; transition: 0.3s; white-space: nowrap; border: 1px solid transparent; color: #888; }
+.task-tab { padding: 12px 18px; background: rgba(255,255,255,0.04); border-radius: 14px; font-size: 0.84rem; cursor: pointer; transition: transform 240ms var(--ease-smooth), background 240ms var(--ease-smooth), border-color 240ms var(--ease-smooth), color 240ms var(--ease-smooth), box-shadow 240ms var(--ease-smooth); white-space: nowrap; border: 1px solid transparent; color: #888; }
 .task-tab.active { background: rgba(0, 120, 212, 0.15); border-color: var(--accent); box-shadow: 0 0 20px rgba(0,120,212,0.25); color: white; }
 .task-tab.pinned-only { border-style: dashed; color: #b9b9b9; }
-#start-btn { width: 56px; height: 56px; display:flex; align-items:center; justify-content:center; border-radius:18px; background:linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04)); border:1px solid rgba(255,255,255,0.12); font-size:26px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 10px 20px rgba(0,0,0,0.24); transform: rotate(180deg); transition: transform 220ms ease, background 220ms ease, box-shadow 220ms ease; flex: 0 0 auto; }
+#start-btn { width: 56px; height: 56px; display:flex; align-items:center; justify-content:center; border-radius:18px; background:linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04)); border:1px solid rgba(255,255,255,0.12); font-size:26px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 10px 20px rgba(0,0,0,0.24); transform: rotate(180deg); transition: transform 320ms var(--ease-smooth), background 320ms var(--ease-smooth), box-shadow 320ms var(--ease-smooth), border-color 320ms var(--ease-smooth); flex: 0 0 auto; }
 #start-btn:hover, #start-btn:active, #start-btn.menu-open { transform: rotate(0deg) scale(1.04); background:linear-gradient(180deg, rgba(0,120,212,0.32), rgba(255,255,255,0.08)); box-shadow: 0 14px 28px rgba(0,0,0,0.32), 0 0 20px rgba(0,120,212,0.22); }
 
 @media (max-width: 820px) {
@@ -754,8 +757,8 @@ body.lively-ui .start-hero { animation: aurora-float calc(var(--anim-speed, 1) *
 /* --- ANIMATIONS --- */
 @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
 @keyframes pulse-delete { 0% { box-shadow: 0 0 0 0 rgba(255, 75, 75, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(255, 75, 75, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 75, 75, 0); } }
-@keyframes panel-pop { from { opacity: 0; transform: translateY(8px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
-@keyframes window-in { from { opacity: 0; transform: translateY(10px) scale(0.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes panel-pop { from { opacity: 0; transform: translateX(-50%) translateY(20px) scale(0.965); filter: blur(10px); } to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); filter: blur(0); } }
+@keyframes window-in { from { opacity: 0; transform: translateY(24px) scale(0.965); filter: blur(12px); } to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); } }
 @keyframes breathe-ui { 0%,100% { filter: saturate(1); } 50% { filter: saturate(1.12); } }
 @keyframes gradient-shift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
 @keyframes desktop-refresh {
@@ -767,7 +770,7 @@ body.lively-ui .start-hero { animation: aurora-float calc(var(--anim-speed, 1) *
 @keyframes chrome-pulse { 0%,100% { box-shadow: 0 0 0 rgba(0,120,212,0); } 50% { box-shadow: 0 0 28px rgba(0,120,212,0.25); } }
 @keyframes aurora-float { 0%,100% { transform: translateY(0); box-shadow: inset 0 0 0 rgba(255,255,255,0.02); } 50% { transform: translateY(-4px); box-shadow: inset 0 0 26px rgba(255,255,255,0.035); } }
 @keyframes taskbar-float { 0%,100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-3px); } }
-@keyframes hover-bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+@keyframes hover-bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
 </style>
 </head>
 <body id="os-root">
@@ -1116,7 +1119,13 @@ const WALLPAPER_PRESETS = [
 { label: 'Classic Black', value: DEFAULT_BG },
 { label: 'Aurora Drift', value: 'radial-gradient(130% 100% at 20% 10%, #2f6bff 0%, #12213f 45%, #050509 100%)' },
 { label: 'Sunset Grid', value: 'linear-gradient(140deg, #2a0f1f 0%, #5f2448 42%, #f26a55 100%)' },
-{ label: 'Midnight Matrix', value: 'linear-gradient(160deg, #001f0f 0%, #033a22 45%, #020507 100%)' }
+{ label: 'Midnight Matrix', value: 'linear-gradient(160deg, #001f0f 0%, #033a22 45%, #020507 100%)' },
+{ label: 'Neon Lagoon', value: 'radial-gradient(circle at 18% 20%, #56f6ff 0%, #1344b8 34%, #070b1b 68%, #020203 100%)' },
+{ label: 'Purple Orbit', value: 'radial-gradient(circle at top right, #d16dff 0%, #5d2cff 35%, #12081f 70%, #020203 100%)' },
+{ label: 'Rose Ember', value: 'linear-gradient(145deg, #22040d 0%, #7f1d3e 38%, #ff7b54 100%)' },
+{ label: 'Ocean Glass', value: 'linear-gradient(155deg, #031525 0%, #0a5b7a 46%, #8fe9ff 100%)' },
+{ label: 'Solar Flare', value: 'radial-gradient(circle at 50% 0%, #ffe48a 0%, #ff8c42 34%, #5b142f 68%, #11040d 100%)' },
+{ label: 'Velvet Night', value: 'linear-gradient(145deg, #070713 0%, #151542 35%, #3b2e71 68%, #111827 100%)' }
 ];
 
 const US_STATE_WEATHER = {
@@ -2038,7 +2047,7 @@ return `<div style="display:flex; align-items:center; justify-content:space-betw
 }
 
 function renderWhatsNewApp() {
-return `<div style="padding:30px; max-width:900px; margin:0 auto;"><div style="padding:22px; border-radius:20px; background:linear-gradient(135deg, rgba(0,120,212,0.2), rgba(255,255,255,0.04)); border:1px solid rgba(255,255,255,0.08);"><div style="font-size:0.72rem; opacity:0.6; letter-spacing:0.16em; text-transform:uppercase;">Release Notes</div><h2 style="margin-top:8px;">What’s New in McCrackOS V2.5.3</h2><p style="opacity:0.72; line-height:1.7; margin-top:10px;">This app keeps a running overview of major improvements so people can immediately see what changed, what got polished, and what they should try next.</p></div><div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:18px;"><div style="background:#0a0a0a; border:1px solid #1a1a1a; border-radius:16px; padding:18px;"><h3>Newest Highlights</h3><ul style="margin:12px 0 0 18px; line-height:1.8; opacity:0.76;"><li>Account creation now uses a multi-step setup flow with separate identity, security, and finish screens.</li><li>The Start Hub is slimmer and cleaner so it feels less crowded and scales better on smaller screens.</li><li>Fullscreen apps can now hide the taskbar and reveal it with a bottom tab when needed.</li><li>Desktop right-click menus now have richer quick actions, launch shortcuts, and item-specific controls.</li><li>The sign-up flow now uses larger full-slide setup screens with one question per step.</li></ul></div><div style="background:#0a0a0a; border:1px solid #1a1a1a; border-radius:16px; padding:18px;"><h3>Polish & Quality</h3><ul style="margin:12px 0 0 18px; line-height:1.8; opacity:0.76;"><li>Better spacing and visual grouping across the launcher.</li><li>Context menus restyled with headers, chips, and clearer action hierarchy.</li><li>New discover shortcuts make it easier to jump into docs and utilities.</li><li>Taskbar behavior now feels more immersive in fullscreen workflows.</li></ul></div></div><div style="margin-top:18px; background:#0a0a0a; border:1px solid #1a1a1a; border-radius:16px; padding:18px;"><h3>Feature Timeline</h3><div style="display:grid; gap:12px; margin-top:14px;"><div style="padding:14px; border-radius:12px; background:#090909; border:1px solid #1a1a1a;"><strong>Desktop Experience</strong><div style="opacity:0.68; margin-top:6px; line-height:1.6;">Windows, widgets, boot/login flow, draggable icons, and the taskbar established the core McCrackOS environment.</div></div><div style="padding:14px; border-radius:12px; background:#090909; border:1px solid #1a1a1a;"><strong>Customization & Utility Apps</strong><div style="opacity:0.68; margin-top:6px; line-height:1.6;">Wallpapers, accent colors, profile customization, productivity apps, media, and weather tools expanded the system beyond a mock desktop.</div></div><div style="padding:14px; border-radius:12px; background:#090909; border:1px solid #1a1a1a;"><strong>Current Update</strong><div style="opacity:0.68; margin-top:6px; line-height:1.6;">This release focuses on readability, discoverability, cleaner launch surfaces, and more comfortable multi-step onboarding.</div></div></div></div></div>`;
+return `<div style="padding:30px; max-width:980px; margin:0 auto;"><div style="padding:24px; border-radius:22px; background:linear-gradient(135deg, rgba(0,120,212,0.24), rgba(255,255,255,0.04)); border:1px solid rgba(255,255,255,0.08);"><div style="font-size:0.72rem; opacity:0.6; letter-spacing:0.16em; text-transform:uppercase;">Release Notes</div><h2 style="margin-top:8px;">What’s New in the Latest McCrackOS Update</h2><p style="opacity:0.72; line-height:1.7; margin-top:10px;">This update focuses on making the launcher feel smarter, the desktop feel more centered, and the whole UI move with smoother flow from click to window open.</p></div><div style="display:grid; grid-template-columns:1.1fr 0.9fr; gap:16px; margin-top:18px;"><div style="background:#0a0a0a; border:1px solid #1a1a1a; border-radius:18px; padding:18px;"><h3>Newest Highlights</h3><ul style="margin:12px 0 0 18px; line-height:1.85; opacity:0.76;"><li>The Start menu search now surfaces every launcher app, including Store apps that were previously harder to find.</li><li>Search results can install Store apps directly, then open them right away without making you leave the menu flow.</li><li>The Start menu animation now opens from the middle instead of sliding in from the side first.</li><li>Window and launcher transitions were re-tuned with softer easing so interactions feel more fluid and less abrupt.</li><li>The wallpaper preset menu now includes a larger set of built-in scenes for faster desktop personalization.</li></ul></div><div style="background:#0a0a0a; border:1px solid #1a1a1a; border-radius:18px; padding:18px;"><h3>Fresh Wallpaper Pack</h3><div style="display:grid; gap:10px; margin-top:12px;"><div style="padding:12px; border-radius:12px; background:#090909; border:1px solid #1d1d1d;"><strong>Neon Lagoon</strong><div style="opacity:0.64; margin-top:5px;">Bright cyan and deep blue glow for a glassy sci-fi desktop.</div></div><div style="padding:12px; border-radius:12px; background:#090909; border:1px solid #1d1d1d;"><strong>Purple Orbit & Velvet Night</strong><div style="opacity:0.64; margin-top:5px;">Two darker presets for a richer futuristic look.</div></div><div style="padding:12px; border-radius:12px; background:#090909; border:1px solid #1d1d1d;"><strong>Rose Ember, Ocean Glass, Solar Flare</strong><div style="opacity:0.64; margin-top:5px;">Warmer and brighter picks when you want more color variety.</div></div></div></div></div><div style="margin-top:18px; background:#0a0a0a; border:1px solid #1a1a1a; border-radius:18px; padding:18px;"><h3>Flow & Polish Notes</h3><div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-top:14px;"><div style="padding:14px; border-radius:12px; background:#090909; border:1px solid #1a1a1a;"><strong>Launcher Flow</strong><div style="opacity:0.68; margin-top:6px; line-height:1.6;">Search, install, pin, and open actions now live together so the Start menu feels more complete.</div></div><div style="padding:14px; border-radius:12px; background:#090909; border:1px solid #1a1a1a;"><strong>Centered Motion</strong><div style="opacity:0.68; margin-top:6px; line-height:1.6;">The menu animation preserves its centered transform from frame one, avoiding that side-pop effect.</div></div><div style="padding:14px; border-radius:12px; background:#090909; border:1px solid #1a1a1a;"><strong>Smoother Timing</strong><div style="opacity:0.68; margin-top:6px; line-height:1.6;">Windows, notifications, taskbar states, and hover interactions now use softer easing curves for a more natural feel.</div></div></div></div></div>`;
 }
 
 function renderAboutApp() {
@@ -2810,15 +2819,45 @@ d.appendChild(el);
 renderWidgets();
 }
 
+function getLauncherApps() {
+const all = Array.from(new Set([...DEFAULT_APP_ORDER, ...Object.keys(Registry)]));
+return all.filter((id) => Registry[id]);
+}
+
+function getLauncherMeta(id) {
+if (OS.installed.includes(id)) return 'Installed and ready to launch';
+if (OS.storeApps.includes(id)) return 'Available in Store — click to install and open';
+return 'Built-in system app';
+}
+
+function launchFromMenu(id) {
+if (!Registry[id]) return;
+if (!OS.installed.includes(id) && OS.storeApps.includes(id)) install(id);
+launch(id);
+}
+
 function renderLib(filter = '') {
-const c = document.getElementById('lib-cont'); c.innerHTML = "";
-const term = (filter || '').toLowerCase();
-OS.installed.filter(id => id.toLowerCase().includes(term)).forEach(id => {
-if(!Registry[id]) return;
-const i = document.createElement('div'); i.className = 'start-item';
+const c = document.getElementById('lib-cont');
+if (!c) return;
+c.innerHTML = "";
+const term = (filter || '').trim().toLowerCase();
+const apps = getLauncherApps().filter((id) => !term || id.toLowerCase().includes(term));
+if (!apps.length) {
+const empty = document.createElement('div');
+empty.className = 'start-panel';
+empty.innerHTML = `<h4>No match found</h4><p style="opacity:0.62; line-height:1.6;">Try a different search term, or open the Store to install more apps.</p>`;
+c.appendChild(empty);
+return;
+}
+apps.forEach(id => {
+const i = document.createElement('div');
+i.className = 'start-item';
 const pinned = OS.pinned.includes(id);
-i.innerHTML = `<span>${Registry[id].icon}</span><div style="flex:1; min-width:0;"><strong style="display:block;">${id}</strong><div class="start-item-meta">${pinned ? 'Pinned for quick access' : 'Available to launch'}</div></div><button onclick="event.stopPropagation(); togglePinnedApp('${id}')" style="padding:6px 10px; border-radius:10px; border:1px solid #2d2d2d; background:${pinned ? 'rgba(0,120,212,0.25)' : '#151515'}; color:#fff;">${pinned ? 'Unpin' : 'Pin'}</button>`;
-i.onclick = () => { launch(id); toggleStart(); };
+const installed = OS.installed.includes(id);
+const primaryLabel = installed ? 'Open' : (OS.storeApps.includes(id) ? 'Install' : 'Launch');
+const secondaryLabel = pinned ? 'Unpin' : 'Pin';
+i.innerHTML = `<span>${Registry[id].icon}</span><div style="flex:1; min-width:0;"><strong style="display:block;">${id}</strong><div class="start-item-meta">${getLauncherMeta(id)}</div></div><div style="display:flex; gap:8px;"><button onclick="event.stopPropagation(); launchFromMenu('${id}')" style="padding:6px 10px; border-radius:10px; border:1px solid ${installed ? 'rgba(0,120,212,0.35)' : '#2d2d2d'}; background:${installed ? 'rgba(0,120,212,0.18)' : '#151515'}; color:#fff;">${primaryLabel}</button><button onclick="event.stopPropagation(); togglePinnedApp('${id}')" style="padding:6px 10px; border-radius:10px; border:1px solid #2d2d2d; background:${pinned ? 'rgba(0,120,212,0.25)' : '#151515'}; color:#fff;">${secondaryLabel}</button></div>`;
+i.onclick = () => launchFromMenu(id);
 c.appendChild(i);
 });
 }
