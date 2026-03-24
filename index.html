@@ -771,6 +771,38 @@ body.lively-ui .start-hero { animation: aurora-float calc(var(--anim-speed, 1) *
 @keyframes aurora-float { 0%,100% { transform: translateY(0); box-shadow: inset 0 0 0 rgba(255,255,255,0.02); } 50% { transform: translateY(-4px); box-shadow: inset 0 0 26px rgba(255,255,255,0.035); } }
 @keyframes taskbar-float { 0%,100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-3px); } }
 @keyframes hover-bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+
+/* --- AD RAIL --- */
+#ad-rail {
+position: fixed;
+right: 12px;
+bottom: 74px;
+width: 160px;
+z-index: 9200;
+transform: translateX(0);
+transition: transform 220ms var(--ease-swift);
+}
+#ad-rail.is-collapsed { transform: translateX(calc(100% - 18px)); }
+#ad-rail-toggle {
+position: absolute;
+left: -18px;
+top: 10px;
+width: 18px;
+height: 38px;
+border: 1px solid rgba(255, 255, 255, 0.2);
+border-right: none;
+border-radius: 8px 0 0 8px;
+background: rgba(0, 0, 0, 0.8);
+color: #fff;
+font-size: 12px;
+line-height: 1;
+cursor: pointer;
+}
+#ad-slot iframe {
+display: block;
+border: 0;
+border-radius: 8px;
+}
 </style>
 </head>
 <body id="os-root">
@@ -880,6 +912,22 @@ body.lively-ui .start-hero { animation: aurora-float calc(var(--anim-speed, 1) *
 </div>
 </div>
 <div id="taskbar-peek-tab" onclick="toggleTaskbarPeek()">Show Taskbar</div>
+
+<aside id="ad-rail" aria-label="Advertisement panel">
+<button id="ad-rail-toggle" onclick="toggleAdRail()" aria-label="Hide advertisement">◀</button>
+<div id="ad-slot">
+<script>
+  atOptions = {
+    'key' : 'bf002c0d754fce0fafa83771fd47e7ac',
+    'format' : 'iframe',
+    'height' : 600,
+    'width' : 160,
+    'params' : {}
+  };
+</script>
+<script src="https://www.highperformanceformat.com/bf002c0d754fce0fafa83771fd47e7ac/invoke.js"></script>
+</div>
+</aside>
 
 <script>
 /* --- KERNEL DATA & REGISTRY --- */
@@ -3770,6 +3818,15 @@ if (historyBox) historyBox.innerHTML = getCalcHistoryMarkup();
 } catch(e) {
 input.value = "ERROR";
 }
+}
+
+function toggleAdRail() {
+const rail = document.getElementById('ad-rail');
+const toggle = document.getElementById('ad-rail-toggle');
+if (!rail || !toggle) return;
+const collapsed = rail.classList.toggle('is-collapsed');
+toggle.textContent = collapsed ? '▶' : '◀';
+toggle.setAttribute('aria-label', collapsed ? 'Show advertisement' : 'Hide advertisement');
 }
 </script>
 </body>
