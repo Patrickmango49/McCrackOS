@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <title>𝕄𝕔ℂ𝕣𝕒𝕔𝕜OS V2.5.3</title>
 <link id="favicon-link" rel="icon" type="image/png" href="https://i.imgur.com/HfPyMtK.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
 <style>
 /* --- CORE SYSTEM VARIABLES --- */
 :root {
@@ -3827,6 +3829,10 @@ if (!rail || !toggle) return;
 const collapsed = rail.classList.toggle('is-collapsed');
 toggle.textContent = collapsed ? '▶' : '◀';
 toggle.setAttribute('aria-label', collapsed ? 'Show advertisement' : 'Hide advertisement');
+}
+
+if ('serviceWorker' in navigator) {
+navigator.serviceWorker.register('./sw.js');
 }
 </script>
 </body>
