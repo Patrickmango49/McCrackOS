@@ -1,78 +1,39 @@
-# 💻 McCrackOS V2.5.3
+# 🖤 McCrackOS V2.5.3
 
-**McCrackOS** is a browser-based operating system built using **HTML, CSS, and JavaScript**.  
-It recreates the look and feel of a real desktop environment directly inside your web browser.
+**McCrackOS** is a browser-based desktop experience built with HTML, CSS, and JavaScript.
 
-The goal of McCrackOS is to experiment with web technology and simulate how an operating system works, including windows, apps, a taskbar, and interactive UI elements.
+This version introduces a **modern black gradient theme** across the UI: windows, taskbar, start menu, and app surfaces now use a cohesive dark glass style with subtle accent glow effects.
 
----
+## ✨ Description
 
-## 🚀 Features
+McCrackOS simulates a mini operating system inside the browser with:
 
-- 🪟 Draggable desktop windows
-- 📂 Built-in apps
-- 🖥️ Desktop environment
-- 📌 Taskbar system
-- ⚡ Fast and lightweight
-- 🌐 Runs entirely in the browser
-- 🎨 Custom UI and animations
-- 👤 Multi-step account setup
-- 🖱️ Custom cursor overlay support
-- 🚀 Roomier start hub with workspace scenes
+- Draggable windows and multi-app desktop workflow
+- Animated boot/login and desktop shell interactions
+- Start menu, taskbar, widgets, and quick actions
+- Progressive Web App (PWA) metadata for install-like behavior
 
----
+## 🎨 Theme Direction (Updated)
 
-## 🛠 Built With
+The UI now focuses on a **dark modern aesthetic**:
 
-- **HTML**
-- **CSS**
-- **JavaScript**
+- Deep black gradient wallpaper
+- Frosted dark panels with layered depth
+- Cool blue accent lighting for active elements
+- Cleaner contrast for readability while staying minimal
 
-These technologies power the entire operating system experience inside the browser.
+## 🚀 Run
 
----
+1. Download or clone the repo.
+2. Open `index.html` in a browser.
+3. (Optional) Serve it locally with any static server for PWA behavior.
 
-## 📦 Project Goal
+## 🛠 Stack
 
-McCrackOS is a learning project focused on:
-
-- Understanding how operating systems work
-- Building complex interfaces with web technologies
-- Experimenting with UI/UX design
-- Creating a fun interactive desktop experience online
-
----
-
-## 🌐 How It Works
-
-McCrackOS runs entirely in your browser.  
-No installation is required — just open the webpage and start using it like a mini desktop environment.
-
----
-
-## 🔮 Future Plans
-
-Some features planned for future versions include:
-
-- 🧩 App system
-- 💾 File explorer
-- 🔔 Notification center
-- 🌙 Dark / light mode
-- 🛍️ App store
-- 👥 Multiplayer features
-
----
+- HTML
+- CSS
+- JavaScript
 
 ## 👨‍💻 Developer
 
-Created by **Patrick_Mango**
-
-A 14 year-old developer experimenting with web technology and building creative browser projects.
-
----
-
-## ⭐ Support
-
-If you like the project, consider **supporting me on my social media!** to support its development!
-
-***https://linktr.ee/parick_mango***
+Created by **Patrick_Mango**.
