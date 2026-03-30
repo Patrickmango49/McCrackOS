@@ -14,6 +14,7 @@
 --accent-soft: rgba(106, 168, 255, 0.24);
 --surface-1: rgba(8, 8, 10, 0.95);
 --surface-2: rgba(3, 3, 5, 0.98);
+--surface-elev: rgba(255, 255, 255, 0.03);
 --top-bar-h: 32px;
 --taskbar-h: 54px;
 --screen-pad: clamp(12px, 2vw, 30px);
@@ -21,6 +22,7 @@
 --win-bg: #050505;
 --border: 1px solid rgba(255, 255, 255, 0.12);
 --shadow: 0 30px 60px rgba(0,0,0,0.95);
+--shadow-soft: 0 18px 44px rgba(0, 0, 0, 0.52);
 --blur: blur(35px);
 --anim-speed: 1;
 --glass-blur: 25px;
@@ -431,12 +433,12 @@ pointer-events: none;
 .widget-card {
 width: min(260px, calc(100vw - 32px));
 position: absolute;
-background: rgba(0,0,0,0.58);
-border: 1px solid rgba(255,255,255,0.15);
-border-radius: 14px;
-padding: 12px 14px;
+background: linear-gradient(180deg, rgba(13,13,16,0.76), rgba(8,8,10,0.88));
+border: 1px solid rgba(255,255,255,0.13);
+border-radius: 16px;
+padding: 13px 15px;
 backdrop-filter: blur(18px);
-box-shadow: 0 15px 30px rgba(0,0,0,0.35);
+box-shadow: var(--shadow-soft);
 cursor: grab;
 pointer-events: auto;
 user-select: none;
@@ -461,9 +463,9 @@ z-index: 150;
 }
 .icon.dragging { transition: none; }
 .icon:active { cursor: grabbing; }
-.icon:hover { background: rgba(255,255,255,0.08); transform: scale(1.05); }
+.icon:hover { background: rgba(255,255,255,0.06); transform: translateY(-2px) scale(1.03); }
 .icon div { font-size: 55px; margin-bottom: 10px; filter: drop-shadow(0 8px 12px rgba(0,0,0,0.6)); pointer-events: none;}
-.icon span { font-size: 0.85rem; text-align: center; font-weight: 600; text-shadow: 0 2px 8px rgba(0,0,0,1); pointer-events: none;}
+.icon span { font-size: 0.83rem; text-align: center; font-weight: 600; letter-spacing: 0.01em; text-shadow: 0 2px 8px rgba(0,0,0,1); pointer-events: none;}
 
 body.no-animations *,
 body.no-animations *::before,
@@ -617,12 +619,12 @@ backdrop-filter: blur(34px); display: none; flex-direction: column; padding: 22p
 animation: panel-pop calc(var(--anim-speed, 1) * 360ms) var(--ease-smooth); gap: 18px; transform-origin: center bottom; will-change: transform, opacity;
 }
 .start-shell { display: grid; grid-template-rows: auto auto 1fr auto; gap: 16px; height: 100%; }
-.start-hero { padding: 18px; border-radius: 22px; background: linear-gradient(135deg, rgba(0,120,212,0.2), rgba(255,255,255,0.04)); border: 1px solid rgba(255,255,255,0.08); }
+.start-hero { padding: 18px; border-radius: 22px; background: linear-gradient(135deg, rgba(0,120,212,0.2), rgba(255,255,255,0.04)); border: 1px solid rgba(255,255,255,0.1); }
 .start-hero-top { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; }
 .start-hero h3 { font-weight: 650; letter-spacing: 0.08em; color: #fff; font-size: 1.05rem; }
 .start-hero p { opacity: 0.68; font-size: 0.82rem; margin-top: 8px; line-height: 1.6; max-width: 310px; }
 .start-session-pill { padding: 10px 12px; border-radius: 16px; background: rgba(0,0,0,0.28); border: 1px solid rgba(255,255,255,0.08); min-width: 150px; }
-.start-search-wrap { display:flex; gap:10px; align-items:center; padding: 12px 14px; border-radius: 18px; background:#0d0d0d; border:1px solid #1d1d1d; }
+.start-search-wrap { display:flex; gap:10px; align-items:center; padding: 12px 14px; border-radius: 18px; background:#0d0d0d; border:1px solid #252830; box-shadow: inset 0 1px 0 rgba(255,255,255,0.03); }
 #start-search { flex:1; background:transparent; border:none; color:#fff; font-size:0.95rem; outline:none; }
 .start-action-grid, .start-power-grid, .start-tool-grid, .start-stat-grid { display:grid; gap:10px; }
 .start-action-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -633,15 +635,15 @@ animation: panel-pop calc(var(--anim-speed, 1) * 360ms) var(--ease-smooth); gap:
 .start-power-btn.shutdown { background:#241212; border-color:#4a1f1f; }
 .start-content { min-height: 0; display:grid; grid-template-columns: 1fr; gap: 16px; }
 .start-side-stack { min-height:0; display:grid; gap:16px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.start-panel { min-height:0; background:#090909; border:1px solid #1a1a1a; border-radius: 24px; padding: 18px; }
+.start-panel { min-height:0; background:#090909; border:1px solid #22242b; border-radius: 24px; padding: 18px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.02); }
 .start-panel h4 { font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.55; margin-bottom: 12px; }
 .start-stat-card { padding:12px; border-radius:14px; background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)); border:1px solid #1e1e1e; }
 .start-stat-card strong { display:block; font-size:1rem; margin-top:6px; }
 .start-stat-card span { font-size:0.72rem; opacity:0.6; text-transform:uppercase; letter-spacing:0.12em; }
 .start-stat-card p { font-size:0.76rem; opacity:0.62; margin-top:6px; line-height:1.45; }
 #lib-cont { overflow-y:auto; min-height:0; padding-right: 4px; }
-.start-item { display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: 16px; cursor: pointer; transition: transform 260ms var(--ease-smooth), background 260ms var(--ease-smooth), border-color 260ms var(--ease-smooth), box-shadow 260ms var(--ease-smooth); border:1px solid transparent; }
-.start-item:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.08); box-shadow: 0 16px 30px rgba(0,0,0,0.18); transform: translateX(6px); }
+.start-item { display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: 16px; cursor: pointer; transition: transform 260ms var(--ease-smooth), background 260ms var(--ease-smooth), border-color 260ms var(--ease-smooth), box-shadow 260ms var(--ease-smooth); border:1px solid rgba(255,255,255,0.01); }
+.start-item:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); box-shadow: 0 14px 24px rgba(0,0,0,0.16); transform: translateX(4px); }
 .start-item span { font-size: 28px; }
 .start-item-meta { font-size: 0.72rem; opacity: 0.54; margin-top: 4px; }
 
@@ -706,7 +708,7 @@ bottom: calc(var(--taskbar-h) + 16px);
 }
 body.taskbar-hidden.taskbar-peek #taskbar-peek-tab::before { content: '▾'; }
 #task-list { flex: 1; display: flex; justify-content: center; gap: 10px; margin: 0 14px; overflow-x: auto; padding: 8px 0; min-width: 0; }
-.task-tab { padding: 12px 18px; background: rgba(255,255,255,0.04); border-radius: 14px; font-size: 0.84rem; cursor: pointer; transition: transform 240ms var(--ease-smooth), background 240ms var(--ease-smooth), border-color 240ms var(--ease-smooth), color 240ms var(--ease-smooth), box-shadow 240ms var(--ease-smooth); white-space: nowrap; border: 1px solid transparent; color: #888; }
+.task-tab { padding: 12px 18px; background: rgba(255,255,255,0.04); border-radius: 14px; font-size: 0.84rem; font-weight: 600; cursor: pointer; transition: transform 240ms var(--ease-smooth), background 240ms var(--ease-smooth), border-color 240ms var(--ease-smooth), color 240ms var(--ease-smooth), box-shadow 240ms var(--ease-smooth); white-space: nowrap; border: 1px solid transparent; color: #9da3b3; }
 .task-tab.active { background: rgba(0, 120, 212, 0.15); border-color: var(--accent); box-shadow: 0 0 20px rgba(0,120,212,0.25); color: white; }
 .task-tab.pinned-only { border-style: dashed; color: #b9b9b9; }
 #start-btn { width: 56px; height: 56px; display:flex; align-items:center; justify-content:center; border-radius:18px; background:linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04)); border:1px solid rgba(255,255,255,0.12); font-size:26px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 10px 20px rgba(0,0,0,0.24); transform: rotate(180deg); transition: transform 320ms var(--ease-smooth), background 320ms var(--ease-smooth), box-shadow 320ms var(--ease-smooth), border-color 320ms var(--ease-smooth); flex: 0 0 auto; }
@@ -752,7 +754,7 @@ box-shadow: 0 14px 28px rgba(0,0,0,0.45), 0 0 24px rgba(106,168,255,0.2);
 .window {
 background: linear-gradient(180deg, rgba(8,8,11,0.95), rgba(2,2,4,0.98));
 border-color: rgba(255,255,255,0.12);
-box-shadow: 0 28px 70px rgba(0,0,0,0.74), 0 0 0 1px rgba(255,255,255,0.04);
+box-shadow: 0 24px 52px rgba(0,0,0,0.64), 0 0 0 1px rgba(255,255,255,0.04);
 }
 
 .win-head {
@@ -763,7 +765,7 @@ border-bottom: 1px solid rgba(255,255,255,0.08);
 #taskbar {
 background: linear-gradient(180deg, rgba(8,8,10,0.92), rgba(2,2,4,0.9));
 border-color: rgba(255,255,255,0.14);
-box-shadow: 0 20px 44px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.04);
+box-shadow: 0 14px 34px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04);
 }
 
 #start-btn {
