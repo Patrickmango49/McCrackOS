@@ -945,6 +945,24 @@ body.mc-no-glass #mc-control-panel,#mc-control-panel.mc-no-glass{backdrop-filter
 @media(max-width:700px){#taskbar{bottom:7px!important;height:59px!important;border-radius:19px!important;padding:6px!important}#mc-control-trigger{padding:0 8px;font-size:0}#mc-control-trigger .mc-dot{margin:0}#mc-control-panel{right:10px;top:46px;padding:14px}}
 @media(prefers-reduced-motion:reduce){body:before{animation:none!important}*,*:before,*:after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
 
+
+/* ===== Crisp icon system: consistent inline SVGs, no emoji UI icons ===== */
+.mc-svg{display:inline-block;width:17px;height:17px;flex:0 0 auto;vertical-align:middle;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.mc-svg-sm{width:14px;height:14px}.mc-svg-lg{width:21px;height:21px}
+#mc-control-trigger{font-size:12px!important;gap:9px!important}
+#mc-control-trigger .mc-control-symbol{display:grid;place-items:center;width:18px;height:18px;color:var(--accent)}
+.mc-status-icon{color:var(--accent);font-size:0!important}
+.mc-status-icon .mc-svg{width:22px;height:22px}
+.mc-action{display:flex;align-items:center;gap:10px;min-height:45px;line-height:1.35}
+.mc-action .mc-action-icon{width:29px;height:29px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.09);border-radius:9px;background:rgba(255,255,255,.045);color:var(--accent);flex:0 0 auto}
+.mc-action .mc-action-icon .mc-svg{width:16px;height:16px}
+.mc-preset{position:relative}
+.mc-preset:after{content:"";position:absolute;right:9px;top:9px;width:5px;height:5px;border-radius:50%;background:var(--swatch);box-shadow:0 0 9px var(--swatch)}
+.mc-preset i{height:25px!important;position:relative;overflow:hidden}
+.mc-preset i:after{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.24),transparent 55%,rgba(0,0,0,.24))}
+.mc-close{display:grid;place-items:center}
+.mc-close .mc-svg{width:16px;height:16px}
+
 </style>
 </head>
 <body id="os-root">
@@ -4068,6 +4086,38 @@ navigator.serviceWorker.register('./sw.js');
   const wallpaper=safeGet('mc_os_wallpaper_url','');if(wallpaper)document.body.style.backgroundImage='linear-gradient(rgba(5,7,12,.44),rgba(5,7,12,.6)),url("'+wallpaper.replace(/["\\]/g,'')+'")';
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',build,{once:true});else build();
+})();
+
+
+/* Replace decorative emoji/glyph icons with a consistent inline SVG icon set. */
+(()=>{
+ const icons={
+  sparkles:'<path d="m12 3 1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Z"/><path d="m19 14 1.1 2.9L23 18l-2.9 1.1L19 22l-1.1-2.9L15 18l2.9-1.1L19 14Z"/><path d="m5 2 .8 2.2L8 5l-2.2.8L5 8l-.8-2.2L2 5l2.2-.8L5 2Z"/>',
+  settings:'<path d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6Z"/><path d="m19.4 15 .1.1a1.8 1.8 0 0 1-2.5 2.5l-.1-.1a1.8 1.8 0 0 0-3 .9v.2a1.8 1.8 0 0 1-3.6 0v-.2a1.8 1.8 0 0 0-3-.9l-.1.1a1.8 1.8 0 0 1-2.5-2.5l.1-.1a1.8 1.8 0 0 0-.9-3H3.7a1.8 1.8 0 0 1 0-3.6h.2a1.8 1.8 0 0 0 .9-3l-.1-.1a1.8 1.8 0 0 1 2.5-2.5l.1.1a1.8 1.8 0 0 0 3-.9v-.2a1.8 1.8 0 0 1 3.6 0v.2a1.8 1.8 0 0 0 3 .9l.1-.1a1.8 1.8 0 0 1 2.5 2.5l-.1.1a1.8 1.8 0 0 0 .9 3h.2a1.8 1.8 0 0 1 0 3.6h-.2a1.8 1.8 0 0 0-.9 3Z"/>',
+  wallpaper:'<rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/>',
+  fullscreen:'<path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/>',
+  reset:'<path d="M3 11a9 9 0 0 1 15.4-6.4L21 7"/><path d="M21 3v4h-4"/><path d="M21 13a9 9 0 0 1-15.4 6.4L3 17"/><path d="M3 21v-4h4"/>',
+  close:'<path d="m18 6-12 12M6 6l12 12"/>'
+ };
+ const svg=(name,extra='')=>'<svg class="mc-svg '+extra+'" viewBox="0 0 24 24" aria-hidden="true" focusable="false">'+(icons[name]||icons.sparkles)+'</svg>';
+ function decorate(){
+  const trigger=document.querySelector('#mc-control-trigger');
+  if(trigger&&!trigger.dataset.iconReady){trigger.insertAdjacentHTML('afterbegin','<span class="mc-control-symbol">'+svg('settings')+'</span>');trigger.dataset.iconReady='1'}
+  const status=document.querySelector('.mc-status-icon');
+  if(status)status.innerHTML=svg('sparkles','mc-svg-lg');
+  const close=document.querySelector('#mc-close');
+  if(close){close.innerHTML=svg('close');close.setAttribute('aria-label','Close control center')}
+  document.querySelectorAll('.mc-action').forEach(b=>{
+   if(b.querySelector('.mc-action-icon'))return;
+   const map={settings:'settings',wallpaper:'wallpaper',fullscreen:'fullscreen',reset:'reset'};
+   const key=map[b.dataset.action]||'sparkles';
+   const text=b.textContent.replace(/^\s*[⚙▧⛶↺]\s*/,'').trim();
+   b.innerHTML='<span class="mc-action-icon">'+svg(key)+'</span><span>'+text+'</span>';
+  });
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',decorate,{once:true});else decorate();
+ const observer=new MutationObserver(()=>decorate());
+ observer.observe(document.documentElement,{subtree:true,childList:true});
 })();
 
 </script>
