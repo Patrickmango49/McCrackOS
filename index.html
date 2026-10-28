@@ -874,6 +874,77 @@ display: block;
 border: 0;
 border-radius: 8px;
 }
+
+/* ===== McCrackOS immersive redesign layer ===== */
+:root{
+ --accent:#8b7cff;--accent-rgb:139,124,255;--accent-soft:rgba(var(--accent-rgb),.18);
+ --surface-1:rgba(17,19,29,.78);--surface-2:rgba(9,11,18,.94);--surface-elev:rgba(255,255,255,.055);
+ --panel:rgba(15,17,27,.92);--win-bg:rgba(12,14,22,.96);--border:1px solid rgba(255,255,255,.11);
+ --shadow:0 28px 90px rgba(0,0,0,.52);--shadow-soft:0 16px 50px rgba(0,0,0,.34);
+ --blur:blur(28px);--glass-blur:28px;--ease-smooth:cubic-bezier(.16,1,.3,1);
+}
+html{scroll-behavior:smooth}
+body{
+ background:#080910;
+ background-image:radial-gradient(ellipse at 18% 12%,rgba(var(--accent-rgb),.18),transparent 36%),
+ radial-gradient(ellipse at 82% 82%,rgba(46,190,200,.12),transparent 34%),
+ radial-gradient(ellipse at 60% 0%,rgba(255,255,255,.045),transparent 30%),
+ linear-gradient(135deg,#080910 0%,#0c0d17 48%,#07080d 100%);
+ background-attachment:fixed;
+}
+body:before{content:"";position:fixed;inset:-30%;pointer-events:none;z-index:-1;background:conic-gradient(from 180deg at 50% 50%,transparent 0deg,rgba(var(--accent-rgb),.06) 80deg,transparent 150deg,rgba(50,210,200,.045) 230deg,transparent 300deg);filter:blur(70px);animation:mcAurora 32s linear infinite}
+@keyframes mcAurora{to{transform:rotate(360deg)}}
+@keyframes mcFloatIn{from{opacity:0;transform:translateY(12px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes mcPulse{0%,100%{box-shadow:0 0 0 0 rgba(var(--accent-rgb),0)}50%{box-shadow:0 0 0 7px rgba(var(--accent-rgb),.08)}}
+#top-bar{height:38px!important;padding:0 18px!important;background:rgba(9,10,17,.64)!important;backdrop-filter:blur(24px) saturate(155%)!important;border-bottom:1px solid rgba(255,255,255,.075)!important;box-shadow:0 8px 30px rgba(0,0,0,.12)!important}
+#top-bar>*{transition:opacity .2s ease,transform .25s var(--ease-smooth)}
+#desktop{padding:clamp(20px,3vw,42px)!important}
+#taskbar{height:68px!important;bottom:14px!important;left:50%!important;transform:translateX(-50%)!important;width:max-content!important;max-width:calc(100vw - 24px)!important;padding:8px 12px!important;gap:8px!important;border:1px solid rgba(255,255,255,.13)!important;border-radius:23px!important;background:rgba(17,19,29,.68)!important;backdrop-filter:blur(32px) saturate(175%)!important;box-shadow:0 18px 65px rgba(0,0,0,.44),inset 0 1px 0 rgba(255,255,255,.07)!important;z-index:999!important}
+#taskbar button,#taskbar .taskbar-item,#start-btn{border-radius:15px!important;transition:transform .28s var(--ease-smooth),background .25s ease,box-shadow .25s ease!important}
+#taskbar button:hover,#taskbar .taskbar-item:hover,#start-btn:hover{transform:translateY(-4px) scale(1.045)!important;background:rgba(255,255,255,.11)!important;box-shadow:0 8px 24px rgba(0,0,0,.2)!important}
+#start-btn{background:linear-gradient(145deg,rgba(var(--accent-rgb),.3),rgba(255,255,255,.06))!important;border:1px solid rgba(var(--accent-rgb),.3)!important}
+#start-menu{border:1px solid rgba(255,255,255,.12)!important;border-radius:25px!important;background:rgba(12,14,23,.86)!important;backdrop-filter:blur(38px) saturate(165%)!important;box-shadow:0 30px 100px rgba(0,0,0,.58)!important;animation:mcFloatIn .35s var(--ease-smooth)!important}
+.window,.os-window,.app-window,[class*="window"]{backdrop-filter:blur(28px) saturate(145%)}
+button,.btn,[role="button"]{transition:transform .22s var(--ease-smooth),filter .22s ease,box-shadow .22s ease!important}
+button:hover,.btn:hover,[role="button"]:hover{filter:brightness(1.12)}
+button:active,.btn:active,[role="button"]:active{transform:scale(.975)}
+input,textarea,select{accent-color:var(--accent)}
+:focus-visible{outline:2px solid rgba(var(--accent-rgb),.85)!important;outline-offset:3px!important}
+#mc-control-trigger{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:28px;padding:0 11px;border-radius:10px;border:1px solid rgba(255,255,255,.11);background:rgba(255,255,255,.055);color:#f4f4fb;font-size:12px;cursor:pointer;letter-spacing:.01em}
+#mc-control-trigger:hover{background:rgba(var(--accent-rgb),.16);border-color:rgba(var(--accent-rgb),.4)}
+#mc-control-trigger .mc-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent)}
+#mc-control-panel{position:fixed;right:18px;top:48px;width:min(390px,calc(100vw - 24px));max-height:calc(100vh - 100px);overflow:auto;z-index:10020;padding:18px;border-radius:24px;background:rgba(13,15,25,.91);border:1px solid rgba(255,255,255,.13);backdrop-filter:blur(34px) saturate(170%);box-shadow:0 30px 100px rgba(0,0,0,.6);color:#f6f7ff;animation:mcFloatIn .28s var(--ease-smooth)}
+#mc-control-panel[hidden]{display:none}
+.mc-panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}
+.mc-eyebrow{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:rgba(240,241,255,.5);font-weight:700}
+.mc-panel-title{font-size:22px;font-weight:750;letter-spacing:-.04em;margin-top:3px}
+.mc-close{width:32px;height:32px;border-radius:11px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.06);color:white;cursor:pointer;font-size:17px}
+.mc-status-card{display:flex;align-items:center;gap:12px;padding:14px;border-radius:17px;background:linear-gradient(120deg,rgba(var(--accent-rgb),.19),rgba(255,255,255,.035));border:1px solid rgba(var(--accent-rgb),.2);margin-bottom:14px}
+.mc-status-icon{width:42px;height:42px;display:grid;place-items:center;border-radius:14px;background:rgba(var(--accent-rgb),.2);font-size:20px}
+.mc-status-main{font-size:13px;font-weight:700}.mc-status-sub{font-size:11px;color:rgba(240,241,255,.55);margin-top:4px}
+.mc-section{margin-top:17px}.mc-section-title{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:rgba(240,241,255,.5);font-weight:750;margin-bottom:10px}
+.mc-preset-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.mc-preset{padding:10px 7px;border-radius:13px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.045);color:#f6f7ff;cursor:pointer;text-align:left;font-size:11px}
+.mc-preset i{display:block;width:100%;height:23px;border-radius:7px;margin-bottom:8px;background:var(--swatch)}
+.mc-preset.active{border-color:rgba(var(--accent-rgb),.8);background:rgba(var(--accent-rgb),.13)}
+.mc-setting-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.065);font-size:12px}
+.mc-setting-row:last-child{border-bottom:0}
+.mc-setting-row small{display:block;color:rgba(240,241,255,.47);font-size:10px;margin-top:4px}
+.mc-setting-row input[type="range"]{width:120px;accent-color:var(--accent)}
+.mc-setting-row input[type="color"]{width:38px;height:30px;padding:3px;border:1px solid rgba(255,255,255,.15);background:transparent;border-radius:9px}
+.mc-toggle{width:40px;height:23px;border-radius:99px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.13);position:relative;cursor:pointer;flex-shrink:0}
+.mc-toggle:after{content:"";position:absolute;top:3px;left:3px;width:15px;height:15px;border-radius:50%;background:#fff;transition:transform .22s var(--ease-smooth)}
+.mc-toggle.on{background:var(--accent);border-color:var(--accent)}.mc-toggle.on:after{transform:translateX(17px)}
+.mc-action-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mc-action{padding:11px 10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);border-radius:12px;color:#f5f5ff;font-size:11px;text-align:left;cursor:pointer}
+.mc-action:hover{background:rgba(var(--accent-rgb),.15);border-color:rgba(var(--accent-rgb),.35)}
+.mc-range-label{color:rgba(240,241,255,.56);font-size:10px}
+body.mc-reduced-motion *,body.mc-reduced-motion *:before,body.mc-reduced-motion *:after{animation-duration:.001ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.001ms!important}
+body.mc-compact #desktop{padding:18px!important}
+body.mc-no-glass #mc-control-panel,#mc-control-panel.mc-no-glass{backdrop-filter:none;background:rgba(12,14,23,.98)}
+@media(max-width:700px){#taskbar{bottom:7px!important;height:59px!important;border-radius:19px!important;padding:6px!important}#mc-control-trigger{padding:0 8px;font-size:0}#mc-control-trigger .mc-dot{margin:0}#mc-control-panel{right:10px;top:46px;padding:14px}}
+@media(prefers-reduced-motion:reduce){body:before{animation:none!important}*,*:before,*:after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
 </style>
 </head>
 <body id="os-root">
@@ -3903,6 +3974,102 @@ toggle.setAttribute('aria-label', collapsed ? 'Show advertisement' : 'Hide adver
 if ('serviceWorker' in navigator) {
 navigator.serviceWorker.register('./sw.js');
 }
+
+/* ===== McCrackOS Control Center + real customization ===== */
+(()=>{
+ const $=(s,r=document)=>r.querySelector(s);
+ const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+ const safeGet=(k,d)=>{try{return localStorage.getItem(k)??d}catch(_){return d}};
+ const safeSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(_){}};
+ const themes={
+  violet:{name:'Aurora',accent:'#8b7cff',rgb:'139,124,255',wall:'radial-gradient(ellipse at 18% 12%,rgba(139,124,255,.18),transparent 36%),radial-gradient(ellipse at 82% 82%,rgba(46,190,200,.12),transparent 34%),linear-gradient(135deg,#080910,#0c0d17 48%,#07080d)'},
+  cyan:{name:'Cyber',accent:'#45d9e8',rgb:'69,217,232',wall:'radial-gradient(ellipse at 15% 10%,rgba(69,217,232,.19),transparent 36%),radial-gradient(ellipse at 85% 75%,rgba(50,120,255,.13),transparent 35%),linear-gradient(135deg,#060b11,#0a121a 50%,#06090e)'},
+  emerald:{name:'Verdant',accent:'#56e3a1',rgb:'86,227,161',wall:'radial-gradient(ellipse at 15% 10%,rgba(86,227,161,.17),transparent 36%),radial-gradient(ellipse at 85% 75%,rgba(49,180,140,.13),transparent 35%),linear-gradient(135deg,#070e0c,#0b1513 50%,#070a09)'},
+  amber:{name:'Solar',accent:'#ffbf69',rgb:'255,191,105',wall:'radial-gradient(ellipse at 15% 10%,rgba(255,191,105,.17),transparent 36%),radial-gradient(ellipse at 85% 75%,rgba(235,95,105,.11),transparent 35%),linear-gradient(135deg,#100c09,#17110d 50%,#090807)'},
+  rose:{name:'Rose',accent:'#ff7eb6',rgb:'255,126,182',wall:'radial-gradient(ellipse at 15% 10%,rgba(255,126,182,.17),transparent 36%),radial-gradient(ellipse at 85% 75%,rgba(151,105,255,.12),transparent 35%),linear-gradient(135deg,#100810,#170d17 50%,#09070b)'},
+  mono:{name:'Monochrome',accent:'#e7e9f4',rgb:'231,233,244',wall:'radial-gradient(ellipse at 15% 10%,rgba(255,255,255,.09),transparent 36%),linear-gradient(135deg,#08090c,#101116 50%,#07080b)'}
+ };
+ function applyTheme(key,save=true){
+  const t=themes[key]||themes.violet;const root=document.documentElement;
+  root.style.setProperty('--accent',t.accent);root.style.setProperty('--accent-rgb',t.rgb);root.style.setProperty('--accent-soft','rgba('+t.rgb+',.18)');
+  document.body.style.backgroundImage=t.wall+',radial-gradient(ellipse at 60% 0%,rgba(255,255,255,.045),transparent 30%)';
+  $$('.mc-preset').forEach(b=>b.classList.toggle('active',b.dataset.theme===key));
+  if(save)safeSet('mc_os_theme',key);
+ }
+ function applyAccent(hex,save=true){
+  if(!/^#[0-9a-f]{6}$/i.test(hex))return;
+  const n=parseInt(hex.slice(1),16),r=(n>>16)&255,g=(n>>8)&255,b=n&255;
+  document.documentElement.style.setProperty('--accent',hex);document.documentElement.style.setProperty('--accent-rgb',r+','+g+','+b);
+  document.documentElement.style.setProperty('--accent-soft','rgba('+r+','+g+','+b+',.18)');
+  if(save){safeSet('mc_os_custom_accent',hex);safeSet('mc_os_theme','custom')}
+ }
+ function build(){
+  if($('#mc-control-panel'))return;
+  const top=$('#top-bar');
+  const trigger=document.createElement('button');trigger.id='mc-control-trigger';trigger.type='button';trigger.innerHTML='<span class="mc-dot"></span><span>Control center</span>';trigger.setAttribute('aria-expanded','false');
+  if(top)top.appendChild(trigger);
+  const panel=document.createElement('aside');panel.id='mc-control-panel';panel.hidden=true;panel.setAttribute('aria-label','McCrackOS Control Center');
+  panel.innerHTML=`
+   <div class="mc-panel-head"><div><div class="mc-eyebrow">McCrackOS / Personalize</div><div class="mc-panel-title">Control center</div></div><button class="mc-close" id="mc-close" aria-label="Close control center">×</button></div>
+   <div class="mc-status-card"><div class="mc-status-icon">✦</div><div><div class="mc-status-main">Your space, your rules</div><div class="mc-status-sub">Changes save automatically on this device.</div></div></div>
+   <div class="mc-section"><div class="mc-section-title">Appearance presets</div><div class="mc-preset-grid">
+   ${Object.entries(themes).map(([k,t])=>'<button class="mc-preset" data-theme="'+k+'"><i style="--swatch:'+t.accent+';background:linear-gradient(120deg,'+t.accent+',#11131b)"></i>'+t.name+'</button>').join('')}
+   </div></div>
+   <div class="mc-section"><div class="mc-section-title">Fine tuning</div>
+    <div class="mc-setting-row"><div>Accent color<small>Customize the system highlight</small></div><input id="mc-accent-picker" type="color" aria-label="Accent color"></div>
+    <div class="mc-setting-row"><div>Glass intensity<small>Transparency and blur strength</small></div><input id="mc-glass-range" type="range" min="8" max="40" value="28" aria-label="Glass intensity"></div>
+    <div class="mc-setting-row"><div>Interface scale<small>Desktop spacing</small></div><input id="mc-scale-range" type="range" min="85" max="115" value="100" aria-label="Interface scale"></div>
+    <div class="mc-setting-row"><div>Ambient motion<small>Slow background atmosphere</small></div><button class="mc-toggle on" id="mc-motion-toggle" aria-label="Toggle ambient motion" aria-pressed="true"></button></div>
+    <div class="mc-setting-row"><div>Reduce animations<small>Prefer a calmer interface</small></div><button class="mc-toggle" id="mc-reduce-toggle" aria-label="Toggle reduced motion" aria-pressed="false"></button></div>
+    <div class="mc-setting-row"><div>Compact desktop<small>Fit more into the workspace</small></div><button class="mc-toggle" id="mc-compact-toggle" aria-label="Toggle compact desktop" aria-pressed="false"></button></div>
+   </div>
+   <div class="mc-section"><div class="mc-section-title">Quick actions</div><div class="mc-action-grid">
+    <button class="mc-action" data-action="settings">⚙ Open system settings</button><button class="mc-action" data-action="wallpaper">▧ Set wallpaper URL</button>
+    <button class="mc-action" data-action="fullscreen">⛶ Toggle fullscreen</button><button class="mc-action" data-action="reset">↺ Reset appearance</button>
+   </div></div>
+   <div class="mc-section"><div class="mc-section-title">Keyboard shortcuts</div><div class="mc-setting-row"><div>Toggle this panel</div><span class="mc-range-label">Ctrl + Shift + .</span></div><div class="mc-setting-row"><div>Close panel / dialog</div><span class="mc-range-label">Esc</span></div></div>`;
+  document.body.appendChild(panel);
+  const toggle=(el,on)=>{el.classList.toggle('on',on);el.setAttribute('aria-pressed',String(on))};
+  const open=()=>{panel.hidden=false;trigger.setAttribute('aria-expanded','true')};
+  const close=()=>{panel.hidden=true;trigger.setAttribute('aria-expanded','false')};
+  trigger.addEventListener('click',()=>panel.hidden?open():close());
+  $('#mc-close').addEventListener('click',close);
+  document.addEventListener('pointerdown',e=>{if(!panel.hidden&&!panel.contains(e.target)&&!trigger.contains(e.target))close()});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden)close();if(e.ctrlKey&&e.shiftKey&&e.key==='.') {e.preventDefault();panel.hidden?open():close()}});
+  $$('.mc-preset',panel).forEach(b=>b.addEventListener('click',()=>{applyTheme(b.dataset.theme);safeSet('mc_os_custom_accent','');$('#mc-accent-picker').value=themes[b.dataset.theme].accent}));
+  $('#mc-accent-picker').addEventListener('input',e=>applyAccent(e.target.value));
+  $('#mc-glass-range').addEventListener('input',e=>{document.documentElement.style.setProperty('--glass-blur',e.target.value+'px');panel.style.backdropFilter='blur('+e.target.value+'px) saturate(170%)';safeSet('mc_os_glass',e.target.value)});
+  $('#mc-scale-range').addEventListener('input',e=>{document.documentElement.style.setProperty('--mc-ui-scale',e.target.value/100);document.body.style.zoom=(e.target.value/100);safeSet('mc_os_scale',e.target.value)});
+  const motion=$('#mc-motion-toggle'),reduce=$('#mc-reduce-toggle'),compact=$('#mc-compact-toggle');
+  motion.addEventListener('click',()=>{const on=!motion.classList.contains('on');toggle(motion,on);document.body.classList.toggle('mc-static-ambient',!on);const aurora=$('body:before');document.body.dataset.ambient=on?'on':'off';safeSet('mc_os_ambient',on?'on':'off');});
+  reduce.addEventListener('click',()=>{const on=!reduce.classList.contains('on');toggle(reduce,on);document.body.classList.toggle('mc-reduced-motion',on);safeSet('mc_os_reduced',on?'on':'off')});
+  compact.addEventListener('click',()=>{const on=!compact.classList.contains('on');toggle(compact,on);document.body.classList.toggle('mc-compact',on);safeSet('mc_os_compact',on?'on':'off')});
+  $$('.mc-action',panel).forEach(b=>b.addEventListener('click',()=>{
+   const action=b.dataset.action;
+   if(action==='fullscreen'){if(!document.fullscreenElement)document.documentElement.requestFullscreen?.().catch(()=>{});else document.exitFullscreen?.();return}
+   if(action==='wallpaper'){
+    const current=safeGet('mc_os_wallpaper_url','');const url=prompt('Paste a direct image URL for your wallpaper (leave blank to remove):',current);if(url===null)return;
+    if(url.trim()&&!/^https?:\/\//i.test(url.trim())){alert('Please enter a full http:// or https:// image URL.');return}
+    safeSet('mc_os_wallpaper_url',url.trim());document.body.style.backgroundImage=url.trim()?'linear-gradient(rgba(5,7,12,.44),rgba(5,7,12,.6)),url("'+url.trim().replace(/["\\]/g,'')+'")':'';
+    if(!url.trim())applyTheme(safeGet('mc_os_theme','violet'));return;
+   }
+   if(action==='settings'){close();const candidates=$$('#start-menu button, #start-menu [role="button"], #desktop button');const setting=candidates.find(x=>/settings/i.test(x.innerText||x.getAttribute('aria-label')||''));if(setting)setting.click();else if(typeof window.openApp==='function')window.openApp('Settings');else if(typeof window.notify==='function')window.notify('Use the Start menu to open Settings.');else alert('Open Settings from the Start menu.');return}
+   if(action==='reset'){if(!confirm('Reset McCrackOS appearance customizations on this device?'))return;['mc_os_theme','mc_os_custom_accent','mc_os_glass','mc_os_scale','mc_os_ambient','mc_os_reduced','mc_os_compact','mc_os_wallpaper_url'].forEach(k=>localStorage.removeItem(k));document.body.style.zoom='1';document.body.classList.remove('mc-reduced-motion','mc-compact','mc-static-ambient');document.documentElement.style.removeProperty('--mc-ui-scale');document.documentElement.style.setProperty('--glass-blur','28px');applyTheme('violet',false);$('#mc-glass-range').value=28;$('#mc-scale-range').value=100;toggle(motion,true);toggle(reduce,false);toggle(compact,false);$('#mc-accent-picker').value=themes.violet.accent;document.body.style.backgroundImage='';return}
+  }));
+  // Restore persisted settings without overwriting existing OS preferences.
+  const theme=safeGet('mc_os_theme','violet');applyTheme(theme,false);
+  const custom=safeGet('mc_os_custom_accent','');if(custom)applyAccent(custom,false);
+  $('#mc-accent-picker').value=custom||((themes[theme]||themes.violet).accent);
+  const glass=safeGet('mc_os_glass','28');$('#mc-glass-range').value=glass;document.documentElement.style.setProperty('--glass-blur',glass+'px');panel.style.backdropFilter='blur('+glass+'px) saturate(170%)';
+  const scale=safeGet('mc_os_scale','100');$('#mc-scale-range').value=scale;if(scale!=='100')document.body.style.zoom=(Number(scale)/100);
+  const ambient=safeGet('mc_os_ambient','on')!=='off';toggle(motion,ambient);document.body.classList.toggle('mc-static-ambient',!ambient);
+  const reduced=safeGet('mc_os_reduced','off')==='on';toggle(reduce,reduced);document.body.classList.toggle('mc-reduced-motion',reduced);
+  const compactOn=safeGet('mc_os_compact','off')==='on';toggle(compact,compactOn);document.body.classList.toggle('mc-compact',compactOn);
+  const wallpaper=safeGet('mc_os_wallpaper_url','');if(wallpaper)document.body.style.backgroundImage='linear-gradient(rgba(5,7,12,.44),rgba(5,7,12,.6)),url("'+wallpaper.replace(/["\\]/g,'')+'")';
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',build,{once:true});else build();
+})();
+
 </script>
 </body>
 </html>
