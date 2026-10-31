@@ -901,7 +901,8 @@ export const PS5_GAMES: readonly Ps5Game[] = [
   {"id":"n333","name":"Monkey Mart","cover":"https://cdn.jsdelivr.net/gh/NoahsAmazingTutoringHelp/Noahs-Calculus-Tutor/images/184.jpg","play":"https://cdn.jsdelivr.net/gh/NoahsAmazingTutoringHelp/Noahs-Calculus-Tutor@master/games/175.html"},
   {"id":"n334","name":"Thorns and Balloons","cover":"https://cdn.jsdelivr.net/gh/NoahsAmazingTutoringHelp/Noahs-Calculus-Tutor/images/144.jpg","play":"https://noahsamazingtutoringhelp.github.io/ScienceStudyBuddy/"},
   {"id":"er3","name":"Escape Road 3","cover":"https://pizzaedition.com/apnggames/escaperoad3.png","play":"https://pizzaedition.com/embed/escaperoad3"},
-  {"id":"gta5","name":"Grand Theft Auto V (GTA 5)","cover":"https://upload.wikimedia.org/wikipedia/en/a/a5/Grand_Theft_Auto_V.png","play":"https://gta.deloskiyt.pl/","proxy":true}
+  {"id":"cssurf","name":"CS Surf","cover":"https://surfd.net/favicon.ico","play":"https://surfd.net/","proxy":true},
+  {"id":"gta5","name":"Grand Theft Auto V (GTA 5)","cover":"https://upload.wikimedia.org/wikipedia/en/a/a5/Grand_Theft_Auto_V.png","play":"https://eta5.vercel.app/","proxy":true}
 ];
 
 export const PS5_TOTAL = PS5_GAMES.length;

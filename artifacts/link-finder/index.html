@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en" class="theme-vertex">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Link Finder by Vertex OS — find a fresh portal link your school's web filter hasn't caught yet." />
+  <title>Link Finder — Vertex OS</title>
+  <style>
+:root {
+  --page-bg: #060a12; --surface: #0c1422; --surface-2: #101a2c;
+  --primary: #4cc9f0; --primary-deep: #3a86ff; --primary-shadow: rgba(76,201,240,.35);
+  --on-primary: #eaf7ff; --text: #e6f1ff; --muted: #9db4ce;
+  --accent-gradient: linear-gradient(90deg, #4cc9f0, #7b5cff);
+  --focus-color: rgba(76,201,240,.16);
+}
+html { background: var(--page-bg); color: var(--text); }
+html, body { margin: 0; padding: 0; min-height: 100%;
+  font-family: 'Poppins', Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; }
+body { background: transparent; color: var(--text); overflow-x: hidden; }
+#particles-js { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+.page-frame { position: fixed; inset: 0; box-sizing: border-box;
+  box-shadow: 0 0 20px var(--primary-shadow), inset 0 0 20px var(--primary-shadow);
+  z-index: 1; pointer-events: none; }
+
+.lf {
+  --lf-panel: var(--surface); --lf-panel-2: var(--surface-2);
+  --lf-accent: var(--primary); --lf-accent-deep: var(--primary-deep);
+  --lf-accent-shadow: var(--primary-shadow); --lf-text: var(--text); --lf-muted: var(--muted);
+  --lf-on-accent: var(--on-primary);
+  --lf-glass: color-mix(in srgb, var(--lf-panel) 55%, transparent);
+  --lf-glass-border: color-mix(in srgb, var(--lf-muted) 20%, transparent);
+  box-sizing: border-box; position: relative; z-index: 2;
+  min-height: 100vh; color: var(--lf-text);
+  font: 400 16px/1.55 'Poppins', Inter, system-ui, sans-serif;
+  display: flex; flex-direction: column; padding: 24px;
+}
+.lf *, .lf *::before, .lf *::after { box-sizing: inherit; }
+.lf-app { display: flex; flex-direction: column; flex: 1; min-height: 100%; }
+.lf-content { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 0; }
+
+.lf-banner { width: 100%; max-width: 640px; margin-bottom: 14px; display: flex; align-items: center; gap: 12px;
+  background: linear-gradient(90deg, color-mix(in srgb, #7b5cff 18%, transparent), color-mix(in srgb, #4cc9f0 14%, transparent));
+  border: 1px solid color-mix(in srgb, #7b5cff 40%, transparent); border-radius: 14px; padding: 12px 14px;
+  backdrop-filter: blur(12px); box-shadow: 0 8px 24px rgba(0,0,0,.3); }
+.lf-banner .lf-banner-ico { width: 34px; height: 34px; border-radius: 10px; flex: none; display: flex; align-items: center; justify-content: center;
+  background: var(--accent-gradient); color: #fff; font: 800 14px 'Poppins', sans-serif; }
+.lf-banner .lf-banner-txt { flex: 1; }
+.lf-banner .lf-banner-txt b { color: var(--lf-text); font: 700 13px 'Poppins', sans-serif; }
+.lf-banner .lf-banner-txt span { display: block; color: var(--lf-muted); font: 500 12px 'Poppins', sans-serif; margin-top: 2px; }
+.lf-banner a { color: #9be1ff; font: 700 13px 'Poppins', sans-serif; text-decoration: none; white-space: nowrap; }
+.lf-banner a:hover { text-decoration: underline; }
+.lf-banner .lf-banner-x { background: none; border: none; color: var(--lf-muted); font-size: 15px; cursor: pointer; padding: 4px; border-radius: 6px; }
+.lf-banner .lf-banner-x:hover { background: rgba(255,255,255,.08); color: #fff; }
+
+.lf-news { width: 100%; max-width: 640px; margin-top: 14px; display: flex; align-items: center; gap: 10px;
+  background: color-mix(in srgb, #fbbf24 10%, var(--lf-glass)); border: 1px solid color-mix(in srgb, #fbbf24 30%, transparent);
+  border-radius: 12px; padding: 10px 14px; backdrop-filter: blur(10px); font: 500 12px 'Poppins', sans-serif; color: var(--lf-text); }
+.lf-news b { color: #fbbf24; }
+.lf-news a { color: #9be1ff; font-weight: 700; text-decoration: none; }
+.lf-news a:hover { text-decoration: underline; }
+
+.lf-screen { width: 100%; max-width: 640px; background: var(--lf-glass);
+  backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--lf-glass-border); border-radius: 20px; padding: 32px 28px;
+  box-shadow: 0 12px 40px rgba(0,0,0,.35), inset 0 1px 0 color-mix(in srgb, var(--lf-text) 6%, transparent);
+  animation: lfFade .45s ease; }
+.lf-screen.hidden { display: none; }
+
+.lf-hero { display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 18px; }
+.lf-mascot { width: 64px; height: 64px; border-radius: 16px; display: flex; align-items: center; justify-content: center;
+  background: var(--accent-gradient); box-shadow: 0 8px 24px var(--lf-accent-shadow); margin-bottom: 14px;
+  animation: lfBob 3s ease-in-out infinite; }
+.lf-mascot svg { width: 30px; height: 30px; }
+.lf-title { margin: 0; font-size: clamp(26px, 4.5vw, 36px); font-weight: 800; line-height: 1.15; letter-spacing: -0.02em;
+  background: var(--accent-gradient); -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent; filter: drop-shadow(0 0 14px var(--lf-accent-shadow)); }
+.lf-subtitle { margin: 10px 0 0; font-size: 1.02rem; line-height: 1.65; color: var(--lf-muted); max-width: 480px; }
+
+.lf-steps { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 22px; }
+.lf-step-dot { width: 8px; height: 8px; border-radius: 50%; background: color-mix(in srgb, var(--lf-muted) 30%, transparent); transition: all .3s ease; }
+.lf-step-dot.active { background: var(--lf-accent); box-shadow: 0 0 12px var(--lf-accent-shadow); transform: scale(1.4); }
+.lf-step-dot.done { background: var(--lf-accent); opacity: .55; }
+
+.lf-welcome-actions { display: flex; flex-direction: column; gap: 14px; margin-top: 22px; align-items: center; }
+
+.lf-big-btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 15px 32px;
+  border: none; border-radius: 14px; cursor: pointer; font: 700 1rem/1 'Poppins', sans-serif; letter-spacing: .3px;
+  background: var(--accent-gradient); color: var(--lf-on-accent); position: relative; overflow: hidden;
+  box-shadow: 0 4px 24px var(--lf-accent-shadow); transition: transform .25s cubic-bezier(.22,1,.36,1), box-shadow .25s ease, filter .25s ease; }
+.lf-big-btn::before { content: ''; position: absolute; inset: 0;
+  background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,.28) 50%, transparent 65%);
+  transform: translateX(-120%); pointer-events: none; }
+.lf-big-btn:hover::before { transform: translateX(120%); transition: transform .7s ease; }
+.lf-big-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 32px var(--lf-accent-shadow); filter: brightness(1.05); }
+.lf-big-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+.lf-ghost-btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 12px 22px;
+  border: 1px solid var(--lf-glass-border); border-radius: 12px; cursor: pointer; font: 600 .95rem/1 'Poppins', sans-serif;
+  background: var(--lf-glass); color: var(--lf-text); transition: all .2s ease; }
+.lf-ghost-btn:hover:not(:disabled) { border-color: color-mix(in srgb, var(--lf-accent) 40%, transparent); color: var(--lf-accent); transform: translateY(-1px); }
+.lf-ghost-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+.lf-question { margin: 0 0 6px; font-size: clamp(22px, 4vw, 28px); font-weight: 800; text-align: center; color: var(--lf-text); }
+.lf-question-help { margin: 0 auto 22px; max-width: 520px; text-align: center; font-size: 15px; color: var(--lf-muted); }
+
+.lf-blocker-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 10px; margin-bottom: 20px; }
+.lf-blocker-card { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  padding: 12px 10px; min-height: 96px; border: 1px solid var(--lf-glass-border); border-radius: 12px;
+  background: #fff; color: #0a0f1a; font: 600 12px/1.2 'Poppins', sans-serif; text-align: center;
+  cursor: pointer; transition: all .2s ease; box-shadow: 0 2px 8px rgba(0,0,0,.18); }
+.lf-blocker-card .lf-logo { width: 46px; height: 46px; object-fit: contain; border-radius: 8px;
+  background: #fff; transition: transform .2s ease; }
+.lf-blocker-card .lf-mono { width: 34px; height: 34px; border-radius: 9px; display: none; align-items: center; justify-content: center;
+  font: 800 13px 'Poppins', sans-serif; color: #fff; background: color-mix(in srgb, var(--lf-accent) 30%, #101a2c); }
+.lf-blocker-card:hover { border-color: color-mix(in srgb, var(--lf-accent) 45%, transparent); transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,.28); }
+.lf-blocker-card:hover .lf-logo { transform: scale(1.08); }
+.lf-blocker-card.active { border-color: var(--lf-accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--lf-accent) 17%, transparent), 0 6px 18px var(--lf-accent-shadow); }
+.lf-check { position: absolute; top: 6px; right: 6px; width: 20px; height: 20px; border-radius: 50%;
+  background: var(--lf-accent); color: #fff; display: none; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; }
+.lf-blocker-card.active .lf-check { display: flex; }
+
+.lf-strength { margin-bottom: 20px; }
+.lf-strength-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;
+  font-size: 12px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase; color: var(--lf-muted); }
+.lf-strength-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.lf-strength-btn { padding: 9px 8px; border-radius: 10px; border: 1px solid var(--lf-glass-border); background: var(--lf-glass);
+  color: var(--lf-text); font: 700 12px/1 'Poppins', sans-serif; cursor: pointer; transition: all .18s ease; }
+.lf-strength-btn:hover { border-color: color-mix(in srgb, var(--lf-accent) 40%, transparent); }
+.lf-strength-btn.active { background: color-mix(in srgb, var(--lf-accent) 20%, transparent); border-color: var(--lf-accent); color: var(--lf-accent); }
+
+.lf-step-actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+
+.lf-verdict-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; max-width: 380px; }
+.lf-verdict-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 16px; border-radius: 12px;
+  font-size: 14px; font-weight: 700; cursor: pointer; user-select: none; transition: transform .15s ease, background .18s ease, border-color .18s ease;
+  border: 1.5px solid transparent; }
+.lf-verdict-btn:active { transform: scale(.97); }
+.lf-verdict-works { color: #2bb673; background: color-mix(in srgb, #2bb673 14%, transparent); border-color: color-mix(in srgb, #2bb673 38%, transparent); }
+.lf-verdict-works:hover { background: color-mix(in srgb, #2bb673 22%, transparent); border-color: color-mix(in srgb, #2bb673 60%, transparent); }
+.lf-verdict-broken { color: #e54b6a; background: color-mix(in srgb, #e54b6a 12%, transparent); border-color: color-mix(in srgb, #e54b6a 36%, transparent); }
+.lf-verdict-broken:hover { background: color-mix(in srgb, #e54b6a 20%, transparent); border-color: color-mix(in srgb, #e54b6a 58%, transparent); }
+.lf-verdict-btn:disabled { opacity: .5; cursor: not-allowed; }
+.lf-verdict-flash { font-size: 12px; color: var(--lf-muted); text-align: center; min-height: 16px; }
+
+.lf-result-card { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 6px 0; }
+.lf-result-counter { font-size: 12px; font-weight: 700; color: var(--lf-muted); letter-spacing: .5px; text-transform: uppercase; min-height: 16px; }
+.lf-result-name { margin: 0; text-align: center; font-size: clamp(18px, 3.4vw, 24px); font-weight: 800; line-height: 1.35; letter-spacing: -.01em;
+  background: var(--accent-gradient); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;
+  word-break: break-all; padding: 0 6px; }
+.lf-result-badge { display: inline-block; padding: 4px 12px; border-radius: 999px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px;
+  background: color-mix(in srgb, var(--lf-accent) 14%, transparent); border: 1px solid color-mix(in srgb, var(--lf-accent) 30%, transparent); color: var(--lf-accent); }
+.lf-result-live { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 10px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase;
+  background: color-mix(in srgb, #2bb673 18%, transparent); border: 1px solid color-mix(in srgb, #2bb673 40%, transparent); color: #2bb673; }
+.lf-result-pending { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 10px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase;
+  background: color-mix(in srgb, #fbbf24 18%, transparent); border: 1px solid color-mix(in srgb, #fbbf24 40%, transparent); color: #fbbf24; }
+.lf-result-live.hidden, .lf-result-pending.hidden { display: none; }
+
+.lf-strictness { width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 8px; }
+.lf-strictness-head { display: flex; align-items: center; justify-content: space-between; font-size: 12px; font-weight: 700; letter-spacing: .4px;
+  text-transform: uppercase; color: var(--lf-muted); }
+.lf-strictness-head .lf-strictness-value { font-size: 13px; color: var(--lf-text); text-transform: none; letter-spacing: 0; }
+.lf-strictness-bar { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; height: 10px; }
+.lf-strictness-cell { border-radius: 3px; background: color-mix(in srgb, var(--lf-accent) 10%, transparent); border: 1px solid color-mix(in srgb, var(--lf-accent) 18%, transparent);
+  transition: background .18s ease var(--_sd, 0s), border-color .18s ease var(--_sd, 0s); }
+.lf-strictness-cell.on { background: linear-gradient(90deg, var(--lf-accent), color-mix(in srgb, var(--lf-accent) 70%, #ff7a59 30%)); border-color: transparent; }
+.lf-strictness-cell.on.high { background: linear-gradient(90deg, #ff8c42, #ff4d6d); }
+.lf-strictness-cell.on.max { background: linear-gradient(90deg, #ff4d6d, #c724b1); box-shadow: 0 0 6px rgba(199,36,177,.55); }
+.lf-strictness-foot { font-size: 11px; color: var(--lf-muted); text-align: center; }
+
+.lf-open-btn { display: inline-flex; align-items: center; justify-content: center; gap: 12px; width: 100%; max-width: 380px;
+  padding: 18px 32px; background: var(--accent-gradient); color: var(--lf-on-accent); border-radius: 14px; text-decoration: none;
+  font-size: 1.05rem; font-weight: 700; letter-spacing: .3px; position: relative; overflow: hidden;
+  box-shadow: 0 4px 24px var(--lf-accent-shadow); transition: transform .25s cubic-bezier(.22,1,.36,1), box-shadow .25s ease, filter .25s ease; }
+.lf-open-btn::before { content: ''; position: absolute; inset: 0;
+  background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,.28) 50%, transparent 65%);
+  transform: translateX(-120%); pointer-events: none; }
+.lf-open-btn:hover::before { transform: translateX(120%); transition: transform .7s ease; }
+.lf-open-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 32px var(--lf-accent-shadow); filter: brightness(1.05); }
+.lf-open-btn:disabled { opacity: .55; cursor: wait; }
+
+.lf-usage-pill { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 999px;
+  font-size: 13px; font-weight: 600; color: var(--lf-muted); background: var(--lf-glass); border: 1px solid var(--lf-glass-border); margin: 0; }
+
+.lf-empty { text-align: center; padding: 26px 18px; color: var(--lf-muted); font-size: 15px; line-height: 1.65;
+  background: var(--lf-glass); border: 1px solid var(--lf-glass-border); border-radius: 18px; width: 100%; max-width: 480px; }
+.lf-empty strong { color: var(--lf-accent); }
+
+.lf-foot { text-align: center; margin-top: 22px; font-size: 12px; color: var(--lf-muted); }
+.lf-foot b { color: var(--lf-accent); }
+
+@keyframes lfFade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes lfBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@media (max-width: 540px) {
+  .lf { padding: 14px; }
+  .lf-screen { padding: 24px 18px; border-radius: 16px; }
+  .lf-mascot { width: 56px; height: 56px; border-radius: 14px; }
+  .lf-blocker-grid { grid-template-columns: repeat(2, 1fr); }
+  .lf-blocker-card { min-height: 88px; }
+  .lf-open-btn { padding: 16px 24px; font-size: 1rem; }
+  .lf-banner { flex-wrap: wrap; }
+  .lf-banner a { white-space: normal; }
+}
+  </style>
+</head>
+<body>
+<div id="particles-js" aria-hidden="true"></div>
+<div class="page-frame" aria-hidden="true"></div>
+
+<div class="lf">
+  <div class="lf-app">
+    <div class="lf-content">
+
+      <div class="lf-banner" id="lf-banner">
+        <div class="lf-banner-ico">Ø</div>
+        <div class="lf-banner-txt">
+          <b>Vertex OS — Unblocked Games + BETA testing &amp; more upcoming</b>
+          <span>New games, the BETA build, and stuff being added all the time.</span>
+        </div>
+        <a href="https://vertex-os-site.netlify.app/" target="_blank" rel="noopener noreferrer">Check it out →</a>
+        <button class="lf-banner-x" id="lf-banner-x" aria-label="Dismiss">✕</button>
+      </div>
+
+      <section class="lf-screen" id="lf-welcome">
+        <div class="lf-hero">
+          <div class="lf-mascot" id="lf-mascot">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          </div>
+          <h1 class="lf-title">Find a Link That's Not Blocked</h1>
+          <p class="lf-subtitle">Pick the filter your school uses, we hand you a brand-new portal link that hasn't been caught yet. Mark it blocked and we delete it and spin a fresh one.</p>
+        </div>
+        <div class="lf-welcome-actions">
+          <button class="lf-big-btn" id="lf-start-btn" type="button">Let's Go!</button>
+          <p class="lf-usage-pill"><span id="lf-welcome-usage-text"></span></p>
+        </div>
+        <div class="lf-news">📡 <span id="lf-news-txt">Links point to real deployments — one gets caught, it gets deleted and republished fresh.</span></div>
+      </section>
+
+      <section class="lf-screen hidden" id="lf-picker">
+        <div class="lf-steps" aria-hidden="true"><span class="lf-step-dot done"></span><span class="lf-step-dot active"></span><span class="lf-step-dot"></span></div>
+        <div class="lf-hero">
+          <div class="lf-mascot"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="M9 12l2 2 4-4"/></svg></div>
+          <h2 class="lf-question">What blocks your school sites?</h2>
+          <p class="lf-question-help">Tap everything your school uses, set a filter strength, then hit <strong>Find My Link</strong>.</p>
+        </div>
+        <div class="lf-blocker-grid" id="lf-blocker-grid"></div>
+        <div class="lf-strength">
+          <div class="lf-strength-head"><span>Filter strength</span><span id="lf-strength-name">Standard</span></div>
+          <div class="lf-strength-row" id="lf-strength-row">
+            <button class="lf-strength-btn" data-strength="1" type="button">Light</button>
+            <button class="lf-strength-btn active" data-strength="4" type="button">Standard</button>
+            <button class="lf-strength-btn" data-strength="7" type="button">Strict</button>
+            <button class="lf-strength-btn" data-strength="9" type="button">Max</button>
+          </div>
+        </div>
+        <div class="lf-step-actions">
+          <button class="lf-ghost-btn" id="lf-back-to-welcome" type="button">← Back</button>
+          <button class="lf-big-btn" id="lf-find-btn" type="button" disabled style="max-width:250px;min-height:56px;padding:16px 28px;font-size:17px;">Find My Link</button>
+        </div>
+        <p class="lf-foot" style="margin-top:18px;">Real deployments · reports delete the caught one and auto-swap a fresh link.</p>
+      </section>
+
+      <section class="lf-screen hidden" id="lf-results">
+        <div class="lf-steps" aria-hidden="true"><span class="lf-step-dot done"></span><span class="lf-step-dot done"></span><span class="lf-step-dot active"></span></div>
+        <div class="lf-result-card">
+          <div class="lf-result-counter" id="lf-counter">Finding a fresh link…</div>
+          <h2 class="lf-result-name" id="lf-result-name">Loading...</h2>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <span class="lf-result-badge" id="lf-result-badge">link</span>
+            <span class="lf-result-live hidden" id="lf-result-live">● live</span>
+            <span class="lf-result-pending hidden" id="lf-result-pending">publishing…</span>
+          </div>
+
+          <a class="lf-open-btn" id="lf-open-link" href="#" target="_blank" rel="noopener noreferrer"><span>Open in tab</span></a>
+
+          <div class="lf-verdict-row" id="lf-verdict-row">
+            <button class="lf-verdict-btn lf-verdict-works" id="lf-works-btn" type="button">✓ It Works</button>
+            <button class="lf-verdict-btn lf-verdict-broken" id="lf-broken-btn" type="button">✗ It's Blocked</button>
+          </div>
+          <div class="lf-verdict-flash" id="lf-verdict-flash"></div>
+
+          <div class="lf-step-actions">
+            <button class="lf-ghost-btn" id="lf-back-btn" type="button">← Start Over</button>
+            <button class="lf-ghost-btn" id="lf-next-btn" type="button">⇄ Try Another</button>
+          </div>
+
+          <p class="lf-usage-pill" id="lf-usage-wrap"><span id="lf-results-usage-text"></span></p>
+
+          <div class="lf-strictness" id="lf-strictness" hidden>
+            <div class="lf-strictness-head"><span>Filter strength</span><span class="lf-strictness-value" id="lf-strictness-value">-</span></div>
+            <div class="lf-strictness-bar" id="lf-strictness-bar" role="meter" aria-valuemin="1" aria-valuemax="10" aria-label="Filter strength this link bypasses">
+              <span class="lf-strictness-cell"></span><span class="lf-strictness-cell"></span><span class="lf-strictness-cell"></span><span class="lf-strictness-cell"></span><span class="lf-strictness-cell"></span><span class="lf-strictness-cell"></span><span class="lf-strictness-cell"></span><span class="lf-strictness-cell"></span><span class="lf-strictness-cell"></span><span class="lf-strictness-cell"></span>
+            </div>
+            <div class="lf-strictness-foot" id="lf-strictness-foot"></div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+    <div class="lf-foot">Made by <b>Vertex OS</b> · <span id="lf-mode">online</span> · unlimited finds</div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var _mem = { local: {}, session: {} };
+  function _safe(kind) {
+    var fallback = _mem[kind], store = null;
+    try { store = (kind === 'local') ? window.localStorage : window.sessionStorage;
+      store.setItem('__p', '1'); store.removeItem('__p'); } catch (e) { store = null; }
+    return {
+      getItem: function (k) { if (store) { try { return store.getItem(k); } catch (e) {} } return fallback[k] != null ? fallback[k] : null; },
+      setItem: function (k, v) { if (store) { try { store.setItem(k, String(v)); return; } catch (e) {} } fallback[k] = String(v); },
+      removeItem: function (k) { if (store) { try { store.removeItem(k); return; } catch (e) {} } delete fallback[k]; }
+    };
+  }
+  var safeLocal = _safe('local'), safeSession = _safe('session');
+
+  // ── CONFIG: offline template fallback (used only if the API is unreachable) ──
+  var OFFLINE_HOSTS = [
+    { name: 'vercel',             build: function (s) { return 'https://' + s + '.vercel.app'; },        strictness: 4 },
+    { name: 'firebase (web.app)', build: function (s) { return 'https://' + s + '.web.app'; },          strictness: 5 },
+    { name: 'firebaseapp',        build: function (s) { return 'https://' + s + '.firebaseapp.com'; },  strictness: 5 },
+    { name: 'github pages',       build: function (s) { return 'https://' + s + '.github.io'; },        strictness: 3 },
+    { name: 'netlify',            build: function (s) { return 'https://' + s + '.netlify.app'; },      strictness: 4 },
+    { name: 'cloudflare workers', build: function (s) { return 'https://' + s + '.workers.dev'; },      strictness: 6 },
+    { name: 'cloudflare pages',   build: function (s) { return 'https://' + s + '.pages.dev'; },        strictness: 6 },
+    { name: 'fastly (a.ss)',      build: function (s) { return 'https://' + s + '.a.ss.fastly.net'; },  strictness: 7 },
+    { name: 'render',             build: function (s) { return 'https://' + s + '.onrender.com'; },     strictness: 5 }
+  ];
+
+  var BLOCKERS = [
+    { id: 'fortiguard',    name: 'FortiGuard',    mono: 'FT', logo: 'fortinet.com' },
+    { id: 'lightspeed',    name: 'LightSpeed',    mono: 'LS', logo: 'lightspeedsystems.com' },
+    { id: 'linewize',      name: 'Linewize',      mono: 'LW', logo: 'linewize.com' },
+    { id: 'securly',       name: 'Securly',       mono: 'SC', logo: 'securly.com' },
+    { id: 'goguardian',    name: 'GoGuardian',    mono: 'GG', logo: 'goguardian.com' },
+    { id: 'lanschool',     name: 'LanSchool',     mono: 'LN', logo: 'lanschool.com' },
+    { id: 'contentkeeper', name: 'ContentKeeper', mono: 'CK', logo: 'contentkeeper.com' },
+    { id: 'aristotlek12',  name: 'AristotleK12',  mono: 'AK', logo: 'aristotlek12.com' },
+    { id: 'blocksi',       name: 'Blocksi',       mono: 'BL', logo: 'blocksi.net' },
+    { id: 'paloalto',      name: 'Palo Alto',     mono: 'PA', logo: 'paloaltonetworks.com' },
+    { id: 'umbrella',      name: 'Cisco Umbrella',mono: 'CU', logo: 'umbrella.cisco.com' },
+    { id: 'senso',         name: 'Senso Cloud',   mono: 'SN', logo: 'sensocloud.com' },
+    { id: 'deledao',       name: 'Deledao',       mono: 'DL', logo: 'deledao.com' },
+    { id: 'iboss',         name: 'iBoss',         mono: 'IB', logo: 'iboss.com' },
+    { id: 'sophos',        name: 'Sophos',        mono: 'SO', logo: 'sophos.com' },
+    { id: 'qustodio',      name: 'Qustodio',      mono: 'QU', logo: 'qustodio.com' },
+    { id: 'dnsfilter',     name: 'DNS Filter',    mono: 'DN', logo: 'dnsfilter.com' },
+    { id: 'other',         name: 'Other',         mono: '??', logo: null }
+  ];
+
+  var KNOWN_KEY = 'lf-known', BROKEN_KEY = 'lf-broken', BANNER_KEY = 'lf-banner-off', MODE_KEY = 'lf-mode';
+
+  function readObj(store, key, fallback) { try { var v = JSON.parse(store.getItem(key) || 'null'); return v && typeof v === 'object' ? v : fallback; } catch (e) { return fallback; } }
+  function write(store, key, val) { safeLocalSet(store, key, JSON.stringify(val)); }
+  function safeLocalSet(store, key, val) { store.setItem(key, val); }
+
+  function getKnown()     { return readObj(safeLocal, KNOWN_KEY, {}); }        // url -> {id, ts}
+  function getBroken()    { return readObj(safeLocal, BROKEN_KEY, {}) || {}; } // url -> 1
+  function setMode(mode)  { safeLocal.setItem(MODE_KEY, mode); var el = document.getElementById('lf-mode'); if (el) el.textContent = mode; }
+  function onlineMode()   { return safeLocal.getItem(MODE_KEY) !== 'offline'; }
+
+  function recordKnown(url, id) { var k = getKnown(); k[url] = { id: id || '', ts: Date.now() }; write(safeLocal, KNOWN_KEY, k); }
+  function recordBroken(url, id) {
+    var b = getBroken(); b[url] = 1; write(safeLocal, BROKEN_KEY, b);
+    var k = getKnown(); delete k[url]; write(safeLocal, KNOWN_KEY, k);
+    if (id && onlineMode()) deleteDeploy(id);
+  }
+  function excludesList() { return Object.keys(getKnown()).concat(Object.keys(getBroken())).slice(-400); }
+
+  function hostKey(u) { return String(u).replace(/^https?:\/\//, '').replace(/^www\./, '').split(/[/?#]/)[0] || String(u); }
+
+  // ── Blocker cards with real logos (Clearbit by domain) ──
+  var grid = document.getElementById('lf-blocker-grid');
+  BLOCKERS.forEach(function (b) {
+    var card = document.createElement('button');
+    card.type = 'button';
+    card.className = 'lf-blocker-card';
+    card.dataset.blocker = b.id;
+    var inner = '<span class="lf-check">✓</span>';
+    if (b.logo) inner += '<img class="lf-logo" src="https://logo.clearbit.com/' + b.logo + '" alt="" loading="lazy" onerror="this.style.display=&quot;none&quot;;this.nextElementSibling.style.display=&quot;flex&quot;">';
+    inner += '<span class="lf-mono">' + b.mono + '</span><span class="lf-name">' + b.name + '</span>';
+    card.innerHTML = inner;
+    grid.appendChild(card);
+  });
+
+  // ── Screens ──
+  var screens = {
+    welcome: document.getElementById('lf-welcome'),
+    picker:  document.getElementById('lf-picker'),
+    results: document.getElementById('lf-results'),
+    limit:   null
+  };
+  var startBtn = document.getElementById('lf-start-btn');
+  var backToWelcome = document.getElementById('lf-back-to-welcome');
+  var findBtn = document.getElementById('lf-find-btn');
+  var backBtn = document.getElementById('lf-back-btn');
+  var nextBtn = document.getElementById('lf-next-btn');
+  var resultName = document.getElementById('lf-result-name');
+  var resultBadge = document.getElementById('lf-result-badge');
+  var resultLive = document.getElementById('lf-result-live');
+  var resultPending = document.getElementById('lf-result-pending');
+  var resultCounter = document.getElementById('lf-counter');
+  var openLink = document.getElementById('lf-open-link');
+  var resultUsage = document.getElementById('lf-results-usage-text');
+  var welcomeUsage = document.getElementById('lf-welcome-usage-text');
+  var strictnessWrap = document.getElementById('lf-strictness');
+  var strictnessVal = document.getElementById('lf-strictness-value');
+  var strictnessFoot = document.getElementById('lf-strictness-foot');
+  var strictnessCells = Array.from(document.querySelectorAll('.lf-strictness-cell'));
+  var worksBtn = document.getElementById('lf-works-btn');
+  var brokenBtn = document.getElementById('lf-broken-btn');
+  var verdictFlash = document.getElementById('lf-verdict-flash');
+  var strengthName = document.getElementById('lf-strength-name');
+  var strengthBtns = Array.from(document.querySelectorAll('.lf-strength-btn'));
+  var bannerEl = document.getElementById('lf-banner');
+
+  var picks = [], strength = 4, searching = false, current = null;
+
+  function show(name) {
+    Object.keys(screens).forEach(function (k) { if (screens[k]) screens[k].classList.toggle('hidden', k !== name); });
+    if (name === 'welcome') updateUsage();
+  }
+  var searchCount = 0;
+  function updateUsage() {
+    var n = safeLocal.getItem('lf-today-count') || '0';
+    welcomeUsage.textContent = 'Unlimited finds — search #' + n + ' today';
+    if (resultUsage) resultUsage.textContent = 'Unlimited finds · #' + n + ' today';
+  }
+  function bumpCount() { var n = parseInt(safeLocal.getItem('lf-today-count') || '0', 10) + 1; safeLocal.setItem('lf-today-count', String(n)); searchCount = n; updateUsage(); }
+
+  function renderStrictness(n, hostName) {
+    if (!strictnessWrap) return;
+    var v = Math.max(0, Math.min(10, Math.round(n || 0)));
+    if (!v) { strictnessWrap.hidden = true; return; }
+    strictnessCells.forEach(function (c) { c.classList.remove('on', 'high', 'max'); c.style.setProperty('--_sd', '0s'); });
+    strictnessWrap.hidden = false;
+    strictnessVal.textContent = v + ' / 10';
+    strictnessFoot.textContent = hostName ? 'Host type: ' + hostName + ' · fresh deployment, not yet on the blocklist.' : '';
+    strictnessCells.forEach(function (cell, i) {
+      if (i < v) {
+        cell.style.setProperty('--_sd', (i * 40) + 'ms');
+        setTimeout(function () {
+          cell.classList.add('on');
+          if (v >= 7 && v <= 9) cell.classList.add('high');
+          if (v === 10) cell.classList.add('max');
+        }, i * 40);
+      }
+    });
+  }
+  function clearStrictness() { if (strictnessWrap) strictnessWrap.hidden = true; }
+  function flash(msg, color) { verdictFlash.textContent = msg || ''; verdictFlash.style.color = color || ''; }
+  function setVerdictDisabled(d) { worksBtn.disabled = d; brokenBtn.disabled = d; setBusy(nextBtn, d); }
+  function setBusy(el, d) { if (el) { el.disabled = d; } }
+
+  grid.addEventListener('click', function (e) {
+    var card = e.target.closest('.lf-blocker-card');
+    if (!card) return;
+    card.classList.toggle('active');
+    var id = card.dataset.blocker;
+    if (card.classList.contains('active')) { if (picks.indexOf(id) === -1) picks.push(id); }
+    else picks = picks.filter(function (p) { return p !== id; });
+    findBtn.disabled = picks.length === 0 || searching;
+  });
+
+  strengthBtns.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      strength = parseInt(btn.dataset.strength, 10);
+      strengthBtns.forEach(function (b) { b.classList.toggle('active', b === btn); });
+      strengthName.textContent = ({ 1: 'Light', 4: 'Standard', 7: 'Strict', 9: 'Max' })[strength] || 'Custom';
+    });
+  });
+
+  startBtn.addEventListener('click', function () { show('picker'); });
+  backToWelcome.addEventListener('click', function () { show('welcome'); });
+  backBtn.addEventListener('click', function () { show('welcome'); });
+
+  // ── Search: real deployments via /api/find, offline templates as fallback ──
+  function offlineFind(excludes) {
+    var used = new Set(excludes.map(hostKey));
+    var shown = new Set(Object.keys(getKnown()).map(hostKey));
+    for (var i = 0; i < 400; i++) {
+      var host = OFFLINE_HOSTS[Math.floor(Math.random() * OFFLINE_HOSTS.length)];
+      if (host.strictness < strength) continue;
+      var slug = 'xv' + Math.random().toString(36).slice(2, 8) + Math.floor(Math.random() * 90);
+      var url = host.build(slug);
+      var key = hostKey(url);
+      if (used.has(key) || shown.has(key)) continue;
+      return { url: url, host: host.name, strictness: host.strictness, id: '', fresh: true, ready: false };
+    }
+    return null;
+  }
+
+  function apiFind(excludes) {
+    return fetch('/api/find', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ excludes: excludes.slice(-300) })
+    }).then(function (r) {
+      if (!r.ok) throw new Error(String(r.status));
+      return r.json();
+    }).then(function (d) {
+      if (!d || !d.url) throw new Error('empty');
+      return { url: d.url, host: d.host || 'vercel', strictness: d.strictness || 4, id: d.deployId || '', ready: d.ready !== false };
+    });
+  }
+
+  function findLink(excludes) {
+    if (onlineMode()) {
+      return apiFind(excludes).then(function (l) { return l; }).catch(function () {
+        setMode('offline'); var o = offlineFind(excludes); if (o) { o.live = false; } return o;
+      });
+    }
+    return Promise.resolve(offlineFind(excludes));
+  }
+
+  function doSearch(fromBroken, busyEl, busyLabel) {
+    if (searching) return Promise.resolve();
+    searching = true;
+    setBusy(busyEl, true);
+    var old = busyEl ? busyEl.textContent : '';
+    if (busyEl) busyEl.textContent = busyLabel;
+    var excludes = excludesList();
+    return findLink(excludes).then(function (link) {
+      bumpCount();
+      if (link && link.url) {
+        current = link;
+        recordKnown(link.url, link.id);
+        showResult(link);
+      } else {
+        current = null;
+        show(link ? 'results' : 'results');
+        showNoHosts();
+      }
+    }).catch(function () {
+      current = null;
+      showNoHosts();
+    }).then(function () {
+      searching = false;
+      setBusy(busyEl, false);
+      if (busyEl) busyEl.textContent = old;
+      findBtn.disabled = picks.length === 0;
+    });
+  }
+
+  findBtn.addEventListener('click', function () { if (!picks.length || searching) return; doSearch(false, findBtn, 'Publishing…'); });
+  nextBtn.addEventListener('click', function () { if (searching) return; doSearch(false, nextBtn, 'Finding…'); });
+
+  brokenBtn.addEventListener('click', function () {
+    if (searching || !current) return;
+    flash('Got it — deleting and publishing a fresh link...', '#e54b6a');
+    var gone = current;
+    recordBroken(gone.url, gone.id);
+    var excludes = excludesList();
+    searching = true;
+    setVerdictDisabled(true);
+    setTimeout(function () { doSearch(true, null, '').then(function () { flash(''); }); }, 500);
+  });
+
+  function showNoHosts() {
+    show('results');
+    resultCounter.textContent = 'No fresh links left';
+    resultName.textContent = 'We spun every host — try again in a bit.';
+    resultBadge.textContent = 'rotate hosts';
+    hideOpen();
+    clearStrictness();
+    nextBtn.style.display = '';
+  }
+
+  function showResult(link) {
+    show('results');
+    updateUsage();
+    nextBtn.style.display = '';
+    clearStrictness();
+    flash('');
+    setVerdictDisabled(false);
+
+    resultCounter.textContent = link.ready ? 'Here\'s a fresh link for you!' : 'Publishing your fresh link…';
+    resultName.textContent = link.url;
+    resultBadge.textContent = link.host + ' · strength ' + (link.strictness || 4);
+    if (resultLive) resultLive.classList.toggle('hidden', link.ready !== true);
+    if (resultPending) resultPending.classList.toggle('hidden', link.ready === true);
+    openLink.style.display = '';
+    openLink.setAttribute('href', link.url);
+    openLink.title = 'Open ' + link.url;
+    renderStrictness(link.strictness, link.host);
+  }
+  function hideOpen() { openLink.style.display = 'none'; }
+
+  openLink.addEventListener('click', function (ev) {
+    if (!current) return;
+    recordKnown(current.url, current.id);
+  });
+
+  worksBtn.addEventListener('click', function () {
+    if (!current) return;
+    flash('Thanks! We\'ll hand you more like this.', '#2bb673');
+    setVerdictDisabled(true);
+    setTimeout(function () { setVerdictDisabled(false); flash(''); }, 1800);
+  });
+
+  // banner (Vertex OS promo) dismissible
+  if (safeLocal.getItem(BANNER_KEY) === '1' && bannerEl) bannerEl.style.display = 'none';
+  var bannerX = document.getElementById('lf-banner-x');
+  if (bannerX) bannerX.addEventListener('click', function () { safeLocal.setItem(BANNER_KEY, '1'); bannerEl.style.display = 'none'; });
+
+  updateUsage();
+  show('welcome');
+
+  // lightweight particle background (canvas, no CDN)
+  (function () {
+    var cv = document.getElementById('particles-js');
+    var ctx = cv.getContext('2d');
+    var parts = [];
+    function resize() { cv.width = innerWidth; cv.height = innerHeight; }
+    resize(); addEventListener('resize', resize);
+    for (var i = 0; i < 90; i++) parts.push({ x: Math.random(), y: Math.random(), r: Math.random() * 1.6 + 0.4, s: Math.random() * 0.25 + 0.06, a: Math.random() * 0.6 + 0.2 });
+    (function tick() {
+      ctx.clearRect(0, 0, cv.width, cv.height);
+      parts.forEach(function (p) {
+        p.y += p.s / 1000 * 60 * (62 / cv.width);
+        if (p.y > 1) { p.y = 0; p.x = Math.random(); }
+        ctx.beginPath();
+        ctx.arc(p.x * cv.width, p.y * cv.height, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(140,190,255,' + p.a + ')';
+        ctx.fill();
+      });
+      requestAnimationFrame(tick);
+    })();
+  })();
+})();
+</script>
+</body>
+</html>

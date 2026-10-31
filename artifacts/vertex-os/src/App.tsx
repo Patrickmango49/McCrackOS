@@ -8,6 +8,7 @@ import {
   Palette, Pin, PinOff, Play, Power, Puzzle, Radio, Rocket, RotateCcw,
   Settings2, ShieldBan, SlidersHorizontal, Search, Sparkles, Terminal, Volume2, VolumeX, Waves, X, Pause, Maximize, Maximize2, Minimize2, House, Plus, Package, EyeOff, ExternalLink, Contrast, Calculator, ImagePlus,
   Shuffle, Repeat, Clock, ListVideo, Trash2, Link2, User, Languages, Info, Monitor, Paintbrush, SunMoon, Cloud, FileDown, Clapperboard,
+  Bot, PlaySquare, Film,
 } from "lucide-react";
 
 
@@ -31,6 +32,7 @@ import { MacMenuBar } from "./components/mac-menubar";
 import { AlternativePanel, DesktopWidgets, MovableWidget, type WidgetId, type WidgetPosition, type WidgetSkin } from "./components/desktop-widgets";
 import { LinksApp } from "./components/links-app";
 import { assetUrl } from "./asset-map";
+import { VMarketSurface, VStudiosSurface, VMarketAppRunner, readVMarketEntries, readVMarketInstalled } from "./v-market";
 import { DiscordApp } from "./components/discord-app";
 import { TerminalBanner } from "./terminal/TerminalBanner";
 import { ansiToNodes } from "./terminal/ansi";
@@ -43,7 +45,7 @@ const base = import.meta.env.BASE_URL.endsWith("/") ? import.meta.env.BASE_URL :
 const asset = (path: string) => assetUrl(base, path);
 const isGitHubPages = import.meta.env.BASE_URL.startsWith("/vertexosweb");
 type WallpaperId = "vertex-studio" | "halloween" | "macos-default" | "macos-lock" | "singularity" | "snake-skeleton" | "snow-fox" | "cine55" | "gojo" | "rainy-city" | "green-anime" | "brother" | "99-med" | "gojo-sukuna" | "sukuna-fire" | "desktop-lines" | "skello" | "we-black-hole" | "we-snow-fox" | "we-gojo-sukuna" | "we-sukuna-fire" | "we-cine-55" | "we-snake" | "we-green-anime" | "we-brother" | "we-gojo" | "we-rainy-city" | "we-desktop-lines" | "we-skello" | "we-99-med" | "we-45e33" | "we-f1-formula" | "we-hunt-shadow-2" | "we-minecraft-01" | "we-minecraft-02" | "we-minecraft-03" | "we-monkey" | "we-supra-drift" | "we-yuji-52" | "we-cozy-fox" | "we-yuta" | "we-bmw-car-driving" | "we-eyes-toward-heaven" | "we-goku-ultra" | "we-galaxy-eyes" | "we-celestial-battle" | "we-tess-kotkin" | "we-yuta-rika" | "we-satoru-gojo" | "we-dark-angel" | "we-makima-devilish" | "we-makima-burning" | "we-haimiya-mio" | "we-toji" | "we-mamonir" | "we-lantern-festival" | "we-miyabi" | "we-qingxiao" | "we-megumin" | "we-odette" | "we-blue-sky" | "we-frutiger" | "we-synthwave-dmc" | "we-zankou" | "we-ghost-rider" | "we-molala" | "we-dark-king" | "we-celestial-veil" | "we-miku-nakano" | "we-gotoubun" | "we-quintuplets" | "we-black-silk-waves" | "we-blue-dragon-logo" | "we-astra-yao" | "we-luo-tianyi-christmas" | "we-mc-northern-light" | "we-mc-falling-snow" | "we-mc-aquarium" | "we-mc-holiday-heart" | "we-mc-fireplace" | "we-mc-panels" | "we-mc-cherry-blossom" | "we-mc-raindrops" | "we-silver-surfer" | "we-girl-behind-curtains" | "we-vagabond-miyamoto" | "we-itachi-crow" | "we-gojo-hollow" | "we-quintuplets-sister" | "we-yuta-okkotsu" | "we-gojo-vs-sukuna-2" | "we-gojo-cursed-world" | "we-gojo-six-eyes" | "we-frieren-blue-horizon" | "we-frieren-blooming-stream" | "we-nissan-skyline-r33-mc" | "we-torii";
-type AppId = "hub" | "spicetify" | "browser" | "pizza" | "roblox" | "messages" | "verai" | "jarvis" | "vertube" | "movies" | "settings" | "games" | "translucenttb" | "wallpaper-engine" | "minecraft" | "rainmeter" | "terminal" | "calculator" | "ghostview" | "links" | "discord" | "vcloud" | "admin";
+type AppId = "hub" | "spicetify" | "browser" | "pizza" | "roblox" | "messages" | "verai" | "jarvis" | "vertube" | "movies" | "settings" | "games" | "translucenttb" | "wallpaper-engine" | "minecraft" | "rainmeter" | "terminal" | "calculator" | "ghostview" | "links" | "discord" | "vcloud" | "admin" | "appmaker" | string & {};
 type Ps5DesktopShortcut = { id: string; name: string; cover: string };
 type TaskbarPos = "bottom" | "top" | "left" | "right";
 type WindowRect = { x: number; y: number; w: number; h: number };
@@ -382,18 +384,21 @@ const MC_ICON = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0
 const RAINMETER_ICON = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y+mAAAAVFBMVEVHcEwobJoma5oobZsjapkgapo6d6Mma5kcZ5d0m76mvtkma5rX4PTw8P9Th64japknbJqTsc++zuX19P/x6Orv39jou5DjoE/s1MPgjhzgkSnlrG/pPPZZAAAAEXRSTlMAOoEJ1f3/p+f//1r////AIySV8nYAAADzSURBVHgBYiAeMALqJI8kC2EYiBZBco4ic/97DmIS+Nu9fYpd3bfZMELXhD2gGFpDpdJgGkMFWOdDrEIjk3MZqjfF4K1zLsmuek12l6yv3BRHZR0rVW7qMRMzsj6UrVEqRkwTmkbjvXUsIKhfRpSgazSy8N0q/YMVrQY0TfP8S+3LJgFuXtZ12X62+vHxTfC07JfWZSai7fLwYf/I8DiOC5/LebwNDkgbQ8bHvpIa49N0O503ZbwRhMK8+Tx21rG4Ig89aDct53pfnDEUEcFk+dXZOe3HIipRgE/Z2qwVhu4jXiYAeo84mruvxNH0vYkPb74AqzITDrilOz4AAAAASUVORK5CYII=";
 const ARCH_ICON = asset("images/archlinux.png");
 
-const apps: { id: AppId; title: string; subtitle: string; icon: LucideIcon; iconImg?: string; pinned?: boolean; squircle?: boolean }[] = [
-  { id: "hub", title: "Vertex-Hub", subtitle: t("appSub.hub"), icon: Sparkles, iconImg: asset("images/velara.png"), pinned: true },
+type AppDef = { id: AppId; title: string; subtitle: string; icon: LucideIcon; iconImg?: string; pinned?: boolean; squircle?: boolean };
+
+const baseApps: AppDef[] = [
+  { id: "hub", title: "V-MARKET", subtitle: "apps, games & websites", icon: Package, iconImg: asset("images/v-market-logo.jpg"), pinned: true, squircle: true },
   { id: "spicetify", title: "Spicetify", subtitle: t("appSub.spicetify"), icon: Music2, iconImg: asset("images/spicetify.ico"), pinned: true },
   { id: "wallpaper-engine", title: "Wallpaper Engine", subtitle: t("appSub.wallpaperEngine"), icon: Image, iconImg: asset("images/wallpaper-engine.gif"), pinned: true, squircle: true },
   { id: "browser", title: "Browser", subtitle: t("appSub.browser"), icon: Compass, iconImg: "https://brave.com/favicon.ico", pinned: true },
+  { id: "appmaker", title: "V-STUDIOS", subtitle: "build & publish your own", icon: Code2, iconImg: asset("images/v-studios-logo.svg"), pinned: true, squircle: true },
   { id: "pizza", title: "Pizza edition", subtitle: t("appSub.pizza"), icon: Compass, iconImg: asset("images/pizza.ico"), pinned: true },
   { id: "roblox", title: "Roblox", subtitle: t("appSub.roblox"), icon: Gamepad2, iconImg: asset("images/roblox.ico"), pinned: true },
   { id: "messages", title: "Messages", subtitle: t("appSub.messages"), icon: MessageCircle, iconImg: asset("images/messages-icon.webp"), pinned: true },
   { id: "verai", title: "VER-AI", subtitle: t("appSub.verai"), icon: Sparkles, iconImg: asset("images/ver-ai.ico"), pinned: true },
-  { id: "jarvis", title: "JARVIS AI", subtitle: "Iron Man AI Assistant", icon: Sparkles, iconImg: asset("images/jarvis-logo.png"), pinned: true, squircle: true },
-  { id: "vertube", title: "VER-TUBE", subtitle: "watch any video, no account", icon: Play, iconImg: "https://www.youtube.com/s/desktop/af0a3c1e/img/favicon_144x144.png", pinned: true },
-  { id: "movies", title: "Netflix", subtitle: "movies & TV shows — free", icon: Clapperboard, iconImg: "https://cdn.worldvectorlogo.com/logos/netflix-logo-icon.svg", pinned: true },
+  { id: "jarvis", title: "JARVIS", subtitle: t("appSub.jarvis"), icon: Bot, iconImg: asset("images/jarvis-logo.png") },
+  { id: "vertube", title: "VerTube", subtitle: t("appSub.vertube"), icon: PlaySquare, iconImg: asset("images/vertube.svg") },
+  { id: "movies", title: "Movies", subtitle: t("appSub.movies"), icon: Film, iconImg: asset("images/movies.png") },
   { id: "settings", title: "Config", subtitle: t("appSub.settings"), icon: Settings2, iconImg: asset("images/config-icon.png"), pinned: true },
   { id: "games", title: "PS5 Emu", subtitle: t("appSub.games"), icon: Gamepad2, iconImg: asset("images/ps5-emu.png"), squircle: true },
   { id: "minecraft", title: "Minecraft Launcher", subtitle: t("appSub.minecraft"), icon: Gamepad2, iconImg: MC_ICON, squircle: true },
@@ -401,10 +406,14 @@ const apps: { id: AppId; title: string; subtitle: string; icon: LucideIcon; icon
   { id: "calculator", title: "Calculator", subtitle: t("appSub.calculator"), icon: Calculator, iconImg: asset("images/calculator-logo.svg") },
   { id: "rainmeter", title: "Rainmeter", subtitle: t("appSub.rainmeter"), icon: MonitorCog, iconImg: RAINMETER_ICON },
   { id: "terminal", title: "Terminal", subtitle: t("appSub.terminal"), icon: Terminal, iconImg: ARCH_ICON, pinned: true },
-  { id: "links", title: "LazyList", subtitle: "the full proxy list", icon: Link2, iconImg: asset("images/links.svg"), pinned: true },
+  { id: "ghostview", title: "GhostView", subtitle: t("appSub.ghostview"), icon: Eye, iconImg: asset("images/ghostview.png") },
+  { id: "links", title: "Links", subtitle: t("appSub.links"), icon: Link2, iconImg: asset("images/links.png") },
   { id: "discord", title: "Discord", subtitle: t("appSub.discord"), icon: MessageCircle, iconImg: asset("images/discord-icon.png"), pinned: true, squircle: true },
   { id: "vcloud", title: "V-CLOUD", subtitle: t("appSub.vcloud"), icon: Cloud, iconImg: asset("images/v-cloud-logo.png"), pinned: true, squircle: true },
 ];
+
+// Installed V-MARKET listings are folded into this list at runtime by <App />.
+let apps: AppDef[] = baseApps;
 
 type AppOverride = { name?: string; showName?: boolean; iconUrl?: string; pinned?: boolean };
 
@@ -412,7 +421,7 @@ const APP_SECTIONS: { id: string; tone: string; all?: boolean; ids: AppId[] }[] 
   { id: "all", tone: "tone-all", all: true, ids: [] },
   { id: "watch", tone: "tone-watch", ids: ["vertube", "movies", "spicetify", "messages", "verai", "jarvis"] },
   { id: "play", tone: "tone-play", ids: ["roblox", "minecraft", "games", "pizza", "vcloud"] },
-  { id: "create", tone: "tone-create", ids: ["terminal", "wallpaper-engine", "browser", "calculator", "hub", "settings", "translucenttb", "rainmeter", "ghostview", "links"] },
+  { id: "create", tone: "tone-create", ids: ["terminal", "wallpaper-engine", "browser", "calculator", "hub", "appmaker", "settings", "translucenttb", "rainmeter", "ghostview", "links"] },
 ];
 
 const GV_APP: { id: AppId; title: string; subtitle: string; icon: LucideIcon; pinned: boolean; showName: boolean } = { id: "ghostview", title: "GhostView", subtitle: "remote view", icon: Eye, pinned: false, showName: false };
@@ -1163,11 +1172,44 @@ storage.read("vertex-jarvis-installed", false));
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   const [contextMenuPos, setContextMenuPos] = useState<{ x: number; y: number } | null>(null);
   const contextMenuRef = useRef<HTMLDivElement>(null);
+  const [marketVersion, setMarketVersion] = useState(0);
+  useEffect(() => {
+    const refresh = () => setMarketVersion((version) => version + 1);
+    window.addEventListener("vertex-vmarket-changed", refresh);
+    return () => window.removeEventListener("vertex-vmarket-changed", refresh);
+  }, []);
+  const installedMarketApps = useMemo<AppDef[]>(() => {
+    const installed = new Set(readVMarketInstalled());
+    return readVMarketEntries()
+      .filter((entry) => installed.has(entry.id))
+      .map((entry) => ({
+        id: entry.id as AppId,
+        title: entry.name,
+        subtitle: entry.company,
+        icon: Package,
+        iconImg: entry.logo,
+        pinned: true,
+        squircle: true,
+      }));
+  }, [marketVersion]);
+  apps = useMemo<AppDef[]>(() => [...baseApps, ...installedMarketApps], [installedMarketApps]);
   const [desktopApps, setDesktopApps] = useState<AppId[]>(() => {
     const saved = storage.read<AppId[]>("vertex-desktop-apps", []);
     const valid = Array.isArray(saved) ? saved.filter((id) => apps.some((app) => app.id === id)) : [];
     return valid.length ? valid : apps.slice(0, 6).map((app) => app.id);
   });
+  useEffect(() => {
+    const onStoreInstall = (event: Event) => {
+      const detail = (event as CustomEvent<{ id?: string } | string>).detail;
+      const id = typeof detail === "string" ? detail : detail?.id;
+      if (!id) return;
+      setShowDesktopIcons(true);
+      storage.write("vertex-show-icons", true);
+      setDesktopApps((previous) => previous.includes(id) ? previous : [...previous, id]);
+    };
+    window.addEventListener("vertex-vmarket-install", onStoreInstall);
+    return () => window.removeEventListener("vertex-vmarket-install", onStoreInstall);
+  }, []);
   const [ps5Shortcuts, setPs5Shortcuts] = useState<Ps5DesktopShortcut[]>(() => storage.read("vertex-ps5-desktop-shortcuts", []));
   useEffect(() => {
     const addShortcut = (event: Event) => {
@@ -1977,6 +2019,17 @@ onSessionClose: (peerCode) => {
     setWindows((items) => items.map((item) => item.id === id ? { ...item, minimized: false } : item));
     setActiveWindow(id);
   }
+
+  useEffect(() => {
+    const onStoreOpen = (event: Event) => {
+      const id = (event as CustomEvent<string>).detail;
+      if (typeof id === "string" && id) toggleApp(id as AppId);
+    };
+    window.addEventListener("vertex-open-app", onStoreOpen);
+    return () => window.removeEventListener("vertex-open-app", onStoreOpen);
+    // Re-register so the handler always sees the latest window layout.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [windows, activeWindow]);
 
   function installWallpaperPicker() {
     if (wppInstalled) return;
@@ -2831,7 +2884,7 @@ function WindowLayer({ windows, activeWindow, onFocus, onClose, onMinimize, onMa
   onMaximize: (id: AppId) => void;
   onMove: (id: AppId, x: number, y: number) => void;
   settings: SystemSettings;
-    updateSetting: (key: keyof SystemSettings | Partial<SystemSettings>, value?: boolean | string | TabHideImage[]) => void;
+  updateSetting: (key: keyof SystemSettings | Partial<SystemSettings>, value?: boolean | string | TabHideImage[]) => void;
   faqOpen: number | null;
   setFaqOpen: (value: number | null) => void;
   lang: Lang;
@@ -4877,12 +4930,165 @@ const VT_CATS: { label: string; hint: string }[] = [
   { label: "Sports", hint: "sports highlights" },
   { label: "Education", hint: "documentaries" },
 ];
-const VT_FIELDSV = "videoId,title,author,viewCount,lengthSeconds,authorVerified,publishedText,liveNow,description";
-const VT_FIELDSCH = "author,authorId,authorVerified,authorThumbnails,subCount,subscriberText,channelHandle,type";
 const VT_EMBEDS = ["https://www.youtube.com/embed", "https://www.youtube-nocookie.com/embed"];
 const VT_MIRROR_NAMES = ["YouTube", "No-cookie"];
 const VT_KINDS = ["all", "videos", "shorts", "channels"] as const;
 type VTKind = (typeof VT_KINDS)[number];
+
+// VerTube gets its catalogue from the Piped API (a YouTube front-end). Public
+// Invidious/Piped instances disappear over time, so requests are raced against
+// every host in this list and the first healthy answer wins.
+const VT_API = [
+  "https://pipedapi.ducks.party",
+  "https://api.piped.private.coffee",
+];
+const VT_API_TIMEOUT = 9000;
+const VT_API_CACHE_MS = 120000;
+
+interface PipedStream {
+  url?: string;
+  type?: string;
+  title?: string;
+  thumbnail?: string;
+  uploaderName?: string;
+  uploaderUrl?: string;
+  duration?: number;
+  views?: number;
+  uploaded?: number;
+  uploadedDate?: string | null;
+  uploaderVerified?: boolean;
+  isShort?: boolean;
+  shortDescription?: string | null;
+}
+interface PipedChannelRef {
+  url?: string;
+  type?: string;
+  name?: string;
+  thumbnail?: string;
+  subscribers?: number;
+  verified?: boolean;
+  description?: string | null;
+}
+interface PipedSearchPage { items?: (PipedStream & PipedChannelRef)[] }
+interface PipedChannelPage { relatedStreams?: PipedStream[] }
+
+const vtCache = new Map<string, { at: number; data: unknown }>();
+
+function vtVideoId(url?: string): string {
+  const m = /(?:[?&]v=|\/shorts\/|\/embed\/|youtu\.be\/)([A-Za-z0-9_-]{6,})/.exec(url || "");
+  return m ? m[1] : "";
+}
+
+function vtItem(v: PipedStream): VTItem {
+  const dur = typeof v.duration === "number" ? v.duration : -1;
+  const liveNow = dur < 0 && !v.isShort;
+  return {
+    id: vtVideoId(v.url),
+    title: v.title || "Untitled",
+    author: v.uploaderName || "Unknown",
+    views: typeof v.views === "number" && v.views > 0 ? v.views : 0,
+    seconds: liveNow ? 0 : Math.max(0, dur),
+    verified: !!v.uploaderVerified,
+    published: v.uploadedDate || "",
+    desc: (v.shortDescription || "").replace(/\s+/g, " ").trim(),
+    liveNow,
+  };
+}
+
+function vtChannel(c: PipedChannelRef): VTChannel {
+  return {
+    id: (c.url || "").split("/channel/")[1] || "",
+    name: c.name || "Channel",
+    verified: !!c.verified,
+    thumb: c.thumbnail || "",
+    subLabel: c.subscribers && c.subscribers > 0 ? `${fmtCount(c.subscribers)} subscribers` : "",
+    handle: "",
+  };
+}
+
+async function vtApi<T>(
+  path: string,
+  pick: (data: unknown) => T | null,
+  isEmpty: (value: T) => boolean,
+): Promise<T | null> {
+  const cached = vtCache.get(path);
+  if (cached && Date.now() - cached.at < VT_API_CACHE_MS) return cached.data as T;
+
+  return new Promise<T | null>((resolve) => {
+    let best: T | null = null;
+    let pending = VT_API.length;
+    let settled = false;
+    const finish = (value: T | null) => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timer);
+      if (value) vtCache.set(path, { at: Date.now(), data: value });
+      resolve(value);
+    };
+    const timer = window.setTimeout(() => finish(best), VT_API_TIMEOUT + 500);
+
+    for (const base of VT_API) {
+      fetch(`${base}${path}`, {
+        signal: AbortSignal.timeout(VT_API_TIMEOUT),
+        headers: { Accept: "application/json" },
+        cache: "no-store",
+      })
+        .then(async (res) => {
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = (await res.json()) as unknown;
+          if (data && typeof data === "object" && "error" in (data as Record<string, unknown>)) {
+            throw new Error(String((data as Record<string, unknown>).error));
+          }
+          const picked = pick(data);
+          if (picked === null) throw new Error("unusable payload");
+          return picked;
+        })
+        .then((value) => {
+          if (isEmpty(value)) {
+            if (!best) best = value;
+          } else {
+            finish(value);
+          }
+        })
+        .catch(() => { /* try the next instance */ })
+        .finally(() => {
+          pending -= 1;
+          if (pending === 0) finish(best);
+        });
+    }
+  });
+}
+
+function vtSearch(term: string, filter: "videos" | "channels" | "all"): Promise<PipedSearchPage | null> {
+  const params = new URLSearchParams({ q: term, filter });
+  return vtApi<PipedSearchPage>(
+    `/search?${params.toString()}`,
+    (data) => {
+      const page = data as PipedSearchPage;
+      return Array.isArray(page?.items) ? page : null;
+    },
+    (page) => (page.items?.length ?? 0) === 0,
+  );
+}
+
+function vtTrending(): Promise<PipedStream[] | null> {
+  return vtApi<PipedStream[]>(
+    "/trending?region=US",
+    (data) => (Array.isArray(data) ? (data as PipedStream[]) : null),
+    (list) => list.length === 0,
+  );
+}
+
+function vtChannelVideos(channelId: string): Promise<PipedChannelPage | null> {
+  return vtApi<PipedChannelPage>(
+    `/channel/${encodeURIComponent(channelId)}`,
+    (data) => {
+      const page = data as PipedChannelPage;
+      return Array.isArray(page?.relatedStreams) ? page : null;
+    },
+    (page) => (page.relatedStreams?.length ?? 0) === 0,
+  );
+}
 
 interface VTPL { id: string; name: string; items: VTItem[]; }
 
@@ -4991,25 +5197,18 @@ function VerTubeSurface() {
   const videoSessionRef = useRef<MediaSession | null>(null);
   const advancedForRef = useRef("");
 
-  type RawVid = { videoId?: string; title?: string; author?: string; viewCount?: number; lengthSeconds?: number; authorVerified?: boolean; publishedText?: string; liveNow?: boolean; description?: string };
-  type RawChan = { author?: string; authorId?: string; authorVerified?: boolean; authorThumbnails?: { url?: string }[]; subCount?: number; subscriberText?: string; channelHandle?: string; type?: string };
+  const itemsFrom = (list: (PipedStream & PipedChannelRef)[] | undefined) =>
+    (list || []).filter((v) => v.type !== "channel").map(vtItem).filter((v) => v.id);
 
-  function toItems(list: RawVid[]) {
-    return (list || []).filter((v) => v.videoId).map((v) => ({ id: v.videoId!, title: v.title || "Untitled", author: v.author || "Unknown", views: v.viewCount || 0, seconds: v.lengthSeconds || 0, verified: !!v.authorVerified, published: v.publishedText || "", desc: v.description || "", liveNow: !!v.liveNow }));
-  }
-  function toChannels(list: RawChan[]) {
-    return (list || []).filter((c) => c.type === "channel" && c.authorId).map((c) => {
-      const t = c.authorThumbnails?.[c.authorThumbnails.length - 1]?.url;
-      return { id: c.authorId!, name: c.author || "Channel", verified: !!c.authorVerified, thumb: t && t !== "" ? `https:${t}` : "", subLabel: c.subscriberText || fmtCount(c.subCount || 0), handle: c.channelHandle || "" };
-    });
-  }
-
-  async function feedBySearch(q: string, type = "video", sort = "view_count") {
-    const params = new URLSearchParams({ q, type, fields: VT_FIELDSV });
-    if (sort) params.set("sort_by", sort);
-    const res = await fetch(`https://invidious.f5.si/api/v1/search?${params.toString()}`);
-    if (!res.ok) throw new Error("feed failed");
-    return toItems(await res.json() as RawVid[]);
+  // Catalogue search through the Piped layer. `keep` narrows a feed (shorts,
+  // livestreams) but never leaves the user with an empty page when the
+  // narrower query happens to match nothing.
+  async function searchVideos(term: string, keep?: (v: VTItem) => boolean) {
+    const page = await vtSearch(term, "videos");
+    const out = itemsFrom(page?.items);
+    if (!keep) return out;
+    const kept = out.filter(keep);
+    return kept.length ? kept : out;
   }
 
   async function loadHome(category: string) {
@@ -5019,22 +5218,23 @@ function VerTubeSurface() {
     setQueueTitle("");
     try {
       let items: VTItem[] = [];
-      if (category === "Trending") {
-        const res = await fetch(`https://invidious.f5.si/api/v1/trending?fields=${VT_FIELDSV}`);
-        if (res.ok) {
-          items = toItems(await res.json() as RawVid[]).filter((v) => v.views > 0 && (v.seconds > 0 || v.liveNow));
+      try {
+        if (category === "Trending") {
+          items = itemsFrom((await vtTrending()) || []).filter((v) => v.views > 0 && (v.seconds > 0 || v.liveNow));
+          if (items.length < 6) items = await searchVideos("trending videos right now");
+        } else if (category === "Shorts") {
+          items = await searchVideos("popular shorts", (v) => v.seconds > 0 && v.seconds <= 75);
+        } else if (category === "Live") {
+          items = (await searchVideos("live stream today", (v) => !!v.liveNow)).filter((v) => v.liveNow);
+          if (items.length < 4) items = await searchVideos("live stream today");
+        } else {
+          items = await searchVideos(VT_CATS.find((c) => c.label === category)?.hint || category);
         }
-        if (items.length < 6) items = await feedBySearch("trending videos right now");
-      } else if (category === "Shorts") {
-        items = await feedBySearch("shorts", "shorts");
-      } else if (category === "Live") {
-        items = (await feedBySearch("live stream today")).filter((v) => v.liveNow);
-        if (items.length < 4) items = await feedBySearch("live stream today");
-      } else {
-        items = await feedBySearch(VT_CATS.find((c) => c.label === category)?.hint || category);
+      } catch {
+        items = [];
       }
       setHomeFeed(items);
-      if (!items.length) setError(`That "${category}" feed came back empty — try another or search.`);
+      if (!items.length) setError(`Couldn't load "${category}" feed right now. Try Search instead.`);
     } catch {
       setError("Couldn't load that feed — search still works.");
     } finally {
@@ -5057,32 +5257,37 @@ function VerTubeSurface() {
     setListTitle(`Results for "${clean}"`);
     try {
       if (k === "channels") {
-        const params = new URLSearchParams({ q: clean, type: "channel", fields: VT_FIELDSCH });
-        const res = await fetch(`https://invidious.f5.si/api/v1/search?${params.toString()}`);
-        if (!res.ok) throw new Error("search failed");
-        const out = toChannels(await res.json() as RawChan[]);
-        setChannels(out);
+        const page = await vtSearch(clean, "channels");
+        const out = (page?.items || []).filter((c) => c.type === "channel").map(vtChannel).filter((c) => c.id);
         setResults([]);
-        if (!out.length) setError("No channels found — try different wording.");
+        setChannels(out);
+        if (!page) setError("Couldn't load results. Try again in a bit.");
+        else if (!out.length) setError("No channels found — try different wording.");
       } else {
-        const qType = k === "shorts" ? "shorts" : "video";
-        const params = new URLSearchParams({ q: clean, type: qType, fields: VT_FIELDSV });
-        if (k !== "shorts") params.set("sort_by", "relevance");
-        const res = await fetch(`https://invidious.f5.si/api/v1/search?${params.toString()}`);
-        if (!res.ok) throw new Error("search failed");
-        const out = toItems(await res.json() as RawVid[]);
-        setResults(out);
-        let chOut: VTChannel[] = [];
-        if (k === "all") {
-          const cparams = new URLSearchParams({ q: clean, type: "channel", fields: VT_FIELDSCH });
-          const cres = await fetch(`https://invidious.f5.si/api/v1/search?${cparams.toString()}`);
-          if (cres.ok) chOut = toChannels(await cres.json() as RawChan[]);
+        const [videoPage, channelPage] = await Promise.all([
+          vtSearch(clean, "videos"),
+          k === "all" ? vtSearch(clean, "channels") : Promise.resolve(null),
+        ]);
+        let out = itemsFrom(videoPage?.items);
+        if (k === "shorts") {
+          const shorts = out.filter((v) => v.seconds > 0 && v.seconds <= 75);
+          if (shorts.length) out = shorts;
         }
+        const chOut = (channelPage?.items || [])
+          .filter((c) => c.type === "channel")
+          .map(vtChannel)
+          .filter((c) => c.id)
+          .slice(0, 8);
+        setResults(out);
         setChannels(chOut);
-        if (!out.length && chOut.length === 0) setError("No videos found — try different wording.");
+        if (!out.length && !chOut.length && !videoPage && !channelPage) {
+          setError("Couldn't load results. Try again in a bit.");
+        }
       }
     } catch {
       setError("Couldn't reach the video search — try again in a bit.");
+      setResults([]);
+      setChannels([]);
     } finally {
       setLoading(false);
     }
@@ -5096,10 +5301,8 @@ function VerTubeSurface() {
     setQueueTitle("");
     setListTitle(`Videos from ${ch.name}`);
     try {
-      const res = await fetch(`https://invidious.f5.si/api/v1/channels/${encodeURIComponent(ch.id)}/videos?fields=${VT_FIELDSV}`);
-      if (!res.ok) throw new Error("channel failed");
-      const data = await res.json() as { videos?: RawVid[] };
-      const out = toItems(data.videos || []);
+      const page = await vtChannelVideos(ch.id);
+      const out = itemsFrom(page?.relatedStreams);
       setResults(out);
       setChannels([]);
       if (!out.length) setError("No videos on this channel — try another.");
@@ -5543,6 +5746,13 @@ function VerTubeSurface() {
               )}
               {loading && <div className="vertube-empty">Loading…</div>}
               {!loading && error && <div className="vertube-error">{error}</div>}
+              {!loading && error && qSrc && (
+                <div className="vertube-fallback">
+                  <button className="vertube-recent-chip" onClick={() => window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(qSrc)}`, "_blank", "noopener")}>
+                    <ExternalLink size={12} /> Open these results on YouTube
+                  </button>
+                </div>
+              )}
               {!loading && error === "" && hasChannels && (
                 <div className="vertube-chans">
                   <div className="vertube-section">Channels</div>
@@ -5636,7 +5846,7 @@ function renderWindowBody(id: AppId, settings: SystemSettings, updateSetting: (k
   if (id === "translucenttb") return <div className="window-surface"><div className="surface-kicker">{t("surf.translucent.kicker")}</div><h2 className="surface-title">{t("surf.translucent.title")}</h2><p className="surface-copy">{t("surf.translucent.body")}</p><div className="settings-list"><SettingToggle label={t("surf.translucent.enable")} help={t("surf.translucent.help")} value={translucent} onChange={(value) => onTranslucent?.(value)} /></div></div>;
   if (id === "spicetify") return <CinefySurface onClose={onClose ?? (() => undefined)} onMinimize={onMinimize ?? (() => undefined)} onTrackChange={onTrackChange ?? (() => undefined)} />;
   const adRedir = settings.adblock && settings.adblockUrl.trim() ? settings.adblockUrl : null;
-  if (id === "hub") return <iframe className="browser-frame" src={adRedir ?? "https://velara.cc/g"} title="Vertex-Hub / velara.cc" allow="autoplay; clipboard-write; camera; microphone; fullscreen" />;
+  if (id === "hub") return <div className="window-surface vm-app-surface"><VMarketSurface /></div>;
   if (id === "movies") return <iframe className="browser-frame" srcDoc={moviesAppHtml} title="Vertex Movies" allow="autoplay; clipboard-write; camera; microphone; fullscreen; gamepad; encrypted-media; picture-in-picture" allowFullScreen />;
   if (id === "wallpaper-engine") return <div className="window-surface we-app-surface"><WallEngineApp appliedHome={appliedWallpaper} appliedLock={appliedLockWallpaper} onApplyWallpaper={onApplyWallpaper ?? (() => {})} notify={onNotify ?? undefined} /></div>;
   if (id === "browser") return adRedir
@@ -5657,6 +5867,25 @@ function renderWindowBody(id: AppId, settings: SystemSettings, updateSetting: (k
   if (id === "discord") return <DiscordApp />;
   if (id === "vcloud") return <iframe className="browser-frame" src={asset("vcloud/index.html")} title="V-CLOUD" allow="autoplay; clipboard-write; camera; microphone; fullscreen" />;
   if (id === "admin") return <AdminSurface />;
+  if (id === "appmaker") return <div className="window-surface vs-app-surface"><VStudiosSurface /></div>;
+  // Installed V-MARKET listings run inside their own Vertex-OS window.
+  if (typeof id === "string" && id.startsWith("vmarket_")) {
+    const entry = readVMarketEntries().find((item) => item.id === id);
+    if (entry) return <VMarketAppRunner entryId={id} />;
+  }
+  // Handle legacy custom apps
+  if (typeof id === "string" && id.startsWith("custom_")) {
+    try {
+      const saved = localStorage.getItem("vertex-custom-apps");
+      if (saved) {
+        const customApps = JSON.parse(saved);
+        const app = customApps.find((a: any) => a.id === id);
+        if (app) {
+          return <iframe className="browser-frame" src={app.url} title={app.name} allow="autoplay; clipboard-write; camera; microphone; fullscreen; gamepad; encrypted-media" />;
+        }
+      }
+    } catch {}
+  }
   return <div className="window-surface"><div className="surface-kicker">VERTEX</div><h2 className="surface-title">surface</h2></div>;
 }
 
@@ -6204,8 +6433,8 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
       // can never intercept it. That makes the download work even when a stale SW is blocking the local file.
       const urls = [
         ...bases.map((b) => new URL(`single/index.html${bust}`, location.origin + b).href),
-        `https://cdn.jsdelivr.net/gh/xkznn/vertexosweb.github.io@main/single/index.html${bust}`,
-        `https://raw.githubusercontent.com/xkznn/vertexosweb.github.io/main/single/index.html${bust}`,
+        `https://cdn.jsdelivr.net/gh/xkznn/VertexOS@main/single/index.html${bust}`,
+        `https://raw.githubusercontent.com/xkznn/VertexOS/main/single/index.html${bust}`,
       ];
       let html: string | null = null;
       for (const u of urls) {
@@ -7754,6 +7983,101 @@ function WeCard({ entry, applied, onOpen, installed, onDownload, onApply, onUnin
       ? <><button className="we-btn mini" onClick={(event) => { event.stopPropagation(); onApply?.(); }}>{applied ? t("we.inUse") : t("we.apply")}</button>{onUninstall ? <button className="we-btn mini danger" onClick={(event) => { event.stopPropagation(); onUninstall(); }}>{t("we.uninstall")}</button> : null}</>
       : <button className="we-btn mini" onClick={(event) => { event.stopPropagation(); onDownload?.(); }}><Download size={11} /> {t("we.download")}</button>}</div>
   </div>;
+}
+
+function AppMakerSurface() {
+  const [apps, setApps] = useState<Array<{ id: string; name: string; icon: string; url: string; type: "website" | "game" }>>(() => {
+    try {
+      const saved = localStorage.getItem("vertex-custom-apps");
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+  const [name, setName] = useState("");
+  const [icon, setIcon] = useState("");
+  const [url, setUrl] = useState("");
+  const [type, setType] = useState<"website" | "game">("website");
+
+  const saveApps = (next: typeof apps) => {
+    setApps(next);
+    try { localStorage.setItem("vertex-custom-apps", JSON.stringify(next)); } catch {}
+  };
+
+  const createApp = () => {
+    if (!name.trim() || !url.trim()) return;
+    const id = `custom_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const newApp = { id, name: name.trim(), icon: icon.trim() || asset("images/links.png"), url: url.trim(), type };
+    saveApps([...apps, newApp]);
+    setName(""); setIcon(""); setUrl("");
+    // Dispatch event to add to app list
+    window.dispatchEvent(new CustomEvent("vertex-add-custom-app", { detail: newApp }));
+  };
+
+  const deleteApp = (id: string) => {
+    saveApps(apps.filter(a => a.id !== id));
+  };
+
+  return (
+    <div className="window-surface" style={{ padding: "20px", overflow: "auto" }}>
+      <div className="surface-kicker">APP MAKER</div>
+      <h2 className="surface-title">Create Custom Apps</h2>
+      <p className="surface-copy">Make your own apps with custom logos. Paste any website URL to embed it.</p>
+      
+      <div style={{ marginTop: "20px", display: "flex", flexDirection: "column", gap: "12px", maxWidth: "400px" }}>
+        <input 
+          value={name} 
+          onChange={(e) => setName(e.target.value)} 
+          placeholder="App name (e.g., Pizza Edition)" 
+          style={{ padding: "8px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.2)", background: "rgba(0,0,0,0.3)", color: "white" }}
+        />
+        <input 
+          value={icon} 
+          onChange={(e) => setIcon(e.target.value)} 
+          placeholder="Logo URL (optional)" 
+          style={{ padding: "8px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.2)", background: "rgba(0,0,0,0.3)", color: "white" }}
+        />
+        <input 
+          value={url} 
+          onChange={(e) => setUrl(e.target.value)} 
+          placeholder="Website URL (e.g., https://pizzaedition.com/)" 
+          style={{ padding: "8px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.2)", background: "rgba(0,0,0,0.3)", color: "white" }}
+        />
+        <select 
+          value={type} 
+          onChange={(e) => setType(e.target.value as "website" | "game")}
+          style={{ padding: "8px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.2)", background: "rgba(0,0,0,0.3)", color: "white" }}
+        >
+          <option value="website">Website (Embed)</option>
+          <option value="game">Unblocked Game</option>
+        </select>
+        <button 
+          onClick={createApp}
+          style={{ padding: "10px", borderRadius: "6px", border: "none", background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)", color: "white", cursor: "pointer" }}
+        >
+          Create App
+        </button>
+      </div>
+
+      <div style={{ marginTop: "30px" }}>
+        <h3 style={{ marginBottom: "15px" }}>Your Custom Apps</h3>
+        {apps.length === 0 ? (
+          <p style={{ opacity: 0.6 }}>No custom apps yet</p>
+        ) : (
+          <div style={{ display: "grid", gap: "10px" }}>
+            {apps.map(app => (
+              <div key={app.id} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "10px", background: "rgba(255,255,255,0.05)", borderRadius: "8px" }}>
+                <img src={app.icon} alt="" style={{ width: "32px", height: "32px", borderRadius: "6px" }} onError={(e) => { (e.target as HTMLImageElement).src = asset("images/links.png"); }} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: "600" }}>{app.name}</div>
+                  <div style={{ fontSize: "12px", opacity: 0.7 }}>{app.url}</div>
+                </div>
+                <button onClick={() => deleteApp(app.id)} style={{ padding: "6px 12px", borderRadius: "4px", border: "none", background: "#ff4757", color: "white", cursor: "pointer" }}>Delete</button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 function WeApplyModal({ entry, onClose, onConfirm }: { entry: WallEngineEntry; onClose: () => void; onConfirm: (target: ApplyTarget) => void }) {

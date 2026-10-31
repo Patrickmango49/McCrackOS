@@ -10,7 +10,7 @@ const BROWSER_LOGO = "https://brave.com/favicon.ico";
 
 /** Scramjet's default config paths are root-absolute ("/~/sj/", "/scramjet/...").
  *  When the app is served from a subpath (e.g. GitHub Pages
- *  /vertexosweb.github.io/) those resolve to the domain root, landing OUTSIDE
+ *  /VertexOS/) those resolve to the domain root, landing OUTSIDE
  *  the service worker's scope — so the worker never sees them and the host
  *  returns its own 404 page. Prefixing everything with BASE keeps every
  *  proxied request inside the scope. */

@@ -53,3 +53,30 @@ Thumbs.db
 
 .tmp/
 .pnpm-store/
+
+# Local backups and duplicated extraction folders (not part of the site)
+artifacts/vertex-os-BACKUP/
+github-pages-update/
+artifacts/vertex-os/.firebase/
+**/*.bak
+artifacts/vertex-os/src/components/ver-ai.OLD.tsx
+videos/videos/
+single/single/
+eaglercraft/eaglercraft/
+eaglercraft-1.12/eaglercraft-1.12/
+eaglercraft-1.5/eaglercraft-1.5/
+eaglercraft-modpack/eaglercraft-modpack/
+fonts/fonts/
+games/games/
+movies/movies/
+reference/reference/
+scramjet/scramjet/
+system-audio/system-audio/
+themes/themes/
+utils/utils/
+vcloud/vcloud/
+wallpapers/wallpapers/
+controller/controller/
+assets/assets/
+images/images/
+lang/lang/

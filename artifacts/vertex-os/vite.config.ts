@@ -77,7 +77,7 @@ if (Number.isNaN(port) || port <= 0) {
   throw new Error(`Invalid PORT value: "${rawPort}"`);
 }
 
-const basePath = process.env.BASE_PATH ?? '/vertexosweb.github.io/';
+const basePath = process.env.BASE_PATH ?? '/VertexOS/';
 
 export default defineConfig(async ({ command, isPreview }) => ({
   base: !isPreview && command === 'serve' ? '/' : basePath,
