@@ -80,3 +80,6 @@ controller/controller/
 assets/assets/
 images/images/
 lang/lang/
+
+# Local Netlify folder
+.netlify
