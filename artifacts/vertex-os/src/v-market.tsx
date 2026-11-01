@@ -564,6 +564,27 @@ export function VMarketSurface() {
   }, [refreshCloud]);
 
   useEffect(() => {
+    if (!marketCloudAvailable) return;
+    let cancelled = false;
+    void (async () => {
+      const cloud = await marketCloudList();
+      if (!cloud || cancelled) return;
+      const cloudIds = new Set(cloud.map((entry) => entry.id));
+      const pending = readVMarketEntries()
+        .filter((entry) => entry.publishedByUser && !entry.cloudOnly && !cloudIds.has(entry.id))
+        .slice(0, 25);
+      if (!pending.length) return;
+      let pushed = false;
+      for (const entry of pending) {
+        const result = await marketCloudPublish(entry);
+        if (result.ok) pushed = true;
+      }
+      if (pushed && !cancelled) await refreshCloud();
+    })();
+    return () => { cancelled = true; };
+  }, [refreshCloud]);
+
+  useEffect(() => {
     if (!toast) return;
     const timer = window.setTimeout(() => setToast(null), 2800);
     return () => window.clearTimeout(timer);
@@ -1175,6 +1196,7 @@ export function VStudiosSurface() {
   const [published, setPublished] = useState<VMarketEntry[]>(() => readVMarketEntries().filter((entry) => entry.publishedByUser));
   const [toast, setToast] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [isPublishing, setIsPublishing] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -1249,7 +1271,8 @@ export function VStudiosSurface() {
     } catch { setError("That image could not be read."); }
   };
 
-  const publish = () => {
+  const publish = async () => {
+    if (isPublishing) return;
     if (!name.trim()) { setError("Give your project a name first."); return; }
     if (!company.trim()) { setError("Add a creator/studio name."); return; }
     if (mode === "url" && !/^https?:\/\//i.test(url.trim())) { setError("Embed URL must start with http:// or https://"); return; }
@@ -1280,28 +1303,42 @@ export function VStudiosSurface() {
       verified: false,
       publishedByUser: true,
     };
-    const entries = readVMarketEntries();
-    writeVMarketEntries([entry, ...entries]);
-    if (installAfter) {
-      const installed = readVMarketInstalled();
-      writeVMarketInstalled([entry.id, ...installed.filter((item) => item !== entry.id)]);
-    }
-    setPublished(readVMarketEntries().filter((item) => item.publishedByUser));
-    setToast(`${entry.name} published to V-MARKET`);
+    setIsPublishing(true);
     setError("");
-    notifyMarketChanged();
-    if (installAfter) {
-      try { window.dispatchEvent(new CustomEvent("vertex-vmarket-install", { detail: entry.id })); } catch { /* noop */ }
+    try {
+      const entries = readVMarketEntries();
+      writeVMarketEntries([entry, ...entries]);
+      if (installAfter) {
+        const installed = readVMarketInstalled();
+        writeVMarketInstalled([entry.id, ...installed.filter((item) => item !== entry.id)]);
+      }
+      setPublished(readVMarketEntries().filter((item) => item.publishedByUser));
+      notifyMarketChanged();
+      if (installAfter) {
+        try { window.dispatchEvent(new CustomEvent("vertex-vmarket-install", { detail: entry.id })); } catch { /* noop */ }
+      }
+      const cloud = await marketCloudPublish(entry);
+      if (cloud.ok) {
+        setToast(`${entry.name} published to V-MARKET for everyone.`);
+      } else {
+        setToast(`${entry.name} is only on this device - cloud sync failed.`);
+        setError(`Saved locally, but the shared V-MARKET could not be updated: ${cloud.error ?? "unknown error"}`);
+      }
+      try { window.dispatchEvent(new CustomEvent("vertex-open-app", { detail: "hub" })); } catch { /* noop */ }
+    } finally {
+      setIsPublishing(false);
     }
-    try { window.dispatchEvent(new CustomEvent("vertex-open-app", { detail: "hub" })); } catch { /* noop */ }
   };
 
-  const removePublished = (entry: VMarketEntry) => {
+  const removePublished = async (entry: VMarketEntry) => {
     writeVMarketEntries(readVMarketEntries().filter((item) => item.id !== entry.id));
     writeVMarketInstalled(readVMarketInstalled().filter((id) => id !== entry.id));
     setPublished(readVMarketEntries().filter((item) => item.publishedByUser));
     notifyMarketChanged();
-    setToast(`${entry.name} removed from V-MARKET.`);
+    const removed = await marketCloudDelete(entry.id);
+    setToast(removed
+      ? `${entry.name} removed from V-MARKET.`
+      : `${entry.name} removed here, but the shared listing could not be deleted.`);
   };
 
   const openMarket = () => { try { window.dispatchEvent(new CustomEvent("vertex-open-app", { detail: "hub" })); } catch { /* noop */ } };
@@ -1318,7 +1355,7 @@ export function VStudiosSurface() {
         <div className="vs-studio-actions">
           <input className="vs-project-name" value={name} onChange={(e) => setName(e.target.value)} />
           <button className="vm-ghost small" onClick={openMarket}><LayoutGrid size={12} /> Market</button>
-          <button className="vm-primary small" onClick={publish}><Rocket size={12} /> Publish</button>
+          <button className="vm-primary small" onClick={() => void publish()} disabled={isPublishing}><Rocket size={12} /> {isPublishing ? "Publishing..." : "Publish"}</button>
         </div>
       </header>
 
@@ -1431,7 +1468,7 @@ export function VStudiosSurface() {
                 <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => void pickLogo(e.target.files?.[0])} />
                 <label className="vs-check"><input type="checkbox" checked={installAfter} onChange={(e) => setInstallAfter(e.target.checked)} /><span>Auto-install on publish</span></label>
                 {error ? <p className="vs-error">{error}</p> : null}
-                <button className="vm-primary wide" onClick={publish}><Rocket size={13} /> Publish to V-MARKET</button>
+                <button className="vm-primary wide" onClick={() => void publish()} disabled={isPublishing}><Rocket size={13} /> {isPublishing ? "Publishing..." : "Publish to V-MARKET"}</button>
               </div>
             ) : null}
           </aside>
@@ -1444,7 +1481,7 @@ export function VStudiosSurface() {
           <div className="vs-preview-actions">
             <span className="vs-pub-count">{published.length} published</span>
             <button className="vm-ghost small" onClick={() => setToast("Preview updated")}><RotateCcw size={11} /> Refresh</button>
-            <button className="vm-primary small" onClick={publish}><Rocket size={11} /> Publish</button>
+            <button className="vm-primary small" onClick={() => void publish()} disabled={isPublishing}><Rocket size={11} /> {isPublishing ? "Publishing..." : "Publish"}</button>
           </div>
         </div>
       ) : null}

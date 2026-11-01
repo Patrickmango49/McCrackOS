@@ -390,7 +390,7 @@ const baseApps: AppDef[] = [
   { id: "hub", title: "V-MARKET", subtitle: "apps, games & websites", icon: Package, iconImg: asset("images/v-market-logo.jpg"), pinned: true, squircle: true },
   { id: "spicetify", title: "Spicetify", subtitle: t("appSub.spicetify"), icon: Music2, iconImg: asset("images/spicetify.ico"), pinned: true },
   { id: "wallpaper-engine", title: "Wallpaper Engine", subtitle: t("appSub.wallpaperEngine"), icon: Image, iconImg: asset("images/wallpaper-engine.gif"), pinned: true, squircle: true },
-  { id: "browser", title: "Browser", subtitle: t("appSub.browser"), icon: Compass, iconImg: "https://brave.com/favicon.ico", pinned: true },
+  { id: "browser", title: "Browser", subtitle: t("appSub.browser"), icon: Compass, iconImg: asset("images/browser-icon.png"), pinned: true },
   { id: "appmaker", title: "V-STUDIOS", subtitle: "build & publish your own", icon: Code2, iconImg: asset("images/v-studios-logo.svg"), pinned: true, squircle: true },
   { id: "pizza", title: "Pizza edition", subtitle: t("appSub.pizza"), icon: Compass, iconImg: asset("images/pizza.ico"), pinned: true },
   { id: "roblox", title: "Roblox", subtitle: t("appSub.roblox"), icon: Gamepad2, iconImg: asset("images/roblox.ico"), pinned: true },
@@ -398,7 +398,7 @@ const baseApps: AppDef[] = [
   { id: "verai", title: "VER-AI", subtitle: t("appSub.verai"), icon: Sparkles, iconImg: asset("images/ver-ai.ico"), pinned: true },
   { id: "jarvis", title: "JARVIS", subtitle: t("appSub.jarvis"), icon: Bot, iconImg: asset("images/jarvis-logo.png") },
   { id: "vertube", title: "VerTube", subtitle: t("appSub.vertube"), icon: PlaySquare, iconImg: asset("images/vertube.svg") },
-  { id: "movies", title: "Movies", subtitle: t("appSub.movies"), icon: Film, iconImg: asset("images/movies.png") },
+  { id: "movies", title: "Movies", subtitle: t("appSub.movies"), icon: Film, iconImg: asset("images/cineos-icon.png") },
   { id: "settings", title: "Config", subtitle: t("appSub.settings"), icon: Settings2, iconImg: asset("images/config-icon.png"), pinned: true },
   { id: "games", title: "PS5 Emu", subtitle: t("appSub.games"), icon: Gamepad2, iconImg: asset("images/ps5-emu.png"), squircle: true },
   { id: "minecraft", title: "Minecraft Launcher", subtitle: t("appSub.minecraft"), icon: Gamepad2, iconImg: MC_ICON, squircle: true },
@@ -406,8 +406,7 @@ const baseApps: AppDef[] = [
   { id: "calculator", title: "Calculator", subtitle: t("appSub.calculator"), icon: Calculator, iconImg: asset("images/calculator-logo.svg") },
   { id: "rainmeter", title: "Rainmeter", subtitle: t("appSub.rainmeter"), icon: MonitorCog, iconImg: RAINMETER_ICON },
   { id: "terminal", title: "Terminal", subtitle: t("appSub.terminal"), icon: Terminal, iconImg: ARCH_ICON, pinned: true },
-  { id: "ghostview", title: "GhostView", subtitle: t("appSub.ghostview"), icon: Eye, iconImg: asset("images/ghostview.png") },
-  { id: "links", title: "Links", subtitle: t("appSub.links"), icon: Link2, iconImg: asset("images/links.png") },
+  { id: "links", title: "Links", subtitle: t("appSub.links"), icon: Link2, iconImg: asset("images/links.svg") },
   { id: "discord", title: "Discord", subtitle: t("appSub.discord"), icon: MessageCircle, iconImg: asset("images/discord-icon.png"), pinned: true, squircle: true },
   { id: "vcloud", title: "V-CLOUD", subtitle: t("appSub.vcloud"), icon: Cloud, iconImg: asset("images/v-cloud-logo.png"), pinned: true, squircle: true },
 ];
@@ -421,7 +420,7 @@ const APP_SECTIONS: { id: string; tone: string; all?: boolean; ids: AppId[] }[] 
   { id: "all", tone: "tone-all", all: true, ids: [] },
   { id: "watch", tone: "tone-watch", ids: ["vertube", "movies", "spicetify", "messages", "verai", "jarvis"] },
   { id: "play", tone: "tone-play", ids: ["roblox", "minecraft", "games", "pizza", "vcloud"] },
-  { id: "create", tone: "tone-create", ids: ["terminal", "wallpaper-engine", "browser", "calculator", "hub", "appmaker", "settings", "translucenttb", "rainmeter", "ghostview", "links"] },
+  { id: "create", tone: "tone-create", ids: ["terminal", "wallpaper-engine", "browser", "calculator", "hub", "appmaker", "settings", "translucenttb", "rainmeter", "links"] },
 ];
 
 const GV_APP: { id: AppId; title: string; subtitle: string; icon: LucideIcon; pinned: boolean; showName: boolean } = { id: "ghostview", title: "GhostView", subtitle: "remote view", icon: Eye, pinned: false, showName: false };
@@ -1017,10 +1016,13 @@ function AvatarGlyph({ value, name, size = 34 }: { value?: string; name: string;
 }
 
 function AppIcon({ app, size = 21 }: { app: { icon: LucideIcon; iconImg?: string; iconUrl?: string; squircle?: boolean }; size?: number }) {
-  const img = (src: string) => <img className={`app-icon-img${app.squircle ? " icon-squircle" : ""}`} src={src} alt="" style={{ width: size, height: size }} />;
-  if (app.iconUrl) return img(app.iconUrl);
-  if (app.iconImg) return img(app.iconImg);
+  const src = app.iconUrl || app.iconImg;
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
+  useEffect(() => { setFailedSrc(null); }, [src]);
   const Icon = app.icon;
+  if (src && failedSrc !== src) {
+    return <img className={`app-icon-img${app.squircle ? " icon-squircle" : ""}`} src={src} alt="" style={{ width: size, height: size }} onError={() => setFailedSrc(src)} />;
+  }
   return <Icon size={size} strokeWidth={1.55} />;
 }
 
@@ -8005,7 +8007,7 @@ function AppMakerSurface() {
   const createApp = () => {
     if (!name.trim() || !url.trim()) return;
     const id = `custom_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    const newApp = { id, name: name.trim(), icon: icon.trim() || asset("images/links.png"), url: url.trim(), type };
+    const newApp = { id, name: name.trim(), icon: icon.trim() || asset("images/links.svg"), url: url.trim(), type };
     saveApps([...apps, newApp]);
     setName(""); setIcon(""); setUrl("");
     // Dispatch event to add to app list
@@ -8065,7 +8067,7 @@ function AppMakerSurface() {
           <div style={{ display: "grid", gap: "10px" }}>
             {apps.map(app => (
               <div key={app.id} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "10px", background: "rgba(255,255,255,0.05)", borderRadius: "8px" }}>
-                <img src={app.icon} alt="" style={{ width: "32px", height: "32px", borderRadius: "6px" }} onError={(e) => { (e.target as HTMLImageElement).src = asset("images/links.png"); }} />
+                <img src={app.icon} alt="" style={{ width: "32px", height: "32px", borderRadius: "6px" }} onError={(e) => { (e.target as HTMLImageElement).src = asset("images/links.svg"); }} />
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: "600" }}>{app.name}</div>
                   <div style={{ fontSize: "12px", opacity: 0.7 }}>{app.url}</div>

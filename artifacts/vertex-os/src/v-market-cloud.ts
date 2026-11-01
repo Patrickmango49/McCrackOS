@@ -63,14 +63,40 @@ const isMissingTable = (error: { code?: string; message?: string } | null | unde
     error?.code === "42P01" ||
     /could not find the table|does not exist|schema cache/i.test(error?.message ?? ""));
 
+const stringList = (value: unknown): string[] =>
+  Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+
+const numberOr = (value: unknown, fallback: number): number =>
+  typeof value === "number" && Number.isFinite(value) ? value : fallback;
+
 function rowToEntry(row: MarketRow): VMarketEntry | null {
   const base = row.entry;
   if (!base || typeof base !== "object" || !row.id) return null;
+  const type: VMarketEntry["type"] = base.type === "game" || base.type === "app" ? base.type : "website";
   return {
     ...base,
     id: row.id,
-    downloads: typeof row.downloads === "number" ? row.downloads : base.downloads ?? 0,
-    rating: typeof row.rating === "number" ? row.rating : base.rating ?? 5,
+    name: typeof base.name === "string" ? base.name : "",
+    company: typeof base.company === "string" ? base.company : "Unknown studio",
+    tagline: typeof base.tagline === "string" ? base.tagline : "",
+    description: typeof base.description === "string" ? base.description : "",
+    logo: typeof base.logo === "string" ? base.logo : "",
+    category: typeof base.category === "string" ? base.category : "Tools",
+    type,
+    age: numberOr(base.age, 7),
+    downloads: numberOr(row.downloads, numberOr(base.downloads, 0)),
+    rating: Math.max(0, Math.min(5, numberOr(row.rating, numberOr(base.rating, 5)))),
+    ratingCount: numberOr(base.ratingCount, 0),
+    version: typeof base.version === "string" ? base.version : "1.0",
+    size: typeof base.size === "string" ? base.size : "",
+    url: typeof base.url === "string" ? base.url : undefined,
+    html: typeof base.html === "string" ? base.html : undefined,
+    features: stringList(base.features),
+    screenshots: stringList(base.screenshots),
+    reviews: Array.isArray(base.reviews) ? base.reviews : [],
+    comments: Array.isArray(base.comments) ? base.comments : [],
+    createdAt: numberOr(base.createdAt, Date.now()),
+    verified: Boolean(base.verified),
     // A shared listing is never "mine" on someone else's device.
     publishedByUser: false,
     cloudOnly: true,

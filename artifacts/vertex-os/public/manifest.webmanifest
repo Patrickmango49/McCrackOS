@@ -1,0 +1,26 @@
+{
+  "name": "VertexOS — Browser Desktop OS",
+  "short_name": "VertexOS",
+  "description": "A free desktop operating system in your browser: unblocked games, web apps, AI assistant, cloud storage, music and movies.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0b0b12",
+  "theme_color": "#0b0b12",
+  "categories": ["games", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "images/v-market-logo.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "images/v-market-logo.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any"
+    }
+  ]
+}
