@@ -2,5 +2,5 @@ User-agent: *
 Allow: /
 Disallow: /blocked.html
 
-# VertexOS — primary domain (GitHub Pages)
+# VertexOS - primary domain (GitHub Pages)
 Sitemap: https://xkznn.github.io/VertexOS/sitemap.xml

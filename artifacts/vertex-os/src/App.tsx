@@ -54,8 +54,8 @@ type Wallpaper = { id: WallpaperId; name: string; meta: string; video?: string; 
 type ColorMode = "dark" | "light";
 type SystemStyle = "vertex" | "macos";
 type TabHideImage = { id: string; name: string; src: string };
-type SystemSettings = { optimized: boolean; fastBoot: boolean; idleLock: boolean; confirm: boolean; cloak: string; cloakName: string; cloakIcon: string; panicKey: string; panicUrl: string; adblock: boolean; adblockUrl: string; deviceName: string; colorMode: ColorMode; systemStyle: SystemStyle; fontStyle: string; tabHide: boolean; tabHideImage: string; tabHideImages: TabHideImage[]; fakeBlocker: string };
-const defaultSettings: SystemSettings = { optimized: false, fastBoot: false, idleLock: false, confirm: false, cloak: "none", cloakName: "Vertex-OS", cloakIcon: "", panicKey: "`", panicUrl: "", adblock: false, adblockUrl: "", deviceName: "VERTEX-PC", colorMode: "dark", systemStyle: "vertex", fontStyle: "vertex", tabHide: false, tabHideImage: "iready", tabHideImages: [{ id: "black", name: "Black screen", src: "black" }, { id: "white", name: "White screen", src: "white" }, { id: "iready", name: "I-Ready", src: asset("images/tabhide-iready.png") }, { id: "classroom", name: "Google Classroom", src: asset("images/tabhide-classroom.png") }], fakeBlocker: "goguardian" };
+type SystemSettings = { optimized: boolean; fastBoot: boolean; idleLock: boolean; confirm: boolean; cloak: string; cloakName: string; cloakIcon: string; panicKey: string; panicUrl: string; adblock: boolean; adblockUrl: string; deviceName: string; colorMode: ColorMode; systemStyle: SystemStyle; fontStyle: string; tabHide: boolean; tabHideImage: string; tabHideImages: TabHideImage[] };
+const defaultSettings: SystemSettings = { optimized: false, fastBoot: false, idleLock: false, confirm: false, cloak: "none", cloakName: "Vertex-OS", cloakIcon: "", panicKey: "`", panicUrl: "", adblock: false, adblockUrl: "", deviceName: "VERTEX-PC", colorMode: "dark", systemStyle: "vertex", fontStyle: "vertex", tabHide: false, tabHideImage: "iready", tabHideImages: [{ id: "black", name: "Black screen", src: "black" }, { id: "white", name: "White screen", src: "white" }, { id: "iready", name: "I-Ready", src: asset("images/tabhide-iready.png") }, { id: "classroom", name: "Google Classroom", src: asset("images/tabhide-classroom.png") }] };
 const PASSWORD_KEY = "vertex-password";
 const PROFILE_KEY = "vertex-profile";
 const ACCOUNTS_KEY = "vertex-accounts";
@@ -1029,7 +1029,6 @@ function AppIcon({ app, size = 21 }: { app: { icon: LucideIcon; iconImg?: string
 function App() {
   const [phase, setPhase] = useState<"boot" | "profile" | "lock" | "picker" | "signin" | "desktop">("boot");
   const [bootVideo, setBootVideo] = useState(false);
-  const [blockedHidden, setBlockedHidden] = useState(false);
   const [accounts, setAccounts] = useState<VertexAccount[]>(() => readAccounts());
   const [activeAccount, setActiveAccount] = useState<VertexAccount | null>(null);
   const [selectedAccount, setSelectedAccount] = useState<VertexAccount | null>(null);
@@ -1613,44 +1612,6 @@ onSessionClose: (peerCode) => {
   }, []);
 
   useEffect(() => {
-    if (blockedHidden || settings.fakeBlocker === "off") return;
-    const prevTitle = document.title;
-    const mode = settings.fakeBlocker;
-    document.title = mode === "iready" ? "I-Ready Login" : mode === "classroom" ? "Home - Classroom" : "Page Blocked";
-    let favicon = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
-    const prevHref = favicon?.href ?? "";
-    const prevType = favicon?.type ?? "";
-    const setFavicon = (href: string, type: string) => {
-      document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"]').forEach((el) => el.remove());
-      const link = document.createElement("link");
-      link.rel = "icon";
-      link.type = type;
-      link.href = href;
-      document.head.appendChild(link);
-      return link;
-    };
-    const modeIcon = mode === "iready" ? { href: asset("images/block-iready.ico?v=2"), type: "image/x-icon" } : mode === "classroom" ? { href: asset("images/block-classroom.png?v=2"), type: "image/png" } : { href: asset("assets/favicon.png"), type: "image/png" };
-    setFavicon(modeIcon.href, modeIcon.type);
-    let count = 0;
-    const onKey = (event: KeyboardEvent) => {
-      if (event.code === "Space" || event.key === " ") {
-        event.preventDefault();
-        count += 1;
-        if (count >= 5) {
-          setBlockedHidden(true);
-          document.title = prevTitle;
-          setFavicon(prevHref || asset("vertex-hub-logo.png"), prevType || "image/png");
-        }
-      }
-    };
-    window.addEventListener("keydown", onKey, true);
-    return () => {
-      window.removeEventListener("keydown", onKey, true);
-      document.title = prevTitle;
-    };
-  }, [blockedHidden, settings.fakeBlocker]);
-
-  useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (phase === "boot" && (event.key === "Enter" || event.key === " ")) {
         event.preventDefault();
@@ -1781,7 +1742,6 @@ onSessionClose: (peerCode) => {
     saveLang(next);
     setChosenLang(next);
     setLanguageOpen(false);
-    location.reload();
   }
 
   function pickLanguage(next: Lang) {
@@ -2221,22 +2181,6 @@ onSessionClose: (peerCode) => {
   const dockEntries = apps.filter((app) => isPinned(app.id) || windows.some((win) => win.id === app.id));
   const dockOverflowed = dockEntries.length > dockCapacity;
   const visibleDockEntries = dockOverflowed ? dockEntries.slice(0, dockCapacity) : dockEntries.slice(0, dockCapacity);
-
-  if (!blockedHidden && settings.fakeBlocker !== "off") {
-    if (settings.fakeBlocker === "iready") {
-      return <div className="blocked-shot" aria-hidden="true"><img src={asset("images/tabhide-iready.png")} alt="" /></div>;
-    }
-    if (settings.fakeBlocker === "classroom") {
-      return <div className="blocked-shot" aria-hidden="true"><img src={asset("images/tabhide-classroom.png")} alt="" /></div>;
-    }
-    return (
-      <iframe
-        className="blocked-frame"
-        title="Page Blocked"
-        src="https://blocked.goguardian.com/x3/block.html?ctx=b2k9Mjk1NTgwMDMxMTQmb3U9aHR0cHMlM0ElMkYlMkZ4a3pubi5naXRodWIuaW8lMkZ2ZXJ0ZXhvc3dlYi5naXRodWIuaW8lMkYmcnM9WDNfUkVQT1JUJnN0PXNoaWVsZCZ2PTEmeDNycGk9NzBhN2M5NDUtZjNkNi00YmM5LTgxOGUtMjE0NjFiMDQxNGNl&sum=5a91d8bc"
-      />
-    );
-  }
 
   return (
         <main className={`os-root${PERF.low ? " perf-low" : ""}`} onClick={() => { setContextMenu(null); setAppMenu(null); setWidgetMenu(null); setDockMenu(null); setDockOverflowOpen(false); }} onContextMenu={(event) => {
@@ -6687,12 +6631,6 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
               {tabHideNotice && <p className="term-error">{tabHideNotice}</p>}
               <div className="setting-action-row"><button className="outline-button" onClick={() => { setTabHideNotice(null); setTabHidePreview(true); window.setTimeout(() => setTabHidePreview(false), 4000); }}>Preview overlay</button><span>Shows the overlay for 4 seconds so you can see it.</span></div>
             </>}
-          </section>
-          <section className="win-settings-card">
-            <div className="setting-group"><ShieldBan size={13} /> Fake Blocker</div>
-            <p className="win-settings-sub" style={{ margin: "0 0 6px" }}>What appears when Vertex-OS opens, so it looks like the real site is blocked. Press <b>Space 5×</b> on any of them to reach the real site.</p>
-            <div className="setting-row"><div><strong>Fake block screen</strong><small>Shown on load until you press Space 5 times.</small></div><select className="setting-select" value={settings.fakeBlocker} onChange={(event) => updateSetting("fakeBlocker", event.target.value)} aria-label="Fake block screen"><option value="goguardian">GoGuardian "Page Blocked" (default)</option><option value="iready">Fake I-Ready Login</option><option value="classroom">Fake Home - Classroom</option><option value="off">Off — open the real site</option></select></div>
-            {settings.fakeBlocker === "off" && <p className="term-error">Fake Blocker is off. The real Vertex-OS loads immediately with no space prompt.</p>}
           </section>
           <section className="win-settings-card">
             <div className="setting-group"><MonitorCog size={13} /> {t("set.groupShortcut")}</div>
