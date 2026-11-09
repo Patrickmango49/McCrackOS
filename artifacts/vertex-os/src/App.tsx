@@ -20,7 +20,7 @@ import moviesAppHtml from "./movies/app.html?raw";
 import { VertexStudioWallpaper } from "./components/vertex-wallpaper";
 import { HalloweenDecor, HalloweenWallpaper } from "./components/halloween";
 
-import { LockAppsLayer, LockAppsManager, recordRecentApp } from "./components/lock-apps";
+import { LockAppsLayer, recordRecentApp } from "./components/lock-apps";
 import { AdminSurface } from "./components/admin-app";
 import { startAnalytics, trackEvent } from "./analytics";
 import { MessagesSurface } from "./messages";
@@ -59,7 +59,7 @@ const defaultSettings: SystemSettings = { optimized: false, fastBoot: false, idl
 const PASSWORD_KEY = "vertex-password";
 const PROFILE_KEY = "vertex-profile";
 const ACCOUNTS_KEY = "vertex-accounts";
-const McCrack_VERSION = "4.1";
+const VERTEX_VERSION = "4.1";
 const HALLOWEEN_ACTIVE = new Date().getMonth() === 9;
 const SEASON_WALLPAPER: WallpaperId = HALLOWEEN_ACTIVE ? "halloween" : "vertex-studio";
 
@@ -207,7 +207,7 @@ const CLOAKS: Record<string, { title: string; icon: string }> = {
 };
 
 const wallpapers: Wallpaper[] = [
-  { id: "vertex-studio", name: "Vertex Studios", meta: "Animated · McCrack-COS", image: asset("images/vertex-studios-thumb.svg") },
+  { id: "vertex-studio", name: "McCrack Studios", meta: "Animated · McCrack-COS", image: asset("images/vertex-studios-thumb.svg") },
   { id: "halloween", name: "Halloween Night", meta: "Animated · Spooky", image: asset("images/halloween-thumb.svg") },
   { id: "macos-default", name: "macOS 27", meta: "macOS · Default", image: asset("images/macos-27-home.jpg") },
   { id: "macos-lock", name: "macOS 27 Night", meta: "macOS · Lock screen", image: asset("images/macos-27-lock.jpg") },
@@ -239,7 +239,7 @@ type WallEngineEntry = {
   videoLow?: string;
 };
 
-const WE_AUTHOR = { name: "Vertex Bot", verified: true };
+const WE_AUTHOR = { name: "McCrack", verified: true };
 
 const resolvedSize = (e: WallEngineEntry): string =>
   e.image ? "8.4 MB" : e.resolution.startsWith("3840") ? "58 MB" : "28 MB";
@@ -982,7 +982,7 @@ const MARKETPLACE_ITEMS: MarketItem[] = [
 ];
 
 function BrandMark() {
-  return <span className="brand-mark"><span className="brand-glyph"><span /></span><span>Vertex Systems</span></span>;
+  return <span className="brand-mark"><span className="brand-glyph"><span /></span><span>McCrack Studios</span></span>;
 }
 
 function AvatarGlyph({ value, name, size = 34 }: { value?: string; name: string; size?: number }) {
@@ -1670,9 +1670,9 @@ onSessionClose: (peerCode) => {
       const shown = Number(sessionStorage.getItem("vertex-lf-promos") || "0");
       if (shown >= 3) return;
       const draft: { title: string; copy: string }[] = [
-        { title: "Link Finder — Vertex OS", copy: "School site blocked? Find a link that isn't caught yet, for free." },
+        { title: "Link Finder — McCrack-COS", copy: "School site blocked? Find a link that isn't caught yet, for free." },
         { title: "New: Link Finder", copy: "Map of what your filter blocks + fresh, unblocked portal links." },
-        { title: "Vertex OS · Beta Program", copy: "Unblocked games + BETA build — grab a link, no install." },
+        { title: "McCrack-COS · Beta Program", copy: "Unblocked games + BETA build — grab a link, no install." },
       ];
       const slots = [8000, 70000, 140000];
       const timers = slots.map((delay, i) => window.setTimeout(() => {
@@ -2180,7 +2180,7 @@ onSessionClose: (peerCode) => {
             : null}
         <div className="signin-card profile-card">
           <div className="lock-avatar"><BrandMark /></div>
-          <div className="profile-kicker">McCrack-COS · v{McCrack_VERSION}</div>
+          <div className="profile-kicker">McCrack-COS · v{VERTEX_VERSION}</div>
           <h2 className="profile-title">Create your profile</h2>
           <p className="profile-sub">Choose a name and upload a profile picture, or use your initials.</p>
           <div className="profile-avatar-row">
@@ -2287,7 +2287,7 @@ onSessionClose: (peerCode) => {
         <div className="signin-card">
            <div className="lock-avatar lock-avatar-account">{selectedAccount ? <AvatarGlyph value={selectedAccount.avatar} name={selectedAccount.name} size={92} /> : <BrandMark />}</div>
            <div className="lock-user">{selectedAccount?.name ?? t("set.passwordLabel")}</div>
-           <div className="lock-version">McCrack-COS · v{McCrack_VERSION}</div>
+           <div className="lock-version">McCrack-COS · v{VERTEX_VERSION}</div>
           <form className="lock-pass-row" onSubmit={(event) => { event.preventDefault(); unlock(); }}>
             <input type="password" autoFocus value={pinInput} onChange={(event) => { setPinInput(event.target.value); setPinError(false); }} placeholder={t("lock.pass")} aria-label={t("lock.pass")} data-testid="input-vertex-password" />
             <button type="submit">{t("lock.signIn")}</button>
@@ -2552,7 +2552,7 @@ onSessionClose: (peerCode) => {
         )}
 
         <InfoModal open={updateOpen} title={t("update.title")} onClose={() => setUpdateOpen(false)}>
-          <div className="update-version">{t("update.version")}<strong>v{McCrack_VERSION}</strong></div>
+          <div className="update-version">{t("update.version")}<strong>v{VERTEX_VERSION}</strong></div>
           <div className="update-hallo">
             <span className="update-hallo-emoji">🎃</span>
             <div>
@@ -2561,7 +2561,7 @@ onSessionClose: (peerCode) => {
             </div>
           </div>
           <div className="update-sec">
-            <div className="update-sec-title">{t("update.halloween")} · v{McCrack_VERSION}</div>
+            <div className="update-sec-title">{t("update.halloween")} · v{VERTEX_VERSION}</div>
             <div className="update-group-label add">{t("update.added")}</div>
             <ul className="update-list update-changes">
               <li className="update-add"><span className="update-sign">+</span>{t("update.h1")}</li>
@@ -5709,10 +5709,6 @@ function renderWindowBody(id: AppId, settings: SystemSettings, updateSetting: (k
   if (id === "admin") return <AdminSurface />;
   if (id === "appmaker") return <div className="window-surface vs-app-surface"><VStudiosSurface /></div>;
   // Installed V-MARKET listings run inside their own McCrack-COS window.
-  if (typeof id === "string" && id.startsWith("vmarket_")) {
-    const entry = readVMarketEntries().find((item) => item.id === id);
-    if (entry) return <VMarketAppRunner entryId={id} />;
-  }
   // Handle legacy custom apps
   if (typeof id === "string" && id.startsWith("custom_")) {
     try {
@@ -6102,12 +6098,11 @@ function RainmeterSurface() {
   </div>;
 }
 
-type SettingsTabId = "home" | "personalization" | "widgets" | "account" | "system" | "colors" | "language" | "privacy" | "about";
+type SettingsTabId = "home" | "personalization" | "account" | "system" | "colors" | "language" | "privacy" | "about";
 
 const SETTINGS_TABS: { id: SettingsTabId; label: string; icon: LucideIcon }[] = [
   { id: "home", label: "Home", icon: House },
   { id: "personalization", label: "Personalization", icon: Paintbrush },
-  { id: "widgets", label: "Widgets", icon: Sparkles },
   { id: "account", label: "Account", icon: User },
   { id: "system", label: "System", icon: Cpu },
   { id: "colors", label: "Color mode", icon: SunMoon },
@@ -6123,7 +6118,6 @@ const SETTINGS_SEARCH: { tab: SettingsTabId; label: string; hint: string }[] = [
   { tab: "home", label: "Color mode", hint: "Bright (light) or black (dark)" },
   { tab: "personalization", label: "Wallpaper", hint: "Desktop background and lock screen" },
   { tab: "personalization", label: "Reset to default wallpaper", hint: "Restore the Vertex Studios wallpaper" },
-  { tab: "widgets", label: "Music widgets", hint: "Apple-style now playing widgets for Spicetify and VerTube" },
   { tab: "account", label: "Account name", hint: "The name shown on this device" },
   { tab: "account", label: "Email address", hint: "The Gmail you are signed in with" },
   { tab: "account", label: "Profile picture", hint: "Change your avatar" },
@@ -6388,13 +6382,6 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
             </div>
           </section>
         </>;
-      case "widgets":
-        return <>
-          <h2>Widgets</h2>
-          <p className="win-settings-sub">Add movable, stylable music widgets that show what is playing.</p>
-          <MusicWidgetManager />
-          <LockAppsManager catalog={apps.map((app) => ({ id: app.id, title: app.title }))} />
-        </>;
       case "account":
         return <>
           <h2>Account</h2>
@@ -6542,9 +6529,9 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
       case "about":
         return <>
           <h2>About</h2>
-          <p className="win-settings-sub">McCrack-COS {McCrack_VERSION} · {settings.deviceName}</p>
+          <p className="win-settings-sub">McCrack-COS {VERTEX_VERSION} · {settings.deviceName}</p>
           <section className="win-settings-card">
-            <div className="win-settings-row"><div><strong>Version</strong><small>McCrack-COS build</small></div><span className="win-settings-badge">v{McCrack_VERSION}</span></div>
+            <div className="win-settings-row"><div><strong>Version</strong><small>McCrack-COS build</small></div><span className="win-settings-badge">v{VERTEX_VERSION}</span></div>
             <div className="win-settings-row"><div><strong>Device</strong><small>This machine</small></div><span className="win-settings-badge">{settings.deviceName}</span></div>
             <div className="win-settings-row"><div><strong>Account</strong><small>Signed in</small></div><span className="win-settings-badge">{accountName ?? "—"}</span></div>
           </section>
