@@ -29,6 +29,7 @@ import { LANG, LANGS, t, tf, tp, readLang, saveLang, localeOf, type Lang } from 
 import { WallpaperPicker, type PickerWallpaper, loadCustomWallpapers, persistCustomWallpaper, removeCustomWallpaper, readCustomWallpapersLocal } from "./components/wallpaper-picker";
 import { SystemTray } from "./components/system-tray";
 import { MacMenuBar } from "./components/mac-menubar";
+import { AlternativePanel, type WidgetId, type WidgetPosition, type WidgetSkin } from "./components/desktop-widgets";
 
 import { LinksApp } from "./components/links-app";
 import { assetUrl } from "./asset-map";
@@ -2269,7 +2270,6 @@ onSessionClose: (peerCode) => {
             : phase === "lock"
               ? <video key={activeLockWallpaper.id} ref={lockVideoRef} className="lock-wallpaper-video" src={bgSrc(activeLockWallpaper.video, activeLockWallpaper.videoLow)} preload="metadata" autoPlay muted loop playsInline aria-label={`${activeLockWallpaper.name} lock wallpaper`} />
               : null}
-        {rmCfg.showClock && <RainmeterWidget cfg={rmCfg} date={now} tone="lock" wallpaper={activeLockWallpaper} />}
         <LockAppsLayer
           catalog={apps.map((app) => ({ id: app.id, title: app.title }))}
           renderIcon={(appId) => <AppIcon app={getApp(appId as AppId, appOverrides)} size={26} />}
@@ -2324,9 +2324,6 @@ onSessionClose: (peerCode) => {
           onHint={(title, copy) => addToast(title, copy)}
         /> : null}
         {HALLOWEEN_ACTIVE && <HalloweenDecor />}
-        {rmCfg.showClock && <RainmeterWidget cfg={rmCfg} date={now} tone="home" wallpaper={activeWallpaper} onAlternative={() => setAlternativeOpen(true)} />}
-
-        <NowPlayingCard />
 
 
         <div className={`desktop-grid ${showDesktopIcons ? "" : "hidden"}`} ref={desktopGridRef} aria-label="Desktop applications" onDragOver={(event) => {
@@ -2664,19 +2661,7 @@ onSessionClose: (peerCode) => {
           </>}
         </div>}
 
-        {widgetMenu && <div className="app-context-menu" ref={widgetMenuRef} style={{ left: (widgetMenuPos ?? widgetMenu).x, top: (widgetMenuPos ?? widgetMenu).y }} onMouseDown={(event) => event.stopPropagation()} onClick={(event) => event.stopPropagation()} onContextMenu={(event) => { event.preventDefault(); event.stopPropagation(); }}>
-          <button className="app-menu-item" onClick={() => { toggleWidget(widgetMenu.id); setWidgetMenu(null); }}><EyeOff size={14} /> {t("ctx.hideWidget")}</button>
-          <button className="app-menu-item" onClick={() => { setWidgetHidden([]); setWidgetMenu(null); }}><RotateCcw size={14} /> {t("ctx.showAllWidgets")}</button>
-          <button className="app-menu-item" onClick={() => { setWidgetMenu(null); setAlternativeOpen(true); }}><SlidersHorizontal size={14} /> {t("ctx.alternative")}</button>
-        </div>}
-        <AlternativePanel open={alternativeOpen} lang={chosenLang} hidden={widgetHidden} locked={widgetLocked} onToggleLocked={toggleWidgetLock}
-          onToggleWidget={(id: WidgetId) => toggleWidget(id)} onShowAll={() => { setWidgetHidden([]); saveRainmeterPatch({ showClock: true }); }} onHideAll={() => { setWidgetHidden(["deck", "media", "updates", "calendar", "weather", "resources", "switches"]); saveRainmeterPatch({ showClock: false }); }}
-          labels={widgetLabels} onLabels={setWidgetLabels} scale={widgetScale} onScale={setWidgetScale}
-          side={widgetSide} onSide={setWidgetSide} location={weatherLocation} onLocation={setWeatherLocation}
-          clockVisible={rmCfg.showClock} onClockVisible={(value) => saveRainmeterPatch({ showClock: value })} clockDraggable={rmCfg.draggable} onClockDraggable={(value) => saveRainmeterPatch({ draggable: value })}
-          style={settings.systemStyle} onStyle={applyAlternativeStyle}
-          skin={rmCfg.skin} onSkin={(skin: WidgetSkin) => saveRainmeterPatch({ skin })}
-          accent={widgetAccent} onAccent={setWidgetAccent} onClose={() => setAlternativeOpen(false)} />
+
 
         {dockMenu && <div className="app-context-menu dock-menu" style={{ left: dockMenu.x, top: dockMenu.y }} onMouseDown={(event) => event.stopPropagation()} onClick={(event) => event.stopPropagation()} onContextMenu={(event) => { event.preventDefault(); event.stopPropagation(); }}>
           <div className="dock-menu-title">{t("ctx.taskbarPos")}</div>
