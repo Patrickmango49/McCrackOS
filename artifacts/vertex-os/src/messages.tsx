@@ -180,7 +180,7 @@ const BADGES: { id: BadgeId; label: string; cls: string; title: string }[] = [
   { id: "dev", label: "DEVELOPER", cls: "msgs-role-dev", title: "Developer" },
   { id: "mod", label: "MOD", cls: "msgs-role-mod", title: "Moderator" },
   { id: "experimental", label: "EXPERIMENTAL", cls: "msgs-role-experimental", title: "Experimental Features Lab" },
-  { id: "lab", label: "LAB", cls: "msgs-role-lab", title: "Vertex Lab" },
+  { id: "lab", label: "LAB", cls: "msgs-role-lab", title: "McCrack Lab" },
   { id: "verified", label: "Verified", cls: "", title: "Verified" },
 ];
 const ALL_BADGE_IDS = BADGES.map((b) => b.id);
@@ -208,7 +208,7 @@ const readLab = (): LabState => {
   }
 };
 
-const SYSTEM_USER: RosterUser = { username: "Vertex", name: "Vertex", preset: -1, system: true, verified: true };
+const SYSTEM_USER: RosterUser = { username: "McCrack", name: "McCrack", preset: -1, system: true, verified: true };
 
 const toNetProfile = (p: Profile): NetProfile => ({
   username: p.username,
@@ -305,7 +305,7 @@ const shortDate = (ms: number) =>
 
 function seedDms(now: number): Record<string, Msg[]> {
   return {
-    Vertex: [{ id: "sys-welcome", from: "Vertex", text: "Welcome to Messages! Hope you enjoy the app!", at: now }],
+    McCrack: [{ id: "sys-welcome", from: "McCrack", text: "Welcome to Messages! Hope you enjoy the app!", at: now }],
   };
 }
 
@@ -313,11 +313,20 @@ function initialState() {
   const now = Date.now();
   const profile = read<Profile | null>(PROF_KEY, null);
   if (profile) regAdd(profile.username);
+  const dms = read<Record<string, Msg[]>>(DMS_KEY, seedDms(now));
+  // Migrate the old built-in system conversation without losing its history.
+  const legacySystemChat = (dms as Record<string, Msg[]>).Vertex;
+  if (legacySystemChat && !dms.McCrack) {
+    dms.McCrack = legacySystemChat;
+    delete (dms as Record<string, Msg[]>).Vertex;
+    write(DMS_KEY, dms);
+  }
+  const savedActive = read<string | null>(ACTIVE_KEY, null);
   return {
     profile,
-    dms: read<Record<string, Msg[]>>(DMS_KEY, seedDms(now)),
+    dms,
     seen: read<Record<string, number>>(SEEN_KEY, {}),
-    active: read<string | null>(ACTIVE_KEY, null),
+    active: savedActive === "Vertex" ? "McCrack" : savedActive,
   };
 }
 
@@ -566,7 +575,7 @@ function AuthModal({ onDone, live }: { onDone: (p: Profile) => void; live: strin
       <div className="msgs-setup msgs-auth">
         <style>{AUTH_CSS}</style>
         <div className="msgs-auth-brand">
-          <img src={SITE_LOGO} alt="Vertex" />
+          <img src={SITE_LOGO} alt="McCrack" />
           <h2 className="msgs-setup-h">MESSAGES</h2>
           <h3 className="msgs-setup-sub">Sign in to chat with real accounts</h3>
         </div>
@@ -1684,8 +1693,8 @@ function SettingsPanel({ profile, notifOn, onNotif, enterSends, onEnterSends, on
               <span className="msgs-settings-arrow">›</span>
             </button>
             <button type="button" className="msgs-settings-row" onClick={() => onInfo("Appearance", [
-              "Messages follows the Vertex OS dark theme.",
-              "The orange accent matches the Vertex OS brand (#ff5a1f).",
+              "Messages follows the McCrack OS dark theme.",
+              "The orange accent matches the McCrack OS brand (#ff5a1f).",
             ])}>
               <span className="msgs-settings-icon">
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.9"><circle cx="12" cy="12" r="4" /><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4" strokeLinecap="round" /></svg>
@@ -1718,7 +1727,7 @@ function SettingsPanel({ profile, notifOn, onNotif, enterSends, onEnterSends, on
               <span className="msgs-settings-arrow">›</span>
             </button>
             <button type="button" className="msgs-settings-row" onClick={() => onInfo("About", [
-              "Messages 1.0 — part of Vertex OS.",
+              "Messages 1.0 — part of McCrack OS.",
               "Built with React, Vite and Supabase.",
               "Fully open source.",
             ])}>
@@ -1750,7 +1759,7 @@ function SettingsPanel({ profile, notifOn, onNotif, enterSends, onEnterSends, on
           </div>
         </div>
 
-        <p className="msgs-settings-version">Messages 1.0 · built for Vertex OS</p>
+        <p className="msgs-settings-version">Messages 1.0 · built for McCrack OS</p>
       </div>
     </div>
   );
@@ -1825,7 +1834,7 @@ function LabPanel({ adminOwner, isOwner, badges, effects, lab, onLab, onToggleBa
         <button type="button" className="msgs-panel-back" onClick={onBack} aria-label="Back">‹</button>
         <span className="msgs-panel-title">Experimental Features Lab</span>
         <span className="msgs-role msgs-role-experimental" title="Experimental Features Lab">EXPERIMENTAL</span>
-        <span className="msgs-role msgs-role-lab" title="Vertex Lab">LAB</span>
+        <span className="msgs-role msgs-role-lab" title="McCrack Lab">LAB</span>
       </header>
       <div className="msgs-panel-scroll msgs-settings-body">
         <div className="msgs-lab-tabs" role="tablist">
@@ -1927,7 +1936,7 @@ function LabPanel({ adminOwner, isOwner, badges, effects, lab, onLab, onToggleBa
                 </button>
               </div>
             </div>
-            <p className="msgs-settings-version">Experimental Features Lab · Vertex OS internal</p>
+            <p className="msgs-settings-version">Experimental Features Lab · McCrack OS internal</p>
           </>
         )}
       </div>
@@ -2214,7 +2223,7 @@ function ProfilePanel({ user, isSelf, isContact, pending, adminOwner, isOwner, c
     <div className="msgs-panel msgs-profile-panel">
       <header className="msgs-panel-head">
         <button type="button" className="msgs-panel-back" onClick={onBack} aria-label="Back">‹</button>
-        <span className="msgs-panel-title">{isSelf ? "Your profile" : special ? "Vertex-OS official" : `@${user.username}`}</span>
+        <span className="msgs-panel-title">{isSelf ? "Your profile" : special ? "McCrack-OS official" : `@${user.username}`}</span>
       </header>
       <div className="msgs-panel-scroll">
         <div className={`msgs-profile-cover${banner ? "" : " default"}`} style={banner ? { backgroundImage: `url(${banner})` } : undefined}>
@@ -2233,7 +2242,7 @@ function ProfilePanel({ user, isSelf, isContact, pending, adminOwner, isOwner, c
                   : (<>
                       {special && <><span className="msgs-role msgs-role-mod" title="Moderator">MOD</span><span className="msgs-role msgs-role-admin" title="Admin">ADMIN</span><span className="msgs-role msgs-role-dev" title="Developer">DEV</span></>}
                       <RoleBadge role={role} />
-                      {role === "owner" && <><span className="msgs-role msgs-role-experimental" title="Experimental Features Lab">EXPERIMENTAL</span><span className="msgs-role msgs-role-lab" title="Vertex Lab">LAB</span></>}
+                      {role === "owner" && <><span className="msgs-role msgs-role-experimental" title="Experimental Features Lab">EXPERIMENTAL</span><span className="msgs-role msgs-role-lab" title="McCrack Lab">LAB</span></>}
                       {verified && <span className="msgs-profile-verifiedchip"><VerifiedBadge size={14} />Verified</span>}
                     </>)}
               </div>
@@ -2375,7 +2384,7 @@ export function MessagesSurface() {
   const [profile, setProfile] = useState<Profile | null>(state.profile);
   const [dms, setDms] = useState<Record<string, Msg[]>>(state.dms);
   const [seen, setSeen] = useState<Record<string, number>>(state.seen);
-  const [active, setActive] = useState<string | null>(() => state.active && (state.dms[state.active] || state.active.startsWith("group:")) ? state.active : (state.dms.Vertex ? "Vertex" : null));
+  const [active, setActive] = useState<string | null>(() => state.active && (state.dms[state.active] || state.active.startsWith("group:")) ? state.active : (state.dms.McCrack ? "McCrack" : null));
   const [tab, setTab] = useState<"chats" | "people">("chats");
   const [query, setQuery] = useState("");
   const [statusMenu, setStatusMenu] = useState(false);
@@ -2432,13 +2441,13 @@ export function MessagesSurface() {
     if (!adminOwner || profile) return;
     setProfile({
       username: "vertex-os",
-      name: "Vertex-OS",
+      name: "McCrack-OS",
       avatar: { kind: "custom", data: SITE_LOGO },
       status: "online",
       role: "owner",
       verified: true,
       effects: ["moving-name", "glow"],
-      bio: "Official Vertex-OS administrator account.",
+      bio: "Official McCrack-OS administrator account.",
       joinedAt: Date.now(),
     });
   }, [adminOwner, profile]);
@@ -2604,21 +2613,21 @@ export function MessagesSurface() {
   };
 
   useEffect(() => {
-    if (dms.Vertex && dms.Vertex[0]) {
-      const last = dms.Vertex[dms.Vertex.length - 1];
+    if (dms.McCrack && dms.McCrack[0]) {
+      const last = dms.McCrack[dms.McCrack.length - 1];
       const t = new Date(last.at);
       const today = new Date();
       if (t.getFullYear() !== today.getFullYear() || t.getMonth() !== today.getMonth() || t.getDate() !== today.getDate()) {
-        const w: Msg = { id: `sys-w-${uid()}`, from: "Vertex", text: "Welcome to Messages! Hope you enjoy the app!", at: Date.now() };
-        setDms((d) => ({ ...d, Vertex: [w] }));
+        const w: Msg = { id: `sys-w-${uid()}`, from: "McCrack", text: "Welcome to Messages! Hope you enjoy the app!", at: Date.now() };
+        setDms((d) => ({ ...d, McCrack: [w] }));
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    if (!active && dms.Vertex) setActive("Vertex");
-    else if (active && !active.startsWith("group:") && !dms[active] && dms.Vertex) setActive("Vertex");
+    if (!active && dms.McCrack) setActive("McCrack");
+    else if (active && !active.startsWith("group:") && !dms[active] && dms.McCrack) setActive("McCrack");
   }, [active, dms]);
 
   useEffect(() => { write(ACTIVE_KEY, active); }, [active]);
@@ -2804,7 +2813,7 @@ export function MessagesSurface() {
 
   const send = () => {
     const text = draft.trim();
-    if (!active || active === "Vertex" || !text) return;
+    if (!active || active === "McCrack" || !text) return;
     const id = uid();
     pushMsg(active, { id, from: "me", text, at: Date.now(), pending: true });
     setDraft("");
@@ -2819,7 +2828,7 @@ export function MessagesSurface() {
 
   const sendMedia = async (f: File) => {
     const media = await processFile(f, (m) => flash(m));
-    if (!media || !active || active === "Vertex") return;
+    if (!media || !active || active === "McCrack") return;
     const id = uid();
     const who = active;
     pushMsg(who, { id, from: "me", text: draft.trim(), at: Date.now(), pending: true, media: { kind: media.kind, url: URL.createObjectURL(media.blob), name: media.name } });
@@ -2839,7 +2848,7 @@ export function MessagesSurface() {
   };
 
   const startCall = (peer: string, kind: "voice" | "video") => {
-    if (active === "Vertex") return;
+    if (active === "McCrack") return;
     if (!callsReady()) {
       reconnectNow();
       flash("Calls are reconnecting — try again in a moment.");
@@ -2948,7 +2957,7 @@ export function MessagesSurface() {
     return chatKeys
       .map((u) => {
         const last = dms[u][dms[u].length - 1];
-        const sys = u === "Vertex";
+        const sys = u === "McCrack";
         const unread = dms[u].filter((m) => m.from !== "me" && m.at > (seen[u] ?? 0)).length;
         return { u, sys, last, unread };
       })
@@ -2964,7 +2973,7 @@ export function MessagesSurface() {
       });
   }, [chatKeys, dms, query, seen]);
 
-  const activeUser = active ? getUser(active) ?? (active === "Vertex"
+  const activeUser = active ? getUser(active) ?? (active === "McCrack"
     ? SYSTEM_USER
     : active.startsWith("group:")
       ? { username: active, name: "Group chat", preset: hashPreset(active), group: true }
@@ -3125,7 +3134,7 @@ export function MessagesSurface() {
             {tab === "chats" &&
               chatList.map(({ u, sys, last, unread }) => {
                 const ru = getUser(u);
-                const name = sys ? "Vertex" : ru?.name ?? u;
+                const name = sys ? "McCrack" : ru?.name ?? u;
                 const preview = last?.media
                   ? last.media.kind === "image"
                     ? "Photo"
@@ -3267,7 +3276,7 @@ export function MessagesSurface() {
                           {activeUser.group && <div className="msgs-bubble-name"><span>{mine ? "You" : getUser(m.from)?.name ?? m.from}</span><span className="msgs-bubble-time">{fmtTime(m.at)}</span></div>}
                           {activeUser.system && (
                             <div className="msgs-bubble-name">
-                              <span>Vertex</span>
+                              <span>McCrack</span>
                               <VerifiedBadge />
                               <span className="msgs-bubble-time">{fmtTime(m.at)}</span>
                             </div>
