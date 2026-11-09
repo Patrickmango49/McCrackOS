@@ -34,7 +34,7 @@ const MEDIA_APPS: MediaApp[] = [
   { id: "spotify", name: "Spotify", publisher: "Spicetify", kind: "app", icon: `${import.meta.env.BASE_URL}images/spicetify.ico`, cover: `${import.meta.env.BASE_URL}images/spicetify.ico`, description: "Your music and playlists, running inside the console." },
   { id: "vertube", name: "YouTube", publisher: "McCrack OS", kind: "app", icon: `${import.meta.env.BASE_URL}images/vertube.svg`, cover: `${import.meta.env.BASE_URL}images/vertube.svg`, description: "YouTube, streaming from inside the console." },
   { id: "messages", name: "Messages", publisher: "McCrack OS", kind: "app", icon: `${import.meta.env.BASE_URL}images/messages-icon.webp`, cover: `${import.meta.env.BASE_URL}images/messages-icon.webp`, description: "Your Messages chats, already signed in." },
-  { id: "verai", name: "VER-AI", publisher: "McCrack OS", kind: "app", icon: `${import.meta.env.BASE_URL}images/ver-ai.ico`, cover: `${import.meta.env.BASE_URL}images/ver-ai.ico`, description: "A free AI assistant that lives on your console. No key, no sign-in, daily limit." },
+  { id: "verai", name: "McCrack AI", publisher: "McCrack OS", kind: "app", icon: `${import.meta.env.BASE_URL}images/ver-ai.ico`, cover: `${import.meta.env.BASE_URL}images/ver-ai.ico`, description: "A free AI assistant that lives on your console. No key, no sign-in, daily limit." },
 ];
 
 const OWNED_KEY = "vertex-ps5-owned";
