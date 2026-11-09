@@ -922,7 +922,7 @@ export function VerAiSurface() {
                     rows={1}
                     value={input}
                     disabled={exhausted}
-                    placeholder={exhausted ? "Daily limit reached" : "Message VER-AI"}
+                    placeholder={exhausted ? "Daily limit reached" : "Message McCrack AI"}
                     aria-label="Message VER-AI"
                     onChange={(e) => { setInput(e.target.value); grow(e.target); }}
                     onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void send(); } }}
