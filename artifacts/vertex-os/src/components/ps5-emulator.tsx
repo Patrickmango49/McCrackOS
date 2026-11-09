@@ -30,11 +30,11 @@ export type Ps5EmbeddedSurfaces = {
 };
 
 const MEDIA_APPS: MediaApp[] = [
-  { id: "browser", name: "Browser", publisher: "Vertex OS", kind: "app", icon: `${import.meta.env.BASE_URL}images/browser-icon.svg`, cover: `${import.meta.env.BASE_URL}images/browser-icon.svg`, description: "Browse the web with the built-in Vertex browser." },
+  { id: "browser", name: "Browser", publisher: "McCrack OS", kind: "app", icon: `${import.meta.env.BASE_URL}images/browser-icon.svg`, cover: `${import.meta.env.BASE_URL}images/browser-icon.svg`, description: "Browse the web with the built-in McCrack browser." },
   { id: "spotify", name: "Spotify", publisher: "Spicetify", kind: "app", icon: `${import.meta.env.BASE_URL}images/spicetify.ico`, cover: `${import.meta.env.BASE_URL}images/spicetify.ico`, description: "Your music and playlists, running inside the console." },
-  { id: "vertube", name: "VerTube", publisher: "Vertex OS", kind: "app", icon: `${import.meta.env.BASE_URL}images/vertube.svg`, cover: `${import.meta.env.BASE_URL}images/vertube.svg`, description: "VER-TUBE, streaming from inside the console." },
-  { id: "messages", name: "Messages", publisher: "Vertex OS", kind: "app", icon: `${import.meta.env.BASE_URL}images/messages-icon.webp`, cover: `${import.meta.env.BASE_URL}images/messages-icon.webp`, description: "Your Messages chats, already signed in." },
-  { id: "verai", name: "VER-AI", publisher: "Vertex OS", kind: "app", icon: `${import.meta.env.BASE_URL}images/ver-ai.ico`, cover: `${import.meta.env.BASE_URL}images/ver-ai.ico`, description: "A free AI assistant that lives on your console. No key, no sign-in, daily limit." },
+  { id: "vertube", name: "YouTube", publisher: "McCrack OS", kind: "app", icon: `${import.meta.env.BASE_URL}images/vertube.svg`, cover: `${import.meta.env.BASE_URL}images/vertube.svg`, description: "YouTube, streaming from inside the console." },
+  { id: "messages", name: "Messages", publisher: "McCrack OS", kind: "app", icon: `${import.meta.env.BASE_URL}images/messages-icon.webp`, cover: `${import.meta.env.BASE_URL}images/messages-icon.webp`, description: "Your Messages chats, already signed in." },
+  { id: "verai", name: "VER-AI", publisher: "McCrack OS", kind: "app", icon: `${import.meta.env.BASE_URL}images/ver-ai.ico`, cover: `${import.meta.env.BASE_URL}images/ver-ai.ico`, description: "A free AI assistant that lives on your console. No key, no sign-in, daily limit." },
 ];
 
 const OWNED_KEY = "vertex-ps5-owned";
@@ -689,7 +689,7 @@ export function Ps5EmulatorSurface({ surfaces }: { surfaces?: Ps5EmbeddedSurface
           ) : (
             <section className="game-info">
               <div className="game-brand">
-                <div className="text-logo"><h1>{query ? "Nothing here" : "Welcome to Vertex Station"}</h1></div>
+                <div className="text-logo"><h1>{query ? "Nothing here" : "Welcome to McCrack Station"}</h1></div>
               </div>
               <p className="tagline">{query ? `No games match “${query}”.` : "Your games. Your station. Open the Game Library to install something new."}</p>
               <div className="primary-actions">
@@ -1039,7 +1039,7 @@ function ControlCenter({ account, clock, playing, onSettings, onLibrary, onProfi
         <button type="button" className="activity-card" onClick={onProfile}>
           <span className="activity-art"><UserPlus /></span>
           <span className="kicker">PROFILE</span>
-          <h3>{account?.displayName ?? "Vertex Player"}</h3>
+          <h3>{account?.displayName ?? "McCrack Player"}</h3>
           <p>Manage your account, avatar and console theme.</p>
         </button>
         <button type="button" className="activity-card" onClick={onSettings}>
@@ -1078,7 +1078,7 @@ function WelcomePanel({ account, onClose }: { account: Ps5Account | null; onClos
             <span className="intro-mark" style={{ filter: "none", color: "#438cff", fontWeight: 700, display: "grid", placeItems: "center" }}>VS</span>
             <p className="intro-eyebrow">YOUR GAMES. YOUR MEDIA. ONE HOME.</p>
             <h3>Welcome to your console{account ? `, ${account.displayName}` : ""}.</h3>
-            <p className="intro-summary">Vertex Station brings your HTML5 games and media together. Browse the carousel with the arrow keys, open the Game Library to install more, and press Home for the Control Center.</p>
+            <p className="intro-summary">McCrack Station brings your HTML5 games and media together. Browse the carousel with the arrow keys, open the Game Library to install more, and press Home for the Control Center.</p>
             <div className="intro-features">
               <article><Gamepad2 /><div><h4>Play instantly</h4><p>Every game launches right in the console — no downloads to babysit.</p></div></article>
               <article><Star /><div><h4>Make it yours</h4><p>Favorite games, rearrange Home and pick a theme that fits.</p></div></article>
@@ -1204,7 +1204,7 @@ function PowerMenu({ account, onWake }: { account: Ps5Account | null; onWake: ()
   return (
     <div className="power-screen">
       <div className="power-indicator rest"><Power size={46} /></div>
-      <h1>Vertex Station is resting</h1>
+      <h1>McCrack Station is resting</h1>
       <p>{account ? `${account.displayName}, your console is still running in the background.` : "Your console is still running in the background."} Wake it up anytime to jump back in.</p>
       <button type="button" onClick={onWake}><Play size={20} fill="currentColor" /> Wake console</button>
       <p className="power-menu-note">Resting keeps your games paused where you left them. Sound and ambient music are suspended while you’re gone.</p>
@@ -1241,8 +1241,8 @@ function Ps5BootSurface({ account, onDone }: { account: Ps5Account | null; onDon
       <div className="ps5-boot-inner">
         <div className="ps5-boot-logo" aria-hidden="true"><span>VS</span></div>
         <div className="ps5-boot-returning">
-          <span>{account ? "Welcome back" : "Welcome to Vertex Station"}</span>
-          {account ? <strong>{account.displayName}</strong> : <strong>Vertex Player</strong>}
+          <span>{account ? "Welcome back" : "Welcome to McCrack Station"}</span>
+          {account ? <strong>{account.displayName}</strong> : <strong>McCrack Player</strong>}
           {account ? <div className="ps5-boot-avatar" style={avatarVisual(account)}>{account.displayName.slice(0, 1).toUpperCase()}</div> : null}
         </div>
         <div className="ps5-boot-loader" aria-hidden="true"><span /></div>
@@ -1326,7 +1326,7 @@ function Ps5AccountSurface({ onDone }: { onDone: (acc: Ps5Account) => void }) {
     <div className="ps5-account">
       <div className="ps5-account-glow" aria-hidden="true" />
       <div className="ps5-account-card">
-        <span className="ps5-account-badge">VERTEX-OS PRESENTS :</span>
+        <span className="ps5-account-badge">MCCRACK-COS PRESENTS :</span>
         <h1 className="ps5-account-title">Create your account</h1>
         <p className="ps5-account-sub">One account for your console profile. Your username is unique, your display name is shown on the console.</p>
         {err && <div className="ps5-account-err">{err}</div>}
@@ -1521,7 +1521,7 @@ function Ps5SearchField({ value, onChange, placeholder }: { value: string; onCha
   );
 }
 
-/** Renders the real in-OS app (Spicetify / VerTube / Messages) inside the console. */
+/** Renders the real in-OS app (Spicetify / YouTube / Messages) inside the console. */
 function MediaAppStage({ app, surfaces, onExit }: { app: MediaApp; surfaces?: Ps5EmbeddedSurfaces; onExit: () => void }) {
   if (app.id === "browser") {
     return (
@@ -1541,10 +1541,10 @@ function MediaAppStage({ app, surfaces, onExit }: { app: MediaApp; surfaces?: Ps
   }
   if (app.id === "vertube") {
     if (!surfaces?.verTube) return <MediaAppMissing name={app.name} />;
-    const VerTube = surfaces.verTube;
+    const YouTube = surfaces.verTube;
     return (
       <div className="ps5-media-app">
-        <VerTube />
+        <YouTube />
       </div>
     );
   }
