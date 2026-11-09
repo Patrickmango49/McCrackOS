@@ -1970,7 +1970,7 @@ onSessionClose: (peerCode) => {
 
   function openAppMenu(appId: AppId, x: number, y: number) {
     setContextMenu(null);
-    setWidgetMenu(null);
+    
     const ov = appOverrides[appId] ?? {};
     const base = apps.find((app) => app.id === appId);
     setRenameValue(ov.name ?? base?.title ?? "");
@@ -2098,9 +2098,9 @@ onSessionClose: (peerCode) => {
   const visibleDockEntries = dockOverflowed ? dockEntries.slice(0, dockCapacity) : dockEntries.slice(0, dockCapacity);
 
   return (
-        <main className={`os-root${PERF.low ? " perf-low" : ""}`} onClick={() => { setContextMenu(null); setAppMenu(null); setWidgetMenu(null); setDockMenu(null); setDockOverflowOpen(false); }} onContextMenu={(event) => {
+        <main className={`os-root${PERF.low ? " perf-low" : ""}`} onClick={() => { setContextMenu(null); setAppMenu(null);  setDockMenu(null); setDockOverflowOpen(false); }} onContextMenu={(event) => {
       event.preventDefault();
-      if (phase === "desktop") { setAppMenu(null); setWidgetMenu(null); setDockMenu(null); setContextMenu({ x: event.clientX, y: event.clientY }); }
+      if (phase === "desktop") { setAppMenu(null);  setDockMenu(null); setContextMenu({ x: event.clientX, y: event.clientY }); }
     }}>
       <div className="wallpaper-layer">
         {activeWallpaper.id === "vertex-studio"
@@ -2588,18 +2588,6 @@ onSessionClose: (peerCode) => {
               <button onClick={() => { setIconSize("large"); storage.write("vertex-icon-size", "large"); setContextMenu(null); }}><span className="context-menu-checkmark">{iconSize === "large" ? <Check size={12} /> : null}</span> {t("ctx.iconLarge")}</button>
               <button onClick={() => { setIconSize("medium"); storage.write("vertex-icon-size", "medium"); setContextMenu(null); }}><span className="context-menu-checkmark">{iconSize === "medium" ? <Check size={12} /> : null}</span> {t("ctx.iconMedium")}</button>
               <button onClick={() => { setIconSize("small"); storage.write("vertex-icon-size", "small"); setContextMenu(null); }}><span className="context-menu-checkmark">{iconSize === "small" ? <Check size={12} /> : null}</span> {t("ctx.iconSmall")}</button>
-            </div>
-          </span>
-          <span className="context-menu-hover">
-            <button className="context-menu-parent"><LayoutGrid size={15} /> {t("ctx.widgets")} <ChevronRight className="context-menu-caret" size={12} /></button>
-            <div className="context-submenu">
-              <button onClick={() => { toggleWidget("deck"); setContextMenu(null); }}><span className="context-menu-checkmark">{isWidgetHidden("deck") ? null : <Check size={12} />}</span> {t("side.jumpBack")}</button>
-              <button onClick={() => { toggleWidget("media"); setContextMenu(null); }}><span className="context-menu-checkmark">{isWidgetHidden("media") ? null : <Check size={12} />}</span> {t("side.quickPlay")}</button>
-              <button onClick={() => { toggleWidget("updates"); setContextMenu(null); }}><span className="context-menu-checkmark">{isWidgetHidden("updates") ? null : <Check size={12} />}</span> {t("side.systemStatus")}</button>
-              <button onClick={() => { toggleWidget("calendar"); setContextMenu(null); }}><span className="context-menu-checkmark">{isWidgetHidden("calendar") ? null : <Check size={12} />}</span> {t("ctx.calendarWidget")}</button>
-              <button onClick={() => { toggleWidget("weather"); setContextMenu(null); }}><span className="context-menu-checkmark">{isWidgetHidden("weather") ? null : <Check size={12} />}</span> {t("ctx.weatherWidget")}</button>
-              <button onClick={() => { toggleWidget("resources"); setContextMenu(null); }}><span className="context-menu-checkmark">{isWidgetHidden("resources") ? null : <Check size={12} />}</span> {t("ctx.resourcesWidget")}</button>
-              <button onClick={() => { setWidgetHidden([]); setContextMenu(null); }}>{t("ctx.showAllWidgets")}</button>
             </div>
           </span>
           <button onClick={() => { setShowDesktopIcons((visible) => { storage.write("vertex-show-icons", !visible); return !visible; }); }}><span className="context-menu-checkmark">{showDesktopIcons ? <Check size={12} /> : null}</span> {t("ctx.showIcons")}</button>
