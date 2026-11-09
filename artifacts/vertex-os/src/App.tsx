@@ -19,7 +19,7 @@ import { BrowserSurface, ProxyUrlFrame } from "./components/browser-app";
 import moviesAppHtml from "./movies/app.html?raw";
 import { VertexStudioWallpaper } from "./components/vertex-wallpaper";
 import { HalloweenDecor, HalloweenWallpaper } from "./components/halloween";
-import { MusicWidgetLayer, MusicWidgetManager } from "./components/music-widgets";
+
 import { LockAppsLayer, LockAppsManager, recordRecentApp } from "./components/lock-apps";
 import { AdminSurface } from "./components/admin-app";
 import { startAnalytics, trackEvent } from "./analytics";
@@ -29,11 +29,11 @@ import { LANG, LANGS, t, tf, tp, readLang, saveLang, localeOf, type Lang } from 
 import { WallpaperPicker, type PickerWallpaper, loadCustomWallpapers, persistCustomWallpaper, removeCustomWallpaper, readCustomWallpapersLocal } from "./components/wallpaper-picker";
 import { SystemTray } from "./components/system-tray";
 import { MacMenuBar } from "./components/mac-menubar";
-import { AlternativePanel, DesktopWidgets, MovableWidget, type WidgetId, type WidgetPosition, type WidgetSkin } from "./components/desktop-widgets";
+
 import { LinksApp } from "./components/links-app";
 import { assetUrl } from "./asset-map";
-import { VMarketSurface, VStudiosSurface, VMarketAppRunner, readVMarketEntries, readVMarketInstalled } from "./v-market";
-import { DiscordApp } from "./components/discord-app";
+import { VStudiosSurface } from "./v-market";
+
 import { TerminalBanner } from "./terminal/TerminalBanner";
 import { ansiToNodes } from "./terminal/ansi";
 import { CUSTOM_BANNER_ID, CUSTOM_PALETTE_ID, TERMINAL_BANNERS, TERMINAL_PALETTES, getBanner, getPalette, normalizeHex, type TerminalPalette } from "./terminal/banners";
@@ -55,32 +55,15 @@ type ColorMode = "dark" | "light";
 type SystemStyle = "vertex" | "macos";
 type TabHideImage = { id: string; name: string; src: string };
 type SystemSettings = { optimized: boolean; fastBoot: boolean; idleLock: boolean; confirm: boolean; cloak: string; cloakName: string; cloakIcon: string; panicKey: string; panicUrl: string; adblock: boolean; adblockUrl: string; deviceName: string; colorMode: ColorMode; systemStyle: SystemStyle; fontStyle: string; tabHide: boolean; tabHideImage: string; tabHideImages: TabHideImage[] };
-const defaultSettings: SystemSettings = { optimized: false, fastBoot: false, idleLock: false, confirm: false, cloak: "none", cloakName: "Vertex-OS", cloakIcon: "", panicKey: "`", panicUrl: "", adblock: false, adblockUrl: "", deviceName: "VERTEX-PC", colorMode: "dark", systemStyle: "vertex", fontStyle: "vertex", tabHide: false, tabHideImage: "iready", tabHideImages: [{ id: "black", name: "Black screen", src: "black" }, { id: "white", name: "White screen", src: "white" }, { id: "iready", name: "I-Ready", src: asset("images/tabhide-iready.png") }, { id: "classroom", name: "Google Classroom", src: asset("images/tabhide-classroom.png") }] };
+const defaultSettings: SystemSettings = { optimized: false, fastBoot: false, idleLock: false, confirm: false, cloak: "none", cloakName: "McCrack-COS", cloakIcon: "", panicKey: "`", panicUrl: "", adblock: false, adblockUrl: "", deviceName: "McCrack-PC", colorMode: "dark", systemStyle: "vertex", fontStyle: "vertex", tabHide: false, tabHideImage: "iready", tabHideImages: [{ id: "black", name: "Black screen", src: "black" }, { id: "white", name: "White screen", src: "white" }, { id: "iready", name: "I-Ready", src: asset("images/tabhide-iready.png") }, { id: "classroom", name: "Google Classroom", src: asset("images/tabhide-classroom.png") }] };
 const PASSWORD_KEY = "vertex-password";
 const PROFILE_KEY = "vertex-profile";
 const ACCOUNTS_KEY = "vertex-accounts";
-const VERTEX_VERSION = "4.1";
+const McCrack_VERSION = "4.1";
 const HALLOWEEN_ACTIVE = new Date().getMonth() === 9;
 const SEASON_WALLPAPER: WallpaperId = HALLOWEEN_ACTIVE ? "halloween" : "vertex-studio";
 
 type VertexAccount = { id: string; name: string; createdAt: number; pass?: string; avatar?: string; email?: string };
-
-const PRESET_AVATARS = ["🦊", "🐼", "🐸", "🐙", "🌙", "🔥", "⚡", "🎧", "🚀", "🌈", "💀", "🫀"];
-
-const PROFILE_ANIME_AVATARS = [
-  "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx21-ELSYx3yMPcKM.jpg",
-  "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx97888-tdZ1r7qN1DRs.jpg",
-  "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx124195-5Z1JSrRlbMRe.jpg",
-  "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx269-d2GmRkJbMopq.png",
-  "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx189046-yaHWtS5FII46.jpg",
-  "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx178789-hNXjKFzUq7mk.jpg",
-  "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx210482-P1VNKbqdJ6Zj.jpg",
-  "https://s4.anilist.co/file/anilistcdn/media/manga/cover/medium/bx74347-sZpmNJ5xLwRK.jpg",
-  "https://s4.anilist.co/file/anilistcdn/media/manga/cover/medium/bx106130-yPNeuSu75ey1.jpg",
-  "https://s4.anilist.co/file/anilistcdn/media/manga/cover/medium/nx86399-NwbRFVh5koqc.jpg",
-];
-const AVATAR_MAX_PIX = 320;
-const AVATAR_MAX_GIF = 4 * 1024 * 1024;
 
 function avatarFromFile(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -215,7 +198,7 @@ const pvSrc = (nativeV?: string, lowV?: string) => (!nativeV ? undefined : lowV 
 const BOOT_INTRO_SRC = "https://cineosweb.github.io/Videos/Boot.mp4";
 
 const CLOAKS: Record<string, { title: string; icon: string }> = {
-  none: { title: "Vertex-OS", icon: asset(HALLOWEEN_ACTIVE ? "vertex-hub-logo-halloween.png" : "vertex-hub-logo.png") },
+  none: { title: "McCrack-COS", icon: asset(HALLOWEEN_ACTIVE ? "vertex-hub-logo-halloween.png" : "vertex-hub-logo.png") },
   google: {
     title: "Google",
     icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAA5FBMVEVHcEz9SlD/TkL/RUH/RUD/RkP4gyr/SUX/Rj//SE3/Yjb/UDn/Szz9TFb/Yi7/WTT8TVn/cyf/Zi7/iRz/fSL/lRb/SEjeuwX/qQ7/nhP/tgv9TFX6yQj/wwn/zAffugr8zgb+zwnzzQb4ywkvhv82qo79zgQek+ApjurzzAPlywIvhv0qifjRyQEth/y5yAKnxwAoivaMxQUak94fj+hzxAtawxdawhgLpa4OncYVltc8wCobvFIMuWgHqp0KorWaxQEnvz4bvUwPumUNumQMumgIr4wIqaIRvFoNu2MKtnRJwh6BPIl6AAAATHRSTlMAWZDK7P8Orf//Gv///+b/5P7////4dor///8qmP/9K0j/tu7/DeYwRP//HWr/rv///v/b///+HMT///+XTvD/5f//yGzw///////mXfQ9oAAAAWBJREFUeAF0z1UCgCAQRdEZ7O7u/W9STPr93oMCcENi2Y5jWwRBM9fz7zl0QeCFcidRHLMeJAkRj6dZdom/0+Uu62FRlpcQQILsfFVfIrqE/wPWoWleEXstYutdgO9dP9wi++/VCt0dx0dwL5u4DvNyiaFywbB1WS6ymfp+rJSMM5g2H7fYjOCsi5wOIAiCKNhRnG1bazv/fG7erFW/VcNezFEsKWVVZk2bOVi0BVuawE9GbcGOJrxoD3DEZD5ZtAcLdsX9vvWSW/ZM5g+H7JnHhFMcsI+CPpwXVOGSBsT8+Xy9VX5qfQerC77yDP94rEvB8/VCscO4z1f49+db8D9BFJEQ6N64/0hyqhVV03hxIo7+eMNLhmnZimLLjut6msCKZ3qhR+wN0/f9IAjD0PV4kV3rW/QoXF5sC4+KcEAShMkWzBeQ+QaFLX5rKrOWzcQjsHbUgCJbThA4lmwXVv8BPaBVEHC66TMAAAAASUVORK5CYII=",
@@ -224,7 +207,7 @@ const CLOAKS: Record<string, { title: string; icon: string }> = {
 };
 
 const wallpapers: Wallpaper[] = [
-  { id: "vertex-studio", name: "Vertex Studios", meta: "Animated · Vertex-OS", image: asset("images/vertex-studios-thumb.svg") },
+  { id: "vertex-studio", name: "Vertex Studios", meta: "Animated · McCrack-COS", image: asset("images/vertex-studios-thumb.svg") },
   { id: "halloween", name: "Halloween Night", meta: "Animated · Spooky", image: asset("images/halloween-thumb.svg") },
   { id: "macos-default", name: "macOS 27", meta: "macOS · Default", image: asset("images/macos-27-home.jpg") },
   { id: "macos-lock", name: "macOS 27 Night", meta: "macOS · Lock screen", image: asset("images/macos-27-lock.jpg") },
@@ -387,29 +370,26 @@ const ARCH_ICON = asset("images/archlinux.png");
 type AppDef = { id: AppId; title: string; subtitle: string; icon: LucideIcon; iconImg?: string; pinned?: boolean; squircle?: boolean };
 
 const baseApps: AppDef[] = [
-  { id: "hub", title: "V-MARKET", subtitle: "apps, games & websites", icon: Package, iconImg: asset("images/v-market-logo.jpg"), pinned: true, squircle: true },
-  { id: "spicetify", title: "Spicetify", subtitle: t("appSub.spicetify"), icon: Music2, iconImg: asset("images/spicetify.ico"), pinned: true },
-  { id: "wallpaper-engine", title: "Wallpaper Engine", subtitle: t("appSub.wallpaperEngine"), icon: Image, iconImg: asset("images/wallpaper-engine.gif"), pinned: true, squircle: true },
   { id: "browser", title: "Browser", subtitle: t("appSub.browser"), icon: Compass, iconImg: asset("images/browser-icon.png"), pinned: true },
-  { id: "appmaker", title: "V-STUDIOS", subtitle: "build & publish your own", icon: Code2, iconImg: asset("images/v-studios-logo.svg"), pinned: true, squircle: true },
-  { id: "pizza", title: "Pizza edition", subtitle: t("appSub.pizza"), icon: Compass, iconImg: asset("images/pizza.ico"), pinned: true },
-  { id: "roblox", title: "Roblox", subtitle: t("appSub.roblox"), icon: Gamepad2, iconImg: asset("images/roblox.ico"), pinned: true },
   { id: "messages", title: "Messages", subtitle: t("appSub.messages"), icon: MessageCircle, iconImg: asset("images/messages-icon.webp"), pinned: true },
-  { id: "verai", title: "VER-AI", subtitle: t("appSub.verai"), icon: Sparkles, iconImg: asset("images/ver-ai.ico"), pinned: true },
-  { id: "jarvis", title: "JARVIS", subtitle: t("appSub.jarvis"), icon: Bot, iconImg: asset("images/jarvis-logo.png") },
-  { id: "vertube", title: "VerTube", subtitle: t("appSub.vertube"), icon: PlaySquare, iconImg: asset("images/vertube.svg") },
-  { id: "movies", title: "Movies", subtitle: t("appSub.movies"), icon: Film, iconImg: asset("images/cineos-icon.png") },
+  { id: "verai", title: "McCrack AI", subtitle: t("appSub.verai"), icon: Sparkles, iconImg: asset("images/ver-ai.ico"), pinned: true },
+  { id: "vertube", title: "YouTube", subtitle: t("appSub.vertube"), icon: PlaySquare, iconImg: asset("images/vertube.svg"), pinned: true },
+  { id: "movies", title: "Movies", subtitle: t("appSub.movies"), icon: Film, iconImg: asset("images/cineos-icon.png"), pinned: true },
   { id: "settings", title: "Config", subtitle: t("appSub.settings"), icon: Settings2, iconImg: asset("images/config-icon.png"), pinned: true },
+  { id: "appmaker", title: "McCrack Studios", subtitle: "build & publish your own", icon: Code2, iconImg: asset("images/v-studios-logo.svg"), squircle: true },
+  { id: "spicetify", title: "Spicetify", subtitle: t("appSub.spicetify"), icon: Music2, iconImg: asset("images/spicetify.ico") },
+  { id: "wallpaper-engine", title: "Wallpaper Engine", subtitle: t("appSub.wallpaperEngine"), icon: Image, iconImg: asset("images/wallpaper-engine.gif"), squircle: true },
+  { id: "pizza", title: "Pizza edition", subtitle: t("appSub.pizza"), icon: Compass, iconImg: asset("images/pizza.ico") },
+  { id: "roblox", title: "Roblox", subtitle: t("appSub.roblox"), icon: Gamepad2, iconImg: asset("images/roblox.ico") },
+  { id: "jarvis", title: "JARVIS", subtitle: t("appSub.jarvis"), icon: Bot, iconImg: asset("images/jarvis-logo.png") },
   { id: "games", title: "PS5 Emu", subtitle: t("appSub.games"), icon: Gamepad2, iconImg: asset("images/ps5-emu.png"), squircle: true },
   { id: "minecraft", title: "Minecraft Launcher", subtitle: t("appSub.minecraft"), icon: Gamepad2, iconImg: MC_ICON, squircle: true },
   { id: "translucenttb", title: "TranslucentTB", subtitle: t("appSub.translucenttb"), icon: Waves, iconImg: asset("images/translucenttb-logo.png") },
   { id: "calculator", title: "Calculator", subtitle: t("appSub.calculator"), icon: Calculator, iconImg: asset("images/calculator-logo.svg") },
   { id: "rainmeter", title: "Rainmeter", subtitle: t("appSub.rainmeter"), icon: MonitorCog, iconImg: RAINMETER_ICON },
-  { id: "terminal", title: "Terminal", subtitle: t("appSub.terminal"), icon: Terminal, iconImg: ARCH_ICON, pinned: true },
+  { id: "terminal", title: "Terminal", subtitle: t("appSub.terminal"), icon: Terminal, iconImg: ARCH_ICON },
   { id: "links", title: "Links", subtitle: t("appSub.links"), icon: Link2, iconImg: asset("images/links.svg") },
-  { id: "discord", title: "Discord", subtitle: t("appSub.discord"), icon: MessageCircle, iconImg: asset("images/discord-icon.png"), pinned: true, squircle: true },
-  { id: "vcloud", title: "V-CLOUD", subtitle: t("appSub.vcloud"), icon: Cloud, iconImg: asset("images/v-cloud-logo.png"), pinned: true, squircle: true },
-];
+];;
 
 // Installed V-MARKET listings are folded into this list at runtime by <App />.
 let apps: AppDef[] = baseApps;
@@ -419,9 +399,9 @@ type AppOverride = { name?: string; showName?: boolean; iconUrl?: string; pinned
 const APP_SECTIONS: { id: string; tone: string; all?: boolean; ids: AppId[] }[] = [
   { id: "all", tone: "tone-all", all: true, ids: [] },
   { id: "watch", tone: "tone-watch", ids: ["vertube", "movies", "spicetify", "messages", "verai", "jarvis"] },
-  { id: "play", tone: "tone-play", ids: ["roblox", "minecraft", "games", "pizza", "vcloud"] },
-  { id: "create", tone: "tone-create", ids: ["terminal", "wallpaper-engine", "browser", "calculator", "hub", "appmaker", "settings", "translucenttb", "rainmeter", "links"] },
-];
+  { id: "play", tone: "tone-play", ids: ["roblox", "minecraft", "games", "pizza"] },
+  { id: "create", tone: "tone-create", ids: ["terminal", "wallpaper-engine", "browser", "calculator", "appmaker", "settings", "translucenttb", "rainmeter", "links"] },
+];;
 
 const GV_APP: { id: AppId; title: string; subtitle: string; icon: LucideIcon; pinned: boolean; showName: boolean } = { id: "ghostview", title: "GhostView", subtitle: "remote view", icon: Eye, pinned: false, showName: false };
 
@@ -1173,44 +1153,12 @@ storage.read("vertex-jarvis-installed", false));
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   const [contextMenuPos, setContextMenuPos] = useState<{ x: number; y: number } | null>(null);
   const contextMenuRef = useRef<HTMLDivElement>(null);
-  const [marketVersion, setMarketVersion] = useState(0);
-  useEffect(() => {
-    const refresh = () => setMarketVersion((version) => version + 1);
-    window.addEventListener("vertex-vmarket-changed", refresh);
-    return () => window.removeEventListener("vertex-vmarket-changed", refresh);
-  }, []);
-  const installedMarketApps = useMemo<AppDef[]>(() => {
-    const installed = new Set(readVMarketInstalled());
-    return readVMarketEntries()
-      .filter((entry) => installed.has(entry.id))
-      .map((entry) => ({
-        id: entry.id as AppId,
-        title: entry.name,
-        subtitle: entry.company,
-        icon: Package,
-        iconImg: entry.logo,
-        pinned: true,
-        squircle: true,
-      }));
-  }, [marketVersion]);
-  apps = useMemo<AppDef[]>(() => [...baseApps, ...installedMarketApps], [installedMarketApps]);
+  apps = useMemo<AppDef[]>(() => [...baseApps], []);
   const [desktopApps, setDesktopApps] = useState<AppId[]>(() => {
     const saved = storage.read<AppId[]>("vertex-desktop-apps", []);
     const valid = Array.isArray(saved) ? saved.filter((id) => apps.some((app) => app.id === id)) : [];
     return valid.length ? valid : apps.slice(0, 6).map((app) => app.id);
   });
-  useEffect(() => {
-    const onStoreInstall = (event: Event) => {
-      const detail = (event as CustomEvent<{ id?: string } | string>).detail;
-      const id = typeof detail === "string" ? detail : detail?.id;
-      if (!id) return;
-      setShowDesktopIcons(true);
-      storage.write("vertex-show-icons", true);
-      setDesktopApps((previous) => previous.includes(id) ? previous : [...previous, id]);
-    };
-    window.addEventListener("vertex-vmarket-install", onStoreInstall);
-    return () => window.removeEventListener("vertex-vmarket-install", onStoreInstall);
-  }, []);
   const [ps5Shortcuts, setPs5Shortcuts] = useState<Ps5DesktopShortcut[]>(() => storage.read("vertex-ps5-desktop-shortcuts", []));
   useEffect(() => {
     const addShortcut = (event: Event) => {
@@ -2212,7 +2160,7 @@ onSessionClose: (peerCode) => {
         {!bootVideo && (
           <div className="boot-core">
             <BrandMark />
-            <h1 className="boot-title">VERTEX-OS</h1>
+            <h1 className="boot-title">McCrack-COS</h1>
             <p className="boot-sub">{t("boot.bootSub")}</p>
             <div className="boot-actions">
               <button className="primary-button" data-testid="button-enter-vertex" onClick={(event) => { event.stopPropagation(); startIntro(); }}>
@@ -2232,9 +2180,9 @@ onSessionClose: (peerCode) => {
             : null}
         <div className="signin-card profile-card">
           <div className="lock-avatar"><BrandMark /></div>
-          <div className="profile-kicker">Vertex-OS · v{VERTEX_VERSION}</div>
+          <div className="profile-kicker">McCrack-COS · v{McCrack_VERSION}</div>
           <h2 className="profile-title">Create your profile</h2>
-          <p className="profile-sub">Pick a name (and any anime avatar) and you&apos;re in.</p>
+          <p className="profile-sub">Choose a name and upload a profile picture, or use your initials.</p>
           <div className="profile-avatar-row">
             <span className={`profile-avatar-preview ${profileAvatar ? "has-img" : ""}`}>
               {profileAvatar ? <AvatarGlyph value={profileAvatar} name={profileName} size={52} /> : <span className="profile-avatar-glyph">{profileName.trim().slice(0, 1).toUpperCase() || "?"}</span>}
@@ -2249,20 +2197,6 @@ onSessionClose: (peerCode) => {
                 void avatarFromFile(file).then(setProfileAvatar).catch((err: Error) => setProfileErr(err.message));
               }} />
             </label>
-          </div>
-          <div className="profile-avatar-label">Anime avatars</div>
-          <div className="profile-avatar-animes" aria-label="Anime avatars">
-            {PROFILE_ANIME_AVATARS.map((u) => (
-              <button key={u} type="button" className={`profile-avatar-anime ${profileAvatar === u ? "selected" : ""}`} onClick={() => setProfileAvatar(u)} aria-label="Anime avatar">
-                <img src={u} alt="" loading="lazy" />
-              </button>
-            ))}
-          </div>
-          <div className="profile-avatar-label">Emoji avatars</div>
-          <div className="profile-avatar-presets" aria-label="Preset avatars">
-            {PRESET_AVATARS.map((glyph) => (
-              <button key={glyph} type="button" className={`profile-avatar-preset ${profileAvatar === `preset:${glyph}` ? "selected" : ""}`} onClick={() => setProfileAvatar(`preset:${glyph}`)} aria-label={glyph}>{glyph}</button>
-            ))}
           </div>
           <form className="profile-fields" onSubmit={(event) => { event.preventDefault(); createProfile(); }}>
             <label>
@@ -2336,7 +2270,6 @@ onSessionClose: (peerCode) => {
               ? <video key={activeLockWallpaper.id} ref={lockVideoRef} className="lock-wallpaper-video" src={bgSrc(activeLockWallpaper.video, activeLockWallpaper.videoLow)} preload="metadata" autoPlay muted loop playsInline aria-label={`${activeLockWallpaper.name} lock wallpaper`} />
               : null}
         {rmCfg.showClock && <RainmeterWidget cfg={rmCfg} date={now} tone="lock" wallpaper={activeLockWallpaper} />}
-        <MusicWidgetLayer surface="lock" />
         <LockAppsLayer
           catalog={apps.map((app) => ({ id: app.id, title: app.title }))}
           renderIcon={(appId) => <AppIcon app={getApp(appId as AppId, appOverrides)} size={26} />}
@@ -2354,7 +2287,7 @@ onSessionClose: (peerCode) => {
         <div className="signin-card">
            <div className="lock-avatar lock-avatar-account">{selectedAccount ? <AvatarGlyph value={selectedAccount.avatar} name={selectedAccount.name} size={92} /> : <BrandMark />}</div>
            <div className="lock-user">{selectedAccount?.name ?? t("set.passwordLabel")}</div>
-           <div className="lock-version">Vertex-OS · v{VERTEX_VERSION}</div>
+           <div className="lock-version">McCrack-COS · v{McCrack_VERSION}</div>
           <form className="lock-pass-row" onSubmit={(event) => { event.preventDefault(); unlock(); }}>
             <input type="password" autoFocus value={pinInput} onChange={(event) => { setPinInput(event.target.value); setPinError(false); }} placeholder={t("lock.pass")} aria-label={t("lock.pass")} data-testid="input-vertex-password" />
             <button type="submit">{t("lock.signIn")}</button>
@@ -2370,7 +2303,7 @@ onSessionClose: (peerCode) => {
           now={now}
           lang={chosenLang}
           appName={activeWindow ? getApp(activeWindow, appOverrides).title : "Finder"}
-          accountName={activeAccount?.name ?? "Vertex-OS"}
+          accountName={activeAccount?.name ?? "McCrack-COS"}
           windows={windows.filter((w) => !w.minimized).map((w) => ({ id: w.id, title: getApp(w.id, appOverrides).title }))}
           activeWindowId={activeWindow}
           unseen={unseenNotifications}
@@ -2393,44 +2326,8 @@ onSessionClose: (peerCode) => {
         {HALLOWEEN_ACTIVE && <HalloweenDecor />}
         {rmCfg.showClock && <RainmeterWidget cfg={rmCfg} date={now} tone="home" wallpaper={activeWallpaper} onAlternative={() => setAlternativeOpen(true)} />}
 
-        {hasSidebarWidgets ? <aside className={"sidebar alternative-sidebar--" + widgetSide + (widgetLabels ? "" : " widget-labels-hidden")} aria-label="Quick access" style={{ "--widget-scale": widgetScale, "--widget-accent": widgetAccent } as CSSProperties}>
-          {widgetLabels ? <div className="side-head"><Sparkles size={12} /><span>{t("ctx.widgets")}</span></div> : null}
-          {!isWidgetHidden("deck") ? <MovableWidget id="deck" locked={widgetLocked.includes("deck")} position={widgetPositions.deck} onPositionChange={saveWidgetPosition} scale={widgetScale} labels={widgetLabels} accent={widgetAccent}><div data-widget-id="deck" className="side-block">
-             <div className="side-label"><span className="side-dot" />{t("side.jumpBack")}</div>
-            <button className="side-card side-card--deck" onClick={() => toggleApp("games")} onContextMenu={(event) => { event.preventDefault(); event.stopPropagation(); setContextMenu(null); setAppMenu(null); setWidgetMenu({ id: "deck", x: event.clientX, y: event.clientY }); }} data-testid="button-jump-back">
-               <span className="side-glow" aria-hidden="true" />
-               <span className="side-art"><Gamepad2 size={22} /></span>
-               <span className="side-info"><strong>{t("side.gameDeck")}</strong><span>{t("side.libraryReady")}</span></span>
-               <span className="side-cta"><ChevronRight size={15} /></span>
-            </button>
-          </div></MovableWidget> : null}
-          {!isWidgetHidden("media") ? <MovableWidget id="media" locked={widgetLocked.includes("media")} position={widgetPositions.media} onPositionChange={saveWidgetPosition} scale={widgetScale} labels={widgetLabels} accent={widgetAccent}><div data-widget-id="media" className="side-block">
-             <div className="side-label"><span className={`side-dot side-dot--live${currentTrack ? " on" : ""}`} />{t("side.quickPlay")}</div>
-            <button className="side-card side-card--media" onClick={() => { toggleApp("spicetify"); }} onContextMenu={(event) => { event.preventDefault(); event.stopPropagation(); setContextMenu(null); setAppMenu(null); setWidgetMenu({ id: "media", x: event.clientX, y: event.clientY }); }} data-testid="button-quick-play">
-               <span className="side-glow" aria-hidden="true" />
-               <span className="side-art">
-                 {currentTrack ? <img src={currentTrack.artwork} alt="" /> : <Play size={19} />}
-                 {currentTrack ? <span className="side-eq" aria-hidden="true"><i /><i /><i /></span> : null}
-               </span>
-               <span className="side-info"><strong>{currentTrack ? currentTrack.name : t("side.notPlaying")}</strong><span>{currentTrack ? currentTrack.artist : t("side.quickPlay")}</span></span>
-               <span className="side-cta"><ChevronRight size={15} /></span>
-            </button>
-          </div></MovableWidget> : null}
-          {!isWidgetHidden("updates") ? <MovableWidget id="updates" locked={widgetLocked.includes("updates")} position={widgetPositions.updates} onPositionChange={saveWidgetPosition} scale={widgetScale} labels={widgetLabels} accent={widgetAccent}><div data-widget-id="updates" className="side-block">
-             <div className="side-label"><span className="side-dot side-dot--ok" />{t("side.systemStatus")}</div>
-            <button className="side-card side-card--updates" onClick={() => setUpdateOpen(true)} onContextMenu={(event) => { event.preventDefault(); event.stopPropagation(); setContextMenu(null); setAppMenu(null); setWidgetMenu({ id: "updates", x: event.clientX, y: event.clientY }); }} data-testid="button-update-log">
-               <span className="side-glow" aria-hidden="true" />
-               <span className="side-art"><Radio size={20} /></span>
-               <span className="side-info"><strong>{t("side.updateLog")}</strong><span>{t("side.latestPatches")}</span></span>
-               <span className="side-chip">v{VERTEX_VERSION}</span>
-            </button>
-          </div></MovableWidget> : null}
-          <DesktopWidgets hidden={widgetHidden} labels={widgetLabels} location={weatherLocation} accent={widgetAccent} lang={chosenLang} locked={widgetLocked} scale={widgetScale} positions={widgetPositions} onPositionChange={saveWidgetPosition} onWidgetContext={(id, event) => { event.preventDefault(); event.stopPropagation(); setContextMenu(null); setAppMenu(null); setWidgetMenu({ id, x: event.clientX, y: event.clientY }); }} />
-        </aside> : null}
-
         <NowPlayingCard />
 
-        <MusicWidgetLayer surface="desktop" />
 
         <div className={`desktop-grid ${showDesktopIcons ? "" : "hidden"}`} ref={desktopGridRef} aria-label="Desktop applications" onDragOver={(event) => {
           event.preventDefault();
@@ -2655,7 +2552,7 @@ onSessionClose: (peerCode) => {
         )}
 
         <InfoModal open={updateOpen} title={t("update.title")} onClose={() => setUpdateOpen(false)}>
-          <div className="update-version">{t("update.version")}<strong>v{VERTEX_VERSION}</strong></div>
+          <div className="update-version">{t("update.version")}<strong>v{McCrack_VERSION}</strong></div>
           <div className="update-hallo">
             <span className="update-hallo-emoji">🎃</span>
             <div>
@@ -2664,7 +2561,7 @@ onSessionClose: (peerCode) => {
             </div>
           </div>
           <div className="update-sec">
-            <div className="update-sec-title">{t("update.halloween")} · v{VERTEX_VERSION}</div>
+            <div className="update-sec-title">{t("update.halloween")} · v{McCrack_VERSION}</div>
             <div className="update-group-label add">{t("update.added")}</div>
             <ul className="update-list update-changes">
               <li className="update-add"><span className="update-sign">+</span>{t("update.h1")}</li>
@@ -3482,7 +3379,7 @@ const TERM_HELP_ROWS: [string, string][] = [
   ["ansi", "preview ANSI colors & text styles"],
   ["settings", "open the terminal settings panel"],
   ["!sudo install fsociety.tool?full", "fsociety™ — take over the banner"],
-  ["!sudo uninstall fsociety", "remove fsociety™ and restore Vertex-OS"],
+  ["!sudo uninstall fsociety", "remove fsociety™ and restore McCrack-COS"],
   ["!sudo curl install NMAP", "unlock the recon toolkit (needs fsociety)"],
   ["nmap <host>", "port scan a target (needs NMAP)"],
   ["!sudo curl py. geo_tracker.py target <IP>", "target recon — geo, ASN, ISP, proxy check"],
@@ -3619,7 +3516,7 @@ function TerminalSurface({ installed, onInstalled, onFsociety, jarvisInstalled, 
         msLogA(`  \u001b[36m${usage.padEnd(34)}\u001b[0m\u001b[2m${description}\u001b[0m`);
       }
       msLogA("\u001b[2m──────────────────────────────────────────────\u001b[0m");
-      msLogA("\u001b[2m  real P2P delivery — friend must have a Vertex-OS session with an account code.\u001b[0m");
+      msLogA("\u001b[2m  real P2P delivery — friend must have a McCrack-COS session with an account code.\u001b[0m");
       return;
     }
     if (head === "!clear") { setMsLines([]); return; }
@@ -3678,7 +3575,7 @@ function TerminalSurface({ installed, onInstalled, onFsociety, jarvisInstalled, 
           if (r === "self") {
             msLogErr(<>delivery blocked — that's <b>this session</b>. <span className="term-cmd">{friend}</span> is your own code.</>);
           } else if (r === "peer-unavailable") {
-            msLogErr(<>delivery failed — <b>{friend}</b> isn't on the P2P cloud. They need a Vertex-OS session open with an account code — in a <b>separate browser, incognito, or another device</b> (two tabs in one browser share a single code, so only one can answer).</>);
+            msLogErr(<>delivery failed — <b>{friend}</b> isn't on the P2P cloud. They need a McCrack-COS session open with an account code — in a <b>separate browser, incognito, or another device</b> (two tabs in one browser share a single code, so only one can answer).</>);
           } else if (r === "local") {
             msLogErr(<>delivery failed — your GhostView peer isn't registered yet. wait a second, then use <span className="term-cmd">!probe {friend}</span>.</>);
           } else if (r === "network") {
@@ -3708,7 +3605,7 @@ function TerminalSurface({ installed, onInstalled, onFsociety, jarvisInstalled, 
         } else if (res.reason === "network") {
           msLogErr(<>P2P cloud unreachable — check your connection.</>);
         } else {
-          msLogErr(<>no answer — <b>{who}</b> is offline. they need a Vertex-OS session open with an account code, in a separate browser/incognito/device.</>);
+          msLogErr(<>no answer — <b>{who}</b> is offline. they need a McCrack-COS session open with an account code, in a separate browser/incognito/device.</>);
         }
       });
       return;
@@ -3738,7 +3635,7 @@ function TerminalSurface({ installed, onInstalled, onFsociety, jarvisInstalled, 
     if (!cmd) { p(<span className="term-in"><span className="term-prompt">{prompt}</span></span>); return; }
     p(<span className="term-in"><span className="term-prompt">{prompt}</span> <span className="term-cmd">{cmd}</span></span>);
     if (cmd === "help") {
-      pa("\u001b[1m\u001b[38;5;45mVertex-OS Terminal\u001b[0m \u001b[2m— available commands\u001b[0m");
+      pa("\u001b[1m\u001b[38;5;45mMcCrack-COS Terminal\u001b[0m \u001b[2m— available commands\u001b[0m");
       pa("\u001b[2m──────────────────────────────────────────────\u001b[0m");
       for (const [usage, description] of TERM_HELP_ROWS) {
         pa(`  \u001b[36m${usage.padEnd(32)}\u001b[0m\u001b[2m${description}\u001b[0m`);
@@ -3756,7 +3653,7 @@ function TerminalSurface({ installed, onInstalled, onFsociety, jarvisInstalled, 
     }
     if (cmd === "cat README.md") {
       p(<span className="term-out"># Quick Wallpaper Picker</span>);
-      p(<span className="term-out">Lightweight animated wallpaper picker for Vertex-OS.</span>);
+      p(<span className="term-out">Lightweight animated wallpaper picker for McCrack-COS.</span>);
       p(<span className="term-out">Run <span className="term-cmd">./start.sh</span> to install.</span>);
       p("");
       return;
@@ -3827,7 +3724,7 @@ function TerminalSurface({ installed, onInstalled, onFsociety, jarvisInstalled, 
       pa(`\u001b[1m\u001b[38;5;45m${fsociety ? "arch" : "vertex"}\u001b[0m\u001b[2m@\u001b[0m\u001b[1m\u001b[35m${fsociety ? "archlinux" : "vertex-os"}\u001b[0m`);
       pa("\u001b[2m──────────────────────────────\u001b[0m");
       const rows: [string, string][] = [
-        ["OS", fsociety ? "Arch Linux (web)" : "Vertex-OS 1.0 (web)"],
+        ["OS", fsociety ? "Arch Linux (web)" : "McCrack-COS 1.0 (web)"],
         ["Host", fsociety ? "fsociety.tools" : "Browser Runtime"],
         ["Shell", fsociety ? "zsh 5.9 (arch)" : "zsh 5.9 (vertex)"],
         ["Terminal", fsociety ? "arch-term" : "vertex-term"],
@@ -4029,7 +3926,7 @@ function TerminalSurface({ installed, onInstalled, onFsociety, jarvisInstalled, 
         { ms: 260, line: <span className="term-out">!sudo uninstall: wiping fsociety.tool?full…</span> },
         { ms: 340, line: <span className="term-dim">  ▸ purge     · ████████████████████░░░░ 100%</span> },
         { ms: 380, line: <span className="term-out">  ▸ remove    · /usr/share/fsociety …</span> },
-        { ms: 320, line: <span className="term-out">  ▸ restore   · shell brand → Vertex-OS …</span> },
+        { ms: 320, line: <span className="term-out">  ▸ restore   · shell brand → McCrack-COS …</span> },
         { ms: 360, line: <span className="term-out">  ▸ restore   · startup banner → vertex-shadow …</span> },
       ];
       let elapsed = 0;
@@ -4040,7 +3937,7 @@ function TerminalSurface({ installed, onInstalled, onFsociety, jarvisInstalled, 
       window.setTimeout(() => {
         update({ banner: "vertex-shadow", bannerEnabled: true, fsociety: false, nmap: false, metasploit: false });
         pa("");
-        pa("\u001b[31m✗\u001b[0m \u001b[1mfsociety.tool?full uninstalled\u001b[0m — shell rebranded back to \u001b[1mVertex-OS\u001b[0m.");
+        pa("\u001b[31m✗\u001b[0m \u001b[1mfsociety.tool?full uninstalled\u001b[0m — shell rebranded back to \u001b[1mMcCrack-COS\u001b[0m.");
         pa("\u001b[2m    goodnight, friend. say hi with:  !sudo install fsociety.tool?full\u001b[0m");
         p("");
         onFsociety(false);
@@ -4409,7 +4306,7 @@ function TerminalSurface({ installed, onInstalled, onFsociety, jarvisInstalled, 
           {introVisible && (
             <div className="term-intro">
               {config.bannerEnabled && <TerminalBanner art={bannerArt} palette={palette} baseSize={bannerBase} fontKey={config.font} />}
-              <div className="term-line"><span className="term-welcome-title">{fsociety ? "Arch Linux Terminal" : "Vertex-OS Terminal"}</span> <span className="term-dim">v1.0</span></div>
+              <div className="term-line"><span className="term-welcome-title">{fsociety ? "Arch Linux Terminal" : "McCrack-COS Terminal"}</span> <span className="term-dim">v1.0</span></div>
               <div className="term-line term-dim">{fsociety ? "zsh 5.9 · fsociety™ toolkit installed" : "zsh 5.9 · offline-first shell"} · {TERMINAL_BANNERS.length} banner styles</div>
               <div className="term-line">Type <span className="term-cmd">help</span> for commands, <span className="term-cmd">settings</span> to customize, <span className="term-cmd">theme</span> for colors.</div>
               <div className="term-line term-blank" />
@@ -5792,7 +5689,6 @@ function renderWindowBody(id: AppId, settings: SystemSettings, updateSetting: (k
   if (id === "translucenttb") return <div className="window-surface"><div className="surface-kicker">{t("surf.translucent.kicker")}</div><h2 className="surface-title">{t("surf.translucent.title")}</h2><p className="surface-copy">{t("surf.translucent.body")}</p><div className="settings-list"><SettingToggle label={t("surf.translucent.enable")} help={t("surf.translucent.help")} value={translucent} onChange={(value) => onTranslucent?.(value)} /></div></div>;
   if (id === "spicetify") return <CinefySurface onClose={onClose ?? (() => undefined)} onMinimize={onMinimize ?? (() => undefined)} onTrackChange={onTrackChange ?? (() => undefined)} />;
   const adRedir = settings.adblock && settings.adblockUrl.trim() ? settings.adblockUrl : null;
-  if (id === "hub") return <div className="window-surface vm-app-surface"><VMarketSurface /></div>;
   if (id === "movies") return <iframe className="browser-frame" srcDoc={moviesAppHtml} title="Vertex Movies" allow="autoplay; clipboard-write; camera; microphone; fullscreen; gamepad; encrypted-media; picture-in-picture" allowFullScreen />;
   if (id === "wallpaper-engine") return <div className="window-surface we-app-surface"><WallEngineApp appliedHome={appliedWallpaper} appliedLock={appliedLockWallpaper} onApplyWallpaper={onApplyWallpaper ?? (() => {})} notify={onNotify ?? undefined} /></div>;
   if (id === "browser") return adRedir
@@ -5810,11 +5706,9 @@ function renderWindowBody(id: AppId, settings: SystemSettings, updateSetting: (k
   if (id === "minecraft") return <MinecraftLauncherSurface />;
   if (id === "rainmeter") return <RainmeterSurface />;
   if (id === "links") return <LinksApp />;
-  if (id === "discord") return <DiscordApp />;
-  if (id === "vcloud") return <iframe className="browser-frame" src={asset("vcloud/index.html")} title="V-CLOUD" allow="autoplay; clipboard-write; camera; microphone; fullscreen" />;
   if (id === "admin") return <AdminSurface />;
   if (id === "appmaker") return <div className="window-surface vs-app-surface"><VStudiosSurface /></div>;
-  // Installed V-MARKET listings run inside their own Vertex-OS window.
+  // Installed V-MARKET listings run inside their own McCrack-COS window.
   if (typeof id === "string" && id.startsWith("vmarket_")) {
     const entry = readVMarketEntries().find((item) => item.id === id);
     if (entry) return <VMarketAppRunner entryId={id} />;
@@ -5832,7 +5726,7 @@ function renderWindowBody(id: AppId, settings: SystemSettings, updateSetting: (k
       }
     } catch {}
   }
-  return <div className="window-surface"><div className="surface-kicker">VERTEX</div><h2 className="surface-title">surface</h2></div>;
+  return <div className="window-surface"><div className="surface-kicker">McCrack</div><h2 className="surface-title">surface</h2></div>;
 }
 
 function useMediaSession(): MediaSession | null {
@@ -6235,14 +6129,14 @@ const SETTINGS_SEARCH: { tab: SettingsTabId; label: string; hint: string }[] = [
   { tab: "account", label: "Profile picture", hint: "Change your avatar" },
   { tab: "account", label: "Password", hint: "Lock screen password" },
   { tab: "system", label: "Performance", hint: "Optimization, fast boot, idle lock" },
-  { tab: "system", label: "System style", hint: "Switch between Vertex-OS and macOS looks" },
-  { tab: "system", label: "Text style", hint: "Change the font used across Vertex-OS" },
+  { tab: "system", label: "System style", hint: "Switch between McCrack-COS and macOS looks" },
+  { tab: "system", label: "Text style", hint: "Change the font used across McCrack-COS" },
   { tab: "colors", label: "Color mode", hint: "Bright or black theme" },
   { tab: "language", label: "Language & region", hint: "Idiom and formatting" },
   { tab: "privacy", label: "Cloak", hint: "Disguise the browser tab" },
   { tab: "privacy", label: "Adblock", hint: "Redirect ads to another page" },
-  { tab: "privacy", label: "Panic key", hint: "Instantly hide Vertex-OS" },
-  { tab: "about", label: "About Vertex-OS", hint: "Version and FAQ" },
+  { tab: "privacy", label: "Panic key", hint: "Instantly hide McCrack-COS" },
+  { tab: "about", label: "About McCrack-COS", hint: "Version and FAQ" },
   { tab: "about", label: "FAQ", hint: "Common questions" },
 ];
 
@@ -6300,8 +6194,8 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
   const applySystemStyle = (style: SystemStyle) => {
     if (settings.systemStyle === style) return;
     const prompt = style === "macos"
-      ? "Switch to the macOS style? Vertex-OS will restart and return you to the sign-in screen."
-      : "Switch back to the default Vertex-OS style? Vertex-OS will restart and return you to the sign-in screen.";
+      ? "Switch to the macOS style? McCrack-COS will restart and return you to the sign-in screen."
+      : "Switch back to the default McCrack-COS style? McCrack-COS will restart and return you to the sign-in screen.";
     if (typeof window !== "undefined" && !window.confirm(prompt)) return;
     updateSetting("systemStyle", style);
     if (style === "macos") {
@@ -6436,7 +6330,7 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
           </section>
           <section className="win-settings-card">
             <div className="win-settings-row">
-              <div><strong>Device name</strong><small>The name Vertex-OS shows for this device</small></div>
+              <div><strong>Device name</strong><small>The name McCrack-COS shows for this device</small></div>
               <div className="win-settings-inline">
                 <input className="setting-input" value={deviceDraft} onChange={(event) => setDeviceDraft(event.target.value)} aria-label="Device name" />
                 <button className="outline-button" onClick={saveDevice}>Rename</button>
@@ -6532,11 +6426,7 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
                   void avatarFromFile(file).then(onAvatarChange);
                 }} />
               </label>
-              <span className="profile-avatar-presets-mini">
-                {PRESET_AVATARS.slice(0, 8).map((glyph) => (
-                  <button key={glyph} type="button" className={`profile-avatar-preset ${avatar === `preset:${glyph}` ? "selected" : ""}`} onClick={() => onAvatarChange(`preset:${glyph}`)} aria-label={glyph}>{glyph}</button>
-                ))}
-              </span>
+
             </div>
           </section>}
           <section className="win-settings-card">
@@ -6551,9 +6441,9 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
           <p className="win-settings-sub">Device details and performance options.</p>
           <section className="win-settings-card">
             <div className="setting-group"><Monitor size={13} /> System style</div>
-            <p className="win-settings-note">Choose the overall look of Vertex-OS. Switching restarts the system and returns you to the sign-in screen.</p>
+            <p className="win-settings-note">Choose the overall look of McCrack-COS. Switching restarts the system and returns you to the sign-in screen.</p>
             <div className="win-settings-choice">
-              <button className={`win-settings-choice-card ${settings.systemStyle !== "macos" ? "active" : ""}`} onClick={() => applySystemStyle("vertex")}><span className="win-settings-choice-swatch vertex" /><strong>Vertex-OS</strong><small>Default windows, dock and accent</small></button>
+              <button className={`win-settings-choice-card ${settings.systemStyle !== "macos" ? "active" : ""}`} onClick={() => applySystemStyle("vertex")}><span className="win-settings-choice-swatch vertex" /><strong>McCrack-COS</strong><small>Default windows, dock and accent</small></button>
               <button className={`win-settings-choice-card ${settings.systemStyle === "macos" ? "active" : ""}`} onClick={() => applySystemStyle("macos")}><span className="win-settings-choice-swatch macos" /><strong>macOS 27 · Golden Gate</strong><small>Apple-style menu bar, windows and wallpaper</small></button>
             </div>
           </section>
@@ -6568,7 +6458,7 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
           </section>
           <section className="win-settings-card">
             <div className="setting-group"><Palette size={13} /> Text style</div>
-            <p className="win-settings-note">Change the font Vertex-OS uses everywhere. Pick the look you like best.</p>
+            <p className="win-settings-note">Change the font McCrack-COS uses everywhere. Pick the look you like best.</p>
             <div className="win-settings-fontgrid">
               {FONT_STYLES.map((font) => (
                 <button key={font.id} type="button" className={`win-settings-font ${settings.fontStyle === font.id ? "active" : ""}`} onClick={() => updateSetting("fontStyle", font.id)}>
@@ -6589,7 +6479,7 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
       case "colors":
         return <>
           <h2>Color mode</h2>
-          <p className="win-settings-sub">Choose how Vertex-OS looks. Black is the classic dark theme, Bright is a light theme.</p>
+          <p className="win-settings-sub">Choose how McCrack-COS looks. Black is the classic dark theme, Bright is a light theme.</p>
           <section className="win-settings-card">
             <div className="win-settings-choice">
               <button className={`win-settings-choice-card ${settings.colorMode === "dark" ? "active" : ""}`} onClick={() => updateSetting("colorMode", "dark")}><span className="win-settings-choice-swatch dark" /><strong>Black</strong><small>Dark surfaces, glowing accents</small></button>
@@ -6600,7 +6490,7 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
       case "language":
         return <>
           <h2>Language &amp; region</h2>
-          <p className="win-settings-sub">Pick the idiom Vertex-OS uses across windows.</p>
+          <p className="win-settings-sub">Pick the idiom McCrack-COS uses across windows.</p>
           <section className="win-settings-card">
             <div className="win-settings-row">
               <div><strong>{t("set.appLangLabel")}</strong><small>{t("set.appLangHelp")}</small></div>
@@ -6616,14 +6506,14 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
           <section className="win-settings-card">
             <div className="setting-group"><LockKeyhole size={13} /> {t("set.groupCloak")}</div>
             <div className="setting-row"><div><strong>{t("set.cloakLabel")}</strong><small>{t("set.cloakHelp")}</small></div><select className="setting-select" value={settings.cloak} onChange={(event) => updateSetting("cloak", event.target.value)} aria-label={t("set.cloakLabel")}><option value="none">{t("set.cloakNone")}</option><option value="google">{t("set.cloakGoogle")}</option><option value="classroom">{t("set.cloakClassroom")}</option><option value="custom">{t("set.cloakCustom")}</option></select></div>
-            {settings.cloak === "custom" && <div className="setting-row setting-stack"><div><strong>{t("set.customNameLabel")}</strong><small>{t("set.cloakHelp")}</small></div><input className="setting-input" value={settings.cloakName} placeholder="Vertex-OS" onChange={(event) => updateSetting("cloakName", event.target.value)} aria-label={t("set.customNameLabel")} /></div>}
+            {settings.cloak === "custom" && <div className="setting-row setting-stack"><div><strong>{t("set.customNameLabel")}</strong><small>{t("set.cloakHelp")}</small></div><input className="setting-input" value={settings.cloakName} placeholder="McCrack-COS" onChange={(event) => updateSetting("cloakName", event.target.value)} aria-label={t("set.customNameLabel")} /></div>}
             {settings.cloak === "custom" && <div className="setting-row setting-stack"><div><strong>{t("set.customIconLabel")}</strong><small>{t("set.cloakHelp")}</small></div><input className="setting-input setting-url" type="text" value={settings.cloakIcon} placeholder="https://example.com/logo.png" onChange={(event) => updateSetting("cloakIcon", event.target.value)} aria-label={t("set.customIconLabel")} /></div>}
             <div className="setting-action-row"><button className="outline-button" onClick={openBlankTab}>Open in about:blank</button><span>Runs the OS in a new tab — the URL bar shows only <b>about:blank</b>. Close the original tab after.</span></div>
             {blankNotice && <p className="term-error">{blankNotice}</p>}
           </section>
           <section className="win-settings-card">
             <div className="setting-group"><EyeOff size={13} /> Tab Hiding</div>
-            <SettingToggle label="Blur overlay" help="Show a fake image when this tab loses focus, then restore Vertex-OS when you come back." value={settings.tabHide} onChange={(value) => updateSetting("tabHide", value)} />
+            <SettingToggle label="Blur overlay" help="Show a fake image when this tab loses focus, then restore McCrack-COS when you come back." value={settings.tabHide} onChange={(value) => updateSetting("tabHide", value)} />
             {settings.tabHide && <>
               <div className="setting-row"><div><strong>Overlay picture</strong><small>What shows while you are away.</small></div><select className="setting-select" value={settings.tabHideImage} onChange={(event) => updateSetting("tabHideImage", event.target.value)} aria-label="Overlay picture">{settings.tabHideImages.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></div>
               <div className="setting-action-row"><label className="outline-button" style={{ cursor: "pointer" }}><ImagePlus size={13} /> Add custom image<input type="file" accept="image/*,.gif" style={{ display: "none" }} onChange={async (event) => { const file = event.target.files?.[0]; event.target.value = ""; if (!file) return; try { const src = await new Promise<string>((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(String(reader.result)); reader.onerror = () => reject(reader.error); reader.readAsDataURL(file); }); const id = `custom-${Date.now()}`; updateSetting({ tabHideImages: [...settings.tabHideImages, { id, name: file.name, src }], tabHideImage: id }); setTabHideNotice("Custom image added."); } catch { setTabHideNotice("Could not read that image."); } }} /></label><span>Use any picture or GIF as your tab-hiding screen.</span></div>
@@ -6652,9 +6542,9 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
       case "about":
         return <>
           <h2>About</h2>
-          <p className="win-settings-sub">Vertex-OS {VERTEX_VERSION} · {settings.deviceName}</p>
+          <p className="win-settings-sub">McCrack-COS {McCrack_VERSION} · {settings.deviceName}</p>
           <section className="win-settings-card">
-            <div className="win-settings-row"><div><strong>Version</strong><small>Vertex-OS build</small></div><span className="win-settings-badge">v{VERTEX_VERSION}</span></div>
+            <div className="win-settings-row"><div><strong>Version</strong><small>McCrack-COS build</small></div><span className="win-settings-badge">v{McCrack_VERSION}</span></div>
             <div className="win-settings-row"><div><strong>Device</strong><small>This machine</small></div><span className="win-settings-badge">{settings.deviceName}</span></div>
             <div className="win-settings-row"><div><strong>Account</strong><small>Signed in</small></div><span className="win-settings-badge">{accountName ?? "—"}</span></div>
           </section>
