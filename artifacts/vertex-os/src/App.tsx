@@ -2161,7 +2161,7 @@ onSessionClose: (peerCode) => {
               : null}
       </div>
 
-      <section className={`boot-screen ${phase !== "boot" ? "hidden" : ""}`} aria-label="Vertex boot sequence">
+      <section className={`boot-screen ${phase !== "boot" ? "hidden" : ""}`} aria-label="McCrack-COS boot sequence">
         <video
           ref={bootVideoRef}
           className={`boot-video ${bootVideo ? "on" : ""}`}
@@ -2186,7 +2186,7 @@ onSessionClose: (peerCode) => {
         )}
       </section>
 
-      <section className={`profile-screen ${phase === "profile" ? "active" : ""}`} aria-label="Create Vertex profile">
+      <section className={`profile-screen ${phase === "profile" ? "active" : ""}`} aria-label="Create McCrack-COS profile">
         {activeLockWallpaper.image
           ? <img className="signin-bg" src={activeLockWallpaper.image} alt="" />
           : phase === "profile"
@@ -2273,7 +2273,7 @@ onSessionClose: (peerCode) => {
         </div>
       </section>
 
-      <section className={`lock-screen ${phase === "lock" ? "active" : ""}`} onClick={openSignIn} aria-label="Vertex lock screen">
+      <section className={`lock-screen ${phase === "lock" ? "active" : ""}`} onClick={openSignIn} aria-label="McCrack-COS lock screen">
          {activeLockWallpaper.id === "vertex-studio"
           ? <VertexStudioWallpaper className="lock-wallpaper-scene" />
           : activeLockWallpaper.id === "halloween"
@@ -2291,7 +2291,7 @@ onSessionClose: (peerCode) => {
          <div className="lock-help">{t("lock.help")}</div>
       </section>
 
-      <section className={`signin-screen ${phase === "signin" ? "active" : ""}`} aria-label="Vertex sign in" onClick={(event) => { if (event.target === event.currentTarget) setPhase("lock"); }}>
+      <section className={`signin-screen ${phase === "signin" ? "active" : ""}`} aria-label="McCrack-COS sign in" onClick={(event) => { if (event.target === event.currentTarget) setPhase("lock"); }}>
         {activeLockWallpaper.image
           ? <img className="signin-bg" src={activeLockWallpaper.image} alt="" />
           : phase === "signin"
