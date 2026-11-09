@@ -29,7 +29,6 @@ import { LANG, LANGS, t, tf, tp, readLang, saveLang, localeOf, type Lang } from 
 import { WallpaperPicker, type PickerWallpaper, loadCustomWallpapers, persistCustomWallpaper, removeCustomWallpaper, readCustomWallpapersLocal } from "./components/wallpaper-picker";
 import { SystemTray } from "./components/system-tray";
 import { MacMenuBar } from "./components/mac-menubar";
-import type { WidgetId, WidgetPosition, WidgetSkin } from "./components/desktop-widgets";
 
 import { LinksApp } from "./components/links-app";
 import { assetUrl } from "./asset-map";
@@ -1132,7 +1131,7 @@ storage.read("vertex-jarvis-installed", false));
   const openDockMenu = (event: ReactMouseEvent<HTMLElement>) => {
     event.preventDefault();
     event.stopPropagation();
-    setContextMenu(null); setAppMenu(null); setWidgetMenu(null);
+    setContextMenu(null); setAppMenu(null); 
     if (previewCloseTimer.current) { clearTimeout(previewCloseTimer.current); previewCloseTimer.current = null; }
     setPreviewId(null);
     setPreviewPos(null);
@@ -1225,52 +1224,6 @@ storage.read("vertex-jarvis-installed", false));
   const [appMenuMode, setAppMenuMode] = useState<"default" | "icon">("default");
   const [appMenuPos, setAppMenuPos] = useState<{ x: number; y: number } | null>(null);
   const appMenuRef = useRef<HTMLDivElement>(null);
-  const [widgetMenu, setWidgetMenu] = useState<{ id: string; x: number; y: number } | null>(null);
-  const [widgetMenuPos, setWidgetMenuPos] = useState<{ x: number; y: number } | null>(null);
-  const widgetMenuRef = useRef<HTMLDivElement>(null);
-  const [widgetHidden, setWidgetHidden] = useState<string[]>(() => storage.read<string[]>("vertex-widget-hidden", []));
-  const [widgetLocked, setWidgetLocked] = useState<string[]>(() => storage.read<string[]>("vertex-widget-locked", []));
-  const [widgetPositions, setWidgetPositions] = useState<Record<string, WidgetPosition>>(() => storage.read<Record<string, WidgetPosition>>("vertex-widget-layout-v2", {}));
-  const [alternativeOpen, setAlternativeOpen] = useState(false);
-  const [widgetLabels, setWidgetLabels] = useState(() => storage.read("vertex-widget-labels", true));
-  const [widgetScale, setWidgetScale] = useState(() => storage.read<number>("vertex-widget-scale", 1));
-  const [widgetSide, setWidgetSide] = useState<"left" | "right">(() => storage.read("vertex-widget-side", "right"));
-  const [weatherLocation, setWeatherLocation] = useState(() => storage.read("vertex-weather-city", ""));
-  const [widgetAccent, setWidgetAccent] = useState(() => storage.read("vertex-widget-accent", "#57c8ff"));
-  useEffect(() => { storage.write("vertex-widget-hidden", widgetHidden); }, [widgetHidden]);
-  useEffect(() => { storage.write("vertex-widget-locked", widgetLocked); }, [widgetLocked]);
-  useEffect(() => { storage.write("vertex-widget-layout-v2", widgetPositions); }, [widgetPositions]);
-  useEffect(() => { storage.write("vertex-widget-labels", widgetLabels); }, [widgetLabels]);
-  useEffect(() => { storage.write("vertex-widget-scale", widgetScale); }, [widgetScale]);
-  useEffect(() => { storage.write("vertex-widget-side", widgetSide); }, [widgetSide]);
-  useEffect(() => { storage.write("vertex-weather-city", weatherLocation); }, [weatherLocation]);
-  useEffect(() => { storage.write("vertex-widget-accent", widgetAccent); }, [widgetAccent]);
-  const toggleWidget = (id: string) => setWidgetHidden((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
-  const toggleWidgetLock = (id: string) => setWidgetLocked((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
-  const saveWidgetPosition = (id: string, position: WidgetPosition) => setWidgetPositions((previous) => ({ ...previous, [id]: position }));
-  const isWidgetHidden = (id: string) => widgetHidden.includes(id);
-  const hasSidebarWidgets = ["deck", "media", "updates", "calendar", "weather", "resources", "switches"].some((id) => !isWidgetHidden(id));
-
-  useLayoutEffect(() => {
-    if (!contextMenu) { setContextMenuPos(null); return; }
-    const el = contextMenuRef.current;
-    if (!el) return;
-    setContextMenuPos(clampMenu(contextMenu, el.getBoundingClientRect()));
-  }, [contextMenu]);
-
-  useLayoutEffect(() => {
-    if (!appMenu) { setAppMenuPos(null); return; }
-    const el = appMenuRef.current;
-    if (!el) return;
-    setAppMenuPos(clampMenu(appMenu, el.getBoundingClientRect()));
-  }, [appMenu, appMenuMode]);
-
-  useLayoutEffect(() => {
-    if (!widgetMenu) { setWidgetMenuPos(null); return; }
-    const el = widgetMenuRef.current;
-    if (!el) return;
-    setWidgetMenuPos(clampMenu(widgetMenu, el.getBoundingClientRect()));
-  }, [widgetMenu]);
   const [renameValue, setRenameValue] = useState("");
   const [iconUrl, setIconUrl] = useState("");
   const [dragId, setDragId] = useState<AppId | null>(null);
@@ -2652,7 +2605,6 @@ onSessionClose: (peerCode) => {
           <button onClick={() => { setShowDesktopIcons((visible) => { storage.write("vertex-show-icons", !visible); return !visible; }); }}><span className="context-menu-checkmark">{showDesktopIcons ? <Check size={12} /> : null}</span> {t("ctx.showIcons")}</button>
           <button onClick={() => { setContextMenu(null); toggleApp("wallpaper-engine"); }}><Image size={15} /> {t("ctx.openWallEngine")}</button>
           <button onClick={() => { setContextMenu(null); setPersonalizeOpen(true); }}><Palette size={15} /> {t("ctx.personalize")}</button>
-          <button onClick={() => { setContextMenu(null); setAlternativeOpen(true); }}><SlidersHorizontal size={15} /> {t("ctx.alternative")}</button>
           <button onClick={() => { setContextMenu(null); addToast(t("ctx.refreshTitle"), t("ctx.refreshCopy")); }}><RotateCcw size={15} /> {t("ctx.refreshSystem")}</button>
         </div>
 
