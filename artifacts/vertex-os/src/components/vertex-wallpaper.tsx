@@ -227,7 +227,7 @@ function StarField({ className }: { className?: string }) {
   return <canvas ref={ref} className={className} aria-hidden="true" />;
 }
 
-export function VertexStudioWallpaper({ className, label = "VERTEX STUDIOS" }: { className?: string; label?: string }) {
+export function VertexStudioWallpaper({ className, label = "MCCRACK STUDIOS" }: { className?: string; label?: string }) {
   const pathId = `vws-arc-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
 
   return (
