@@ -29,7 +29,7 @@ import { LANG, LANGS, t, tf, tp, readLang, saveLang, localeOf, type Lang } from 
 import { WallpaperPicker, type PickerWallpaper, loadCustomWallpapers, persistCustomWallpaper, removeCustomWallpaper, readCustomWallpapersLocal } from "./components/wallpaper-picker";
 import { SystemTray } from "./components/system-tray";
 import { MacMenuBar } from "./components/mac-menubar";
-import { AlternativePanel, type WidgetId, type WidgetPosition, type WidgetSkin } from "./components/desktop-widgets";
+import type { WidgetId, WidgetPosition, WidgetSkin } from "./components/desktop-widgets";
 
 import { LinksApp } from "./components/links-app";
 import { assetUrl } from "./asset-map";
@@ -1190,7 +1190,20 @@ storage.read("vertex-jarvis-installed", false));
       window.removeEventListener("vertex-ps5-remove-shortcut", removeShortcut);
     };
   }, []);
-  const [appOverrides, setAppOverrides] = useState<Record<string, AppOverride>>(() => storage.read("vertex-app-overrides", {}));
+  const [appOverrides, setAppOverrides] = useState<Record<string, AppOverride>>(() => {
+    const saved = storage.read<Record<string, AppOverride>>("vertex-app-overrides", {});
+    if (storage.read("mccrack-dock-v1-migrated", false)) return saved;
+    const next = { ...saved };
+    const defaults = new Set(["browser", "messages", "verai", "vertube", "movies", "settings"]);
+    for (const app of baseApps) {
+      const current = next[app.id] ?? {};
+      if (defaults.has(app.id)) next[app.id] = { ...current, pinned: true };
+      else if (current.pinned === true) next[app.id] = { ...current, pinned: false };
+    }
+    storage.write("mccrack-dock-v1-migrated", true);
+    storage.write("vertex-app-overrides", next);
+    return next;
+  });
   const setFsocietyOverride = (active: boolean) => {
     setAppOverrides((prev) => {
       const current = prev.terminal ?? {};
@@ -6102,7 +6115,7 @@ const SETTINGS_SEARCH: { tab: SettingsTabId; label: string; hint: string }[] = [
   { tab: "home", label: "Language", hint: "Change the OS language / idiom" },
   { tab: "home", label: "Color mode", hint: "Bright (light) or black (dark)" },
   { tab: "personalization", label: "Wallpaper", hint: "Desktop background and lock screen" },
-  { tab: "personalization", label: "Reset to default wallpaper", hint: "Restore the Vertex Studios wallpaper" },
+  { tab: "personalization", label: "Reset to default wallpaper", hint: "Restore the McCrack Studios wallpaper" },
   { tab: "account", label: "Account name", hint: "The name shown on this device" },
   { tab: "account", label: "Email address", hint: "The Gmail you are signed in with" },
   { tab: "account", label: "Profile picture", hint: "Change your avatar" },
