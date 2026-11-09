@@ -339,7 +339,7 @@ function siteHtml(options: SiteOptions): string {
   <header><div><span class="kicker"><span style="width:6px;height:6px;border-radius:50%;background:${accent}"></span>Made by ${esc(company)}</span><h1>${esc(tagline || name).replace(/\s+/g, " ").split(" ").slice(0, 4).join(" ")} <span class="grad">${esc((tagline || name).split(" ").slice(4).join(" ") || ".")}</span></h1><p>${esc(description)}</p><div class="cta"><a class="btn" href="#features">Get started →</a><a class="btn ghost" href="#about">Learn more</a></div></div></header>
   <section id="features">${cards}</section>
   <section id="about"><div class="card" style="padding:38px"><span class="num">ABOUT ${esc(company.toUpperCase())}</span><h2 style="font-size:clamp(28px,4vw,48px);letter-spacing:-.05em;margin:18px 0 12px">Built for the next version of the web.</h2><p style="max-width:620px;color:#93a5bc;line-height:1.75;margin:0">${esc(description)}</p></div></section>
-  <footer id="contact"><span>© ${new Date().getFullYear()} ${esc(company)}. A fictional V-MARKET listing.</span><span>Made with V-STUDIOS</span></footer>
+  <footer id="contact"><span>© ${new Date().getFullYear()} ${esc(company)}. A fictional V-MARKET listing.</span><span>Made with McCrack Studios</span></footer>
   </body></html>`;
 }
 
@@ -746,7 +746,7 @@ export function VMarketSurface() {
           <input value={query} onChange={(event) => { setQuery(event.target.value); setSelectedId(null); }} placeholder="Search V-MARKET" />
           {query ? <button onClick={() => setQuery("")} aria-label="Clear search"><X size={14} /></button> : null}
         </label>
-        <button className="vm-studio-cta" onClick={openStudio}><Wand2 size={15} /> <span>V-STUDIOS</span></button>
+        <button className="vm-studio-cta" onClick={openStudio}><Wand2 size={15} /> <span>McCrack Studios</span></button>
       </header>
 
       <nav className="vm-tabs" aria-label="Store sections">
@@ -799,7 +799,7 @@ export function VMarketSurface() {
               <span className="vm-big-badge">{installedEntries.length} installed</span>
             </div>
             {installedEntries.length === 0 ? (
-              <div className="vm-empty"><Package size={38} /><h2>Nothing installed yet</h2><p>Browse the store and publish apps with V-STUDIOS.</p><button className="vm-primary" onClick={openStudio}>Open V-STUDIOS</button></div>
+              <div className="vm-empty"><Package size={38} /><h2>Nothing installed yet</h2><p>Browse the store and publish apps with McCrack Studios.</p><button className="vm-primary" onClick={openStudio}>Open McCrack Studios</button></div>
             ) : (
               <div className="vm-library-grid">
                 {installedEntries.map((entry) => (
@@ -835,7 +835,7 @@ export function VMarketSurface() {
                 </div>
               </div>
             ) : !query ? (
-              <div className="vm-empty"><Package size={38} /><h2>V-MARKET is empty</h2><p>Use V-STUDIOS to build and publish your own website or app.</p><button className="vm-primary" onClick={openStudio}>Open V-STUDIOS</button></div>
+              <div className="vm-empty"><Package size={38} /><h2>V-MARKET is empty</h2><p>Use McCrack Studios to build and publish your own website or app.</p><button className="vm-primary" onClick={openStudio}>Open McCrack Studios</button></div>
             ) : null}
 
             {cloudState === "missing" ? (
@@ -858,7 +858,7 @@ export function VMarketSurface() {
                 <SectionTitle title="Recommended for you" subtitle="Picked by the V-MARKET algorithm (it mostly likes neon)." />
                 <div className="vm-grid">{recommended.map((entry) => <AppCard key={entry.id} entry={entry} installed={installed.includes(entry.id)} installing={installingId === entry.id} onOpenDetail={() => setSelectedId(entry.id)} onInstall={() => install(entry)} onOpen={() => requestEntryOpen(entry.id)} />)}</div>
 
-                <SectionTitle title="Top charts" subtitle="The most-installed things in the Vertex universe this week." />
+                <SectionTitle title="Top charts" subtitle="The most-installed things in the McCrack universe this week." />
                 <div className="vm-chart">{topCharts.map((entry, index) => (
                   <button className="vm-chart-row" key={entry.id} onClick={() => setSelectedId(entry.id)}>
                     <span className="vm-rank">{String(index + 1).padStart(2, "0")}</span>
@@ -872,7 +872,7 @@ export function VMarketSurface() {
               <>
                 <SectionTitle title={tab === "games" ? "Games to get lost in" : tab === "apps" ? "Apps, sites & experiments" : `Results${query ? ` for “${query}”` : ""}`} subtitle={`${visible.length} listing${visible.length === 1 ? "" : "s"} in the V-MARKET catalog.`} />
                 <div className="vm-grid">{visible.map((entry) => <AppCard key={entry.id} entry={entry} installed={installed.includes(entry.id)} installing={installingId === entry.id} onOpenDetail={() => setSelectedId(entry.id)} onInstall={() => install(entry)} onOpen={() => requestEntryOpen(entry.id)} />)}</div>
-                {visible.length === 0 ? <div className="vm-empty"><Search size={34} /><h2>No results</h2><p>Try another search or category — or build it yourself in V-STUDIOS.</p><button className="vm-primary" onClick={openStudio}>Open V-STUDIOS</button></div> : null}
+                {visible.length === 0 ? <div className="vm-empty"><Search size={34} /><h2>No results</h2><p>Try another search or category — or build it yourself in McCrack Studios.</p><button className="vm-primary" onClick={openStudio}>Open McCrack Studios</button></div> : null}
               </>
             )}
 
@@ -986,7 +986,7 @@ function Detail({ entry, installed, installing, onBack, onInstall, onOpen, onUni
               {shots.length ? shots.map((shot, index) => <div className="vm-shot" key={index}><img src={shot} alt="" /></div>) : [0, 1, 2].map((index) => (
                 <div className={`vm-shot generated g${index}`} key={index}>
                   <AppLogo entry={entry} size={46} />
-                  <strong>{index === 0 ? entry.name : index === 1 ? entry.tagline : "Made with V-STUDIOS"}</strong>
+                  <strong>{index === 0 ? entry.name : index === 1 ? entry.tagline : "Made with McCrack Studios"}</strong>
                   <span>{index === 0 ? `${entry.company} · ${entry.category}` : index === 1 ? "Screenshot preview" : "Publish your own in seconds"}</span>
                 </div>
               ))}
@@ -1033,7 +1033,7 @@ function Detail({ entry, installed, installing, onBack, onInstall, onOpen, onUni
 
           <section className="vm-detail-section">
             <h2>Discussion</h2>
-            <p className="vm-section-copy">Talk about {entry.name} with other people in the Vertex universe.</p>
+            <p className="vm-section-copy">Talk about {entry.name} with other people in the McCrack universe.</p>
             <div className="vm-comments">
               {entry.comments.map((item) => <div className="vm-comment" key={item.id}><div className="vm-avatar tiny">{item.author.slice(0, 1).toUpperCase()}</div><div><div className="vm-comment-meta"><strong>{item.author}</strong><span>{timeAgo(item.date)}</span></div><p>{item.text}</p></div></div>)}
               {entry.comments.length === 0 ? <p className="vm-muted">No comments yet — start the thread.</p> : null}
@@ -1058,7 +1058,7 @@ function Detail({ entry, installed, installing, onBack, onInstall, onOpen, onUni
 }
 
 /* ------------------------------------------------------------------ */
-/* Runner used when an installed market app is opened in Vertex-OS      */
+/* Runner used when an installed market app is opened in McCrack-COS      */
 /* ------------------------------------------------------------------ */
 
 export function VMarketAppRunner({ entryId }: { entryId: string }) {
@@ -1077,7 +1077,7 @@ function fallbackPage(entry: VMarketEntry): string {
 }
 
 /* ------------------------------------------------------------------ */
-/* V-STUDIOS - Roblox Studio style builder                             */
+/* McCrack Studios - Roblox Studio style builder                             */
 /* ------------------------------------------------------------------ */
 
 type VsFile = {
@@ -1172,20 +1172,20 @@ export function VStudiosSurface() {
   const [template, setTemplate] = useState<TemplateId>("landing");
   const [name, setName] = useState("My Project");
   const [company, setCompany] = useState("My Studio");
-  const [tagline, setTagline] = useState("Built with V-STUDIOS");
-  const [description, setDescription] = useState("A custom creation built inside Vertex-OS.");
+  const [tagline, setTagline] = useState("Built with McCrack Studios");
+  const [description, setDescription] = useState("A custom creation built inside McCrack-COS.");
   const [category, setCategory] = useState("Gaming");
   const [type, setType] = useState<"game" | "app" | "website">("website");
   const [age, setAge] = useState(7);
   const [logo, setLogo] = useState("");
   const [accent, setAccent] = useState("#8de6ff");
   const [accent2, setAccent2] = useState("#7c5cff");
-  const [features, setFeatures] = useState(["Fast", "Responsive", "Playable in Vertex-OS"]);
+  const [features, setFeatures] = useState(["Fast", "Responsive", "Playable in McCrack-COS"]);
   const [url, setUrl] = useState("");
   const [files, setFiles] = useState<VsFile[]>([
-    { id: "html", name: "index.html", type: "html", content: `<div class="game">\n  <header class="topbar">\n    <div class="brand">V-STUDIO</div>\n    <nav>\n      <button>Home</button>\n      <button>Play</button>\n      <button>About</button>\n    </nav>\n  </header>\n  <main class="hero">\n    <h1>Build inside <span>V-STUDIOS</span></h1>\n    <p>Design UI, write scripts, and publish straight to V-MARKET.</p>\n    <button class="cta" onclick="start()">Get Started</button>\n  </main>\n</div>` },
+    { id: "html", name: "index.html", type: "html", content: `<div class="game">\n  <header class="topbar">\n    <div class="brand">V-STUDIO</div>\n    <nav>\n      <button>Home</button>\n      <button>Play</button>\n      <button>About</button>\n    </nav>\n  </header>\n  <main class="hero">\n    <h1>Build inside <span>McCrack Studios</span></h1>\n    <p>Design UI, write scripts, and publish straight to V-MARKET.</p>\n    <button class="cta" onclick="start()">Get Started</button>\n  </main>\n</div>` },
     { id: "css", name: "style.css", type: "css", content: `* { box-sizing: border-box; }\nbody { margin: 0; background: radial-gradient(120% 120% at 50% -10%, #8de6ff22, transparent), #070b14; color: #f1f7ff; font-family: Inter, system-ui, sans-serif; }\n.game { min-height: 100vh; }\n.topbar { display: flex; align-items: center; justify-content: space-between; padding: 16px 10vw; border-bottom: 1px solid #ffffff14; backdrop-filter: blur(12px); }\n.brand { font-weight: 800; letter-spacing: .2em; }\nnav button { margin-left: 10px; background: transparent; border: 1px solid #ffffff22; color: #c7d7e9; padding: 8px 14px; border-radius: 999px; }\n.hero { text-align: center; padding: 12vh 6vw; }\nh1 { font-size: clamp(42px, 9vw, 110px); letter-spacing: -.08em; margin: 0; }\nh1 span { color: #8de6ff; }\np { color: #9fb0c7; font-size: 18px; }\n.cta { margin-top: 18px; padding: 14px 26px; border-radius: 12px; border: 0; background: linear-gradient(135deg, #8de6ff, #7c5cff); font-weight: 800; }` },
-    { id: "js", name: "main.js", type: "js", content: `function start(){\n  alert("Published from V-STUDIOS!");\n}\nconsole.log("V-STUDIOS runtime ready");` },
+    { id: "js", name: "main.js", type: "js", content: `function start(){\n  alert("Published from McCrack Studios!");\n}\nconsole.log("McCrack Studios runtime ready");` },
   ]);
   const [tabs, setTabs] = useState<VsTab[]>([{ id: "t-html", fileId: "html" }, { id: "t-css", fileId: "css" }, { id: "t-js", fileId: "js" }]);
   const [activeTab, setActiveTab] = useState("t-html");
@@ -1282,7 +1282,7 @@ export function VStudiosSurface() {
       id,
       name: name.trim(),
       company: company.trim(),
-      tagline: tagline.trim() || "Built with V-STUDIOS",
+      tagline: tagline.trim() || "Built with McCrack Studios",
       description: description.trim(),
       logo: logo.trim() || makeLogo(name.trim(), type === "game" ? "🎮" : "⚙", accent, accent2),
       category: category.trim() || "Tools",
@@ -1297,7 +1297,7 @@ export function VStudiosSurface() {
       html: mode === "url" ? undefined : (previewHtml || buildCodeHtml(files.find(f=>f.type==='html')?.content||'', files.find(f=>f.type==='css')?.content||'', files.find(f=>f.type==='js')?.content||'')),
       features: features.map((item) => item.trim()).filter(Boolean).slice(0, 6),
       screenshots: [],
-      reviews: [{ id: uid("rev"), author: "you", stars: 5, text: "Published from V-STUDIOS.", date: Date.now(), helpful: 0 }],
+      reviews: [{ id: uid("rev"), author: "you", stars: 5, text: "Published from McCrack Studios.", date: Date.now(), helpful: 0 }],
       comments: [],
       createdAt: Date.now(),
       verified: false,
@@ -1346,7 +1346,7 @@ export function VStudiosSurface() {
   return (
     <div className="vs-app vs-studio">
       <header className="vs-studio-bar">
-        <div className="vs-studio-brand"><img src={vmAsset("images/v-studios-logo.svg")} alt="" /><span><strong>V-STUDIOS</strong><em>Roblox-style builder</em></span></div>
+        <div className="vs-studio-brand"><img src={vmAsset("images/v-studios-logo.svg")} alt="" /><span><strong>McCrack Studios</strong><em>Roblox-style builder</em></span></div>
         <div className="vs-studio-modes">
           <button className={mode === "studio" ? "active" : ""} onClick={() => setMode("studio")}>Code</button>
           <button className={mode === "template" ? "active" : ""} onClick={() => setMode("template")}>Templates</button>
@@ -1488,14 +1488,14 @@ export function VStudiosSurface() {
       {mode === "studio" ? (
         <div className="vs-viewport">
           <div className="vs-viewport-frame">
-            <iframe srcDoc={previewHtml} title="V-STUDIOS Live Preview" allow="autoplay; clipboard-write; fullscreen; gamepad" />
+            <iframe srcDoc={previewHtml} title="McCrack Studios Live Preview" allow="autoplay; clipboard-write; fullscreen; gamepad" />
           </div>
           <div className="vs-output-panel">
             <div className="vs-output-head"><span><Terminal size={11} /> Output</span></div>
             <div className="vs-output-content">
-              <div>[V-STUDIOS] Workspace loaded - {files.length} file(s)</div>
-              <div>[V-STUDIOS] Live preview active</div>
-              <div>[V-STUDIOS] Ready to build and publish</div>
+              <div>[McCrack Studios] Workspace loaded - {files.length} file(s)</div>
+              <div>[McCrack Studios] Live preview active</div>
+              <div>[McCrack Studios] Ready to build and publish</div>
             </div>
           </div>
         </div>
