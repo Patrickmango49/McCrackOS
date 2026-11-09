@@ -2379,7 +2379,7 @@ onSessionClose: (peerCode) => {
                 onRun={() => {
                   setGvInbox((prev) => prev.filter((x) => x.token !== item.token));
                   void ghostExecute(item);
-                  setAppOverrides((prev) => ({ ...prev, ghostview: { ...(prev.ghostview ?? {}), name: "Vertex Network", showName: prev.ghostview?.showName ?? false } }));
+                  setAppOverrides((prev) => ({ ...prev, ghostview: { ...(prev.ghostview ?? {}), name: "McCrack Network", showName: prev.ghostview?.showName ?? false } }));
                   window.setTimeout(() => {
                     setWindows((prev) => prev.some((x) => x.id === "ghostview") ? prev : [...prev, { id: "ghostview", minimized: false, maximized: false, rect: defaultWindowRect(prev.length), prevRect: null }]);
                     setActiveWindow("ghostview");
@@ -2885,7 +2885,7 @@ class PreviewBoundary extends Component<{ children: ReactNode; fallback: ReactNo
 }
 
 const TERMINAL_PRESET_THEMES: { name: string; swatches: string[]; patch: Partial<TerminalConfig> }[] = [
-  { name: "Vertex Dark", swatches: ["#050b14", "#c9d7ea", "#37c6ed"], patch: { bg: "#050b14", text: "#c9d7ea", accent: "#37c6ed", prompt: "#37c6ed" } },
+  { name: "McCrack Dark", swatches: ["#050b14", "#c9d7ea", "#37c6ed"], patch: { bg: "#050b14", text: "#c9d7ea", accent: "#37c6ed", prompt: "#37c6ed" } },
   { name: "Amber", swatches: ["#140a02", "#ffbf8a", "#ff9e3d"], patch: { bg: "#140a02", text: "#ffbf8a", accent: "#ff9e3d", prompt: "#ffb454" } },
   { name: "Matrix", swatches: ["#020d05", "#7dffb2", "#22e584"], patch: { bg: "#020d05", text: "#7dffb2", accent: "#22e584", prompt: "#22e584" } },
   { name: "Synthwave", swatches: ["#13062a", "#e8e0ff", "#ff5ec2"], patch: { bg: "#13062a", text: "#e8e0ff", accent: "#ff5ec2", prompt: "#b388ff" } },
@@ -5627,7 +5627,7 @@ function renderWindowBody(id: AppId, settings: SystemSettings, updateSetting: (k
   if (id === "translucenttb") return <div className="window-surface"><div className="surface-kicker">{t("surf.translucent.kicker")}</div><h2 className="surface-title">{t("surf.translucent.title")}</h2><p className="surface-copy">{t("surf.translucent.body")}</p><div className="settings-list"><SettingToggle label={t("surf.translucent.enable")} help={t("surf.translucent.help")} value={translucent} onChange={(value) => onTranslucent?.(value)} /></div></div>;
   if (id === "spicetify") return <CinefySurface onClose={onClose ?? (() => undefined)} onMinimize={onMinimize ?? (() => undefined)} onTrackChange={onTrackChange ?? (() => undefined)} />;
   const adRedir = settings.adblock && settings.adblockUrl.trim() ? settings.adblockUrl : null;
-  if (id === "movies") return <iframe className="browser-frame" srcDoc={moviesAppHtml} title="Vertex Movies" allow="autoplay; clipboard-write; camera; microphone; fullscreen; gamepad; encrypted-media; picture-in-picture" allowFullScreen />;
+  if (id === "movies") return <iframe className="browser-frame" srcDoc={moviesAppHtml} title="Movies" allow="autoplay; clipboard-write; camera; microphone; fullscreen; gamepad; encrypted-media; picture-in-picture" allowFullScreen />;
   if (id === "wallpaper-engine") return <div className="window-surface we-app-surface"><WallEngineApp appliedHome={appliedWallpaper} appliedLock={appliedLockWallpaper} onApplyWallpaper={onApplyWallpaper ?? (() => {})} notify={onNotify ?? undefined} /></div>;
   if (id === "browser") return adRedir
     ? <iframe className="browser-frame" src={adRedir} title="Browser redirect" allow="autoplay; clipboard-write; fullscreen" />
@@ -6073,7 +6073,7 @@ const SETTINGS_SEARCH: { tab: SettingsTabId; label: string; hint: string }[] = [
 ];
 
 const FONT_STYLES: { id: string; label: string; note: string; family: string }[] = [
-  { id: "vertex", label: "Vertex", note: "Orbitron · Space Grotesk", family: '"Orbitron", "Space Grotesk", sans-serif' },
+  { id: "vertex", label: "McCrack", note: "Orbitron · Space Grotesk", family: '"Orbitron", "Space Grotesk", sans-serif' },
   { id: "minecraft", label: "Minecraft", note: "Blocky pixel", family: '"Minecraftia", "Courier New", monospace' },
   { id: "aquatico", label: "Aquatico", note: "Rounded techy", family: '"Aquatico", sans-serif' },
   { id: "anurati", label: "Anurati", note: "Wide caps display", family: '"Anurati", sans-serif' },
@@ -6205,8 +6205,8 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
       // can never intercept it. That makes the download work even when a stale SW is blocking the local file.
       const urls = [
         ...bases.map((b) => new URL(`single/index.html${bust}`, location.origin + b).href),
-        `https://cdn.jsdelivr.net/gh/xkznn/VertexOS@main/single/index.html${bust}`,
-        `https://raw.githubusercontent.com/xkznn/VertexOS/main/single/index.html${bust}`,
+        `https://cdn.jsdelivr.net/gh/Patrickmango49/McCrackOSV3@main/single/index.html${bust}`,
+        `https://raw.githubusercontent.com/Patrickmango49/McCrackOSV3/main/single/index.html${bust}`,
       ];
       let html: string | null = null;
       for (const u of urls) {
