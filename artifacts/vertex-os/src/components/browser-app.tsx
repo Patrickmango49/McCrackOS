@@ -349,6 +349,7 @@ function ProxyBrowser(_props: { home?: boolean }) {
   const [error, setError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
   const [uiTop, setUiTop] = useState(102);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const uiRef = useRef<HTMLIFrameElement | null>(null);
@@ -428,6 +429,10 @@ function ProxyBrowser(_props: { home?: boolean }) {
       if (data?.source !== "mccrack-browser-ui") return;
       if (data.type === "workspace-offset" && typeof data.top === "number" && Number.isFinite(data.top)) {
         setUiTop(Math.max(0, Math.min(220, data.top)));
+      } else if (data.type === "settings-open") {
+        setSettingsOpen(true);
+      } else if (data.type === "settings-close") {
+        setSettingsOpen(false);
       } else if (data.type === "ui-ready") {
         uiRef.current?.contentWindow?.postMessage({
           source: "mccrack-cos-browser", type: "status",
@@ -475,7 +480,7 @@ function ProxyBrowser(_props: { home?: boolean }) {
         allow="clipboard-read; clipboard-write"
       />
       {started ? (
-        <div className="browser-proxy-layer" style={{ top: uiTop }}>
+        <div className="browser-proxy-layer" style={{ top: uiTop, display: settingsOpen ? "none" : undefined }}>
           <iframe
             ref={iframeRef}
             className="browser-frame"
