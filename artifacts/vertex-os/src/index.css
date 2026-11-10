@@ -6835,3 +6835,28 @@ to{opacity:1;transform:translateY(0)}
   .settings-wall-engine-card .we-app-embedded .we-main { flex-direction: column; }
   .settings-wall-engine-card .we-app-embedded .we-content { min-height: 430px; }
 }
+
+
+/* Mond desktop weather line */
+.rm-mond-weather {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 18px;
+  color: inherit;
+  font: 500 12px/1.4 "Quicksand", var(--font-ui);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  text-shadow: 0 2px 14px rgba(0,0,0,.5);
+  opacity: .94;
+}
+.rm-mond-weather svg { flex: 0 0 auto; opacity: .9; }
+.rm-weather-dot { opacity: .55; }
+.dock-apps .dock-button[draggable="true"] { cursor: grab; }
+.dock-apps .dock-button.dock-dragging { opacity: .35; transform: scale(.86); }
+.dock-apps .dock-button[draggable="true"]:active { cursor: grabbing; }
+@media (max-width: 760px) {
+  .rm-mond-day { font-size: calc(30px * var(--rm-z)); }
+  .rm-mond-weather { max-width: min(92vw, 360px); flex-wrap: wrap; row-gap: 4px; font-size: 10px; }
+}
