@@ -2531,7 +2531,7 @@ onSessionClose: (peerCode) => {
               <button onClick={() => { setIconSize("small"); storage.write("vertex-icon-size", "small"); setContextMenu(null); }}><span className="context-menu-checkmark">{iconSize === "small" ? <Check size={12} /> : null}</span> {t("ctx.iconSmall")}</button>
             </div>
           </span>
-          <button onClick={() => { setShowDesktopIcons((visible) => { storage.write("vertex-show-icons", !visible); return !visible; }); }}><span className="context-menu-checkmark">{showDesktopIcons ? <Check size={12} /> : null}</span> {t("ctx.showIcons")}</button>
+          <button aria-pressed={showDesktopIcons} onClick={() => { setShowDesktopIcons((visible) => { const value = !visible; storage.write("vertex-show-icons", value); return value; }); }}><span className="context-menu-checkmark">{showDesktopIcons ? <Check size={12} /> : null}</span> Show desktop icons</button>
           <button onClick={() => { setContextMenu(null); toggleApp("wallpaper-engine"); }}><Image size={15} /> {t("ctx.openWallEngine")}</button>
           <button onClick={() => { setContextMenu(null); setPersonalizeOpen(true); }}><Palette size={15} /> {t("ctx.personalize")}</button>
           <button onClick={() => { setContextMenu(null); addToast(t("ctx.refreshTitle"), t("ctx.refreshCopy")); }}><RotateCcw size={15} /> {t("ctx.refreshSystem")}</button>
