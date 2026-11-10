@@ -1444,7 +1444,6 @@ onSessionClose: (peerCode) => {
     root.dataset.style = settings.systemStyle === "macos" ? "macos" : "";
     root.dataset.font = settings.fontStyle || "vertex";
   }, [settings.colorMode, settings.systemStyle, settings.fontStyle]);
-  const [updateOpen, setUpdateOpen] = useState(false);
   const [faqOpen, setFaqOpen] = useState<number | null>(null);
   const [toasts, setToasts] = useState<{ id: number; title: string; copy: string; href?: string }[]>([]);
   const [notifications, setNotifications] = useState<{ id: number; title: string; copy: string; href?: string }[]>([]);
@@ -1706,17 +1705,8 @@ onSessionClose: (peerCode) => {
     try { storage.write(PASSWORD_KEY, activeAccount?.pass ?? ""); } catch { /* ignore */ }
   }
 
-  function showUpdateLogOnce() {
-    try {
-      if (sessionStorage.getItem("vertex-updlog-session")) return;
-      sessionStorage.setItem("vertex-updlog-session", "1");
-    } catch { /* keep quiet */ }
-    setUpdateOpen(true);
-  }
-
   function enterDesktop() {
     setPhase("desktop");
-    showUpdateLogOnce();
     addToast(t("toast.welcomeTitle"), t("toast.welcomeCopy"));
   }
 
@@ -2279,13 +2269,12 @@ onSessionClose: (peerCode) => {
           onFocusApp={(id) => setActiveWindow(id as AppId)}
           onMinimizeApp={(id) => minimizeWindow(id as AppId)}
           onCloseApp={(id) => closeWindow(id as AppId)}
-          onAbout={() => setUpdateOpen(true)}
+          onAbout={() => addToast("McCrack-COS", "Your browser desktop environment.")}
           onSettings={() => { setStartOpen(false); setDrawerOpen(false); toggleApp("settings"); }}
           onLaunchpad={() => { setStartOpen((v) => !v); setDrawerOpen(false); }}
           onNotifications={() => markNotificationsRead()}
           onRestart={() => { setStartOpen(false); restart(); }}
           onLock={() => { setStartOpen(false); setDrawerOpen(false); setWindows([]); setActiveWindow(null); setPhase("lock"); }}
-          onCheckUpdates={() => setUpdateOpen(true)}
           onToggleIcons={() => setShowDesktopIcons((v) => !v)}
           onHint={(title, copy) => addToast(title, copy)}
         /> : null}
@@ -2514,55 +2503,7 @@ onSessionClose: (peerCode) => {
           />
         )}
 
-        <InfoModal open={updateOpen} title={t("update.title")} onClose={() => setUpdateOpen(false)}>
-          <div className="update-version">{t("update.version")}<strong>v{VERTEX_VERSION}</strong></div>
-          <div className="update-hallo">
-            <span className="update-hallo-emoji">🎃</span>
-            <div>
-              <strong>{t("update.halloTitle")}</strong>
-              <span>{t("update.halloSub")}</span>
-            </div>
-          </div>
-          <div className="update-sec">
-            <div className="update-sec-title">{t("update.halloween")} · v{VERTEX_VERSION}</div>
-            <div className="update-group-label add">{t("update.added")}</div>
-            <ul className="update-list update-changes">
-              <li className="update-add"><span className="update-sign">+</span>{t("update.h1")}</li>
-              <li className="update-add"><span className="update-sign">+</span>{t("update.h2")}</li>
-              <li className="update-add"><span className="update-sign">+</span>{t("update.h3")}</li>
-              <li className="update-add"><span className="update-sign">+</span>{t("update.h4")}</li>
-              <li className="update-add"><span className="update-sign">+</span>{t("update.h5")}</li>
-              <li className="update-add"><span className="update-sign">+</span>{t("update.h6")}</li>
-            </ul>
-          </div>
-          <div className="update-sec">
-            <div className="update-sec-title">v4.0</div>
-            <div className="update-group-label add">{t("update.added")}</div>
-            <ul className="update-list update-changes">
-              <li className="update-add"><span className="update-sign">+</span>{t("update.a1")}</li>
-              <li className="update-add"><span className="update-sign">+</span>{t("update.a2")}</li>
-              <li className="update-add"><span className="update-sign">+</span>{t("update.a3")}</li>
-              <li className="update-add"><span className="update-sign">+</span>{t("update.a4")}</li>
-            </ul>
-            <div className="update-group-label rem">{t("update.removed")}</div>
-            <ul className="update-list update-changes">
-              <li className="update-rem"><span className="update-sign">−</span>{t("update.r1")}</li>
-              <li className="update-rem"><span className="update-sign">−</span>{t("update.r2")}</li>
-              <li className="update-rem"><span className="update-sign">−</span>{t("update.r3")}</li>
-            </ul>
-          </div>
-          <div className="update-sec">
-            <div className="update-sec-title">v3.0</div>
-            <ul className="update-list update-changes">
-              <li>{t("update.i1")}</li>
-              <li>{t("update.i2")}</li>
-              <li>{t("update.i3")}</li>
-              <li>{t("update.i4")}</li>
-              <li>{t("update.i5")}</li>
-            </ul>
-          </div>
-          <button className="primary-button" onClick={() => setUpdateOpen(false)}>{t("update.dismiss")}</button>
-        </InfoModal>
+oModal>
 
         {personalizeOpen && <div className="wallpaper-modal open" onClick={(event) => { if (event.target === event.currentTarget) setPersonalizeOpen(false); }} data-testid="personalize-modal">
           <div className="modal-card personalize-card">
