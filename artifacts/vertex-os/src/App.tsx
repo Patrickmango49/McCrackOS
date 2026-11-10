@@ -371,14 +371,14 @@ const ARCH_ICON = asset("images/archlinux.png");
 type AppDef = { id: AppId; title: string; subtitle: string; icon: LucideIcon; iconImg?: string; pinned?: boolean; squircle?: boolean };
 
 const baseApps: AppDef[] = [
-  { id: "browser", title: "Browser", subtitle: t("appSub.browser"), icon: Compass, iconImg: asset("images/browser-icon.png"), pinned: true },
-  { id: "messages", title: "Messages", subtitle: t("appSub.messages"), icon: MessageCircle, iconImg: asset("images/messages-icon.webp"), pinned: true },
+  { id: "browser", title: "Browser", subtitle: t("appSub.browser"), icon: Compass, iconImg: "https://static.wikia.nocookie.net/logopedia/images/9/9b/Safari_%28macOS%29_2026_beta_4.png/revision/latest?cb=20260812162727", pinned: true },
+  { id: "messages", title: "Messages", subtitle: t("appSub.messages"), icon: MessageCircle, iconImg: "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/51/IMessage_logo.svg/3840px-IMessage_logo.svg.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail", pinned: true },
   { id: "verai", title: "McCrack AI", subtitle: t("appSub.verai"), icon: Sparkles, iconImg: asset("images/ver-ai.ico"), pinned: true },
   { id: "vertube", title: "YouTube", subtitle: t("appSub.vertube"), icon: PlaySquare, iconImg: asset("images/vertube.svg"), pinned: true },
-  { id: "movies", title: "Movies", subtitle: t("appSub.movies"), icon: Film, iconImg: asset("images/cineos-icon.png"), pinned: true },
+  { id: "movies", title: "Movies", subtitle: t("appSub.movies"), icon: Film, iconImg: "https://images.icon-icons.com/3053/PNG/512/netflix_macos_bigsur_icon_189917.png", pinned: true },
   { id: "settings", title: "Config", subtitle: t("appSub.settings"), icon: Settings2, iconImg: asset("images/config-icon.png"), pinned: true },
   { id: "appmaker", title: "McCrack Studios", subtitle: "build & publish your own", icon: Code2, iconImg: asset("images/v-studios-logo.svg"), squircle: true },
-  { id: "spicetify", title: "Spicetify", subtitle: t("appSub.spicetify"), icon: Music2, iconImg: asset("images/spicetify.ico") },
+  { id: "spicetify", title: "McCrackify", subtitle: t("appSub.spicetify"), icon: Music2, iconImg: "https://static.wikia.nocookie.net/logopedia/images/2/28/Spotify_%282026%2C_20th_anniversary%29.png/revision/latest/scale-to-width-down/250?cb=20260517170935", pinned: true },
   { id: "wallpaper-engine", title: "Wallpaper Engine", subtitle: t("appSub.wallpaperEngine"), icon: Image, iconImg: asset("images/wallpaper-engine.gif"), squircle: true },
   { id: "pizza", title: "Pizza edition", subtitle: t("appSub.pizza"), icon: Compass, iconImg: asset("images/pizza.ico") },
   { id: "roblox", title: "Roblox", subtitle: t("appSub.roblox"), icon: Gamepad2, iconImg: asset("images/roblox.ico") },
@@ -662,6 +662,41 @@ function RainmeterClock({ cfg, date, tone, color }: { cfg: RainmeterSettings; da
   </div></div>;
 }
 
+function MondWeather() {
+  const [weather, setWeather] = useState<{ city: string; temperature: number; condition: string } | null>(null);
+  const [failed, setFailed] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    const load = async () => {
+      try {
+        const locationResponse = await fetch("https://ipwho.is/", { cache: "no-store" });
+        if (!locationResponse.ok) throw new Error("Location lookup failed");
+        const location = await locationResponse.json() as { success?: boolean; city?: string; latitude?: number; longitude?: number };
+        if (!location.success || typeof location.latitude !== "number" || typeof location.longitude !== "number") throw new Error("Location unavailable");
+        const params = new URLSearchParams({ latitude: String(location.latitude), longitude: String(location.longitude), current: "temperature_2m,weather_code", temperature_unit: "fahrenheit", timezone: "auto" });
+        const weatherResponse = await fetch(`https://api.open-meteo.com/v1/forecast?${params.toString()}`, { cache: "no-store" });
+        if (!weatherResponse.ok) throw new Error("Weather lookup failed");
+        const data = await weatherResponse.json() as { current?: { temperature_2m?: number; weather_code?: number } };
+        const code = Number(data.current?.weather_code ?? -1);
+        const conditions: Record<number, string> = { 0: "Clear", 1: "Mostly clear", 2: "Partly cloudy", 3: "Cloudy", 45: "Fog", 48: "Fog", 51: "Drizzle", 53: "Drizzle", 55: "Drizzle", 61: "Rain", 63: "Rain", 65: "Heavy rain", 71: "Snow", 73: "Snow", 75: "Heavy snow", 80: "Showers", 81: "Showers", 82: "Heavy showers", 95: "Thunderstorm", 96: "Thunderstorm", 99: "Thunderstorm" };
+        if (alive && typeof data.current?.temperature_2m === "number") {
+          setWeather({ city: location.city || "Local weather", temperature: Math.round(data.current.temperature_2m), condition: conditions[code] ?? "Current conditions" });
+          setFailed(false);
+        } else throw new Error("Weather data unavailable");
+      } catch {
+        if (alive) setFailed(true);
+      }
+    };
+    void load();
+    const interval = window.setInterval(() => { void load(); }, 30 * 60 * 1000);
+    return () => { alive = false; window.clearInterval(interval); };
+  }, []);
+  return <div className="rm-mond-weather" aria-live="polite">
+    <Cloud size={15} strokeWidth={1.7} />
+    {weather ? <><span>{weather.city}</span><span className="rm-weather-dot">·</span><strong>{weather.temperature}°F</strong><span className="rm-weather-dot">·</span><span>{weather.condition}</span></> : <span>{failed ? "Weather unavailable" : "Loading local weather…"}</span>}
+  </div>;
+}
+
 function RainmeterWidget({ cfg, date, tone, wallpaper, onAlternative }: { cfg: RainmeterSettings; date: Date; tone: "lock" | "home"; wallpaper?: PickerWallpaper; onAlternative?: () => void }) {
   const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
   const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
@@ -758,6 +793,7 @@ function RainmeterWidget({ cfg, date, tone, wallpaper, onAlternative }: { cfg: R
     onContextMenu={handleContext}
   >
     <RainmeterClock cfg={cfg} date={date} tone={tone} color={autoColor ?? undefined} />
+    {cfg.skin === "mond" && tone === "home" ? <MondWeather /> : null}
     {menu ? <>
       <div className="rm-menu-backdrop" onClick={() => setMenu(null)} onContextMenu={(event) => { event.preventDefault(); event.stopPropagation(); setMenu(null); }} />
       <div className="rm-context-menu" style={{ left: menu.x, top: menu.y }}>
@@ -1228,6 +1264,8 @@ storage.read("vertex-jarvis-installed", false));
   const [renameValue, setRenameValue] = useState("");
   const [iconUrl, setIconUrl] = useState("");
   const [dragId, setDragId] = useState<AppId | null>(null);
+  const [dockOrder, setDockOrder] = useState<AppId[]>(() => storage.read<AppId[]>("vertex-dock-order", []));
+  const [dockDragId, setDockDragId] = useState<AppId | null>(null);
   const [placedCells, setPlacedCells] = useState<Record<string, number>>(() => storage.read<Record<string, number>>("vertex-desktop-cells", {}));
   const desktopGridRef = useRef<HTMLDivElement>(null);
   const [translucentTB, setTranslucentTB] = useState<boolean>(() => storage.read("vertex-translucenttb", false) !== false);
@@ -2084,9 +2122,12 @@ onSessionClose: (peerCode) => {
   const dockCapacity = verticalDock
     ? Math.max(4, Math.floor((dockViewport.height - 200) / 56))
     : Math.max(4, Math.floor((dockMaxWidth - 180) / 56));
-  const dockEntries = apps.filter((app) => isPinned(app.id) || windows.some((win) => win.id === app.id));
+  const dockEntries = apps.filter((app) => isPinned(app.id) || windows.some((win) => win.id === app.id)).sort((a, b) => {
+    const ai = dockOrder.indexOf(a.id); const bi = dockOrder.indexOf(b.id);
+    return (ai < 0 ? Number.MAX_SAFE_INTEGER : ai) - (bi < 0 ? Number.MAX_SAFE_INTEGER : bi);
+  });
   const dockOverflowed = dockEntries.length > dockCapacity;
-  const visibleDockEntries = dockOverflowed ? dockEntries.slice(0, dockCapacity) : dockEntries.slice(0, dockCapacity);
+  const visibleDockEntries = dockOverflowed ? dockEntries.slice(0, dockCapacity) : dockEntries;
 
   return (
         <main className={`os-root${PERF.low ? " perf-low" : ""}`} onClick={() => { setContextMenu(null); setAppMenu(null);  setDockMenu(null); setDockOverflowOpen(false); }} onContextMenu={(event) => {
@@ -2256,6 +2297,7 @@ onSessionClose: (peerCode) => {
       </section>
 
       <section className={`desktop-shell ${phase === "desktop" ? "active" : ""} ${iconSize === "large" ? "large-icons" : iconSize === "small" ? "icon-small" : ""} ${translucentTB ? "translucent-tb" : ""} ${taskbarPos !== "bottom" ? `tb-${taskbarPos}` : ""} ${customCursor ? "custom-cursor" : ""} ${pressFx ? "press-fx" : ""} ${chromeHidden ? "chrome-hidden" : ""}`}>
+        {rmCfg.showClock ? <RainmeterWidget cfg={rmCfg} date={now} tone="home" onAlternative={() => toggleApp("rainmeter")} /> : null}
         {settings.systemStyle === "macos" ? <MacMenuBar
           now={now}
           lang={chosenLang}
@@ -2344,7 +2386,7 @@ onSessionClose: (peerCode) => {
             {visibleDockEntries.slice(0, dockOverflowed ? Math.max(0, dockCapacity - 1) : dockCapacity).map((app) => {
               const themed = getApp(app.id, appOverrides);
               const isOpen = windows.some((item) => item.id === app.id);
-              return <button key={app.id} className={`dock-button ${isOpen ? "active open" : ""}`} data-dock-label={themed.title} onClick={(event) => { event.stopPropagation(); toggleApp(app.id); }} onMouseEnter={(event) => { if (isOpen) openTaskPreview(event, app.id); }} onMouseLeave={isOpen ? pendingHideTaskPreview : undefined} onContextMenu={(event) => { event.preventDefault(); event.stopPropagation(); openAppMenu(app.id, event.clientX, event.clientY); }} title={themed.title} data-testid={`button-dock-${app.id}`}><AppIcon app={themed} size={20} /></button>;
+              return <button key={app.id} draggable className={`dock-button ${isOpen ? "active open" : ""} ${dockDragId === app.id ? "dock-dragging" : ""}`} data-dock-label={themed.title} onClick={(event) => { event.stopPropagation(); toggleApp(app.id); }} onMouseEnter={(event) => { if (isOpen) openTaskPreview(event, app.id); }} onMouseLeave={isOpen ? pendingHideTaskPreview : undefined} onContextMenu={(event) => { event.preventDefault(); event.stopPropagation(); openAppMenu(app.id, event.clientX, event.clientY); }} onDragStart={(event) => { setDockDragId(app.id); event.dataTransfer.setData("application/x-mccrack-dock-app", app.id); event.dataTransfer.effectAllowed = "move"; }} onDragOver={(event) => { event.preventDefault(); event.dataTransfer.dropEffect = "move"; }} onDrop={(event) => { event.preventDefault(); event.stopPropagation(); const from = event.dataTransfer.getData("application/x-mccrack-dock-app") as AppId; if (!from || from === app.id) return; const next = dockEntries.map((entry) => entry.id); const fromIndex = next.indexOf(from); const toIndex = next.indexOf(app.id); if (fromIndex < 0 || toIndex < 0) return; const [moved] = next.splice(fromIndex, 1); next.splice(toIndex, 0, moved); const saved = [...next, ...dockOrder.filter((id) => !next.includes(id))]; setDockOrder(saved); storage.write("vertex-dock-order", saved); setDockDragId(null); }} onDragEnd={() => setDockDragId(null)} title={`${themed.title} · drag to reorder · right-click for options`} aria-label={`${themed.title}, drag to reorder; right-click for options`} data-testid={`button-dock-${app.id}`}><AppIcon app={themed} size={20} /></button>;
             })}
             {dockOverflowed && <button className={`dock-button dock-overflow-trigger${dockOverflowOpen ? " active" : ""}`} data-dock-label="Show all taskbar apps" aria-label="Show all taskbar apps" title="Show all taskbar apps" aria-expanded={dockOverflowOpen} onClick={(event) => { event.stopPropagation(); setDockOverflowOpen((open) => !open); setPreviewId(null); setPreviewPos(null); }}><ChevronUp size={19} /></button>}
           </span>
