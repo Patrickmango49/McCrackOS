@@ -48,11 +48,11 @@ jobs:
           const livePath = '../../index.html';
           const built = fs.readFileSync('dist/public/index.html', 'utf8');
           let live = fs.readFileSync(livePath, 'utf8');
-          const js = built.match(/<script type="module" crossorigin src="([^"]+)"><\\/script>/)?.[1];
-          const css = built.match(/<link rel="stylesheet" crossorigin href="([^"]+)">/)?.[1];
-          if (!js || !css) throw new Error('Could not locate built JavaScript/CSS entry points.');
-          live = live.replace(/<script type="module" crossorigin src="[^"]+"><\\/script>/, `<script type="module" crossorigin src="${js}"></script>`);
-          live = live.replace(/<link rel="stylesheet" crossorigin href="[^"]+">/, `<link rel="stylesheet" crossorigin href="${css}">`);
+          const jsTag = built.match(/<script type="module" crossorigin src="[^"]+">/)?.[0];
+          const cssTag = built.match(/<link rel="stylesheet" crossorigin href="[^"]+">/)?.[0];
+          if (!jsTag || !cssTag) throw new Error('Could not locate built JavaScript/CSS entry points.');
+          live = live.replace(/<script type="module" crossorigin src="[^"]+">/, jsTag);
+          live = live.replace(/<link rel="stylesheet" crossorigin href="[^"]+">/, cssTag);
           fs.writeFileSync(livePath, live);
           NODE
           cd ../..
