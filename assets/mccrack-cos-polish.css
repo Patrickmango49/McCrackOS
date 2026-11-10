@@ -159,3 +159,47 @@
 .rm-clock--home {
   margin: 0;
 }
+
+
+/* Remove the old first-login release/update notes completely from the live UI. */
+.info-modal:has(.update-version) {
+  display: none !important;
+}
+
+/* Keep the top system bar aligned and clipped cleanly across screen sizes. */
+html[data-style="macos"] .mac-bar {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  overflow: visible;
+  align-items: center;
+  padding-inline: clamp(6px, 1vw, 12px);
+}
+html[data-style="macos"] .mac-bar-left,
+html[data-style="macos"] .mac-bar-right {
+  min-width: 0;
+  align-items: center;
+}
+html[data-style="macos"] .mac-bar-left {
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+html[data-style="macos"] .mac-bar-right {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+@media (max-width: 640px) {
+  html[data-style="macos"] .mac-bar {
+    gap: 3px;
+    padding-inline: 4px;
+  }
+  html[data-style="macos"] .mac-bar-item,
+  html[data-style="macos"] .mac-bar-status {
+    height: 34px;
+    padding-inline: 6px;
+    font-size: 11px;
+  }
+  html[data-style="macos"] .mac-bar-left {
+    gap: 0;
+  }
+}
