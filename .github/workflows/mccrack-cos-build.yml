@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -32,3 +32,34 @@ jobs:
           PORT: 5000
           BASE_PATH: /McCrackOSV3/
         run: npm run build
+      - name: Publish built COS assets to GitHub Pages root
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p ../../assets ../../browser-ui ../../scramjet ../../controller ../../utils
+          cp -a dist/public/assets/. ../../assets/
+          cp -a dist/public/browser-ui/. ../../browser-ui/
+          cp -a dist/public/scramjet/. ../../scramjet/
+          cp -a dist/public/controller/. ../../controller/
+          cp -a dist/public/utils/. ../../utils/
+          cp dist/public/sw.js ../../sw.js
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const livePath = '../../index.html';
+          const built = fs.readFileSync('dist/public/index.html', 'utf8');
+          let live = fs.readFileSync(livePath, 'utf8');
+          const js = built.match(/<script type="module" crossorigin src="([^"]+)"><\\/script>/)?.[1];
+          const css = built.match(/<link rel="stylesheet" crossorigin href="([^"]+)">/)?.[1];
+          if (!js || !css) throw new Error('Could not locate built JavaScript/CSS entry points.');
+          live = live.replace(/<script type="module" crossorigin src="[^"]+"><\\/script>/, `<script type="module" crossorigin src="${js}"></script>`);
+          live = live.replace(/<link rel="stylesheet" crossorigin href="[^"]+">/, `<link rel="stylesheet" crossorigin href="${css}">`);
+          fs.writeFileSync(livePath, live);
+          NODE
+          cd ../..
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html assets browser-ui scramjet controller utils sw.js
+          if ! git diff --cached --quiet; then
+            git commit -m "Deploy McCrack-COS browser integration"
+            git push
+          fi
