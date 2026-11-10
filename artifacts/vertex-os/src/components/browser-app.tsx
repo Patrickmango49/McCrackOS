@@ -425,7 +425,12 @@ function ProxyBrowser(_props: { home?: boolean }) {
       if (event.origin !== location.origin || event.source !== uiRef.current?.contentWindow) return;
       const data = event.data as { source?: string; type?: string; url?: string };
       if (data?.source !== "mccrack-browser-ui") return;
-      if (data.type === "navigate" && typeof data.url === "string") go(data.url);
+      if (data.type === "ui-ready") {
+        uiRef.current?.contentWindow?.postMessage({
+          source: "mccrack-cos-browser", type: "status",
+          status: error ? "error" : status, message: error || "",
+        }, location.origin);
+      } else if (data.type === "navigate" && typeof data.url === "string") go(data.url);
       else if (data.type === "back") frameRef.current?.back();
       else if (data.type === "forward") frameRef.current?.forward();
       else if (data.type === "reload") frameRef.current?.reload();
@@ -441,7 +446,7 @@ function ProxyBrowser(_props: { home?: boolean }) {
     };
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
-  }, [go]);
+  }, [go, error, status]);
 
   useEffect(() => {
     uiRef.current?.contentWindow?.postMessage({
