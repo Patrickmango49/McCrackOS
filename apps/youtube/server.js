@@ -4,6 +4,16 @@ const { Innertube } = require("youtubei.js");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// The COS frontend is hosted on GitHub Pages and calls this public, read-only API.
+// Search endpoints expose public video metadata only; no credentials are accepted.
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Accept, Content-Type");
+  if (req.method === "OPTIONS") return res.sendStatus(204);
+  next();
+});
+
 // Serve frontend files from /public
 app.use(express.static("public"));
 
