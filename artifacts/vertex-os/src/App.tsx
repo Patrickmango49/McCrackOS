@@ -5996,6 +5996,7 @@ const SETTINGS_SEARCH: { tab: SettingsTabId; label: string; hint: string }[] = [
   { tab: "home", label: "Language", hint: "Change the OS language / idiom" },
   { tab: "home", label: "Color mode", hint: "Bright (light) or black (dark)" },
   { tab: "personalization", label: "Wallpaper", hint: "Desktop background and lock screen" },
+  { tab: "personalization", label: "Wallpaper Engine", hint: "Animated backgrounds, workshop and installed wallpapers" },
   { tab: "personalization", label: "Reset to default wallpaper", hint: "Restore the McCrack Studios wallpaper" },
   { tab: "account", label: "Account name", hint: "The name shown on this device" },
   { tab: "account", label: "Email address", hint: "The Gmail you are signed in with" },
