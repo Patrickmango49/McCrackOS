@@ -42,6 +42,7 @@ import { GhostPayloadCard, GhostViewSurface, captureScreenHtml, ghostDeliver, gh
 import { getMediaSession, setMediaSession, notifyMediaSession, subscribeMediaSession, type MediaSession } from "./now-playing";
 const base = import.meta.env.BASE_URL.endsWith("/") ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
 const asset = (path: string) => assetUrl(base, path);
+const MCC_LOGO_URL = "https://raw.githubusercontent.com/Patrickmango49/McCrack/refs/heads/main/assets/icons/favicon.png";
 const isGitHubPages = import.meta.env.BASE_URL.startsWith("/vertexosweb");
 type WallpaperId = "vertex-studio" | "halloween" | "macos-default" | "macos-lock" | "singularity" | "snake-skeleton" | "snow-fox" | "cine55" | "gojo" | "rainy-city" | "green-anime" | "brother" | "99-med" | "gojo-sukuna" | "sukuna-fire" | "desktop-lines" | "skello" | "we-black-hole" | "we-snow-fox" | "we-gojo-sukuna" | "we-sukuna-fire" | "we-cine-55" | "we-snake" | "we-green-anime" | "we-brother" | "we-gojo" | "we-rainy-city" | "we-desktop-lines" | "we-skello" | "we-99-med" | "we-45e33" | "we-f1-formula" | "we-hunt-shadow-2" | "we-minecraft-01" | "we-minecraft-02" | "we-minecraft-03" | "we-monkey" | "we-supra-drift" | "we-yuji-52" | "we-cozy-fox" | "we-yuta" | "we-bmw-car-driving" | "we-eyes-toward-heaven" | "we-goku-ultra" | "we-galaxy-eyes" | "we-celestial-battle" | "we-tess-kotkin" | "we-yuta-rika" | "we-satoru-gojo" | "we-dark-angel" | "we-makima-devilish" | "we-makima-burning" | "we-haimiya-mio" | "we-toji" | "we-mamonir" | "we-lantern-festival" | "we-miyabi" | "we-qingxiao" | "we-megumin" | "we-odette" | "we-blue-sky" | "we-frutiger" | "we-synthwave-dmc" | "we-zankou" | "we-ghost-rider" | "we-molala" | "we-dark-king" | "we-celestial-veil" | "we-miku-nakano" | "we-gotoubun" | "we-quintuplets" | "we-black-silk-waves" | "we-blue-dragon-logo" | "we-astra-yao" | "we-luo-tianyi-christmas" | "we-mc-northern-light" | "we-mc-falling-snow" | "we-mc-aquarium" | "we-mc-holiday-heart" | "we-mc-fireplace" | "we-mc-panels" | "we-mc-cherry-blossom" | "we-mc-raindrops" | "we-silver-surfer" | "we-girl-behind-curtains" | "we-vagabond-miyamoto" | "we-itachi-crow" | "we-gojo-hollow" | "we-quintuplets-sister" | "we-yuta-okkotsu" | "we-gojo-vs-sukuna-2" | "we-gojo-cursed-world" | "we-gojo-six-eyes" | "we-frieren-blue-horizon" | "we-frieren-blooming-stream" | "we-nissan-skyline-r33-mc" | "we-torii";
 type AppId = "hub" | "spicetify" | "browser" | "pizza" | "roblox" | "messages" | "verai" | "jarvis" | "vertube" | "movies" | "settings" | "games" | "translucenttb" | "wallpaper-engine" | "minecraft" | "rainmeter" | "terminal" | "calculator" | "ghostview" | "links" | "discord" | "vcloud" | "admin" | "appmaker" | string & {};
@@ -199,7 +200,7 @@ const pvSrc = (nativeV?: string, lowV?: string) => (!nativeV ? undefined : lowV 
 const BOOT_INTRO_SRC = "https://cineosweb.github.io/Videos/Boot.mp4";
 
 const CLOAKS: Record<string, { title: string; icon: string }> = {
-  none: { title: "McCrack-COS", icon: asset(HALLOWEEN_ACTIVE ? "vertex-hub-logo-halloween.png" : "vertex-hub-logo.png") },
+  none: { title: "McCrack-COS", icon: MCC_LOGO_URL },
   google: {
     title: "Google",
     icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAA5FBMVEVHcEz9SlD/TkL/RUH/RUD/RkP4gyr/SUX/Rj//SE3/Yjb/UDn/Szz9TFb/Yi7/WTT8TVn/cyf/Zi7/iRz/fSL/lRb/SEjeuwX/qQ7/nhP/tgv9TFX6yQj/wwn/zAffugr8zgb+zwnzzQb4ywkvhv82qo79zgQek+ApjurzzAPlywIvhv0qifjRyQEth/y5yAKnxwAoivaMxQUak94fj+hzxAtawxdawhgLpa4OncYVltc8wCobvFIMuWgHqp0KorWaxQEnvz4bvUwPumUNumQMumgIr4wIqaIRvFoNu2MKtnRJwh6BPIl6AAAATHRSTlMAWZDK7P8Orf//Gv///+b/5P7////4dor///8qmP/9K0j/tu7/DeYwRP//HWr/rv///v/b///+HMT///+XTvD/5f//yGzw///////mXfQ9oAAAAWBJREFUeAF0z1UCgCAQRdEZ7O7u/W9STPr93oMCcENi2Y5jWwRBM9fz7zl0QeCFcidRHLMeJAkRj6dZdom/0+Uu62FRlpcQQILsfFVfIrqE/wPWoWleEXstYutdgO9dP9wi++/VCt0dx0dwL5u4DvNyiaFywbB1WS6ymfp+rJSMM5g2H7fYjOCsi5wOIAiCKNhRnG1bazv/fG7erFW/VcNezFEsKWVVZk2bOVi0BVuawE9GbcGOJrxoD3DEZD5ZtAcLdsX9vvWSW/ZM5g+H7JnHhFMcsI+CPpwXVOGSBsT8+Xy9VX5qfQerC77yDP94rEvB8/VCscO4z1f49+db8D9BFJEQ6N64/0hyqhVV03hxIo7+eMNLhmnZimLLjut6msCKZ3qhR+wN0/f9IAjD0PV4kV3rW/QoXF5sC4+KcEAShMkWzBeQ+QaFLX5rKrOWzcQjsHbUgCJbThA4lmwXVv8BPaBVEHC66TMAAAAASUVORK5CYII=",
@@ -1014,12 +1015,12 @@ const SPLASH_LINES = [t("sp.splash0"), t("sp.splash1"), t("sp.splash2"), t("sp.s
 const MARKETPLACE_ITEMS: MarketItem[] = [
   { id: "hazy-astromations", name: "Hazy Astromations", by: "drea.mz", version: "1.2.0", desc: t("market.desc.hazy"), category: "themes", glyph: "theme", color: "linear-gradient(135deg,#7c3aed,#38bdf8 55%,#f0abfc)", art: "images/hazy-art.png" },
   { id: "starry-nights", name: "StarryNights", by: "spicetify-themes", version: "full", desc: t("market.desc.starry"), category: "themes", glyph: "theme", color: "linear-gradient(135deg,#101b2e,#4687d6 60%,#fff3c4)", art: "images/starry-night-preview.png" },
-  { id: "beautiful-lyrics", name: "Beautiful Lyrics", by: "surfbryce", version: "4.2.0", desc: t("market.desc.beautiful"), category: "extensions", glyph: "extension", color: "linear-gradient(135deg,#a78bfa,#22d3ee 60%,#f472b6)", art: "images/vertex-logo.png" },
+  { id: "beautiful-lyrics", name: "Beautiful Lyrics", by: "surfbryce", version: "4.2.0", desc: t("market.desc.beautiful"), category: "extensions", glyph: "extension", color: "linear-gradient(135deg,#a78bfa,#22d3ee 60%,#f472b6)", art: MCC_LOGO_URL },
   { id: "sonic-dancing", name: "Sonic Dancing", by: "vertex.labs", version: "1.0.0", desc: t("market.desc.sonic"), category: "snippets", glyph: "snippet", color: "linear-gradient(135deg,#0284c7,#38bdf8)", art: "images/sonic-dancing.png" },
 ];
 
 function BrandMark() {
-  return <span className="brand-mark"><span className="brand-glyph"><span /></span><span>McCrack Studios</span></span>;
+  return <span className="brand-mark"><img className="brand-mark-logo" src={MCC_LOGO_URL} alt="" /><span>McCrack Studios</span></span>;
 }
 
 function AvatarGlyph({ value, name, size = 34 }: { value?: string; name: string; size?: number }) {
@@ -1450,7 +1451,7 @@ onSessionClose: (peerCode) => {
     document.title = cloak.title;
     let link = document.querySelector<HTMLLinkElement>("link[rel~='icon']");
     if (!link) { link = document.createElement("link"); link.rel = "icon"; document.head.appendChild(link); }
-    link.href = cloak.icon || asset("favicon.svg");
+    link.href = cloak.icon || MCC_LOGO_URL;
   }, [settings.cloak, settings.cloakName, settings.cloakIcon]);
 
   const [tabHidden, setTabHidden] = useState(false);
