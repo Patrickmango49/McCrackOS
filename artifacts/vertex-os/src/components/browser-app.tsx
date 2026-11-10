@@ -350,6 +350,7 @@ function ProxyBrowser(_props: { home?: boolean }) {
   const [attempt, setAttempt] = useState(0);
 
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const uiRef = useRef<HTMLIFrameElement | null>(null);
   const frameRef = useRef<ScramjetFrame | null>(null);
   const pendingUrlRef = useRef("");
 
@@ -387,6 +388,7 @@ function ProxyBrowser(_props: { home?: boolean }) {
           plugins: buildPlugins((url) => {
             setCurrentUrl(url);
             setInput(url);
+            uiRef.current?.contentWindow?.postMessage({ source: "mccrack-cos-browser", type: "url", url }, location.origin);
           }),
         });
         frameRef.current = frame;
@@ -418,35 +420,54 @@ function ProxyBrowser(_props: { home?: boolean }) {
     frameRef.current?.go(url);
   }, [started]);
 
+  useEffect(() => {
+    const onMessage = (event: MessageEvent) => {
+      if (event.origin !== location.origin || event.source !== uiRef.current?.contentWindow) return;
+      const data = event.data as { source?: string; type?: string; url?: string };
+      if (data?.source !== "mccrack-browser-ui") return;
+      if (data.type === "navigate" && typeof data.url === "string") go(data.url);
+      else if (data.type === "back") frameRef.current?.back();
+      else if (data.type === "forward") frameRef.current?.forward();
+      else if (data.type === "reload") frameRef.current?.reload();
+      else if (data.type === "home") {
+        pendingUrlRef.current = "";
+        frameRef.current = null;
+        setStarted(false);
+        setStatus("idle");
+        setCurrentUrl("");
+        setInput("");
+        setError(null);
+      }
+    };
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
+  }, [go]);
+
+  useEffect(() => {
+    uiRef.current?.contentWindow?.postMessage({
+      source: "mccrack-cos-browser",
+      type: "status",
+      status: error ? "error" : status,
+      message: error || "",
+    }, location.origin);
+  }, [status, error]);
+
   const onSubmit = (event: FormEvent) => {
     event.preventDefault();
     go(input);
   };
 
   return (
-    <div className="browser-root">
-      <div className="browser-bar">
-        <div className="browser-nav">
-          <button type="button" className="browser-nav-btn" title="Back" onClick={() => frameRef.current?.back()}><ArrowLeft size={15} /></button>
-          <button type="button" className="browser-nav-btn" title="Forward" onClick={() => frameRef.current?.forward()}><ArrowRight size={15} /></button>
-          <button type="button" className="browser-nav-btn" title="Reload" onClick={() => frameRef.current?.reload()}><RotateCcw size={15} /></button>
-          <button type="button" className="browser-nav-btn" title="Home" onClick={() => { setStarted(false); frameRef.current = null; setCurrentUrl(""); setInput(""); setError(null); }}><House size={15} /></button>
-          <form className="browser-addr" onSubmit={onSubmit}>
-            <Lock className="browser-addr-icon" size={14} />
-            <input
-              className="browser-addr-input"
-              value={input}
-              onChange={(event) => setInput(event.target.value)}
-              placeholder="Search the web or type a URL"
-              spellCheck={false}
-              autoComplete="off"
-            />
-            {input ? <button type="button" className="browser-open" title="Clear" onClick={() => setInput("")}><X size={15} /></button> : null}
-          </form>
-        </div>
-      </div>
-      <div className="browser-content">
-        {started ? (
+    <div className="browser-root browser-mccrack-shell">
+      <iframe
+        ref={uiRef}
+        className="browser-ui-shell"
+        src={`${BASE}browser-ui/index.html`}
+        title="McCrack Browser"
+        allow="clipboard-read; clipboard-write"
+      />
+      {started ? (
+        <div className="browser-proxy-layer">
           <iframe
             ref={iframeRef}
             className="browser-frame"
@@ -454,74 +475,18 @@ function ProxyBrowser(_props: { home?: boolean }) {
             allow="autoplay; clipboard-read; clipboard-write; camera; microphone; fullscreen; gamepad; cross-origin-isolated"
             allowFullScreen
           />
-        ) : (
-          <div className="browser-home">
-            <BrowserBackdrop />
-            <div className="browser-home-inner">
-              <div className="browser-brand-mark">
-                <img className="browser-brand-img" src={BROWSER_LOGO} alt="Vertex Browser" />
-              </div>
-              <h1 className="browser-brand-name">VERTEX</h1>
-              <p className="browser-brand-sub">proxy browser</p>
-              <form className="browser-search" onSubmit={onSubmit}>
-                <Search className="browser-search-icon" size={18} />
-                <input
-                  value={input}
-                  onChange={(event) => setInput(event.target.value)}
-                  placeholder="Search the web or type a URL"
-                  spellCheck={false}
-                  autoComplete="off"
-                  autoFocus
-                />
-              </form>
-              <div className="browser-home-controls">
-                <div className="browser-ctl">
-                  <span className="browser-ctl-label"><Globe size={12} /> Search engine</span>
-                  <div className="browser-ctl-pills">
-                    {BROWSER_ENGINES.map((engine) => (
-                      <button
-                        key={engine.id}
-                        type="button"
-                        className={`browser-pill ${settings.engine === engine.id ? "on" : ""}`}
-                        onClick={() => updateSetting({ engine: engine.id })}
-                      >
-                        {engine.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className="browser-ctl">
-                  <span className="browser-ctl-label"><Zap size={12} /> Transport</span>
-                  <div className="browser-ctl-pills">
-                    {BROWSER_TRANSPORTS.map((transport) => (
-                      <button
-                        key={transport.id}
-                        type="button"
-                        title={transport.note}
-                        className={`browser-pill ${settings.transport === transport.id ? "on" : ""}`}
-                        onClick={() => updateSetting({ transport: transport.id })}
-                      >
-                        {transport.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              <p className="browser-hint">Bypass network filters and browse the open web from inside Vertex OS.</p>
-            </div>
+        </div>
+      ) : null}
+      {status === "booting" ? <div className="browser-loading">Starting McCrack proxy…</div> : null}
+      {error ? (
+        <div className="browser-proxy-error">
+          <p>{error}</p>
+          <div className="browser-error-actions">
+            <button type="button" className="browser-retry" onClick={() => { setError(null); setAttempt((n) => n + 1); }}>Retry</button>
+            <button type="button" className="browser-retry ghost" onClick={() => { updateSetting({ transport: settings.transport === "epoxy" ? "libcurl" : "epoxy" }); setError(null); setAttempt((n) => n + 1); }}>Switch transport</button>
           </div>
-        )}
-          {status === "booting" ? <div className="browser-loading">Starting proxy…</div> : null}
-          {error ? (
-            <div className="browser-proxy-error">
-              <p>{error}</p>
-              <div className="browser-error-actions">
-                <button type="button" className="browser-retry" onClick={() => { setError(null); setAttempt((n) => n + 1); }}>Retry</button>
-                <button type="button" className="browser-retry ghost" onClick={() => { updateSetting({ transport: settings.transport === "epoxy" ? "libcurl" : "epoxy" }); setError(null); setAttempt((n) => n + 1); }}>Switch transport</button>
-              </div>
-            </div>
-          ) : null}
-      </div>
+        </div>
+      ) : null}
     </div>
   );
 }
