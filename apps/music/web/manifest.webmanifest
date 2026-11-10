@@ -1,0 +1,19 @@
+{
+  "id": "./index.html",
+  "name": "McCrackify",
+  "short_name": "McCrackify",
+  "description": "A browser-based music player with playlists, saved tracks, and a customizable player.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b0c0e",
+  "theme_color": "#0b0c0e",
+  "icons": [
+    {
+      "src": "./logo.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

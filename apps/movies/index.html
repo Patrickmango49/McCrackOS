@@ -1,0 +1,586 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="theme-color" content="#070b10" />
+<link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Patrickmango49/McCrack/main/assets/icons/favicon.png" />
+<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/Patrickmango49/McCrack/main/assets/icons/favicon.png" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>McCrackFlix — Movies and TV Discovery</title>
+<meta name="description" content="McCrackFlix is your movie and TV discovery hub. Browse films and series and build your personal watchlist." />
+<meta name="robots" content="index, follow, max-image-preview:large" />
+<link rel="canonical" href="https://patrickmango49.github.io/McCrackFlix/" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="McCrackFlix" />
+<meta property="og:title" content="McCrackFlix — Movies and TV Discovery" />
+<meta property="og:description" content="McCrackFlix is your movie and TV discovery hub. Browse films and series and build your personal watchlist." />
+<meta property="og:url" content="https://patrickmango49.github.io/McCrackFlix/" />
+<meta name="twitter:card" content="summary_large_image" />
+<style>
+
+  :root{ --bg:#141414; --bg2:#0b0b0b; --red:#42e8f5; --red2:#1495a3; --txt:#f5f5f5; --mut:#b3b3b3; --card:#1c1c1c; --radius:6px; }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{ margin:0; height:100%; background:var(--bg); color:var(--txt); font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+  body{ overflow-x:hidden; }
+  a{ color:inherit; }
+
+  /* ---------- scrollbars ---------- */
+  *{ scrollbar-width:thin; scrollbar-color:#4a4a4a transparent; }
+  ::-webkit-scrollbar{ width:10px; height:10px; }
+  ::-webkit-scrollbar-track{ background:transparent; }
+  ::-webkit-scrollbar-thumb{ background:#3d3d3d; border-radius:10px; border:2px solid transparent; background-clip:padding-box; transition:background .2s ease; }
+  ::-webkit-scrollbar-thumb:hover{ background:#8a1622; background-clip:padding-box; }
+  ::-webkit-scrollbar-corner{ background:transparent; }
+  .rail{ scrollbar-color:#3a3a3a transparent; }
+  .rail::-webkit-scrollbar{ height:8px; }
+  .rail::-webkit-scrollbar-track{ background:transparent; }
+  .rail::-webkit-scrollbar-thumb{ background:#383838; border-radius:8px; border:2px solid transparent; background-clip:content-box; min-width:40px; }
+  .rail:hover::-webkit-scrollbar-thumb{ background:#5c5a58; }
+  .rail::-webkit-scrollbar-thumb:hover{ background:var(--red); }
+  .overlay::-webkit-scrollbar-thumb:hover{ background:#666; }
+
+  /* ---------- boot animation ---------- */
+  #boot{ position:fixed; inset:0; z-index:100; background:#000; display:flex; align-items:center; justify-content:center; overflow:hidden; transition:opacity .6s ease; }
+  #boot.done{ opacity:0; pointer-events:none; }
+  #boot .tf{ position:relative; display:flex; flex-direction:column; align-items:center; gap:14px; }
+  #boot .glyph{ width:120px; height:120px; position:relative; animation:mcfxpop 1s cubic-bezier(.2,.8,.2,1) .15s both; }
+  #boot .glyph svg{ width:100%; height:100%; display:block; filter:drop-shadow(0 0 26px rgba(66,232,245,.55)); }
+  #boot .word{ color:var(--red); font-weight:900; letter-spacing:.16em; font-size:22px; text-indent:.16em; opacity:0; animation:mcfxfade .9s ease .85s both; }
+  #boot .bars{ position:absolute; inset:-40px -70px; pointer-events:none; }
+  #boot .bars i{ position:absolute; top:0; bottom:0; width:6px; background:linear-gradient(180deg,rgba(66,232,245,0),var(--red),rgba(66,232,245,0)); filter:blur(1px); opacity:.85; }
+  #boot .bars i:nth-child(1){ left:12%; animation:mcfxsweep 1.1s ease .1s both; }
+  #boot .bars i:nth-child(2){ left:88%; animation:mcfxsweep 1.1s ease .2s both; }
+  #boot .bars i:nth-child(3){ left:50%; animation:mcfxsweep 1.1s ease .3s both; }
+  @keyframes mcfxpop{ 0%{ transform:scale(.4); opacity:0; } 55%{ transform:scale(1.08); opacity:1; } 100%{ transform:scale(1); opacity:1; } }
+  @keyframes mcfxfade{ from{ opacity:0; transform:translateY(8px); } to{ opacity:1; transform:none; } }
+  @keyframes mcfxsweep{ 0%{ transform:translateY(-100%); opacity:0; } 40%{ opacity:1; } 100%{ transform:translateY(100%); opacity:0; } }
+
+  /* ---------- header ---------- */
+  header{ position:sticky; top:0; z-index:20; display:flex; align-items:center; gap:20px; padding:14px 26px; background:linear-gradient(180deg,rgba(0,0,0,.75),rgba(0,0,0,0)); transition:background .3s ease; }
+  header.solid{ background:#141414; box-shadow:0 2px 12px rgba(0,0,0,.6); }
+  .brand{ display:flex; align-items:center; gap:9px; color:var(--red); font-weight:900; letter-spacing:.06em; font-size:22px; white-space:nowrap; }
+  .brand svg{ width:30px; height:30px; display:block; }
+  .tabs{ display:flex; gap:18px; }
+  .tab{ background:none; border:0; color:#e5e5e5; cursor:pointer; font-size:14px; font-weight:500; padding:4px 0; opacity:.85; }
+  .tab:hover{ opacity:1; }
+  .tab.on{ color:#fff; font-weight:700; opacity:1; }
+  .search{ margin-left:auto; display:flex; align-items:center; gap:8px; background:rgba(0,0,0,.55); border:1px solid rgba(255,255,255,.35); border-radius:4px; padding:7px 12px; min-width:170px; flex:0 1 320px; }
+  header.solid .search{ background:#000; border-color:#333; }
+  .search input{ background:none; border:0; outline:0; color:var(--txt); width:100%; font-size:14px; }
+  .search svg{ opacity:.85; flex:none; }
+
+  main{ padding:0 0 70px; }
+  .row{ margin:0 0 34px; }
+  .row h2{ font-size:19px; margin:0 0 12px; font-weight:700; padding:0 26px; color:#e6e6e6; }
+  .rail{ display:grid; grid-auto-flow:column; grid-auto-columns:170px; gap:8px; overflow-x:auto; padding:6px 26px 14px; scrollbar-width:thin; scroll-behavior:smooth; }
+  .grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:14px; padding:8px 26px; }
+  .card{ position:relative; border-radius:var(--radius); overflow:hidden; background:var(--card); cursor:pointer; transition:transform .18s ease, box-shadow .18s ease; }
+  .card:hover{ transform:scale(1.06); z-index:3; box-shadow:0 12px 30px rgba(0,0,0,.75); }
+  .card .p{ width:100%; aspect-ratio:2/3; object-fit:cover; display:block; background:#222; }
+  .card .meta{ position:absolute; left:0; right:0; bottom:0; padding:22px 9px 9px; background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.86)); }
+  .card .nm{ font-size:13px; font-weight:600; line-height:1.2; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .card .sub{ font-size:11px; color:var(--mut); margin-top:3px; }
+  .card .rate{ position:absolute; top:8px; left:8px; background:rgba(0,0,0,.72); border:1px solid #333; border-radius:4px; padding:2px 6px; font-size:11px; font-weight:700; color:#ffd54a; }
+  .card .type{ position:absolute; top:8px; right:8px; background:var(--red); border-radius:4px; padding:2px 7px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.6px; }
+  .card .bm{ position:absolute; bottom:8px; right:8px; z-index:2; width:30px; height:30px; border-radius:50%; border:1px solid rgba(255,255,255,.55); background:rgba(0,0,0,.6); color:#fff; font-size:16px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity .15s, background .15s, transform .15s; }
+  .card:hover .bm{ opacity:1; }
+  .card .bm:hover{ background:rgba(0,0,0,.88); transform:scale(1.08); }
+  .card .bm.on{ background:var(--red); border-color:var(--red); opacity:1; }
+  .toast{ position:fixed; left:50%; bottom:28px; transform:translateX(-50%) translateY(18px); z-index:80; background:#42e8f5; color:#fff; font-weight:600; font-size:14px; padding:11px 20px; border-radius:6px; box-shadow:0 12px 34px rgba(0,0,0,.65); opacity:0; pointer-events:none; transition:opacity .25s, transform .25s; }
+  .toast.on{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  .status{ color:var(--mut); padding:60px 6px; text-align:center; font-size:14px; }
+  .spinner{ width:30px; height:30px; border:3px solid #2a2a2a; border-top-color:var(--red); border-radius:50%; animation:spin .8s linear infinite; margin:0 auto 10px; }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  /* ---------- hero billboard ---------- */
+  .hero{ position:relative; min-height:62vh; display:flex; align-items:flex-end; padding:0 26px 42px; background-size:cover; background-position:center 20%; }
+  .hero::after{ content:""; position:absolute; inset:0; background:linear-gradient(90deg,rgba(20,20,20,.92) 0%,rgba(20,20,20,.55) 45%,rgba(20,20,20,0) 75%),linear-gradient(0deg,#141414 2%,rgba(20,20,20,0) 45%); }
+  .hero .inner{ position:relative; z-index:2; max-width:560px; }
+  .hero h1{ font-size:44px; margin:0 0 12px; line-height:1.03; font-weight:900; text-shadow:0 2px 16px rgba(0,0,0,.7); }
+  .hero .chips{ display:flex; gap:8px; flex-wrap:wrap; margin:0 0 10px; color:#ddd; font-size:13px; align-items:center; }
+  .hero .desc{ color:#e6e6e6; font-size:15px; line-height:1.5; margin:6px 0 18px; text-shadow:0 1px 8px rgba(0,0,0,.8); max-height:5.4em; overflow:hidden; }
+  .btns{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+  .btn{ display:inline-flex; align-items:center; gap:9px; background:#fff; color:#000; border:0; border-radius:5px; padding:12px 26px; font-size:16px; font-weight:700; cursor:pointer; }
+  .btn.ghost{ background:rgba(109,109,110,.7); color:#fff; }
+  .btn:hover{ filter:brightness(1.08); }
+  .chip{ background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.22); border-radius:4px; padding:3px 9px; font-size:12px; }
+
+  /* ---------- detail ---------- */
+  .overlay{ position:fixed; inset:0; z-index:40; background:rgba(0,0,0,.7); backdrop-filter:blur(4px); display:none; overflow-y:auto; }
+  .overlay.on{ display:block; }
+  .detail{ max-width:940px; margin:48px auto 60px; background:#181818; border-radius:10px; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.8); animation:mcfxfade .25s ease both; }
+  .dhero{ position:relative; min-height:340px; background-size:cover; background-position:center; display:flex; align-items:flex-end; padding:26px; }
+  .detail .x{ position:absolute; top:18px; right:22px; z-index:31; width:42px; height:42px; border-radius:50%; background:rgba(20,20,20,.85); border:1px solid #333; color:#fff; font-size:22px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+  .sect{ padding:24px 32px 46px; }
+  .detail .inner{ position:relative; z-index:2; }
+  .detail h1{ font-size:34px; margin:0 0 10px; font-weight:900; }
+  .detail .chips{ display:flex; gap:8px; flex-wrap:wrap; color:#ccc; font-size:13px; margin-bottom:12px; align-items:center; }
+  .detail .desc{ color:#ddd; font-size:15px; line-height:1.55; max-width:760px; margin:0 0 18px; }
+  .detail .btn.ghost{ background:rgba(109,109,110,.7); }
+  .eps{ display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:12px; }
+  .ep{ background:var(--card); border:1px solid #262626; border-radius:6px; padding:12px; cursor:pointer; }
+  .ep:hover{ border-color:#555; background:#232323; }
+  .ep b{ display:block; font-size:13px; margin-bottom:3px; }
+  .ep span{ font-size:12px; color:var(--mut); }
+
+  /* ---------- player ---------- */
+  .player{ position:fixed; inset:0; z-index:50; background:#000; display:none; flex-direction:column; }
+  .player.on{ display:flex; }
+  .player .bar{ display:flex; align-items:center; gap:12px; padding:10px 14px; background:#0d0d0d; border-bottom:1px solid #222; flex-wrap:wrap; }
+  .player .bar .ttl{ font-weight:700; font-size:14px; margin-right:auto; }
+  .player select{ background:#1c1c1c; color:var(--txt); border:1px solid #333; border-radius:5px; padding:7px 10px; font-size:13px; }
+  .player .frame{ flex:1; width:100%; border:0; background:#000; }
+  .spinner2{ position:absolute; bottom:16px; left:16px; z-index:5; display:none; }
+  .player.loading .spinner2{ display:block; }
+
+  @media(max-width:640px){ header{ padding:12px 14px; gap:12px; } .row h2,.rail,.grid{ padding-left:14px; padding-right:14px; } .hero{ padding:0 14px 30px; min-height:52vh; } .hero h1{ font-size:30px; } .btn{ padding:10px 18px; font-size:14px; } .search{ flex-basis:120px; } }
+
+  /* McCrack ecosystem visual refresh */
+  :root{
+    color-scheme:dark;
+    --bg:#070b10;--bg2:#0a1017;--red:#00d5ff;--red2:#078ca8;
+    --txt:#f4f8fb;--mut:#9ba9b5;--card:rgba(16,25,34,.78);
+    --radius:18px;--glass:rgba(13,22,31,.66);--glass-line:rgba(255,255,255,.11);
+    --ease:cubic-bezier(.22,1,.36,1);
+  }
+  html,body{background:radial-gradient(ellipse at 50% -18%,rgba(0,213,255,.14),transparent 42%),linear-gradient(180deg,#090e14,#06090d 72%);font-family:Inter,-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}
+  body{min-height:100%;background-attachment:fixed}
+  ::selection{background:rgba(0,213,255,.28);color:#fff}
+  *{scrollbar-color:rgba(0,213,255,.34) transparent}
+  ::-webkit-scrollbar-thumb{background:rgba(135,165,184,.24);border:2px solid transparent;background-clip:padding-box}
+  ::-webkit-scrollbar-thumb:hover{background:rgba(0,213,255,.55);background-clip:padding-box}
+  #boot{background:radial-gradient(ellipse at 50% 45%,rgba(0,213,255,.13),transparent 42%),#060a0f;backdrop-filter:blur(24px);transition:opacity .75s var(--ease),filter .75s var(--ease)}
+  #boot .glyph{width:116px;height:116px;animation:mcfxpop 1.15s var(--ease) .12s both}
+  #boot .glyph img{width:100%;height:100%;object-fit:contain;display:block;filter:drop-shadow(0 0 30px rgba(0,213,255,.38))}
+  #boot .word{letter-spacing:.12em;text-shadow:0 0 24px rgba(0,213,255,.22)}
+  header{position:sticky;top:10px;margin:10px 16px 0;padding:12px 18px;border:1px solid var(--glass-line);border-radius:20px;background:rgba(8,14,20,.66);backdrop-filter:blur(26px) saturate(155%);-webkit-backdrop-filter:blur(26px) saturate(155%);box-shadow:0 14px 42px rgba(0,0,0,.24);transition:background .35s var(--ease),border-color .35s var(--ease),box-shadow .35s var(--ease),transform .35s var(--ease)}
+  header.solid{background:rgba(8,14,20,.86);border-color:rgba(0,213,255,.19);box-shadow:0 16px 42px rgba(0,0,0,.34),inset 0 1px rgba(255,255,255,.035)}
+  .brand{color:#eafaff;gap:10px;font-size:20px;letter-spacing:-.035em}
+  .brand img{width:34px;height:34px;display:block;object-fit:contain;filter:drop-shadow(0 0 12px rgba(0,213,255,.28))}
+  .tabs{gap:7px}
+  .tab{padding:9px 13px;border-radius:12px;color:#b8c5ce;opacity:1;transition:color .25s var(--ease),background .25s var(--ease),transform .25s var(--ease)}
+  .tab:hover{background:rgba(255,255,255,.065);color:#fff;transform:translateY(-1px)}
+  .tab.on{color:#fff;background:rgba(0,213,255,.13);box-shadow:inset 0 0 0 1px rgba(0,213,255,.18)}
+  .search{background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.11);border-radius:14px;padding:10px 13px;transition:border-color .25s,background .25s,box-shadow .25s}
+  .search:focus-within{background:rgba(255,255,255,.085);border-color:rgba(0,213,255,.5);box-shadow:0 0 0 4px rgba(0,213,255,.08)}
+  .search input{color:#fff}
+  main{padding-bottom:90px}
+  .row{margin-bottom:38px}
+  .row h2{font-size:18px;letter-spacing:-.025em;padding:0 30px;color:#edf6fb}
+  .rail{grid-auto-columns:178px;gap:13px;padding:8px 30px 18px}
+  .grid{gap:18px;padding:10px 30px}
+  .card{border-radius:15px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.07);box-shadow:0 8px 24px rgba(0,0,0,.16);transition:transform .42s var(--ease),border-color .35s var(--ease),box-shadow .42s var(--ease)}
+  .card:hover{transform:translateY(-5px) scale(1.025);border-color:rgba(0,213,255,.32);box-shadow:0 20px 48px rgba(0,0,0,.42),0 0 0 1px rgba(0,213,255,.06);z-index:3}
+  .card .p{background:#101a22}
+  .card .meta{padding:34px 11px 12px;background:linear-gradient(180deg,transparent,rgba(3,8,13,.94))}
+  .card .nm{font-size:13px;letter-spacing:-.01em}
+  .card .rate,.card .type{border-radius:9px;backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.14)}
+  .card .type{background:rgba(0,170,205,.82);color:#00151b}
+  .card .bm{background:rgba(5,12,18,.7);border:1px solid rgba(255,255,255,.22);backdrop-filter:blur(16px);opacity:1}
+  .card .bm.on{background:rgba(0,180,215,.9);border-color:rgba(0,213,255,.65);color:#001217}
+  .hero{min-height:66vh;padding:0 30px 54px;background-position:center 24%;border-radius:0 0 28px 28px;overflow:hidden}
+  .hero::after{background:linear-gradient(90deg,rgba(5,10,15,.94) 0%,rgba(5,10,15,.55) 47%,rgba(5,10,15,.05) 82%),linear-gradient(0deg,#070b10 0%,rgba(7,11,16,.12) 60%)}
+  .hero .inner{max-width:610px;animation:heroEnter .85s var(--ease) both}
+  .hero h1{font-size:clamp(36px,5vw,58px);letter-spacing:-.055em}
+  .hero .desc{color:#d4e1e9;max-width:580px}
+  .chip{background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:5px 11px;backdrop-filter:blur(12px)}
+  .btn{border-radius:13px;padding:12px 20px;transition:transform .25s var(--ease),background .25s,border-color .25s,box-shadow .25s;box-shadow:0 8px 22px rgba(0,0,0,.18)}
+  .btn:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(0,0,0,.28)}
+  .btn:not(.ghost){background:linear-gradient(135deg,#baf7ff,#00c9ee);color:#04151b}
+  .btn.ghost{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);color:#fff;backdrop-filter:blur(16px)}
+  .toast{background:rgba(8,25,33,.88);color:#e9fbff;border:1px solid rgba(0,213,255,.24);border-radius:14px;backdrop-filter:blur(22px);box-shadow:0 18px 50px rgba(0,0,0,.38)}
+  .overlay{background:rgba(1,5,9,.72);backdrop-filter:blur(18px) saturate(135%);-webkit-backdrop-filter:blur(18px) saturate(135%)}
+  .detail{background:rgba(12,19,27,.91);border:1px solid rgba(255,255,255,.12);border-radius:24px;box-shadow:0 32px 100px rgba(0,0,0,.58);backdrop-filter:blur(28px) saturate(145%);overflow:hidden}
+  .detail .x,.overlay .close{background:rgba(8,16,23,.72)!important;border:1px solid rgba(255,255,255,.16)!important;backdrop-filter:blur(16px);transition:transform .25s var(--ease),background .25s}
+  .detail .x:hover,.overlay .close:hover{transform:rotate(90deg) scale(1.05);background:rgba(0,213,255,.2)!important}
+  .sect{padding:26px 32px 42px}
+  .ep{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.09);border-radius:14px;transition:transform .3s var(--ease),border-color .3s,background .3s}
+  .ep:hover{transform:translateY(-2px);border-color:rgba(0,213,255,.35);background:rgba(0,213,255,.07)}
+  .player{background:#03070b}
+  .player .bar{background:rgba(8,15,22,.9);border-bottom:1px solid rgba(255,255,255,.1);backdrop-filter:blur(24px)}
+  .player select{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:11px}
+  @keyframes heroEnter{from{opacity:0;transform:translateY(18px) scale(.99);filter:blur(6px)}to{opacity:1;transform:none;filter:blur(0)}}
+  @media(max-width:760px){
+    header{top:6px;margin:6px 8px 0;padding:10px 12px;gap:8px;flex-wrap:wrap}
+    .brand{font-size:17px}.brand img{width:29px;height:29px}
+    .tabs{order:3;width:100%;overflow-x:auto;gap:4px}
+    .tab{white-space:nowrap;padding:8px 11px;font-size:12px}
+    .search{flex:1 1 120px;min-width:0}
+    .hero{min-height:56vh;padding:0 18px 34px}
+    .row h2{padding:0 18px}.rail{padding-left:18px;padding-right:18px;grid-auto-columns:150px;gap:10px}
+    .grid{padding-left:18px;padding-right:18px;gap:12px;grid-template-columns:repeat(auto-fill,minmax(125px,1fr))}
+    .detail{margin:16px 10px 30px;border-radius:19px}
+    .sect{padding:20px 18px 30px}
+  }
+  @media(prefers-reduced-motion:reduce){
+    *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  }
+
+</style>
+</head>
+<body>
+
+<div id="boot">
+  <div class="tf">
+    <div class="bars"><i></i><i></i><i></i></div>
+    <div class="glyph">
+      <img src="https://raw.githubusercontent.com/Patrickmango49/McCrack/main/assets/icons/favicon.png" alt="McCrack logo" />
+    </div>
+    <div class="word">McCrackFlix</div>
+  </div>
+</div>
+
+<header id="hd">
+  <div class="brand">
+    <img src="https://raw.githubusercontent.com/Patrickmango49/McCrack/main/assets/icons/favicon.png" alt="McCrack logo" />
+    McCrackFlix
+  </div>
+  <nav class="tabs">
+    <button class="tab on" data-tab="home">Home</button>
+    <button class="tab" data-tab="movie">Movies</button>
+    <button class="tab" data-tab="series">TV Shows</button>
+    <button class="tab" data-tab="mylist">My List</button>
+  </nav>
+  <label class="search">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input id="q" type="search" placeholder="Search movies & shows…" autocomplete="off" />
+  </label>
+</header>
+
+<main id="view"></main>
+
+<div class="overlay" id="overlay">
+  <button class="close" id="closeDetail" style="position:fixed;top:14px;right:16px;z-index:60;width:40px;height:40px;border-radius:50%;background:#1c1c1c;border:1px solid #333;color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;">&times;</button>
+  <div class="detail" id="detail"></div>
+</div>
+
+<div class="player" id="player">
+  <div class="bar">
+    <button class="btn ghost" id="closePlayer" style="padding:8px 14px;font-size:13px">&#8592; Back</button>
+    <div id="pTitle" style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:38vw"></div>
+    <select id="pServer" title="Server"></select>
+    <select id="pSeason" style="display:none"></select>
+    <select id="pEpisode" style="display:none"></select>
+  </div>
+  <div style="position:relative;flex:1">
+    <iframe id="pFrame" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowfullscreen referrerpolicy="origin" style="width:100%;height:100%;border:0"></iframe>
+    <div class="btn ghost" id="pHint" style="position:absolute;left:12px;top:12px;display:none">Playback requires an authorized media source</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+  var CN = "https://v3-cinemeta.strem.io";
+  // Licensed playback providers supplied in the original project configuration.
+  var SERVERS = [
+    { id:"vidlink", name:"VidLink", m:function(t){return "https://vidlink.pro/movie/"+t;}, tv:function(t,s,e){return "https://vidlink.pro/tv/"+t+"/"+s+"/"+e;} },
+    { id:"videasy", name:"Videasy", m:function(t){return "https://player.videasy.net/movie/"+t;}, tv:function(t,s,e){return "https://player.videasy.net/tv/"+t+"/"+s+"/"+e;} },
+    { id:"vidfast", name:"VidFast", m:function(t){return "https://vidfast.pro/movie/"+t;}, tv:function(t,s,e){return "https://vidfast.pro/tv/"+t+"/"+s+"/"+e;} },
+    { id:"vidsrc", name:"VidSrc", m:function(t){return "https://vidsrc.net/embed/movie?tmdb="+t;}, tv:function(t,s,e){return "https://vidsrc.net/embed/tv?tmdb="+t+"&season="+s+"&episode="+e;} },
+    { id:"2embed", name:"2Embed", m:function(t){return "https://www.2embed.cc/embed/"+t;}, tv:function(t,s,e){return "https://www.2embed.cc/embedtv/"+t+"&s="+s+"&e="+e;} }
+  ];
+  var ROWS_HOME = [
+    { t:"Trending Now", url:"/catalog/movie/top.json" },
+    { t:"TV Shows", url:"/catalog/series/top.json" },
+    { t:"Action", url:"/catalog/movie/top/genre=Action.json" },
+    { t:"Comedy", url:"/catalog/movie/top/genre=Comedy.json" },
+    { t:"Horror", url:"/catalog/movie/top/genre=Horror.json" },
+    { t:"Animation", url:"/catalog/movie/top/genre=Animation.json" },
+    { t:"Sci-Fi", url:"/catalog/movie/top/genre=Sci-Fi.json" },
+    { t:"Romance", url:"/catalog/movie/top/genre=Romance.json" }
+  ];
+  var view = document.getElementById("view");
+  var overlay = document.getElementById("overlay");
+  var detail = document.getElementById("detail");
+  var player = document.getElementById("player");
+  var pFrame = document.getElementById("pFrame");
+  var pTitle = document.getElementById("pTitle");
+  var pServer = document.getElementById("pServer");
+  var pSeason = document.getElementById("pSeason");
+  var pEpisode = document.getElementById("pEpisode");
+  var pHint = document.getElementById("pHint");
+  var qEl = document.getElementById("q");
+  var current = null;
+  var cache = {};
+  var KEY_LIST = "mcflix_list", KEY_RECENT = "mcflix_recent";
+
+  function storeArr(k){ try{ return JSON.parse(localStorage.getItem(k)||"[]") || []; }catch(e){ return []; } }
+  function storeSet(k,a){ try{ localStorage.setItem(k, JSON.stringify(a.slice(0,120))); }catch(e){} }
+  function toItem(m){ return { imdb_id:m.imdb_id, type:m.type||"movie", moviedb_id:m.moviedb_id||"", name:m.name, poster:m.poster||"", background:m.background||"", year:m.year||"" }; }
+  function inList(id){ return storeArr(KEY_LIST).some(function(x){ return x.imdb_id===id; }); }
+  function itemFromCard(el){ return { imdb_id:el.getAttribute("data-imdb"), type:el.getAttribute("data-type"), moviedb_id:el.getAttribute("data-tmdb"), name:el.getAttribute("data-name") }; }
+  function toggleList(m){
+    var a = storeArr(KEY_LIST);
+    var i = -1;
+    for(var k=0;k<a.length;k++){ if(a[k].imdb_id===m.imdb_id){ i=k; break; } }
+    var added;
+    if(i>=0){ a.splice(i,1); added=false; } else { a.unshift(toItem(m)); added=true; }
+    storeSet(KEY_LIST, a);
+    return added;
+  }
+  function pushRecent(m){
+    var a = storeArr(KEY_RECENT).filter(function(x){ return x.imdb_id!==m.imdb_id; });
+    a.unshift(toItem(m));
+    storeSet(KEY_RECENT, a);
+  }
+  var toastEl = document.getElementById("toast"), toastT;
+  function toast(msg){ if(!toastEl) return; toastEl.textContent=msg; toastEl.classList.add("on"); clearTimeout(toastT); toastT=setTimeout(function(){ toastEl.classList.remove("on"); },1900); }
+
+  function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];}); }
+  function get(u){ if(cache[u]) return Promise.resolve(cache[u]); return fetch(CN+u,{cache:"no-store"}).then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); }).then(function(j){ cache[u]=j; return j; }); }
+  function posterOf(m,size){ return m.poster || ("https://images.metahub.space/poster/"+(size||"small")+"/"+m.imdb_id+"/img"); }
+  function bgOf(m){ return m.background || ("https://images.metahub.space/background/medium/"+m.imdb_id+"/img"); }
+
+  function card(m){
+    var img = posterOf(m);
+    var sub = [m.year, (m.type==="series"?"Series":"Movie")].filter(Boolean).join(" · ");
+    var rate = m.imdbRating ? '<div class="rate">&#9733; '+esc(m.imdbRating)+'</div>' : "";
+    var on = inList(m.imdb_id) ? " on" : "";
+    return '<div class="card" data-imdb="'+esc(m.imdb_id)+'" data-type="'+esc(m.type||"movie")+'" data-tmdb="'+esc(m.moviedb_id||"")+'" data-name="'+esc(m.name)+'">'+
+      rate + '<img class="p" loading="lazy" src="'+esc(img)+'" onerror="this.style.opacity=0.15" alt="" />'+
+      '<button class="bm'+on+'" title="My List" aria-label="Add to My List">'+(on?"&#10003;":"+")+'</button>'+
+      '<div class="meta"><div class="nm">'+esc(m.name)+'</div><div class="sub">'+esc(sub)+'</div></div></div>';
+  }
+
+  function skel(n, w){ var s=""; for(var i=0;i<(n||6);i++){ s+='<div class="card" style="width:'+(w||170)+'px"><div class="p"></div></div>'; } return s; }
+
+  function renderRail(title, url){
+    var sec = document.createElement("section");
+    sec.className = "row";
+    sec.innerHTML = '<h2>'+esc(title)+'</h2><div class="rail">'+skel()+'</div>';
+    view.appendChild(sec);
+    var rail = sec.querySelector(".rail");
+    get(url).then(function(j){
+      var metas = (j.metas||[]).filter(function(m){return m.imdb_id;});
+      rail.innerHTML = metas.map(card).join("");
+    }).catch(function(){ sec.style.display="none"; });
+  }
+
+  function renderLocalRail(title, items){
+    if(!items || !items.length) return;
+    var sec = document.createElement("section");
+    sec.className = "row";
+    sec.innerHTML = '<h2>'+esc(title)+'</h2><div class="rail">'+items.map(card).join("")+'</div>';
+    view.appendChild(sec);
+  }
+
+  function renderHero(m){
+    var chips = [m.year, m.type==="series"?"TV Series":"Film", m.imdbRating?("★ "+m.imdbRating):"", m.runtime].filter(Boolean);
+    var el = document.createElement("section");
+    el.className = "hero";
+    el.style.backgroundImage = "url("+esc(bgOf(m)).replace(/'/g,"%27")+")";
+    el.innerHTML = '<div class="inner">'+
+      '<h1>'+esc(m.name)+'</h1>'+
+      '<div class="chips">'+chips.map(function(c){return '<span class="chip">'+esc(c)+'</span>';}).join("")+'</div>'+
+      '<div class="desc">'+esc(m.description||"")+'</div>'+
+      '<div class="btns"><button class="btn" data-hero="play">&#9654; Play</button><button class="btn ghost" data-hero="info">More Info</button></div>'+
+      '</div>';
+    view.insertBefore(el, view.firstChild);
+    el.querySelector('[data-hero="play"]').onclick = function(){ playStream(m,null); };
+    el.querySelector('[data-hero="info"]').onclick = function(){ openDetail(m.imdb_id, m.type, m.moviedb_id, m.name); };
+  }
+
+  function renderHome(){
+    view.innerHTML = "";
+    get("/catalog/movie/top.json").then(function(j){
+      var m = (j.metas||[]).filter(function(x){return x.imdb_id;})[0];
+      if(m) renderHero(m);
+    }).catch(function(){});
+    renderLocalRail("Continue Watching", storeArr(KEY_RECENT));
+    renderLocalRail("My List", storeArr(KEY_LIST));
+    ROWS_HOME.forEach(function(r){ renderRail(r.t, r.url); });
+  }
+
+  function renderList(kind){
+    view.innerHTML = '<div class="grid" style="padding-top:14px"></div>';
+    get("/catalog/"+kind+"/top.json").then(function(j){
+      var metas = (j.metas||[]).filter(function(m){return m.imdb_id;});
+      view.querySelector(".grid").innerHTML = metas.map(card).join("");
+    }).catch(function(){ view.innerHTML = '<div class="grid"></div>'; });
+  }
+
+  function renderMylist(){
+    var items = storeArr(KEY_LIST);
+    view.innerHTML = '<h2 style="padding:16px 26px 4px;font-size:26px;font-weight:900">My List</h2>';
+    if(!items.length){ view.innerHTML += '<div class="status">Nothing here yet. Open a title and tap &ldquo;+ My List&#8221;.</div>'; return; }
+    var grid = document.createElement("div"); grid.className = "grid"; grid.innerHTML = items.map(card).join("");
+    view.appendChild(grid);
+  }
+
+  function doSearch(term){
+    view.innerHTML = '<section class="row"><h2>Results for "'+esc(term)+'"</h2><div class="grid" id="sr" style="padding-top:14px"></div></section>';
+    var sr = document.getElementById("sr");
+    var q = encodeURIComponent(term);
+    Promise.all([
+      get("/catalog/movie/top/search="+q+".json").catch(function(){return {metas:[]};}),
+      get("/catalog/series/top/search="+q+".json").catch(function(){return {metas:[]};})
+    ]).then(function(res){
+      var all = res[0].metas.concat(res[1].metas).filter(function(m){return m.imdb_id;});
+      if(!all.length){ sr.innerHTML = '<div class="sub" style="grid-column:1/-1;color:var(--mut)">No results.</div>'; return; }
+      sr.innerHTML = all.map(card).join("");
+    });
+  }
+
+  /* ---------- detail ---- */
+  function openDetail(imdb, type, tmdbFromCard, name){
+    overlay.classList.add("on");
+    detail.innerHTML = '<div style="padding:80px 26px;color:var(--mut);text-align:center"><div class="spinner"></div>Loading…</div>';
+    get("/meta/"+((type==="series")?"series":"movie")+"/"+imdb+".json").then(function(j){
+      buildDetail(j.meta || {}, type, name);
+    }).catch(function(){
+      buildDetail({ imdb_id:imdb, type:type, moviedb_id:tmdbFromCard, name:name }, type, name);
+    });
+  }
+
+  function fillEps(season){
+    var eps = (current.videos||[]).filter(function(v){ return String(v.season)===String(season); });
+    pEpisode.innerHTML = eps.map(function(v){ return '<option value="'+v.number+'">E'+v.number+" "+(v.name||"").slice(0,22)+'</option>'; }).join("");
+    if(eps.length) pEpisode.value = String(eps[0].number);
+  }
+  function loadStream(){
+    if(!current) return;
+    var s = SERVERS.filter(function(x){return x.id===pServer.value;})[0] || SERVERS[0];
+    var t = current.moviedb_id;
+    if(!t){
+      pFrame.src = "about:blank";
+      pHint.textContent = "This catalog item has no TMDB ID, so the selected source cannot open it.";
+      pHint.style.display = "inline-flex";
+      player.classList.add("on");
+      return;
+    }
+    var url;
+    if(current.type==="series"){
+      var se = pSeason.value || 1, ep = pEpisode.value || 1;
+      url = s.tv(t, se, ep);
+      pTitle.textContent = (current.name||"") + "  S"+se+"E"+ep;
+    } else {
+      url = s.m(t);
+      pTitle.textContent = current.name||"";
+    }
+    pHint.style.display="none";
+    player.classList.add("loading");
+    pFrame.src = url;
+    player.classList.add("on");
+    setTimeout(function(){ player.classList.remove("loading"); }, 2500);
+    setTimeout(function(){ pHint.style.display="inline-flex"; }, 9000);
+  }
+
+  function buildDetail(metaOrNull, type, name){
+    var m = metaOrNull || {};
+    m.name = m.name || name;
+    m.type = m.type || type || "movie";
+    current = m;
+    var chips = [m.releaseInfo || m.year, m.runtime, m.imdbRating ? ("★ "+m.imdbRating) : ""].concat(m.genres||(m.genre?[m.genre]:[])).filter(Boolean);
+    var vid = (m.videos||[]);
+    detail.innerHTML =
+      '<div class="hero" style="min-height:44vh;padding:0 30px 26px;background-image:url('+esc(bgOf(m)).replace(/'/g,"%27")+')">'+
+        '<div class="inner">'+
+          '<img class="poster" style="display:none" alt="" />'+
+          '<div>'+
+            '<h1>'+esc(m.name)+'</h1>'+
+            '<div class="chips">'+chips.map(function(c){return '<span class="chip">'+esc(c)+'</span>';}).join("")+'</div>'+
+            '<div class="desc">'+esc(m.description||"")+'</div>'+
+            '<div class="btns"><button class="btn" id="playBtn">&#9654; Play</button>'+
+            (m.trailers&&m.trailers[0]&&m.trailers[0].source?('<button class="btn ghost" id="trailerBtn">Trailer</button>'):"")+
+            '<button class="btn ghost" id="listBtn">'+(inList(m.imdb_id)?"&#10003; My List":"+ My List")+'</button>'+
+            '</div>'+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+      (vid.length? '<div class="sect" style="padding-top:18px"><div style="font-weight:800;font-size:19px;margin:6px 0 14px">Episodes</div><div class="eps">'+
+        vid.map(function(v){return '<div class="ep" data-s="'+v.season+'" data-e="'+v.number+'"><b>S'+v.season+' E'+v.number+' · '+esc((v.name||"").slice(0,40))+'</b><span>'+esc((v.overview||"").slice(0,90))+'</span></div>';}).join("")+
+        '</div></div>' : '<div style="height:22px"></div>');
+    document.getElementById("playBtn").onclick = function(){ playStream(m, null); };
+    var lb = document.getElementById("listBtn");
+    if(lb) lb.onclick = function(){ var added = toggleList(m); lb.innerHTML = added ? "&#10003; My List" : "+ My List"; toast(added ? "Added to My List" : "Removed from My List"); };
+    Array.prototype.forEach.call(detail.querySelectorAll(".ep"), function(el){
+      el.onclick = function(){ playStream(m, {s:el.getAttribute("data-s"), e:el.getAttribute("data-e")}); };
+    });
+    var tb = document.getElementById("trailerBtn");
+    if(tb) tb.onclick = function(){ window.open(m.trailers[0].source, "_blank"); };
+    overlay.scrollTop = 0;
+  }
+
+  function playStream(m, ep){
+    current = m;
+    if(m.type==="series" && !(m.videos||[]).length){ m.videos = [{season:1,number:1,name:""}]; }
+    pServer.innerHTML = SERVERS.map(function(s){return '<option value="'+s.id+'">'+s.name+'</option>';}).join("");
+    if(m.type==="series"){
+      var seasons = [];
+      (m.videos||[]).forEach(function(v){ if(seasons.indexOf(String(v.season))===-1) seasons.push(String(v.season)); });
+      pSeason.innerHTML = seasons.map(function(se){return '<option value="'+se+'">Season '+se+'</option>';}).join("");
+      pSeason.style.display="";
+      pEpisode.style.display="";
+      pSeason.value = ep ? String(ep.s) : (seasons[0]||"1");
+      fillEps(pSeason.value);
+      if(ep) pEpisode.value = String(ep.e);
+    } else {
+      pSeason.style.display="none";
+      pEpisode.style.display="none";
+    }
+    loadStream();
+  }
+
+  /* ---------- wiring ---------- */
+  view.addEventListener("click", function(e){
+    var bm = e.target.closest ? e.target.closest(".bm") : null;
+    if(bm){
+      var hc = bm.closest(".card");
+      if(hc){
+        var added = toggleList(itemFromCard(hc));
+        bm.classList.toggle("on", added);
+        bm.innerHTML = added ? "&#10003;" : "+";
+        toast(added ? "Added to My List" : "Removed from My List");
+        var onTab = document.querySelector(".tab.on");
+        if(onTab && onTab.getAttribute("data-tab")==="mylist") renderMylist();
+      }
+      return;
+    }
+    var c = e.target.closest ? e.target.closest(".card") : null;
+    if(c){ openDetail(c.getAttribute("data-imdb"), c.getAttribute("data-type"), c.getAttribute("data-tmdb"), c.getAttribute("data-name")); }
+  });
+  Array.prototype.forEach.call(document.querySelectorAll(".tab"), function(t){
+    t.addEventListener("click", function(){
+      Array.prototype.forEach.call(document.querySelectorAll(".tab"), function(x){ x.classList.remove("on"); });
+      t.classList.add("on");
+      var tab = t.getAttribute("data-tab");
+      qEl.value = "";
+      if(tab==="home") renderHome(); else if(tab==="mylist") renderMylist(); else renderList(tab);
+    });
+  });
+  document.getElementById("closeDetail").onclick = function(){ overlay.classList.remove("on"); };
+  overlay.addEventListener("click", function(e){ if(e.target===overlay) overlay.classList.remove("on"); });
+  document.getElementById("closePlayer").onclick = function(){ player.classList.remove("on"); pFrame.src="about:blank"; };
+  pServer.onchange = function(){ loadStream(); };
+  pSeason.onchange = function(){ fillEps(pSeason.value); loadStream(); };
+  pEpisode.onchange = function(){ loadStream(); };
+  var st;
+  qEl.addEventListener("input", function(){
+    clearTimeout(st);
+    var v = qEl.value.trim();
+    st = setTimeout(function(){ if(v.length>=2) doSearch(v); else if(!v) renderHome(); }, 380);
+  });
+  var hd = document.getElementById("hd");
+  window.addEventListener("scroll", function(){ hd.classList.toggle("solid", window.scrollY > 30); }, {passive:true});
+
+  /* McCrackFlix boot animation (once per session) */
+  var boot = document.getElementById("boot");
+  var played = false;
+  try { played = sessionStorage.getItem("mcflix_boot") === "1"; } catch(e){}
+  if(played){
+    boot.parentNode.removeChild(boot);
+  } else {
+    try { sessionStorage.setItem("mcflix_boot","1"); } catch(e){}
+    setTimeout(function(){ boot.classList.add("done"); }, 2400);
+    setTimeout(function(){ if(boot.parentNode) boot.parentNode.removeChild(boot); }, 3100);
+  }
+
+  renderHome();
+})();
+</script>
+</body>
+</html>
