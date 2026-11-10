@@ -425,7 +425,7 @@ function ProxyBrowser(_props: { home?: boolean }) {
   useEffect(() => {
     const onMessage = (event: MessageEvent) => {
       if (event.origin !== location.origin || event.source !== uiRef.current?.contentWindow) return;
-      const data = event.data as { source?: string; type?: string; url?: string };
+      const data = event.data as { source?: string; type?: string; url?: string; top?: number };
       if (data?.source !== "mccrack-browser-ui") return;
       if (data.type === "workspace-offset" && typeof data.top === "number" && Number.isFinite(data.top)) {
         setUiTop(Math.max(0, Math.min(220, data.top)));
