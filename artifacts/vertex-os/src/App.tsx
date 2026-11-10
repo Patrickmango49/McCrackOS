@@ -2093,7 +2093,7 @@ onSessionClose: (peerCode) => {
       event.preventDefault();
       if (phase === "desktop") { setAppMenu(null);  setDockMenu(null); setContextMenu({ x: event.clientX, y: event.clientY }); }
     }}>
-      <div className="wallpaper-layer">
+      <div className={`wallpaper-layer ${phase === "desktop" ? "active" : ""}`} aria-hidden="true">
         {activeWallpaper.id === "vertex-studio"
           ? <VertexStudioWallpaper className="wallpaper-scene" />
           : activeWallpaper.id === "halloween"
@@ -2276,7 +2276,7 @@ onSessionClose: (peerCode) => {
           onNotifications={() => markNotificationsRead()}
           onRestart={() => { setStartOpen(false); restart(); }}
           onLock={() => { setStartOpen(false); setDrawerOpen(false); setWindows([]); setActiveWindow(null); setPhase("lock"); }}
-          onToggleIcons={() => setShowDesktopIcons((v) => !v)}
+          onToggleIcons={() => setShowDesktopIcons((visible) => { const next = !visible; storage.write("vertex-show-icons", next); return next; })}
           onHint={(title, copy) => addToast(title, copy)}
         /> : null}
         {HALLOWEEN_ACTIVE && <HalloweenDecor />}
@@ -5646,7 +5646,7 @@ const MC_ARCH_REALM: McRealm = { name: "ArchMC", addr: "wss://mc.arch.lol/", ver
 function MinecraftLauncherSurface() {
   const [mode, setMode] = useState<"menu" | "eagler" | "archmc" | "modpack" | "eagler112" | "eagler152">("menu");
   const [modTitle, setModTitle] = useState("Modded");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!embedded);
   const [page, setPage] = useState<"play" | "installations" | "newinstall">("play");
   const [splash, setSplash] = useState(true);
   const [splashPct, setSplashPct] = useState(0);
@@ -6259,6 +6259,11 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
                 </button>
               ))}
             </div>
+          </section>
+          <section className="win-settings-card settings-wall-engine-card">
+            <div className="setting-group"><Image size={13} /> Wallpaper Engine</div>
+            <p className="win-settings-sub">Browse animated scenes, manage your installed wallpapers, and apply a background to your desktop or lock screen.</p>
+            <WallEngineApp appliedHome={appliedWallpaper} appliedLock={appliedLockWallpaper} onApplyWallpaper={onApplyWallpaper ?? (() => {})} notify={onNotify ?? undefined} embedded />
           </section>
         </>;
       case "account":
@@ -7795,7 +7800,7 @@ function WeApplyModal({ entry, onClose, onConfirm }: { entry: WallEngineEntry; o
   </div>;
 }
 
-function WallEngineApp({ appliedHome, appliedLock, onApplyWallpaper, notify }: { appliedHome: WallpaperId; appliedLock: WallpaperId; onApplyWallpaper: (id: WallpaperId, target: "both" | "home" | "lock") => void; notify?: (title: string, copy: string) => void }) {
+function WallEngineApp({ appliedHome, appliedLock, onApplyWallpaper, notify, embedded = false }: { appliedHome: WallpaperId; appliedLock: WallpaperId; onApplyWallpaper: (id: WallpaperId, target: "both" | "home" | "lock") => void; notify?: (title: string, copy: string) => void; embedded?: boolean }) {
   const [tab, setTab] = useState<"installed" | "discover" | "workshop">("discover");
   const [query, setQuery] = useState("");
   const [openId, setOpenId] = useState<string | null>(null);
@@ -7813,6 +7818,7 @@ function WallEngineApp({ appliedHome, appliedLock, onApplyWallpaper, notify }: {
   useEffect(() => { storage.write("vertex-we-votes", votes); }, [votes]);
   const weLoadLines = [t("we.loadPhrase1"), t("we.loadPhrase2"), t("we.loadPhrase3"), t("we.loadPhrase4"), t("we.loadPhrase5"), t("we.loadPhrase6")];
   useEffect(() => {
+    if (embedded) { setLoading(false); return; }
     const total = 5400;
     const start = performance.now();
     const tick = window.setInterval(() => {
@@ -7824,7 +7830,7 @@ function WallEngineApp({ appliedHome, appliedLock, onApplyWallpaper, notify }: {
     }, 60);
     return () => window.clearInterval(tick);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [embedded]);
 
   const install = (id: string) => setInstalled((prev) => (prev.includes(id) ? prev : [...prev, id]));
   const uninstall = (id: string) => { setInstalled((prev) => prev.filter((x) => x !== id)); setOpenId((o) => (o === id ? null : o)); };
@@ -7887,7 +7893,7 @@ function WallEngineApp({ appliedHome, appliedLock, onApplyWallpaper, notify }: {
   );
 
   return (
-    <div className="we-app-wrap">
+    <div className={`we-app-wrap${embedded ? " we-app-embedded" : ""}`}>
       {loading ? <div className="we-loading" data-testid="we-loading">
         <div className="we-load-bg" aria-hidden="true">
           <span className="we-load-orb we-load-orb-a" />
