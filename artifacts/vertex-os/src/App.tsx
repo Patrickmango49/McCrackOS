@@ -2503,7 +2503,6 @@ onSessionClose: (peerCode) => {
           />
         )}
 
-oModal>
 
         {personalizeOpen && <div className="wallpaper-modal open" onClick={(event) => { if (event.target === event.currentTarget) setPersonalizeOpen(false); }} data-testid="personalize-modal">
           <div className="modal-card personalize-card">
