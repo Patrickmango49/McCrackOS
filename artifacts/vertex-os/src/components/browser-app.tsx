@@ -348,6 +348,7 @@ function ProxyBrowser(_props: { home?: boolean }) {
   const [status, setStatus] = useState<"idle" | "booting" | "ready">("idle");
   const [error, setError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
+  const [uiTop, setUiTop] = useState(102);
 
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const uiRef = useRef<HTMLIFrameElement | null>(null);
@@ -425,7 +426,9 @@ function ProxyBrowser(_props: { home?: boolean }) {
       if (event.origin !== location.origin || event.source !== uiRef.current?.contentWindow) return;
       const data = event.data as { source?: string; type?: string; url?: string };
       if (data?.source !== "mccrack-browser-ui") return;
-      if (data.type === "ui-ready") {
+      if (data.type === "workspace-offset" && typeof data.top === "number" && Number.isFinite(data.top)) {
+        setUiTop(Math.max(0, Math.min(220, data.top)));
+      } else if (data.type === "ui-ready") {
         uiRef.current?.contentWindow?.postMessage({
           source: "mccrack-cos-browser", type: "status",
           status: error ? "error" : status, message: error || "",
@@ -472,7 +475,7 @@ function ProxyBrowser(_props: { home?: boolean }) {
         allow="clipboard-read; clipboard-write"
       />
       {started ? (
-        <div className="browser-proxy-layer">
+        <div className="browser-proxy-layer" style={{ top: uiTop }}>
           <iframe
             ref={iframeRef}
             className="browser-frame"
