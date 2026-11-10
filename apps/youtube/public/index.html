@@ -960,6 +960,7 @@ body[data-compact="true"] .video-grid{gap:22px 12px!important}body[data-hidehero
   <script>
 
     const SETTINGS_KEY="mccracktube-settings-v2",SAVED_VIDEOS_KEY="mccracktube-watch-later-v1";
+    const API_BASE="https://mccracktube.onrender.com";
     const defaultSettings={theme:"deep",accent:"blue",compact:false,showHero:true,autoplayShorts:true,reduceMotion:false,shortsNav:"all"};
     let settings={...defaultSettings},currentVideo=null,theaterMode=false,savedVideos=[];
     try{settings={...defaultSettings,...JSON.parse(localStorage.getItem(SETTINGS_KEY)||"{}")}}catch(error){}
@@ -1085,13 +1086,13 @@ body[data-compact="true"] .video-grid{gap:22px 12px!important}body[data-hidehero
     }
 
     async function fetchVideos(query) {
-      const response = await fetch(`./search?q=${encodeURIComponent(query)}`);
+      const response = await fetch(`${API_BASE}/search?q=${encodeURIComponent(query)}`);
       if (!response.ok) throw new Error("Search request failed");
       return sanitizeVideos(await response.json());
     }
 
     async function fetchShortVideos(query) {
-      const response = await fetch(`./shorts?q=${encodeURIComponent(query)}`);
+      const response = await fetch(`${API_BASE}/shorts?q=${encodeURIComponent(query)}`);
       if (!response.ok) throw new Error("Shorts discovery request failed");
       const videos = sanitizeVideos(await response.json());
       return videos.filter(video =>
