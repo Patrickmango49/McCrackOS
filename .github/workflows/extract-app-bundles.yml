@@ -1,0 +1,81 @@
+name: Extract McCrack app bundles
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "McCrack-Chat-main (1).zip"
+      - "McCrackFlix-main (1).zip"
+      - "McCrackify-master (1).zip"
+      - "mccracktube-main (1).zip"
+      - "McCrack-Browser-main.zip"
+      - ".github/workflows/extract-app-bundles.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Extract app bundles
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import shutil
+
+          bundles = {
+              "McCrack-Chat-main (1).zip": "apps/messages",
+              "McCrackFlix-main (1).zip": "apps/movies",
+              "McCrackify-master (1).zip": "apps/music",
+              "mccracktube-main (1).zip": "apps/youtube",
+              # Reference copy only: production Browser remains unchanged for now.
+              "McCrack-Browser-main.zip": "apps/browser-ui-reference",
+          }
+
+          for archive_name, destination_name in bundles.items():
+              archive = Path(archive_name)
+              if not archive.is_file():
+                  raise SystemExit(f"Missing required ZIP: {archive_name}")
+
+              destination = Path(destination_name)
+              if destination.exists():
+                  shutil.rmtree(destination)
+              destination.mkdir(parents=True, exist_ok=True)
+
+              with ZipFile(archive) as zf:
+                  members = [n for n in zf.namelist() if not n.startswith("/") and ".." not in Path(n).parts]
+                  files = [n for n in members if not n.endswith("/")]
+                  first_parts = {Path(n).parts[0] for n in files if Path(n).parts}
+                  strip_root = next(iter(first_parts)) if len(first_parts) == 1 and all(len(Path(n).parts) > 1 for n in files) else None
+
+                  for member in files:
+                      parts = Path(member).parts
+                      if strip_root and parts[0] == strip_root:
+                          parts = parts[1:]
+                      if not parts:
+                          continue
+                      target = destination.joinpath(*parts)
+                      target.parent.mkdir(parents=True, exist_ok=True)
+                      with zf.open(member) as src, target.open("wb") as dst:
+                          shutil.copyfileobj(src, dst)
+
+              print(f"Extracted {archive_name} -> {destination_name}")
+          PY
+
+      - name: Commit extracted folders
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/messages apps/movies apps/music apps/youtube apps/browser-ui-reference
+          if git diff --cached --quiet; then
+            echo "No extracted-file changes to commit."
+          else
+            git commit -m "Extract McCrack app bundles"
+            git push
+          fi
