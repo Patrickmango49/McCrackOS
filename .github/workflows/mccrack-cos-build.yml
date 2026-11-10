@@ -24,6 +24,12 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+      - name: Sync main before build
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          git rebase origin/main
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -41,9 +47,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # Sync before generating or staging deployment files so rebase never runs on a dirty tree.
-          git fetch origin main
-          git rebase origin/main
           mkdir -p ../../assets ../../browser-ui ../../scramjet ../../controller ../../utils
           cp -a dist/public/assets/. ../../assets/
           cp -a dist/public/browser-ui/. ../../browser-ui/
