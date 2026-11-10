@@ -272,9 +272,9 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .rm-clock--home { --rm-z: 1; }
 
 /* Mond Ã¢â‚¬â€ Anurati day, Quicksand date + time */
-.rm-mond-day { font: 400 calc(40px * var(--rm-z)) "Anurati", "Montserrat", var(--font-display); letter-spacing: .25em; text-indent: .25em; text-transform: uppercase; line-height: 1.15; }
-.rm-mond-date { font: 500 calc(14px * var(--rm-z)) "Quicksand", var(--font-ui); letter-spacing: .2em; text-indent: .2em; margin-top: calc(14px * var(--rm-z)); text-transform: uppercase; }
-.rm-mond-time { font: 500 calc(14px * var(--rm-z)) "Quicksand", var(--font-ui); letter-spacing: .25em; text-indent: .25em; margin-top: calc(13px * var(--rm-z)); text-transform: uppercase; }
+.rm-mond-day { font: 400 calc(34px * var(--rm-z)) "Anurati", "Montserrat", var(--font-display); letter-spacing: .25em; text-indent: .25em; text-transform: uppercase; line-height: 1.15; }
+.rm-mond-date { font: 500 calc(12px * var(--rm-z)) "Quicksand", var(--font-ui); letter-spacing: .2em; text-indent: .2em; margin-top: calc(10px * var(--rm-z)); text-transform: uppercase; }
+.rm-mond-time { font: 500 calc(12px * var(--rm-z)) "Quicksand", var(--font-ui); letter-spacing: .25em; text-indent: .25em; margin-top: calc(9px * var(--rm-z)); text-transform: uppercase; }
 
 
 /* ==== Rainmeter: draggable widget + context menu ==== */
@@ -6842,10 +6842,16 @@ to{opacity:1;transform:translateY(0)}
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  margin-top: 18px;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
   color: inherit;
-  font: 500 12px/1.4 "Quicksand", var(--font-ui);
+  font: 500 10px/1.4 "Quicksand", var(--font-ui);
   letter-spacing: .08em;
   text-transform: uppercase;
   text-shadow: 0 2px 14px rgba(0,0,0,.5);
@@ -6857,6 +6863,26 @@ to{opacity:1;transform:translateY(0)}
 .dock-apps .dock-button.dock-dragging { opacity: .35; transform: scale(.86); }
 .dock-apps .dock-button[draggable="true"]:active { cursor: grabbing; }
 @media (max-width: 760px) {
-  .rm-mond-day { font-size: calc(30px * var(--rm-z)); }
+  .rm-mond-day { font-size: calc(28px * var(--rm-z)); }
   .rm-mond-weather { max-width: min(92vw, 360px); flex-wrap: wrap; row-gap: 4px; font-size: 10px; }
+}
+
+/* Mond is intentionally a compact, text-only desktop skin. */
+.rm-widget:has(.rm-clock.rm-mond),
+.rm-widget:has(.rm-clock.rm-mond) .rm-clock,
+.rm-widget:has(.rm-clock.rm-mond) .rm-scale,
+.rm-widget:has(.rm-clock.rm-mond) .rm-mond-weather {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.rm-widget:has(.rm-clock.rm-mond) .rm-mond-day,
+.rm-widget:has(.rm-clock.rm-mond) .rm-mond-date,
+.rm-widget:has(.rm-clock.rm-mond) .rm-mond-time,
+.rm-widget:has(.rm-clock.rm-mond) .rm-mond-weather {
+  text-shadow: 0 1px 8px rgba(0,0,0,.42);
 }
