@@ -156,8 +156,8 @@
  function goBack(){const t=tabs[active];if(!t||t.index<=0){toast("There is no previous page in this tab.");return}t.index--;open(t.history[t.index],false)}
  function goForward(){const t=tabs[active];if(!t||t.index>=t.history.length-1){toast("There is no next page in this tab.");return}t.index++;open(t.history[t.index],false)}
  function reload(){const t=tabs[active];if(!t||!t.url){toast("Nothing to reload yet.");return}host("reload");$("status").textContent="Reloading "+t.title+"…"}
- function openSettings(){shade.classList.add("open");shade.setAttribute("aria-hidden","false");$("closeSettings").focus()}
- function closeSettings(){shade.classList.remove("open");shade.setAttribute("aria-hidden","true");$("settingsBtn").focus()}
+ function openSettings(){shade.classList.add("open");shade.setAttribute("aria-hidden","false");host("settings-open");$("closeSettings").focus()}
+ function closeSettings(){shade.classList.remove("open");shade.setAttribute("aria-hidden","true");host("settings-close");$("settingsBtn").focus()}
  function setSetting(k,v){settings[k]=v;applySettings()}
  window.addEventListener("message",event=>{
   if(event.origin!==location.origin||event.source!==parent)return;
