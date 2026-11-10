@@ -142,3 +142,20 @@
 @media (prefers-reduced-motion: reduce) {
   .desktop-icon, .dock, .dock-button, .app-window, .window-control { transition: none !important; }
 }
+
+
+/* Keep the built-in date and time display centered on the desktop background. */
+.rm-widget:has(.rm-clock--home) {
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
+  z-index: 4 !important;
+  transform: translate(-50%, -50%) !important;
+  cursor: default !important;
+  pointer-events: none !important;
+}
+.rm-clock--home {
+  margin: 0;
+}
