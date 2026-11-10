@@ -40,7 +40,6 @@ export type MacMenuBarProps = {
   onNotifications: () => void;
   onRestart: () => void;
   onLock: () => void;
-  onCheckUpdates: () => void;
   onToggleIcons: () => void;
   onHint: (title: string, copy: string) => void;
 };
@@ -129,7 +128,7 @@ export function MacMenuBar(props: MacMenuBarProps) {
     now, lang, appName, accountName, windows, activeWindowId, unseen, showIcons,
     onPickLanguage, onOpenApp, onFocusApp, onMinimizeApp, onCloseApp,
     onAbout, onSettings, onLaunchpad, onNotifications, onRestart, onLock,
-    onCheckUpdates, onToggleIcons, onHint,
+    onToggleIcons, onHint,
   } = props;
   const battery = useBattery();
   const [open, setOpen] = useState<string | null>(null);
@@ -225,7 +224,6 @@ export function MacMenuBar(props: MacMenuBarProps) {
 
   const help: MenuItem[] = [
     { kind: "item", label: "Vertex-OS Help", icon: Info, onSelect: onLaunchpad },
-    { kind: "item", label: "Check for Updates…", icon: RotateCcw, onSelect: onCheckUpdates },
   ];
 
   const menus: { id: string; label: string; items: MenuItem[]; bold?: boolean }[] = [
