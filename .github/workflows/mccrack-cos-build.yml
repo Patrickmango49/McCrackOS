@@ -1,0 +1,36 @@
+name: McCrack-COS browser build check
+
+on:
+  push:
+    paths:
+      - "artifacts/vertex-os/**"
+      - ".github/workflows/mccrack-cos-build.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: artifacts/vertex-os
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: artifacts/vertex-os/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Type-check
+        run: npm run typecheck
+      - name: Build McCrack-COS
+        env:
+          PORT: 5000
+          BASE_PATH: /McCrackOSV3/
+        run: npm run build
