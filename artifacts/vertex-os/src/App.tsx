@@ -5646,7 +5646,7 @@ const MC_ARCH_REALM: McRealm = { name: "ArchMC", addr: "wss://mc.arch.lol/", ver
 function MinecraftLauncherSurface() {
   const [mode, setMode] = useState<"menu" | "eagler" | "archmc" | "modpack" | "eagler112" | "eagler152">("menu");
   const [modTitle, setModTitle] = useState("Modded");
-  const [loading, setLoading] = useState(!embedded);
+  const [loading, setLoading] = useState(true);
   const [page, setPage] = useState<"play" | "installations" | "newinstall">("play");
   const [splash, setSplash] = useState(true);
   const [splashPct, setSplashPct] = useState(0);
@@ -7805,7 +7805,7 @@ function WallEngineApp({ appliedHome, appliedLock, onApplyWallpaper, notify, emb
   const [query, setQuery] = useState("");
   const [openId, setOpenId] = useState<string | null>(null);
   const [applyEntry, setApplyEntry] = useState<WallEngineEntry | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!embedded);
   const [loadPct, setLoadPct] = useState(0);
   const [loadLine, setLoadLine] = useState(0);
   const [installed, setInstalled] = useState<string[]>(() => (storage.read<string[]>("vertex-we-installed", [])).filter((id) => id !== "we-sonic"));
