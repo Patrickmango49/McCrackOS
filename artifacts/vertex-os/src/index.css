@@ -119,8 +119,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .boot-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
 .boot-core { text-align: center; position: relative; z-index: 1; animation: reveal .9s ease both; }
 .brand-mark { display: inline-flex; align-items: center; gap: 12px; color: var(--cyan); letter-spacing: .16em; font-size: 11px; font-weight: 700; text-transform: uppercase; }
-.brand-glyph { width: 30px; height: 30px; border: 1px solid var(--cyan); display: grid; place-items: center; transform: rotate(45deg); box-shadow: 0 0 26px rgba(55,198,237,.2); }
-.brand-glyph span { width: 9px; height: 9px; border: 2px solid var(--cyan); transform: rotate(45deg); }
+.brand-mark-logo { width: 30px; height: 30px; object-fit: contain; border-radius: 8px; flex: 0 0 auto; filter: drop-shadow(0 0 12px rgba(55,198,237,.18)); }
+.lock-avatar .brand-mark-logo { width: 42px; height: 42px; border-radius: 11px; }
 .boot-title { font: 700 clamp(45px, 8vw, 92px)/1 var(--font-display); letter-spacing: .14em; margin: 30px 0 12px; text-shadow: 0 0 30px rgba(141,230,255,.18); }
 .boot-sub { color: var(--muted); letter-spacing: .26em; text-transform: uppercase; font-size: 11px; margin: 0 0 43px; }
 .boot-actions { display: flex; flex-direction: column; align-items: center; gap: 15px; }
@@ -164,7 +164,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .lock-login { position: absolute; bottom: 7%; left: 50%; transform: translateX(-50%); z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 12px; opacity: 0; transition: opacity .4s ease .25s; }
 .lock-screen.active .lock-login { opacity: 1; }
 .lock-avatar { width: 92px; height: 92px; display: grid; place-items: center; border-radius: 50%; border: 1px solid rgba(255,255,255,.22); background: linear-gradient(135deg, rgba(47,216,255,.92), rgba(125,59,255,.92)); box-shadow: 0 14px 46px rgba(0,0,0,.5), inset 0 0 0 4px rgba(255,255,255,.1); }
-.lock-avatar .brand-mark svg { width: 42px; height: 42px; }
+.lock-avatar .brand-mark-logo { width: 42px; height: 42px; }
 .lock-user { color: rgba(244,247,251,.97); font: 600 17px var(--font-display); letter-spacing: .08em; text-shadow: 0 2px 14px rgba(0,0,0,.95); }
 .lock-pass-row { display: flex; align-items: center; gap: 9px; margin-top: 4px; }
 .lock-pass-row input { width: 224px; padding: 12px 13px; border-radius: 9px; border: 1px solid rgba(255,255,255,.3); background: rgba(6,12,22,.62); color: var(--ink); font-size: 13px; outline: none; backdrop-filter: blur(16px); transition: border-color .18s ease; }
