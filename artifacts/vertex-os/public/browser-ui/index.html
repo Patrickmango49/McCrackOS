@@ -201,7 +201,9 @@
  });
  let loaded=false;try{const saved=localStorage.getItem(STORAGE_KEY);if(saved){settings={...defaults,...JSON.parse(saved)};loaded=true}}catch{}
  if(loaded){if(!presets[settings.theme])settings.theme=defaults.theme;if(!/^#[0-9a-f]{6}$/i.test(settings.accent))settings.accent=defaults.accent;settings.radius=Math.max(8,Math.min(28,Number(settings.radius)||18));settings.blur=Math.max(0,Math.min(36,Number(settings.blur)||0))}
- applySettings();addTab();host("ui-ready");
+ const reportWorkspace=()=>host("workspace-offset",{top:$("workspace").getBoundingClientRect().top});
+ window.addEventListener("resize",reportWorkspace);
+ applySettings();addTab();host("ui-ready");reportWorkspace();
 })();
 </script>
 </body>
