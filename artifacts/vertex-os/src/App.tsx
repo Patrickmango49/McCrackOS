@@ -1603,8 +1603,10 @@ onSessionClose: (peerCode) => {
     };
     window.addEventListener("keydown", onKey);
     const onAdminLaunch = (event: Event) => { const detail = (event as CustomEvent).detail; if (typeof detail === "string") toggleApp(detail as AppId); };
+    const onCustomAppCreated = (event: Event) => { const detail = (event as CustomEvent).detail; if (detail && typeof detail.id === "string" && detail.id.startsWith("custom_")) toggleApp(detail.id as AppId); };
     window.addEventListener("vertex-open-app", onAdminLaunch);
-    return () => { window.removeEventListener("keydown", onKey); window.removeEventListener("vertex-open-app", onAdminLaunch); };
+    window.addEventListener("vertex-add-custom-app", onCustomAppCreated);
+    return () => { window.removeEventListener("keydown", onKey); window.removeEventListener("vertex-open-app", onAdminLaunch); window.removeEventListener("vertex-add-custom-app", onCustomAppCreated); };
   });
 
   useEffect(() => {
@@ -7767,7 +7769,10 @@ function AppMakerSurface() {
   const createApp = () => {
     if (!name.trim() || !url.trim()) return;
     const id = `custom_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    const newApp = { id, name: name.trim(), icon: icon.trim() || asset("images/links.svg"), url: url.trim(), type };
+    const rawUrl = url.trim();
+    const safeUrl = /^https?:\/\//i.test(rawUrl) ? rawUrl : `https://${rawUrl}`;
+    try { const parsed = new URL(safeUrl); if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return; } catch { return; }
+    const newApp = { id, name: name.trim(), icon: icon.trim() || asset("images/links.svg"), url: safeUrl, type };
     saveApps([...apps, newApp]);
     setName(""); setIcon(""); setUrl("");
     // Dispatch event to add to app list
@@ -7782,7 +7787,7 @@ function AppMakerSurface() {
     <div className="window-surface" style={{ padding: "20px", overflow: "auto" }}>
       <div className="surface-kicker">APP MAKER</div>
       <h2 className="surface-title">Create Custom Apps</h2>
-      <p className="surface-copy">Make your own apps with custom logos. Paste any website URL to embed it.</p>
+      <p className="surface-copy">Make your own apps with custom logos. Create a standalone app that opens its website through the same Scramjet proxy used by Browser.</p>
       
       <div style={{ marginTop: "20px", display: "flex", flexDirection: "column", gap: "12px", maxWidth: "400px" }}>
         <input 
@@ -7800,7 +7805,7 @@ function AppMakerSurface() {
         <input 
           value={url} 
           onChange={(e) => setUrl(e.target.value)} 
-          placeholder="Website URL (e.g., https://pizzaedition.com/)" 
+          placeholder="Website URL (https://example.com)" 
           style={{ padding: "8px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.2)", background: "rgba(0,0,0,0.3)", color: "white" }}
         />
         <select 
