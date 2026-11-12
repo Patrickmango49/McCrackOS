@@ -43,9 +43,11 @@ import { getMediaSession, setMediaSession, notifyMediaSession, subscribeMediaSes
 const base = import.meta.env.BASE_URL.endsWith("/") ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
 const asset = (path: string) => assetUrl(base, path);
 const MCC_LOGO_URL = "https://raw.githubusercontent.com/Patrickmango49/McCrack/refs/heads/main/assets/icons/favicon.png";
+const BROWSER_APP_ICON = "https://raw.githubusercontent.com/Patrickmango49/McCrackOSV3/main/artifacts/vertex-browser/assets/icon.png";
+const MCC_CRACKIFY_ICON = "https://raw.githubusercontent.com/Patrickmango49/McCrackOSV3/main/apps/music/web/logo.png";
 const isGitHubPages = import.meta.env.BASE_URL.startsWith("/vertexosweb");
 type WallpaperId = "vertex-studio" | "halloween" | "macos-default" | "macos-lock" | "singularity" | "snake-skeleton" | "snow-fox" | "cine55" | "gojo" | "rainy-city" | "green-anime" | "brother" | "99-med" | "gojo-sukuna" | "sukuna-fire" | "desktop-lines" | "skello" | "we-black-hole" | "we-snow-fox" | "we-gojo-sukuna" | "we-sukuna-fire" | "we-cine-55" | "we-snake" | "we-green-anime" | "we-brother" | "we-gojo" | "we-rainy-city" | "we-desktop-lines" | "we-skello" | "we-99-med" | "we-45e33" | "we-f1-formula" | "we-hunt-shadow-2" | "we-minecraft-01" | "we-minecraft-02" | "we-minecraft-03" | "we-monkey" | "we-supra-drift" | "we-yuji-52" | "we-cozy-fox" | "we-yuta" | "we-bmw-car-driving" | "we-eyes-toward-heaven" | "we-goku-ultra" | "we-galaxy-eyes" | "we-celestial-battle" | "we-tess-kotkin" | "we-yuta-rika" | "we-satoru-gojo" | "we-dark-angel" | "we-makima-devilish" | "we-makima-burning" | "we-haimiya-mio" | "we-toji" | "we-mamonir" | "we-lantern-festival" | "we-miyabi" | "we-qingxiao" | "we-megumin" | "we-odette" | "we-blue-sky" | "we-frutiger" | "we-synthwave-dmc" | "we-zankou" | "we-ghost-rider" | "we-molala" | "we-dark-king" | "we-celestial-veil" | "we-miku-nakano" | "we-gotoubun" | "we-quintuplets" | "we-black-silk-waves" | "we-blue-dragon-logo" | "we-astra-yao" | "we-luo-tianyi-christmas" | "we-mc-northern-light" | "we-mc-falling-snow" | "we-mc-aquarium" | "we-mc-holiday-heart" | "we-mc-fireplace" | "we-mc-panels" | "we-mc-cherry-blossom" | "we-mc-raindrops" | "we-silver-surfer" | "we-girl-behind-curtains" | "we-vagabond-miyamoto" | "we-itachi-crow" | "we-gojo-hollow" | "we-quintuplets-sister" | "we-yuta-okkotsu" | "we-gojo-vs-sukuna-2" | "we-gojo-cursed-world" | "we-gojo-six-eyes" | "we-frieren-blue-horizon" | "we-frieren-blooming-stream" | "we-nissan-skyline-r33-mc" | "we-torii";
-type AppId = "hub" | "spicetify" | "browser" | "pizza" | "roblox" | "messages" | "verai" | "jarvis" | "vertube" | "movies" | "settings" | "games" | "translucenttb" | "wallpaper-engine" | "minecraft" | "rainmeter" | "terminal" | "calculator" | "ghostview" | "links" | "discord" | "vcloud" | "admin" | "appmaker" | string & {};
+type AppId = "hub" | "spicetify" | "browser" | "roblox" | "messages" | "verai" | "jarvis" | "vertube" | "movies" | "settings" | "games" | "translucenttb" | "wallpaper-engine" | "minecraft" | "rainmeter" | "terminal" | "calculator" | "ghostview" | "links" | "discord" | "vcloud" | "admin" | "appmaker" | string & {};
 type Ps5DesktopShortcut = { id: string; name: string; cover: string };
 type TaskbarPos = "bottom" | "top" | "left" | "right";
 type WindowRect = { x: number; y: number; w: number; h: number };
@@ -372,23 +374,19 @@ const ARCH_ICON = asset("images/archlinux.png");
 type AppDef = { id: AppId; title: string; subtitle: string; icon: LucideIcon; iconImg?: string; pinned?: boolean; squircle?: boolean };
 
 const baseApps: AppDef[] = [
-  { id: "browser", title: "Browser", subtitle: t("appSub.browser"), icon: Compass, iconImg: asset("images/browser-icon.png"), pinned: true },
+  { id: "browser", title: "Browser", subtitle: t("appSub.browser"), icon: Compass, iconImg: BROWSER_APP_ICON, pinned: true },
   { id: "messages", title: "Messages", subtitle: t("appSub.messages"), icon: MessageCircle, iconImg: "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/51/IMessage_logo.svg/3840px-IMessage_logo.svg.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail", pinned: true },
   { id: "verai", title: "McCrack AI", subtitle: t("appSub.verai"), icon: Sparkles, iconImg: asset("images/ver-ai.ico"), pinned: true },
   { id: "vertube", title: "YouTube", subtitle: t("appSub.vertube"), icon: PlaySquare, iconImg: asset("images/vertube.svg"), pinned: true },
   { id: "movies", title: "Movies", subtitle: t("appSub.movies"), icon: Film, iconImg: "https://images.icon-icons.com/3053/PNG/512/netflix_macos_bigsur_icon_189917.png", pinned: true },
   { id: "settings", title: "Config", subtitle: t("appSub.settings"), icon: Settings2, iconImg: asset("images/config-icon.png"), pinned: true },
   { id: "appmaker", title: "McCrack Studios", subtitle: "build & publish your own", icon: Code2, iconImg: asset("images/v-studios-logo.svg"), squircle: true },
-  { id: "spicetify", title: "McCrackify", subtitle: t("appSub.spicetify"), icon: Music2, iconImg: asset("images/spicetify.ico"), pinned: true },
-  { id: "wallpaper-engine", title: "Wallpaper Engine", subtitle: t("appSub.wallpaperEngine"), icon: Image, iconImg: asset("images/wallpaper-engine.gif"), squircle: true },
-  { id: "pizza", title: "Pizza edition", subtitle: t("appSub.pizza"), icon: Compass, iconImg: asset("images/pizza.ico") },
+  { id: "spicetify", title: "McCrackify", subtitle: "Music player", icon: Music2, iconImg: MCC_CRACKIFY_ICON, pinned: true },
   { id: "roblox", title: "Roblox", subtitle: t("appSub.roblox"), icon: Gamepad2, iconImg: asset("images/roblox.ico") },
   { id: "jarvis", title: "JARVIS", subtitle: t("appSub.jarvis"), icon: Bot, iconImg: asset("images/jarvis-logo.png") },
   { id: "games", title: "PS5 Emu", subtitle: t("appSub.games"), icon: Gamepad2, iconImg: asset("images/ps5-emu.png"), squircle: true },
   { id: "minecraft", title: "Minecraft Launcher", subtitle: t("appSub.minecraft"), icon: Gamepad2, iconImg: MC_ICON, squircle: true },
-  { id: "translucenttb", title: "TranslucentTB", subtitle: t("appSub.translucenttb"), icon: Waves, iconImg: asset("images/translucenttb-logo.png") },
   { id: "calculator", title: "Calculator", subtitle: t("appSub.calculator"), icon: Calculator, iconImg: asset("images/calculator-logo.svg") },
-  { id: "rainmeter", title: "Rainmeter", subtitle: t("appSub.rainmeter"), icon: MonitorCog, iconImg: RAINMETER_ICON },
   { id: "terminal", title: "Terminal", subtitle: t("appSub.terminal"), icon: Terminal, iconImg: ARCH_ICON },
   { id: "links", title: "Links", subtitle: t("appSub.links"), icon: Link2, iconImg: asset("images/links.svg") },
 ];;
@@ -401,8 +399,8 @@ type AppOverride = { name?: string; showName?: boolean; iconUrl?: string; pinned
 const APP_SECTIONS: { id: string; tone: string; all?: boolean; ids: AppId[] }[] = [
   { id: "all", tone: "tone-all", all: true, ids: [] },
   { id: "watch", tone: "tone-watch", ids: ["vertube", "movies", "spicetify", "messages", "verai", "jarvis"] },
-  { id: "play", tone: "tone-play", ids: ["roblox", "minecraft", "games", "pizza"] },
-  { id: "create", tone: "tone-create", ids: ["terminal", "wallpaper-engine", "browser", "calculator", "appmaker", "settings", "translucenttb", "rainmeter", "links"] },
+  { id: "play", tone: "tone-play", ids: ["roblox", "minecraft", "games"] },
+  { id: "create", tone: "tone-create", ids: ["terminal", "browser", "calculator", "appmaker", "settings", "links"] },
 ];;
 
 const GV_APP: { id: AppId; title: string; subtitle: string; icon: LucideIcon; pinned: boolean; showName: boolean } = { id: "ghostview", title: "GhostView", subtitle: "remote view", icon: Eye, pinned: false, showName: false };
@@ -827,7 +825,7 @@ type MarketCategory = "extensions" | "themes" | "snippets";
 type MarketItem = { id: string; name: string; by: string; version: string; desc: string; category: MarketCategory; glyph: "theme" | "extension" | "snippet"; color: string; art?: string };
 type HazyConfig = { enabled: boolean; custom: boolean; url: string; colorOn: boolean; color: string; tint: number; blur: number; contrast: number; saturation: number; brightness: number; size: number };
 const DEFAULT_HAZY: HazyConfig = { enabled: true, custom: false, url: "", colorOn: false, color: "#8b5cf6", tint: 0.28, blur: 0, contrast: 104, saturation: 114, brightness: 88, size: 1 };
-type SpicetifyTab = "home" | "search" | "liked" | "playlist" | "marketplace" | "hazy" | "nowplaying";
+type McCrackifyTab = "home" | "search" | "liked" | "playlist" | "marketplace" | "hazy" | "nowplaying";
 type Playlist = { id: number; name: string; trackIds: number[] };
 type TrackCache = Record<number, CinefyTrack>;
 type LyricLine = { time: number; text: string };
@@ -1083,7 +1081,7 @@ function App() {
     return () => window.removeEventListener("rainmeter-config-updated", bump);
   }, []);
   const [chosenLang, setChosenLang] = useState<Lang>(() => readLang());
-  const [languageOpen, setLanguageOpen] = useState(() => !storage.read("vertex-language-set", false));
+  const [languageOpen, setLanguageOpen] = useState(false);
   const homeVideoRef = useRef<HTMLVideoElement>(null);
   const lockVideoRef = useRef<HTMLVideoElement>(null);
   const bootVideoRef = useRef<HTMLVideoElement>(null);
@@ -2611,20 +2609,6 @@ onSessionClose: (peerCode) => {
         </div>}
 
         </section>
-
-       {languageOpen && <div className="language-gate" role="dialog" aria-modal="true" aria-labelledby="language-title" onClick={(event) => event.stopPropagation()}>
-         <div className="language-card">
-           <BrandMark />
-           <div className="language-kicker">{t("gate.kicker")}</div>
-           <h2 id="language-title">{t("gate.title")}</h2>
-           <p>{t("gate.subtitle")}</p>
-           <div className="language-options">
-             {LANGS.map((option) => <button key={option.code} className="language-option" onClick={() => chooseLanguage(option.code)} data-testid={`button-language-${option.code}`}>
-               <span>{option.native}</span><small>{option.label}</small><ChevronRight size={16} />
-             </button>)}
-           </div>
-         </div>
-       </div>}
 
       {mobileWarning && <div className="mobile-warning" onDoubleClick={() => setMobileWarning(false)}><div className="mobile-warning-card"><div className="mobile-warning-kicker">{t("mobile.kicker")}</div><h2>{t("mobile.title")}</h2><p>{t("mobile.copy")}</p><button className="primary-button" onClick={() => setMobileWarning(false)} data-testid="button-continue-mobile">{t("mobile.continue")}</button></div></div>}
       <div className="toast-stack">{toasts.map((toast) => toast.href ? <a className="toast" key={toast.id} href={toast.href} target="_blank" rel="noopener noreferrer" onClick={() => setToasts((items) => items.filter((item) => item.id !== toast.id))}><strong>{toast.title}</strong><span>{toast.copy}</span></a> : <button className="toast" key={toast.id} onClick={() => setToasts((items) => items.filter((item) => item.id !== toast.id))}><strong>{toast.title}</strong><span>{toast.copy}</span></button>)}</div>
@@ -5612,12 +5596,10 @@ function renderWindowBody(id: AppId, settings: SystemSettings, updateSetting: (k
   if (id === "spicetify") return <iframe className="browser-frame" src={asset("apps/music/web/index.html")} title="McCrackify" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; fullscreen" allowFullScreen />;
   const adRedir = settings.adblock && settings.adblockUrl.trim() ? settings.adblockUrl : null;
   if (id === "movies") return <iframe className="browser-frame" src={asset("apps/movies/index.html")} title="McCrackFlix" allow="autoplay; clipboard-write; fullscreen; encrypted-media; picture-in-picture" allowFullScreen />;
-  if (id === "wallpaper-engine") return <div className="window-surface we-app-surface"><WallEngineApp appliedHome={appliedWallpaper} appliedLock={appliedLockWallpaper} onApplyWallpaper={onApplyWallpaper ?? (() => {})} notify={onNotify ?? undefined} /></div>;
   if (id === "browser") return adRedir
     ? <iframe className="browser-frame" src={adRedir} title="Browser redirect" allow="autoplay; clipboard-write; fullscreen" />
     : <BrowserSurface lang={lang} />;
   if (id === "calculator") return <div className="window-surface calc-app-surface"><CalculatorSurface /></div>;
-  if (id === "pizza") return <iframe className="browser-frame" src={adRedir ?? "https://pizzaedition.com/"} title="Pizza edition" allow="autoplay; clipboard-write; camera; microphone; fullscreen" />;
   if (id === "roblox") return <ProxyUrlFrame url={adRedir ?? "https://73.ip.nowgg.fun/apps/a/19900/b.html"} title="Roblox" />;
   if (id === "messages") return <iframe className="browser-frame" src={asset("apps/messages/index.html")} title="McCrack Chat" allow="autoplay; clipboard-write; camera; microphone; fullscreen" allowFullScreen />;
   if (id === "verai") return <div className="window-surface verai-surface"><VerAiSurface /></div>;
@@ -6261,10 +6243,6 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
               </div>
             </div>
             <div className="win-settings-row">
-              <div><strong>Language</strong><small>Your idiom across the whole system</small></div>
-              <select className="setting-select" value={lang} onChange={(event) => onLanguagePick(event.target.value as Lang)} aria-label="Language">{LANGS.map((option) => <option key={option.code} value={option.code}>{option.native}</option>)}</select>
-            </div>
-            <div className="win-settings-row">
               <div><strong>Color mode</strong><small>Bright or black appearance</small></div>
               <div className="win-seg" role="group" aria-label="Color mode">
                 <button className={settings.colorMode === "light" ? "active" : ""} onClick={() => updateSetting("colorMode", "light")}>Bright</button>
@@ -6552,7 +6530,7 @@ function EqBars({ playing, small }: { playing?: boolean; small?: boolean }) {
 }
 
 function CinefySurface({ onClose, onMinimize, onTrackChange }: { onClose: () => void; onMinimize: () => void; onTrackChange: (track: { name: string; artist: string; artwork: string } | null) => void }) {
-  const [tab, setTab] = useState<SpicetifyTab>("home");
+  const [tab, setTab] = useState<McCrackifyTab>("home");
   const [query, setQuery] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [tracks, setTracks] = useState<CinefyTrack[]>([]);
@@ -7189,7 +7167,7 @@ function CinefySurface({ onClose, onMinimize, onTrackChange }: { onClose: () => 
       ms.metadata = new MediaMetadata({
         title: selected.trackName,
         artist: selected.artistName,
-        album: selected.primaryGenreName || "Spicetify",
+        album: selected.primaryGenreName || "McCrackify",
         artwork: selected.artworkUrl100 ? [{ src: selected.artworkUrl100 }] : [],
       });
     } catch { /* noop */ }
@@ -7409,8 +7387,8 @@ function CinefySurface({ onClose, onMinimize, onTrackChange }: { onClose: () => 
   }
 
   return <div className={`cinefy-surface cinefy-app ${hazyActive ? "hazy-app" : ""} ${starryActive ? "starry-night" : ""}`}>
-    {splash && <div className={`cinefy-splash ${splashPhase}`} data-testid="cinefy-splash" aria-label="Spicetify loading" onClick={skipSplash}>
-      <img className="cinefy-splash-logo" src={asset("images/spicetify-splash.png")} alt="Spicetify" />
+    {splash && <div className={`cinefy-splash ${splashPhase}`} data-testid="cinefy-splash" aria-label="McCrackify loading" onClick={skipSplash}>
+      <img className="cinefy-splash-logo" src={asset("images/spicetify-splash.png")} alt="McCrackify" />
       <div className="cinefy-splash-load">
         <div className="cinefy-splash-bar"><span style={{ width: `${splashProgress}%` }} /></div>
         <div className="cinefy-splash-line" key={splashLine}>{SPLASH_LINES[splashLine % SPLASH_LINES.length]}</div>
@@ -7447,7 +7425,7 @@ function CinefySurface({ onClose, onMinimize, onTrackChange }: { onClose: () => 
 
     <div className="cinefy-body">
       <nav className="cinefy-sidebar">
-        <div className="cinefy-sidebar-brand"><img className="cinefy-logo" src={asset("images/spicetify.ico")} alt="" /><span>Spicetify</span></div>
+        <div className="cinefy-sidebar-brand"><img className="cinefy-logo" src={asset("images/spicetify.ico")} alt="" /><span>McCrackify</span></div>
         <button className={`cinefy-nav ${tab === "home" ? "active" : ""}`} onClick={() => setTab("home")}><LayoutGrid size={18} /> {t("sp.home")}</button>
         <button className={`cinefy-nav ${tab === "search" ? "active" : ""}`} onClick={() => setTab("search")}><Compass size={18} /> {t("sp.search")}</button>
         <button className={`cinefy-nav ${tab === "marketplace" ? "active" : ""}`} onClick={() => setTab("marketplace")} data-testid="button-market-nav"><img className="cinefy-nav-logo" src={asset("images/marketplace-logo.svg")} alt="" /> {t("sp.marketplace")}</button>
