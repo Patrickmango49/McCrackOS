@@ -884,7 +884,7 @@ function LibraryPanel({ games, query, onQuery, ownedSet, favSet, page, onPage, o
   onClose: () => void;
 }) {
   // Show the entire catalogue in one vertically scrollable five-column library.
-  const PAGE_SIZE = Math.max(1, games.length);
+  const PAGE_SIZE = 20;
   const normalized = query.trim().toLowerCase();
   const filtered = games.filter((game) => {
     if (favOnly && !favSet.has(game.id)) return false;
