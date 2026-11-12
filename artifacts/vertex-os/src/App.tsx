@@ -2,7 +2,7 @@ import { Component, useCallback, useEffect, useLayoutEffect, useMemo, useRef, us
 import type { CSSProperties, ReactNode, MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent, WheelEvent as ReactWheelEvent } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
-  ArrowLeft, ArrowRight, BadgeCheck, CalendarClock, Check, ChevronDown, ChevronRight, ChevronUp, CircleHelp,
+  ArrowLeft, ArrowRight, BadgeCheck, Globe, CalendarClock, Check, ChevronDown, ChevronRight, ChevronUp, CircleHelp,
   Code2, Compass, Cpu, Download, Eye, Gamepad2, Grid2X2,
   Image, LayoutGrid, LockKeyhole, Menu, MessageCircle, Minus, MonitorCog, Music2,
   Palette, Pin, PinOff, Play, Power, Puzzle, Radio, Rocket, RotateCcw,
