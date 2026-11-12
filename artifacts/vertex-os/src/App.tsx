@@ -414,7 +414,7 @@ function getApp(id: AppId, overrides: Record<string, AppOverride>) {
   if (id === "admin") return { id: "admin" as AppId, title: "Control Panel", subtitle: "restricted", icon: Settings2, pinned: false, showName: false, squircle: false };
   if (typeof id === "string" && id.startsWith("custom_")) {
     try {
-      const saved = JSON.parse(localStorage.getItem("vertex-custom-apps") ?? "[]") as Array<{ id: string; name: string; icon: string; url: string }>;
+      const saved = JSON.parse(localStorage.getItem("vertex-custom-apps") ?? "[]") as Array<{ id: string; name: string; icon: string; url: string; folder?: string; pinned?: boolean; type?: "website" | "game" }>;
       const custom = saved.find((item) => item.id === id);
       if (custom) return { id, title: custom.name, subtitle: custom.folder?.trim() || "proxied web app", icon: Compass, iconImg: custom.icon, pinned: Boolean(custom.pinned), showName: true, squircle: true };
     } catch { /* ignore invalid custom app data */ }
@@ -7812,7 +7812,7 @@ function AppMakerSurface() {
         const parsed = JSON.parse(String(reader.result));
         const incoming = Array.isArray(parsed) ? parsed : parsed.apps;
         if (!Array.isArray(incoming)) throw new Error("Invalid app library");
-        const clean = incoming.filter((item: any) => item && typeof item.id === "string" && typeof item.name === "string" && typeof item.url === "string" && /^https?:\/\//i.test(item.url)).map((item: any) => ({ id: item.id.startsWith("custom_") ? item.id : `custom_${Date.now()}_${Math.random().toString(36).slice(2,8)}`, name: item.name, icon: typeof item.icon === "string" ? item.icon : asset("images/links.svg"), url: item.url, type: item.type === "game" ? "game" : "website", pinned: Boolean(item.pinned), folder: typeof item.folder === "string" ? item.folder : "" }));
+        const clean: CustomProxyApp[] = incoming.filter((item: any) => item && typeof item.id === "string" && typeof item.name === "string" && typeof item.url === "string" && /^https?:\/\//i.test(item.url)).map((item: any): CustomProxyApp => ({ id: item.id.startsWith("custom_") ? item.id : `custom_${Date.now()}_${Math.random().toString(36).slice(2,8)}`, name: item.name, icon: typeof item.icon === "string" ? item.icon : asset("images/links.svg"), url: item.url, type: item.type === "game" ? "game" : "website", pinned: Boolean(item.pinned), folder: typeof item.folder === "string" ? item.folder : "" }));
         const merged = [...apps.filter((old) => !clean.some((item: CustomProxyApp) => item.id === old.id)), ...clean];
         saveApps(merged);
       } catch { window.alert("That file is not a valid McCrack app-library backup."); }
