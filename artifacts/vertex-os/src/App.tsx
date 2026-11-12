@@ -7439,7 +7439,7 @@ function CinefySurface({ onClose, onMinimize, onTrackChange }: { onClose: () => 
 
   return <div className={`cinefy-surface cinefy-app ${hazyActive ? "hazy-app" : ""} ${starryActive ? "starry-night" : ""}`}>
     {splash && <div className={`cinefy-splash ${splashPhase}`} data-testid="cinefy-splash" aria-label="McCrackify loading" onClick={skipSplash}>
-      <img className="cinefy-splash-logo" src={asset("images/spicetify-splash.png")} alt="McCrackify" />
+      <img className="cinefy-splash-logo" src={MCC_CRACKIFY_ICON} alt="McCrackify" />
       <div className="cinefy-splash-load">
         <div className="cinefy-splash-bar"><span style={{ width: `${splashProgress}%` }} /></div>
         <div className="cinefy-splash-line" key={splashLine}>{SPLASH_LINES[splashLine % SPLASH_LINES.length]}</div>
@@ -7476,7 +7476,7 @@ function CinefySurface({ onClose, onMinimize, onTrackChange }: { onClose: () => 
 
     <div className="cinefy-body">
       <nav className="cinefy-sidebar">
-        <div className="cinefy-sidebar-brand"><img className="cinefy-logo" src={asset("images/spicetify.ico")} alt="" /><span>McCrackify</span></div>
+        <div className="cinefy-sidebar-brand"><img className="cinefy-logo" src={MCC_CRACKIFY_ICON} alt="" /><span>McCrackify</span></div>
         <button className={`cinefy-nav ${tab === "home" ? "active" : ""}`} onClick={() => setTab("home")}><LayoutGrid size={18} /> {t("sp.home")}</button>
         <button className={`cinefy-nav ${tab === "search" ? "active" : ""}`} onClick={() => setTab("search")}><Compass size={18} /> {t("sp.search")}</button>
         <button className={`cinefy-nav ${tab === "marketplace" ? "active" : ""}`} onClick={() => setTab("marketplace")} data-testid="button-market-nav"><img className="cinefy-nav-logo" src={asset("images/marketplace-logo.svg")} alt="" /> {t("sp.marketplace")}</button>
