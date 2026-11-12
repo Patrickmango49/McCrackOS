@@ -1,13 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
-import { Battery, BatteryCharging, BatteryFull, BatteryLow, BatteryMedium, Bell, Check, ChevronLeft, ChevronRight, ChevronUp, Globe, Pause, Play, PlugZap, Volume2, VolumeX, X } from "lucide-react";
-import { LANGS, localeOf, type Lang } from "../i18n";
+import { Battery, BatteryCharging, BatteryFull, BatteryLow, BatteryMedium, Bell, ChevronLeft, ChevronRight, Pause, Play, PlugZap, Volume2, VolumeX, X } from "lucide-react";
+import { localeOf, type Lang } from "../i18n";
 
 const BASE = import.meta.env.BASE_URL.endsWith("/") ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
 
-const LANG_SHORT: Record<Lang, string> = { en: "EN", es: "ESP", ar: "AR", ru: "RU", fr: "FR" };
-
-type TrayPanel = null | "clock" | "audio" | "lang" | "battery";
+type TrayPanel = null | "clock" | "audio" | "battery";
 type SysAudioState = { on: boolean; vol: number; muted: boolean; output: "speakers" | "headphones" };
 
 export type TrayNotification = { id: number; title: string; copy: string; href?: string };
@@ -46,10 +44,9 @@ function readSysAudio(): SysAudioState {
   return { on: false, vol: 40, muted: false, output: "speakers" };
 }
 
-export function SystemTray({ now, lang, onPickLanguage, notifications, unseen, onOpenClock, onDismiss, onClear }: {
+export function SystemTray({ now, lang, notifications, unseen, onOpenClock, onDismiss, onClear }: {
   now: Date;
   lang: Lang;
-  onPickLanguage: (code: Lang) => void;
   notifications: TrayNotification[];
   unseen: number;
   onOpenClock: () => void;
@@ -176,11 +173,6 @@ export function SystemTray({ now, lang, onPickLanguage, notifications, unseen, o
     <>
       {panel && <div className="tray-scrim" onClick={() => setPanel(null)} />}
       <div className="system-tray" onClick={(event) => event.stopPropagation()}>
-        <div className={`tray-seg tray-seg-lang${panel === "lang" ? " is-open" : ""}`} onClick={() => toggle("lang")} role="button" tabIndex={0} aria-label="Change language">
-          <Globe size={15} />
-          <span className="tray-lang-code">{LANG_SHORT[lang]}</span>
-          <ChevronUp size={11} />
-        </div>
         <div className={`tray-seg tray-seg-sound${panel === "audio" ? " is-open" : ""}`} onClick={() => toggle("audio")} role="button" tabIndex={0} aria-label="System audio">
           {sys.muted || sys.vol === 0 ? <VolumeX size={17} /> : <Volume2 size={17} />}
           <span className={`tray-eq${audible ? " playing" : ""}`} aria-hidden="true">
@@ -198,19 +190,6 @@ export function SystemTray({ now, lang, onPickLanguage, notifications, unseen, o
           <span className="tray-date">{dateShort}</span>
           {unseen > 0 && <span className="tray-unseen">{unseen > 9 ? "9+" : unseen}</span>}
         </div>
-
-        {panel === "lang" && (
-          <div className="tray-flyout tray-flyout-lang">
-            <div className="tray-flyout-title">Language</div>
-            {LANGS.map((option) => (
-              <button key={option.code} className={`tray-lang-row${option.code === lang ? " active" : ""}`} onClick={() => { onPickLanguage(option.code); setPanel(null); }}>
-                <span className="tray-lang-native">{option.native}</span>
-                <span className="tray-lang-meta">{option.label}</span>
-                <span className="tray-lang-check">{option.code === lang ? <Check size={14} /> : null}</span>
-              </button>
-            ))}
-          </div>
-        )}
 
         {panel === "audio" && (
           <div className="tray-flyout tray-flyout-audio">
