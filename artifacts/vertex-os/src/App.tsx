@@ -7786,7 +7786,7 @@ function AppMakerSurface() {
   const createApp = () => {
     if (!name.trim() || !url.trim()) return;
     const rawUrl = url.trim();
-    const safeUrl = /^https?:\\/\\//i.test(rawUrl) ? rawUrl : `https://${rawUrl}`;
+    const safeUrl = /^https?:\/\//i.test(rawUrl) ? rawUrl : `https://${rawUrl}`;
     try { const parsed = new URL(safeUrl); if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return; } catch { return; }
     const item: CustomProxyApp = { id: `custom_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`, name: name.trim(), icon: icon.trim() || asset("images/links.svg"), url: safeUrl, type, folder: folder.trim() };
     saveApps([...apps, item]);
@@ -7811,7 +7811,7 @@ function AppMakerSurface() {
         const parsed = JSON.parse(String(reader.result));
         const incoming = Array.isArray(parsed) ? parsed : parsed.apps;
         if (!Array.isArray(incoming)) throw new Error("Invalid app library");
-        const clean = incoming.filter((item: any) => item && typeof item.id === "string" && typeof item.name === "string" && typeof item.url === "string" && /^https?:\\/\\//i.test(item.url)).map((item: any) => ({ id: item.id.startsWith("custom_") ? item.id : `custom_${Date.now()}_${Math.random().toString(36).slice(2,8)}`, name: item.name, icon: typeof item.icon === "string" ? item.icon : asset("images/links.svg"), url: item.url, type: item.type === "game" ? "game" : "website", pinned: Boolean(item.pinned), folder: typeof item.folder === "string" ? item.folder : "" }));
+        const clean = incoming.filter((item: any) => item && typeof item.id === "string" && typeof item.name === "string" && typeof item.url === "string" && /^https?:\/\//i.test(item.url)).map((item: any) => ({ id: item.id.startsWith("custom_") ? item.id : `custom_${Date.now()}_${Math.random().toString(36).slice(2,8)}`, name: item.name, icon: typeof item.icon === "string" ? item.icon : asset("images/links.svg"), url: item.url, type: item.type === "game" ? "game" : "website", pinned: Boolean(item.pinned), folder: typeof item.folder === "string" ? item.folder : "" }));
         const merged = [...apps.filter((old) => !clean.some((item: CustomProxyApp) => item.id === old.id)), ...clean];
         saveApps(merged);
       } catch { window.alert("That file is not a valid McCrack app-library backup."); }
@@ -7821,7 +7821,7 @@ function AppMakerSurface() {
   const grouped = apps.reduce<Record<string, CustomProxyApp[]>>((acc, item) => { const key = item.folder?.trim() || "Unfiled"; (acc[key] ??= []).push(item); return acc; }, {});
   return (
     <div className="window-surface" style={{ padding: 22, overflow: "auto" }}>
-      <div className="surface-kicker">MCCrack APP LIBRARY</div>
+      <div className="surface-kicker">McCrack APP LIBRARY</div>
       <h2 className="surface-title">Proxy Apps</h2>
       <p className="surface-copy">Create standalone apps that open through the same Scramjet proxy transport as Browser. Saved apps appear in All Apps; pin them to the dock, edit their details, sort them, and organize them into folders.</p>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(190px,1fr))", gap: 10, marginTop: 18 }}>
