@@ -1052,6 +1052,7 @@ function App() {
   const [profilePass, setProfilePass] = useState("");
   const [profilePass2, setProfilePass2] = useState("");
   const [profileAvatar, setProfileAvatar] = useState("");
+  const [setupWallpaper, setSetupWallpaper] = useState<WallpaperId>("vertex-studio");
   const [profileErr, setProfileErr] = useState("");
   const [profileAskPass, setProfileAskPass] = useState(false);
   const [loginName, setLoginName] = useState("");
@@ -1764,6 +1765,10 @@ onSessionClose: (peerCode) => {
     if (profilePass !== profilePass2) { setProfileErr(t("lock.passMismatch")); return; }
     const account: VertexAccount = { id: `a${Date.now().toString(36)}`, name, createdAt: Date.now(), pass: profilePass, avatar: profileAvatar || "" };
     persistAccounts([...accounts, account]);
+    setWallpaper(setupWallpaper);
+    setLockWallpaper(setupWallpaper);
+    storage.write("vertex-wallpaper-v2", setupWallpaper);
+    storage.write("vertex-lock-wallpaper-v2", setupWallpaper);
     setPinInput("");
     setPinError(false);
     signInAs(account);
@@ -2180,7 +2185,7 @@ onSessionClose: (peerCode) => {
           <div className="lock-avatar"><BrandMark /></div>
           <div className="profile-kicker">McCrack-COS · v{VERTEX_VERSION}</div>
           <h2 className="profile-title">Create your profile</h2>
-          <p className="profile-sub">Choose a name and upload a profile picture, or use your initials.</p>
+          <p className="profile-sub">Choose a name, profile picture, and your first desktop wallpaper.</p>
           <div className="profile-avatar-row">
             <span className={`profile-avatar-preview ${profileAvatar ? "has-img" : ""}`}>
               {profileAvatar ? <AvatarGlyph value={profileAvatar} name={profileName} size={52} /> : <span className="profile-avatar-glyph">{profileName.trim().slice(0, 1).toUpperCase() || "?"}</span>}
@@ -2195,6 +2200,17 @@ onSessionClose: (peerCode) => {
                 void avatarFromFile(file).then(setProfileAvatar).catch((err: Error) => setProfileErr(err.message));
               }} />
             </label>
+          </div>
+          <div className="setup-wallpaper-picker" style={{ margin: "14px 0", width: "100%" }}>
+            <strong style={{ display: "block", marginBottom: 8 }}>Choose your wallpaper</strong>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8 }}>
+              {wallpapers.filter((wall) => ["vertex-studio", "singularity", "snow-fox", "cine55", "rainy-city", "macos-default"].includes(wall.id)).map((wall) => (
+                <button type="button" key={wall.id} onClick={() => setSetupWallpaper(wall.id)} aria-pressed={setupWallpaper === wall.id} style={{ padding: 4, borderRadius: 10, border: setupWallpaper === wall.id ? "2px solid #36d7f4" : "1px solid rgba(255,255,255,.18)", background: "rgba(255,255,255,.06)", color: "inherit", cursor: "pointer", textAlign: "left" }}>
+                  {wall.image ? <img src={wall.image} alt="" style={{ width: "100%", height: 54, objectFit: "cover", borderRadius: 6 }} /> : <div style={{ height: 54, borderRadius: 6, background: "linear-gradient(135deg,#071a2c,#1b7895)" }} />}
+                  <span style={{ display: "block", fontSize: 11, padding: "4px 2px" }}>{wall.name}</span>
+                </button>
+              ))}
+            </div>
           </div>
           <form className="profile-fields" onSubmit={(event) => { event.preventDefault(); createProfile(); }}>
             <label>
@@ -5590,7 +5606,7 @@ function VerTubeSurface() {
 }
 
 function renderWindowBody(id: AppId, settings: SystemSettings, updateSetting: (key: keyof SystemSettings | Partial<SystemSettings>, value?: boolean | string | TabHideImage[]) => void, faqOpen: number | null, setFaqOpen: (value: number | null) => void, lang: Lang, onLanguagePick: (language: Lang) => void, onPanic: () => void, onClose: (() => void) | null = null, onMinimize: (() => void) | null = null, onTrackChange: ((track: { name: string; artist: string; artwork: string } | null) => void) | null = null, translucent: boolean = false, onTranslucent: ((value: boolean) => void) | null = null, onApplyWallpaper: ((id: WallpaperId, target: "both" | "home" | "lock") => void) | null = null, appliedWallpaper: WallpaperId = "singularity", appliedLockWallpaper: WallpaperId = "singularity", onNotify: ((title: string, copy: string) => void) | null = null, wppInstalled: boolean = false, onInstallPicker: (() => void) | null = null, jarvisInstalled: boolean = false, onJarvisInstall: (() => void) | null = null, onFsociety: ((active: boolean) => void) | null = null, activeAccount: VertexAccount | null = null, onAvatarChange: ((avatar: string) => void) | null = null, onAccountChange: ((patch: { name?: string; email?: string }) => void) | null = null) {
-  if (id === "settings") return <SettingsSurface settings={settings} updateSetting={updateSetting} faqOpen={faqOpen} setFaqOpen={setFaqOpen} lang={lang} onLanguagePick={onLanguagePick} onPanic={onPanic} avatar={activeAccount?.avatar} accountName={activeAccount?.name} accountEmail={activeAccount?.email} onAvatarChange={onAvatarChange ?? undefined} onAccountChange={onAccountChange ?? undefined} appliedWallpaper={appliedWallpaper} appliedLockWallpaper={appliedLockWallpaper} onApplyWallpaper={onApplyWallpaper ?? undefined} onNotify={onNotify ?? undefined} />;
+  if (id === "settings") return <SettingsSurface settings={settings} updateSetting={updateSetting} faqOpen={faqOpen} setFaqOpen={setFaqOpen} lang={lang} onLanguagePick={onLanguagePick} onPanic={onPanic} avatar={activeAccount?.avatar} accountName={activeAccount?.name} accountEmail={activeAccount?.email} onAvatarChange={onAvatarChange ?? undefined} onAccountChange={onAccountChange ?? undefined} appliedWallpaper={appliedWallpaper} appliedLockWallpaper={appliedLockWallpaper} onApplyWallpaper={onApplyWallpaper ?? undefined} onNotify={onNotify ?? undefined} translucent={translucent} onTranslucent={onTranslucent ?? undefined} />;
   if (id === "terminal") return <div className="window-surface term-app-surface">          <TerminalSurface installed={wppInstalled} onInstalled={onInstallPicker ?? (() => {})} onFsociety={onFsociety ?? (() => {})} jarvisInstalled={jarvisInstalled} setJarvisInstalled={onJarvisInstall ?? (() => {})} onJarvisInstall={onJarvisInstall ?? (() => {})} toggleApp={undefined} /></div>;
   if (id === "translucenttb") return <div className="window-surface"><div className="surface-kicker">{t("surf.translucent.kicker")}</div><h2 className="surface-title">{t("surf.translucent.title")}</h2><p className="surface-copy">{t("surf.translucent.body")}</p><div className="settings-list"><SettingToggle label={t("surf.translucent.enable")} help={t("surf.translucent.help")} value={translucent} onChange={(value) => onTranslucent?.(value)} /></div></div>;
   if (id === "spicetify") return <iframe className="browser-frame" src={asset("apps/music/web/index.html")} title="McCrackify" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; fullscreen" allowFullScreen />;
@@ -6002,7 +6018,7 @@ function RainmeterSurface() {
   </div>;
 }
 
-type SettingsTabId = "home" | "personalization" | "account" | "system" | "colors" | "language" | "privacy" | "about";
+type SettingsTabId = "home" | "personalization" | "account" | "system" | "colors" | "language" | "widgets" | "privacy" | "about";
 
 const SETTINGS_TABS: { id: SettingsTabId; label: string; icon: LucideIcon }[] = [
   { id: "home", label: "Home", icon: House },
@@ -6011,6 +6027,7 @@ const SETTINGS_TABS: { id: SettingsTabId; label: string; icon: LucideIcon }[] = 
   { id: "system", label: "System", icon: Cpu },
   { id: "colors", label: "Color mode", icon: SunMoon },
   { id: "language", label: "Language & region", icon: Languages },
+  { id: "widgets", label: "Widgets", icon: MonitorCog },
   { id: "privacy", label: "Privacy & security", icon: ShieldBan },
   { id: "about", label: "About", icon: Info },
 ];
@@ -6054,7 +6071,7 @@ const FONT_STYLES: { id: string; label: string; note: string; family: string }[]
   { id: "tuesday", label: "Tuesday Night", note: "Handwritten", family: '"Tuesday Night", cursive' },
 ];
 
-function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, onLanguagePick, onPanic, avatar, accountName, accountEmail, onAvatarChange, onAccountChange, appliedWallpaper, appliedLockWallpaper, onApplyWallpaper, onNotify }: {
+function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, onLanguagePick, onPanic, avatar, accountName, accountEmail, onAvatarChange, onAccountChange, appliedWallpaper, appliedLockWallpaper, onApplyWallpaper, onNotify, translucent, onTranslucent }: {
   settings: SystemSettings;
     updateSetting: (key: keyof SystemSettings | Partial<SystemSettings>, value?: boolean | string | TabHideImage[]) => void;
   faqOpen: number | null;
@@ -6071,6 +6088,8 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
   appliedLockWallpaper: WallpaperId;
   onApplyWallpaper?: (id: WallpaperId, target: "both" | "home" | "lock") => void;
   onNotify?: (title: string, copy: string) => void;
+  translucent: boolean;
+  onTranslucent?: (value: boolean) => void;
 }) {
   const faqs = [
     [t("set.faq1q"), t("set.faq1a")],
@@ -6390,6 +6409,21 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
               <select className="setting-select" value={lang} onChange={(event) => onLanguagePick(event.target.value as Lang)} aria-label={t("set.appLangLabel")}>{LANGS.map((option) => <option key={option.code} value={option.code}>{option.native}</option>)}</select>
             </div>
             {lang !== LANG && <div className="setting-action-row"><button className="outline-button" onClick={() => location.reload()}>{t("set.reload")}</button><span>{t("set.restartNote")}</span></div>}
+          </section>
+        </>;
+      case "widgets":
+        return <>
+          <h2>Widgets &amp; taskbar</h2>
+          <p className="win-settings-sub">Manage the desktop clock and translucent taskbar from one place.</p>
+          <section className="win-settings-card">
+            <div className="setting-group"><Waves size={14} /> TranslucentTB</div>
+            <p className="win-settings-sub">Control the transparent taskbar appearance.</p>
+            <SettingToggle label="Enable TranslucentTB" help="Apply the translucent taskbar style across the desktop." value={translucent} onChange={(value) => onTranslucent?.(value)} />
+          </section>
+          <section className="win-settings-card">
+            <div className="setting-group"><MonitorCog size={14} /> Rainmeter</div>
+            <p className="win-settings-sub">Configure the Mond clock, date, weather, layout and appearance.</p>
+            <RainmeterSurface />
           </section>
         </>;
       case "privacy":
