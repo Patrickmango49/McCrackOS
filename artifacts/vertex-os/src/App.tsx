@@ -1540,7 +1540,7 @@ onSessionClose: (peerCode) => {
     storage.write("vertex-jarvis-installed", jarvisInstalled);
   }, [wppInstalled, jarvisInstalled]);
   const filteredApps = useMemo(() => apps.filter((app) => getApp(app.id, appOverrides).title.toLowerCase().includes(drawerQuery.toLowerCase())), [drawerQuery, appOverrides, apps]);
-  const pinnedApps = useMemo(() => apps.filter((app) => { const themed = getApp(app.id, appOverrides); return (appOverrides[app.id]?.pinned ?? app.pinned) && themed.title.toLowerCase().includes(startQuery.toLowerCase()); }), [startQuery, appOverrides, apps]);
+  const pinnedApps = useMemo(() => apps.filter((app) => { const themed = getApp(app.id, appOverrides); const pinned = typeof app.id === "string" && app.id.startsWith("custom_") ? Boolean(customApps.find((item) => item.id === app.id)?.pinned) : (appOverrides[app.id]?.pinned ?? app.pinned); return pinned && themed.title.toLowerCase().includes(startQuery.toLowerCase()); }), [startQuery, appOverrides, apps, customApps]);
   const activeSection = useMemo(() => APP_SECTIONS.find((s) => s.id === drawerSection) ?? null, [drawerSection]);
   const drawerApps = useMemo(() => {
     if (!activeSection || activeSection.all) return filteredApps;
@@ -2020,6 +2020,7 @@ onSessionClose: (peerCode) => {
   }
 
   function isPinned(id: AppId): boolean {
+    if (typeof id === "string" && id.startsWith("custom_")) return Boolean(customApps.find((item) => item.id === id)?.pinned);
     const ov = appOverrides[id];
     if (ov?.pinned !== undefined) return ov.pinned;
     return apps.find((app) => app.id === id)?.pinned ?? false;
