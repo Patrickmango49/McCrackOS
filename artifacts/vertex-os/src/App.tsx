@@ -387,6 +387,8 @@ const baseApps: AppDef[] = [
   { id: "jarvis", title: "JARVIS", subtitle: t("appSub.jarvis"), icon: Bot, iconImg: asset("images/jarvis-logo.png") },
   { id: "games", title: "PS5 Emu", subtitle: t("appSub.games"), icon: Gamepad2, iconImg: asset("images/ps5-emu.png"), squircle: true },
   { id: "minecraft", title: "Minecraft Launcher", subtitle: t("appSub.minecraft"), icon: Gamepad2, iconImg: MC_ICON, squircle: true },
+  { id: "translucenttb", title: "TranslucentTB", subtitle: t("appSub.translucenttb"), icon: Waves, iconImg: asset("images/translucenttb-logo.png") },
+  { id: "rainmeter", title: "Rainmeter", subtitle: t("appSub.rainmeter"), icon: MonitorCog, iconImg: RAINMETER_ICON },
   { id: "calculator", title: "Calculator", subtitle: t("appSub.calculator"), icon: Calculator, iconImg: asset("images/calculator-logo.svg") },
   { id: "terminal", title: "Terminal", subtitle: t("appSub.terminal"), icon: Terminal, iconImg: ARCH_ICON },
   { id: "links", title: "Links", subtitle: t("appSub.links"), icon: Link2, iconImg: asset("images/links.svg") },
@@ -401,7 +403,7 @@ const APP_SECTIONS: { id: string; tone: string; all?: boolean; ids: AppId[] }[] 
   { id: "all", tone: "tone-all", all: true, ids: [] },
   { id: "watch", tone: "tone-watch", ids: ["vertube", "movies", "spicetify", "messages", "verai", "jarvis"] },
   { id: "play", tone: "tone-play", ids: ["roblox", "minecraft", "games"] },
-  { id: "create", tone: "tone-create", ids: ["terminal", "browser", "calculator", "appmaker", "webapps", "settings", "links"] },
+  { id: "create", tone: "tone-create", ids: ["terminal", "browser", "calculator", "appmaker", "webapps", "settings", "translucenttb", "rainmeter", "links"] },
 ];;
 
 const GV_APP: { id: AppId; title: string; subtitle: string; icon: LucideIcon; pinned: boolean; showName: boolean } = { id: "ghostview", title: "GhostView", subtitle: "remote view", icon: Eye, pinned: false, showName: false };
