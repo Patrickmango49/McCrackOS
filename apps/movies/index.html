@@ -217,6 +217,38 @@
     *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
   }
 
+
+  .alpha-section{margin:0 0 24px}
+  .alpha-heading{display:flex;align-items:center;gap:12px;margin:18px 30px 4px;color:#dff9ff;font-size:15px;font-weight:850;letter-spacing:.08em}
+  .alpha-heading:after{content:"";height:1px;flex:1;background:linear-gradient(90deg,rgba(0,213,255,.3),transparent)}
+  .alpha-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;padding:8px 30px}
+  .alpha-grid .drive-card{min-width:0}
+  .drive-tab{display:flex;align-items:center;gap:6px;white-space:nowrap}
+  .drive-tab small{font-size:9px;font-weight:800;letter-spacing:.025em;color:#7fe9f4;background:rgba(0,213,255,.1);border:1px solid rgba(0,213,255,.18);border-radius:999px;padding:3px 7px}
+  .drive-library-head{padding:24px 30px 10px}
+  .drive-library-head h1{margin:0;font-size:clamp(24px,3vw,34px);letter-spacing:-.04em}
+  .drive-library-head p{margin:7px 0 0;color:#9eafbc;font-size:13px}
+  .drive-library-head p span{color:#78e4ef;font-weight:700}
+  .drive-library-count{margin:6px 30px 0;color:#8195a4;font-size:11px;font-weight:750;letter-spacing:.04em;text-transform:uppercase}
+  .drive-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;padding:12px 30px 28px}
+  .drive-card{position:relative;display:block;width:100%;padding:0;overflow:hidden;aspect-ratio:2/3;border:1px solid rgba(255,255,255,.09);border-radius:15px;background:#101a22;color:#fff;text-align:left;cursor:pointer;transition:transform .35s cubic-bezier(.22,1,.36,1),border-color .25s,box-shadow .3s}
+  .drive-card:hover{transform:translateY(-5px);border-color:rgba(0,213,255,.38);box-shadow:0 18px 42px rgba(0,0,0,.4)}
+  .drive-card>img{width:100%;height:100%;display:block;object-fit:cover;background:#101a22}
+  .drive-card:after{content:"";position:absolute;inset:35% 0 0;background:linear-gradient(180deg,transparent,rgba(2,8,13,.94));pointer-events:none}
+  .drive-card-meta{position:absolute;z-index:1;left:0;right:0;bottom:0;padding:30px 11px 12px}
+  .drive-card-meta strong{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:13px;line-height:1.25}
+  .drive-card-meta small{display:block;margin-top:5px;color:#9eb4c1;font-size:10px}
+  .drive-play-mark{position:absolute;z-index:2;top:10px;right:10px;width:31px;height:31px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.2);border-radius:50%;background:rgba(4,13,20,.72);color:#8cecf6;backdrop-filter:blur(12px);opacity:0;transform:translateY(4px);transition:opacity .2s,transform .2s}
+  .drive-card:hover .drive-play-mark,.drive-card:focus-visible .drive-play-mark{opacity:1;transform:none}
+  .drive-player{position:fixed;inset:0;z-index:70;display:none;flex-direction:column;background:#02060a}
+  .drive-player.on{display:flex}
+  .drive-player-bar{display:flex;align-items:center;gap:13px;min-height:60px;padding:10px 16px;background:rgba(8,16,23,.96);border-bottom:1px solid rgba(255,255,255,.1)}
+  .drive-player-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;font-weight:750}
+  .drive-player-tag{margin-left:auto;padding:5px 9px;border:1px solid rgba(0,213,255,.2);border-radius:999px;background:rgba(0,213,255,.08);color:#8be8f2;font-size:10px;font-weight:750;white-space:nowrap}
+  .drive-player iframe{flex:1;width:100%;min-height:0;border:0;background:#000}
+  @media(max-width:760px){.alpha-heading{margin-left:18px;margin-right:18px}.alpha-grid{padding:8px 18px;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:11px}.drive-library-head{padding:20px 18px 8px}.drive-grid{padding:12px 18px 24px;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:11px}.drive-library-count{margin-left:18px}.drive-tab{gap:4px}.drive-tab small{font-size:8px;padding:2px 5px}.drive-player-bar{gap:8px;padding:9px}}
+  @media(hover:none){.drive-play-mark{opacity:1;transform:none}}
+
 </style>
 </head>
 <body>
@@ -239,6 +271,7 @@
   <nav class="tabs">
     <button class="tab on" data-tab="home">Home</button>
     <button class="tab" data-tab="movie">Movies</button>
+    <button class="tab drive-tab" data-tab="drive">Google Drive Hosted Movies <small>(More Reliable)</small></button>
     <button class="tab" data-tab="series">TV Shows</button>
     <button class="tab" data-tab="mylist">My List</button>
   </nav>
@@ -269,6 +302,7 @@
   </div>
 </div>
 
+<div class="drive-player" id="drivePlayer" aria-hidden="true"><div class="drive-player-bar"><button class="btn ghost" id="closeDrivePlayer" type="button">&#8592; Back</button><div class="drive-player-title" id="drivePlayerTitle">Google Drive Hosted Movies</div><span class="drive-player-tag">Google Drive</span></div><iframe id="driveFrame" title="Google Drive hosted movie" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowfullscreen referrerpolicy="origin"></iframe></div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -306,6 +340,8 @@
   var qEl = document.getElementById("q");
   var current = null;
   var cache = {};
+  var driveMovies = null, driveMoviesLoading = null;
+  var drivePlayer = document.getElementById("drivePlayer"), driveFrame = document.getElementById("driveFrame"), drivePlayerTitle = document.getElementById("drivePlayerTitle");
   var KEY_LIST = "mcflix_list", KEY_RECENT = "mcflix_recent";
 
   function storeArr(k){ try{ return JSON.parse(localStorage.getItem(k)||"[]") || []; }catch(e){ return []; } }
@@ -335,6 +371,24 @@
   function posterOf(m,size){ return m.poster || ("https://images.metahub.space/poster/"+(size||"small")+"/"+m.imdb_id+"/img"); }
   function bgOf(m){ return m.background || ("https://images.metahub.space/background/medium/"+m.imdb_id+"/img"); }
 
+
+  function isPlaceholderTitle(name){ return /^movie\\s*\\d+\\s*$/i.test(String(name||"").trim()); }
+  function sortAndCleanMetas(items){
+    return (items||[]).filter(function(m){return m && m.imdb_id && !isPlaceholderTitle(m.name);})
+      .slice().sort(function(a,b){return String(a.name||"").localeCompare(String(b.name||""),undefined,{numeric:true,sensitivity:"base"});});
+  }
+  function alphaSections(items, cardFn, gridClass){
+    var groups={};
+    (items||[]).forEach(function(item){
+      var letter=(String(item.name||item.title||"").trim().charAt(0)||"#").toUpperCase();
+      if(!/[A-Z]/.test(letter)) letter="#";
+      (groups[letter]||(groups[letter]=[])).push(item);
+    });
+    return Object.keys(groups).sort(function(a,b){return a.localeCompare(b);}).map(function(letter){
+      return '<section class="alpha-section"><h2 class="alpha-heading">'+esc(letter)+'</h2><div class="'+(gridClass||"alpha-grid")+'">'+groups[letter].map(cardFn).join("")+'</div></section>';
+    }).join("");
+  }
+
   function card(m){
     var img = posterOf(m);
     var sub = [m.year, (m.type==="series"?"Series":"Movie")].filter(Boolean).join(" · ");
@@ -355,7 +409,7 @@
     view.appendChild(sec);
     var rail = sec.querySelector(".rail");
     get(url).then(function(j){
-      var metas = (j.metas||[]).filter(function(m){return m.imdb_id;});
+      var metas = sortAndCleanMetas(j.metas||[]);
       rail.innerHTML = metas.map(card).join("");
     }).catch(function(){ sec.style.display="none"; });
   }
@@ -387,7 +441,7 @@
   function renderHome(){
     view.innerHTML = "";
     get("/catalog/movie/top.json").then(function(j){
-      var m = (j.metas||[]).filter(function(x){return x.imdb_id;})[0];
+      var m = sortAndCleanMetas(j.metas||[])[0];
       if(m) renderHero(m);
     }).catch(function(){});
     renderLocalRail("Continue Watching", storeArr(KEY_RECENT));
@@ -398,17 +452,16 @@
   function renderList(kind){
     view.innerHTML = '<div class="grid" style="padding-top:14px"></div>';
     get("/catalog/"+kind+"/top.json").then(function(j){
-      var metas = (j.metas||[]).filter(function(m){return m.imdb_id;});
-      view.querySelector(".grid").innerHTML = metas.map(card).join("");
+      var metas = sortAndCleanMetas(j.metas||[]);
+      view.innerHTML = kind==="movie" ? alphaSections(metas,card,"alpha-grid") : '<div class="grid" style="padding-top:14px">'+metas.map(card).join("")+'</div>';
     }).catch(function(){ view.innerHTML = '<div class="grid"></div>'; });
   }
 
   function renderMylist(){
-    var items = storeArr(KEY_LIST);
+    var items = storeArr(KEY_LIST).filter(function(m){return !isPlaceholderTitle(m.name);}).sort(function(a,b){return String(a.name||"").localeCompare(String(b.name||""),undefined,{numeric:true,sensitivity:"base"});});
     view.innerHTML = '<h2 style="padding:16px 26px 4px;font-size:26px;font-weight:900">My List</h2>';
     if(!items.length){ view.innerHTML += '<div class="status">Nothing here yet. Open a title and tap &ldquo;+ My List&#8221;.</div>'; return; }
-    var grid = document.createElement("div"); grid.className = "grid"; grid.innerHTML = items.map(card).join("");
-    view.appendChild(grid);
+    view.innerHTML += alphaSections(items,card,"alpha-grid");
   }
 
   function doSearch(term){
@@ -419,9 +472,9 @@
       get("/catalog/movie/top/search="+q+".json").catch(function(){return {metas:[]};}),
       get("/catalog/series/top/search="+q+".json").catch(function(){return {metas:[]};})
     ]).then(function(res){
-      var all = res[0].metas.concat(res[1].metas).filter(function(m){return m.imdb_id;});
+      var all = sortAndCleanMetas(res[0].metas.concat(res[1].metas));
       if(!all.length){ sr.innerHTML = '<div class="sub" style="grid-column:1/-1;color:var(--mut)">No results.</div>'; return; }
-      sr.innerHTML = all.map(card).join("");
+      sr.innerHTML = alphaSections(all,card,"alpha-grid");
     });
   }
 
@@ -525,6 +578,64 @@
     loadStream();
   }
 
+
+  function loadDriveMovies(){
+    if(driveMovies) return Promise.resolve(driveMovies);
+    if(driveMoviesLoading) return driveMoviesLoading;
+    driveMoviesLoading = fetch("./movies.txt",{cache:"no-store"}).then(function(r){
+      if(!r.ok) throw new Error("Could not load movies.txt ("+r.status+")");
+      return r.text();
+    }).then(function(text){
+      driveMovies = text.split("\n").map(function(line){
+        var parts = line.replace(/\r$/, "").split(" | ");
+        if(parts.length < 3) return null;
+        var title=parts[0].trim(), link=parts[1].trim(), poster=parts.slice(2).join(" | ").trim();
+        try{var u=new URL(link);if(u.hostname!=="drive.google.com"||!u.pathname.includes("/file/d/"))return null;}catch(e){return null;}
+        return title ? {title:title,link:link,poster:poster} : null;
+      }).filter(function(m){return m&&!isPlaceholderTitle(m.title);}).sort(function(a,b){return a.title.localeCompare(b.title,undefined,{numeric:true,sensitivity:"base"});});
+      return driveMovies;
+    }).catch(function(err){driveMoviesLoading=null;throw err;});
+    return driveMoviesLoading;
+  }
+  function openDriveMovie(movie){
+    if(!movie)return;
+    drivePlayerTitle.textContent=movie.title;
+    driveFrame.src=movie.link;
+    drivePlayer.classList.add("on");
+    drivePlayer.setAttribute("aria-hidden","false");
+    document.body.style.overflow="hidden";
+  }
+  function closeDriveMovie(){
+    drivePlayer.classList.remove("on");
+    drivePlayer.setAttribute("aria-hidden","true");
+    driveFrame.src="about:blank";
+    document.body.style.overflow="";
+  }
+  function renderDriveMovies(term){
+    var query=String(term||"").trim().toLowerCase();
+    view.innerHTML='<section class="drive-library-head"><h1>Google Drive Hosted Movies</h1><p><span>(More Reliable)</span> · Movies hosted in your Google Drive library</p></section><div class="status"><div class="spinner"></div>Loading your movie library…</div>';
+    loadDriveMovies().then(function(items){
+      if(!document.querySelector('.tab.on[data-tab="drive"]'))return;
+      var filtered=items.filter(function(m){return !query||m.title.toLowerCase().includes(query);});
+      var header='<section class="drive-library-head"><h1>Google Drive Hosted Movies</h1><p><span>(More Reliable)</span> · Movies hosted in your Google Drive library</p></section><div class="drive-library-count">'+filtered.length+' of '+items.length+' movies</div>';
+      if(!filtered.length){view.innerHTML=header+'<div class="status">No movies match that search.</div>';return;}
+      var cards=alphaSections(filtered,function(movie){
+        return '<button class="drive-card" type="button" data-drive-index="'+items.indexOf(movie)+'" aria-label="Play '+esc(movie.title)+'"><img loading="lazy" src="'+esc(movie.poster)+'" alt="" onerror="this.style.opacity=.18"><span class="drive-play-mark" aria-hidden="true">&#9654;</span><span class="drive-card-meta"><strong>'+esc(movie.title)+'</strong><small>Google Drive · Play movie</small></span></button>';
+      },"drive-grid");
+      view.innerHTML=header+cards;
+    }).catch(function(err){
+      if(!document.querySelector('.tab.on[data-tab="drive"]'))return;
+      view.innerHTML='<section class="drive-library-head"><h1>Google Drive Hosted Movies</h1><p><span>(More Reliable)</span> · Movies hosted in your Google Drive library</p></section><div class="status">Could not load movies.txt. Make sure the file is in the movies app folder.<br><small>'+esc(err.message)+'</small></div>';
+    });
+  }
+  view.addEventListener("click",function(e){
+    var card=e.target.closest?e.target.closest(".drive-card"):null;
+    if(!card||!driveMovies)return;
+    openDriveMovie(driveMovies[Number(card.getAttribute("data-drive-index"))]);
+  });
+  document.getElementById("closeDrivePlayer").onclick=closeDriveMovie;
+  window.addEventListener("keydown",function(e){if(e.key==="Escape"&&drivePlayer.classList.contains("on"))closeDriveMovie();});
+
   /* ---------- wiring ---------- */
   view.addEventListener("click", function(e){
     var bm = e.target.closest ? e.target.closest(".bm") : null;
@@ -549,7 +660,7 @@
       t.classList.add("on");
       var tab = t.getAttribute("data-tab");
       qEl.value = "";
-      if(tab==="home") renderHome(); else if(tab==="mylist") renderMylist(); else renderList(tab);
+      if(tab==="home") renderHome(); else if(tab==="mylist") renderMylist(); else if(tab==="drive") renderDriveMovies(qEl.value); else renderList(tab);
     });
   });
   document.getElementById("closeDetail").onclick = function(){ overlay.classList.remove("on"); };
@@ -562,7 +673,7 @@
   qEl.addEventListener("input", function(){
     clearTimeout(st);
     var v = qEl.value.trim();
-    st = setTimeout(function(){ if(v.length>=2) doSearch(v); else if(!v) renderHome(); }, 380);
+    st = setTimeout(function(){ var activeTab=document.querySelector(".tab.on"); if(activeTab&&activeTab.getAttribute("data-tab")==="drive") renderDriveMovies(v); else if(v.length>=2) doSearch(v); else if(!v) renderHome(); }, 380);
   });
   var hd = document.getElementById("hd");
   window.addEventListener("scroll", function(){ hd.classList.toggle("solid", window.scrollY > 30); }, {passive:true});
