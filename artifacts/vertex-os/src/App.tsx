@@ -6065,6 +6065,7 @@ const SETTINGS_SEARCH: { tab: SettingsTabId; label: string; hint: string }[] = [
   { tab: "system", label: "Text style", hint: "Change the font used across McCrack-COS" },
   { tab: "colors", label: "Color mode", hint: "Bright or black theme" },
   { tab: "language", label: "Language & region", hint: "Idiom and formatting" },
+  { tab: "widgets", label: "Widgets", hint: "Rainmeter clock, local weather and TranslucentTB taskbar" },
   { tab: "privacy", label: "Cloak", hint: "Disguise the browser tab" },
   { tab: "privacy", label: "Adblock", hint: "Redirect ads to another page" },
   { tab: "privacy", label: "Panic key", hint: "Instantly hide McCrack-COS" },
@@ -7846,6 +7847,7 @@ function AppMakerSurface() {
                   <div style={{ fontWeight: "600" }}>{app.name}</div>
                   <div style={{ fontSize: "12px", opacity: 0.7 }}>{app.url}</div>
                 </div>
+                <button onClick={() => window.dispatchEvent(new CustomEvent("vertex-open-app", { detail: app.id }))} style={{ padding: "6px 12px", borderRadius: "4px", border: "1px solid rgba(80,210,240,.45)", background: "rgba(35,175,205,.14)", color: "white", cursor: "pointer" }}>Open</button>
                 <button onClick={() => deleteApp(app.id)} style={{ padding: "6px 12px", borderRadius: "4px", border: "none", background: "#ff4757", color: "white", cursor: "pointer" }}>Delete</button>
               </div>
             ))}
