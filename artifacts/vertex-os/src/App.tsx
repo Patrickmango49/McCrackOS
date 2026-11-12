@@ -662,37 +662,42 @@ function RainmeterClock({ cfg, date, tone, color }: { cfg: RainmeterSettings; da
 }
 
 function MondWeather() {
-  const [weather, setWeather] = useState<{ city: string; temperature: number; condition: string } | null>(null);
-  const [failed, setFailed] = useState(false);
+  const [weather, setWeather] = useState<{ temperature: number; condition: string } | null>(null);
+  const [status, setStatus] = useState<"loading" | "denied" | "failed">("loading");
   useEffect(() => {
     let alive = true;
-    const load = async () => {
-      try {
-        const locationResponse = await fetch("https://ipwho.is/", { cache: "no-store" });
-        if (!locationResponse.ok) throw new Error("Location lookup failed");
-        const location = await locationResponse.json() as { success?: boolean; city?: string; latitude?: number; longitude?: number };
-        if (!location.success || typeof location.latitude !== "number" || typeof location.longitude !== "number") throw new Error("Location unavailable");
-        const params = new URLSearchParams({ latitude: String(location.latitude), longitude: String(location.longitude), current: "temperature_2m,weather_code", temperature_unit: "fahrenheit", timezone: "auto" });
-        const weatherResponse = await fetch(`https://api.open-meteo.com/v1/forecast?${params.toString()}`, { cache: "no-store" });
-        if (!weatherResponse.ok) throw new Error("Weather lookup failed");
-        const data = await weatherResponse.json() as { current?: { temperature_2m?: number; weather_code?: number } };
-        const code = Number(data.current?.weather_code ?? -1);
-        const conditions: Record<number, string> = { 0: "Clear", 1: "Mostly clear", 2: "Partly cloudy", 3: "Cloudy", 45: "Fog", 48: "Fog", 51: "Drizzle", 53: "Drizzle", 55: "Drizzle", 61: "Rain", 63: "Rain", 65: "Heavy rain", 71: "Snow", 73: "Snow", 75: "Heavy snow", 80: "Showers", 81: "Showers", 82: "Heavy showers", 95: "Thunderstorm", 96: "Thunderstorm", 99: "Thunderstorm" };
-        if (alive && typeof data.current?.temperature_2m === "number") {
-          setWeather({ city: location.city || "Local weather", temperature: Math.round(data.current.temperature_2m), condition: conditions[code] ?? "Current conditions" });
-          setFailed(false);
-        } else throw new Error("Weather data unavailable");
-      } catch {
-        if (alive) setFailed(true);
-      }
+    let interval = 0;
+    const loadWeather = (latitude: number, longitude: number) => {
+      const params = new URLSearchParams({ latitude: String(latitude), longitude: String(longitude), current: "temperature_2m,weather_code", temperature_unit: "fahrenheit", timezone: "auto" });
+      void fetch(`https://api.open-meteo.com/v1/forecast?${params.toString()}`, { cache: "no-store" })
+        .then((response) => { if (!response.ok) throw new Error("Weather unavailable"); return response.json(); })
+        .then((data: { current?: { temperature_2m?: number; weather_code?: number } }) => {
+          if (!alive || typeof data.current?.temperature_2m !== "number") return;
+          const code = Number(data.current.weather_code ?? -1);
+          const conditions: Record<number, string> = { 0: "Clear", 1: "Mostly clear", 2: "Partly cloudy", 3: "Cloudy", 45: "Fog", 48: "Fog", 51: "Drizzle", 53: "Drizzle", 55: "Drizzle", 61: "Rain", 63: "Rain", 65: "Heavy rain", 71: "Snow", 73: "Snow", 75: "Heavy snow", 80: "Showers", 81: "Showers", 82: "Heavy showers", 95: "Thunderstorm", 96: "Thunderstorm", 99: "Thunderstorm" };
+          setWeather({ temperature: Math.round(data.current.temperature_2m), condition: conditions[code] ?? "Current conditions" });
+          setStatus("loading");
+        })
+        .catch(() => { if (alive) setStatus("failed"); });
     };
-    void load();
-    const interval = window.setInterval(() => { void load(); }, 30 * 60 * 1000);
-    return () => { alive = false; window.clearInterval(interval); };
+    if (!("geolocation" in navigator)) { setStatus("denied"); return () => { alive = false; }; }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        if (!alive) return;
+        loadWeather(position.coords.latitude, position.coords.longitude);
+        interval = window.setInterval(() => {
+          if (!alive) return;
+          navigator.geolocation.getCurrentPosition((next) => loadWeather(next.coords.latitude, next.coords.longitude), () => { if (alive) setStatus("denied"); }, { enableHighAccuracy: false, maximumAge: 10 * 60 * 1000, timeout: 12000 });
+        }, 30 * 60 * 1000);
+      },
+      () => { if (alive) setStatus("denied"); },
+      { enableHighAccuracy: false, maximumAge: 10 * 60 * 1000, timeout: 12000 }
+    );
+    return () => { alive = false; if (interval) window.clearInterval(interval); };
   }, []);
   return <div className="rm-mond-weather" aria-live="polite">
     <Cloud size={15} strokeWidth={1.7} />
-    {weather ? <><span>{weather.city}</span><span className="rm-weather-dot">·</span><strong>{weather.temperature}°F</strong><span className="rm-weather-dot">·</span><span>{weather.condition}</span></> : <span>{failed ? "Weather unavailable" : "Loading local weather…"}</span>}
+    {weather ? <><span>Local weather</span><span className="rm-weather-dot">·</span><strong>{weather.temperature}°F</strong><span className="rm-weather-dot">·</span><span>{weather.condition}</span></> : <span>{status === "denied" ? "Allow location for local weather" : status === "failed" ? "Local weather unavailable" : "Loading local weather…"}</span>}
   </div>;
 }
 
@@ -5637,7 +5642,7 @@ function renderWindowBody(id: AppId, settings: SystemSettings, updateSetting: (k
         const customApps = JSON.parse(saved);
         const app = customApps.find((a: any) => a.id === id);
         if (app) {
-          return <iframe className="browser-frame" src={app.url} title={app.name} allow="autoplay; clipboard-write; camera; microphone; fullscreen; gamepad; encrypted-media" />;
+          return <ProxyUrlFrame url={app.url} title={app.name} />;
         }
       }
     } catch {}
