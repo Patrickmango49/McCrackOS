@@ -1,0 +1,59 @@
+name: Deploy McCrackOS to Neocities
+
+on:
+  workflow_run:
+    workflows:
+      - McCrackOS browser build check
+    types:
+      - completed
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-mccrackos-neocities
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    # Only deploy after the browser build succeeds. Manual runs are also allowed.
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the latest main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install McCrackOS dependencies
+        working-directory: artifacts/vertex-os
+        run: npm install --no-package-lock
+
+      - name: Build McCrackOS for Neocities
+        working-directory: artifacts/vertex-os
+        env:
+          PORT: 5000
+          # Neocities serves the site from its domain root, unlike GitHub Pages.
+          BASE_PATH: /
+        run: npm run build
+
+      - name: Verify the generated website
+        run: |
+          test -f artifacts/vertex-os/dist/public/index.html
+          echo "Neocities build is ready."
+
+      - name: Deploy to Neocities
+        uses: bcomnes/deploy-to-neocities@v3
+        with:
+          api_key: ${{ secrets.NEOCITIES_API_TOKEN }}
+          dist_dir: artifacts/vertex-os/dist/public
+          cleanup: false
+          neocities_supporter: false
+          preview_before_deploy: true
