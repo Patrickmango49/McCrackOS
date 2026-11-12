@@ -441,7 +441,7 @@
   function renderHome(){
     view.innerHTML = "";
     get("/catalog/movie/top.json").then(function(j){
-      var m = sortAndCleanMetas(j.metas||[])[0];
+      var m = (j.metas||[]).filter(function(x){return x.imdb_id&&!isPlaceholderTitle(x.name);})[0];
       if(m) renderHero(m);
     }).catch(function(){});
     renderLocalRail("Continue Watching", storeArr(KEY_RECENT));
