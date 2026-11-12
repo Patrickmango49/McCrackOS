@@ -1,4 +1,4 @@
-name: McCrack-COS browser build check
+name: McCrackOS browser build check
 
 on:
   push:
@@ -12,7 +12,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: mccrack-cos-build-${{ github.ref }}
+  group: mccrackos-build-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -38,7 +38,7 @@ jobs:
         run: npm install --no-package-lock
       - name: Type-check
         run: npm run typecheck
-      - name: Build McCrack-COS
+      - name: Build McCrackOS
         env:
           PORT: 5000
           BASE_PATH: /McCrackOSV3/
@@ -71,6 +71,6 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.html assets browser-ui scramjet controller utils sw.js
           if ! git diff --cached --quiet; then
-            git commit -m "Deploy McCrack-COS browser integration"
+            git commit -m "Deploy McCrackOS browser integration"
             git push origin HEAD:main
           fi
