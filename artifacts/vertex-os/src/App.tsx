@@ -7821,52 +7821,72 @@ function AppMakerSurface() {
   };
   const grouped = apps.reduce<Record<string, CustomProxyApp[]>>((acc, item) => { const key = item.folder?.trim() || "Unfiled"; (acc[key] ??= []).push(item); return acc; }, {});
   return (
-    <div className="window-surface" style={{ padding: 22, overflow: "auto" }}>
-      <div className="surface-kicker">McCrack APP LIBRARY</div>
-      <h2 className="surface-title">Proxy Apps</h2>
-      <p className="surface-copy">Create standalone apps that open through the same Scramjet proxy transport as Browser. Saved apps appear in All Apps; pin them to the dock, edit their details, sort them, and organize them into folders.</p>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(190px,1fr))", gap: 10, marginTop: 18 }}>
-        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="App name" />
-        <input value={icon} onChange={(e) => setIcon(e.target.value)} placeholder="Icon URL (optional)" />
-        <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="Website URL" />
-        <input value={folder} onChange={(e) => setFolder(e.target.value)} placeholder="Folder (optional)" />
-        <select value={type} onChange={(e) => setType(e.target.value as "website" | "game")}><option value="website">Website</option><option value="game">Game</option></select>
-        <button onClick={createApp} disabled={!name.trim() || !url.trim()} style={{ padding: "10px 14px", borderRadius: 9, border: 0, background: "linear-gradient(135deg,#0ea5c6,#2563eb)", color: "white", cursor: "pointer" }}>Create App</button>
+    <div className="window-surface appmaker-surface">
+      <div className="appmaker-heading">
+        <div className="appmaker-heading-icon"><Globe size={23} /></div>
+        <div>
+          <div className="surface-kicker">McCRACK APP LIBRARY</div>
+          <h2 className="surface-title">Your Proxy Apps</h2>
+          <p className="surface-copy">Build a home for your favorite websites and games. Every app launches through the same Scramjet connection as Browser.</p>
+        </div>
       </div>
-      <div style={{ display: "flex", gap: 9, flexWrap: "wrap", margin: "18px 0" }}>
-        <button onClick={exportApps} disabled={!apps.length}>Back up library</button>
-        <button onClick={() => importRef.current?.click()}>Restore backup</button>
-        <input ref={importRef} type="file" accept="application/json,.json" hidden onChange={(e) => { importApps(e.target.files?.[0]); e.target.value = ""; }} />
-        <span style={{ opacity: .65, alignSelf: "center", fontSize: 12 }}>Backups include app names, icons, URLs, pin states, and folders.</span>
+      <section className="appmaker-create-card">
+        <div className="appmaker-card-heading">
+          <div><span className="appmaker-eyebrow">NEW APP</span><h3>Create an app</h3><p>Add a site once, then launch it like a native app.</p></div>
+          <span className="appmaker-create-mark"><Plus size={20} /></span>
+        </div>
+        <div className="appmaker-form-grid">
+          <label className="appmaker-field appmaker-field-wide"><span>App name</span><input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. My favorite site" /></label>
+          <label className="appmaker-field"><span>Website address</span><input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://example.com" inputMode="url" /></label>
+          <label className="appmaker-field"><span>Icon image URL <small>Optional</small></span><input value={icon} onChange={(e) => setIcon(e.target.value)} placeholder="Paste an image URL" inputMode="url" /></label>
+          <label className="appmaker-field"><span>Folder <small>Optional</small></span><input value={folder} onChange={(e) => setFolder(e.target.value)} placeholder="e.g. Entertainment" /></label>
+          <label className="appmaker-field"><span>App type</span><select value={type} onChange={(e) => setType(e.target.value as "website" | "game")}><option value="website">Website</option><option value="game">Game</option></select></label>
+        </div>
+        <div className="appmaker-create-footer">
+          <span><LockKeyhole size={13} /> Opens inside your COS proxy environment</span>
+          <button className="appmaker-primary" onClick={createApp} disabled={!name.trim() || !url.trim()}><Plus size={16} /> Create app</button>
+        </div>
+      </section>
+      <div className="appmaker-library-toolbar">
+        <div><h3>Saved apps <span>{apps.length}</span></h3><p>Manage icons, folders, dock pins, and order.</p></div>
+        <div className="appmaker-backup-actions">
+          <button className="appmaker-secondary" onClick={exportApps} disabled={!apps.length}><Download size={15} /> Back up</button>
+          <button className="appmaker-secondary" onClick={() => importRef.current?.click()}><FileDown size={15} /> Restore</button>
+          <input ref={importRef} type="file" accept="application/json,.json" hidden onChange={(e) => { importApps(e.target.files?.[0]); e.target.value = ""; }} />
+        </div>
       </div>
-      <div style={{ display: "grid", gap: 16 }}>
+      <div className="appmaker-groups">
         {Object.entries(grouped).map(([folderName, items]) => (
-          <section key={folderName} style={{ border: "1px solid rgba(255,255,255,.1)", borderRadius: 13, padding: 12 }}>
-            <h3 style={{ margin: "2px 0 10px", fontSize: 14, opacity: .8 }}>{folderName}</h3>
-            <div style={{ display: "grid", gap: 10 }}>
+          <section className="appmaker-group" key={folderName}>
+            <div className="appmaker-group-heading"><Package size={16} /><h4>{folderName}</h4><span>{items.length} {items.length === 1 ? "app" : "apps"}</span></div>
+            <div className="appmaker-app-list">
               {items.map((item) => {
                 const index = apps.findIndex((entry) => entry.id === item.id);
-                return <div key={item.id} style={{ display: "grid", gridTemplateColumns: "42px minmax(0,1fr) auto", gap: 9, alignItems: "center", padding: 10, background: "rgba(255,255,255,.045)", borderRadius: 10 }}>
-                  <img src={item.icon} alt="" style={{ width: 36, height: 36, objectFit: "contain", borderRadius: 8 }} onError={(e) => { (e.target as HTMLImageElement).src = asset("images/links.svg"); }} />
-                  <div style={{ minWidth: 0, display: "grid", gap: 6 }}>
-                    <input aria-label={`Name for ${item.name}`} value={item.name} onChange={(e) => updateApp(item.id, { name: e.target.value })} />
-                    <input aria-label={`Icon URL for ${item.name}`} value={item.icon} onChange={(e) => updateApp(item.id, { icon: e.target.value })} />
-                    <input aria-label={`Folder for ${item.name}`} value={item.folder ?? ""} placeholder="Folder name" onChange={(e) => updateApp(item.id, { folder: e.target.value })} />
-                    <small style={{ opacity: .55, overflowWrap: "anywhere" }}>{item.url}</small>
+                return <article className="appmaker-app-row" key={item.id}>
+                  <div className="appmaker-app-icon"><img src={item.icon} alt="" onError={(e) => { (e.target as HTMLImageElement).src = asset("images/links.svg"); }} /></div>
+                  <div className="appmaker-app-details">
+                    <input className="appmaker-name-input" aria-label={`Name for ${item.name}`} value={item.name} onChange={(e) => updateApp(item.id, { name: e.target.value })} />
+                    <div className="appmaker-app-url">{item.url}</div>
+                    <div className="appmaker-app-edit">
+                      <label><span>Icon URL</span><input aria-label={`Icon URL for ${item.name}`} value={item.icon} onChange={(e) => updateApp(item.id, { icon: e.target.value })} /></label>
+                      <label><span>Folder</span><input aria-label={`Folder for ${item.name}`} value={item.folder ?? ""} placeholder="Unfiled" onChange={(e) => updateApp(item.id, { folder: e.target.value })} /></label>
+                    </div>
                   </div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 5, justifyContent: "flex-end" }}>
-                    <button onClick={() => updateApp(item.id, { pinned: !item.pinned })}>{item.pinned ? "Unpin" : "Pin to dock"}</button>
-                    <button onClick={() => moveApp(index, -1)} disabled={index === 0} aria-label="Move app up">↑</button>
-                    <button onClick={() => moveApp(index, 1)} disabled={index === apps.length - 1} aria-label="Move app down">↓</button>
-                    <button onClick={() => window.dispatchEvent(new CustomEvent("vertex-open-app", { detail: item.id }))}>Open</button>
-                    <button onClick={() => deleteApp(item.id)}>Delete</button>
+                  <div className="appmaker-app-actions">
+                    <button className={`appmaker-pin ${item.pinned ? "is-pinned" : ""}`} onClick={() => updateApp(item.id, { pinned: !item.pinned })}><Pin size={14} /> {item.pinned ? "Pinned" : "Pin"}</button>
+                    <div className="appmaker-icon-actions">
+                      <button onClick={() => moveApp(index, -1)} disabled={index === 0} aria-label="Move app up" title="Move up"><ChevronUp size={15} /></button>
+                      <button onClick={() => moveApp(index, 1)} disabled={index === apps.length - 1} aria-label="Move app down" title="Move down"><ChevronDown size={15} /></button>
+                      <button onClick={() => window.dispatchEvent(new CustomEvent("vertex-open-app", { detail: item.id }))} aria-label={`Open ${item.name}`} title="Open"><ExternalLink size={15} /></button>
+                      <button className="appmaker-delete" onClick={() => deleteApp(item.id)} aria-label={`Delete ${item.name}`} title="Delete"><Trash2 size={15} /></button>
+                    </div>
                   </div>
-                </div>;
+                </article>;
               })}
             </div>
           </section>
         ))}
-        {!apps.length && <p style={{ opacity: .6 }}>Your library is empty. Create your first proxied app above.</p>}
+        {!apps.length && <div className="appmaker-empty"><div><Globe size={24} /></div><strong>No apps yet</strong><p>Create your first proxy app above. It will appear in your app library automatically.</p></div>}
       </div>
     </div>
   );
