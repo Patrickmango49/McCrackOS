@@ -1,6 +1,6 @@
 {
-  "name": "McCrack-COS — Browser Desktop OS",
-  "short_name": "McCrack-COS",
+  "name": "McCrackOS — Browser Desktop OS",
+  "short_name": "McCrackOS",
   "description": "A free desktop operating system in your browser: unblocked games, web apps, AI assistant, cloud storage, music and movies.",
   "start_url": "./",
   "scope": "./",
