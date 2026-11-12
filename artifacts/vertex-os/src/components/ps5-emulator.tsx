@@ -700,7 +700,7 @@ export function Ps5EmulatorSurface({ surfaces }: { surfaces?: Ps5EmbeddedSurface
 
           {isMedia ? null : (
             <button type="button" className="library-trigger" onClick={() => { sfx("controlOpen"); setLibraryOpen(true); }}>
-              <PanelsTopLeft /><span>Game Library</span><small>{PS5_TOTAL} games</small>
+              <PanelsTopLeft /><span>All Games Library</span><small>{PS5_TOTAL} games</small>
             </button>
           )}
           <button type="button" className="control-trigger" aria-label="Open Control Center" onClick={() => { sfx("controlOpen"); setControlOpen(true); }}>
@@ -899,11 +899,11 @@ function LibraryPanel({ games, query, onQuery, ownedSet, favSet, page, onPage, o
       <div className="panel-shade" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
         <section className="overlay-panel wide-panel" role="dialog" aria-modal="true" aria-labelledby="vs-library-title">
           <div className="panel-header">
-            <h2 id="vs-library-title">Game Library</h2>
+            <h2 id="vs-library-title">All Games Library</h2>
             <button type="button" className="icon-button close-button" onClick={onClose} aria-label="Close library"><X size={24} /></button>
           </div>
           <div className="library-tools">
-            <Ps5SearchField value={query} onChange={onQuery} placeholder="Search the library" />
+            <Ps5SearchField value={query} onChange={onQuery} placeholder="Search all games" />
             <button
               type="button"
               className={`secondary-button${favOnly ? " on" : ""}`}
