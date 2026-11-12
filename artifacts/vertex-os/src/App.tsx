@@ -57,7 +57,7 @@ type ColorMode = "dark" | "light";
 type SystemStyle = "vertex" | "macos";
 type TabHideImage = { id: string; name: string; src: string };
 type SystemSettings = { optimized: boolean; fastBoot: boolean; idleLock: boolean; confirm: boolean; cloak: string; cloakName: string; cloakIcon: string; panicKey: string; panicUrl: string; adblock: boolean; adblockUrl: string; deviceName: string; colorMode: ColorMode; systemStyle: SystemStyle; fontStyle: string; tabHide: boolean; tabHideImage: string; tabHideImages: TabHideImage[] };
-const defaultSettings: SystemSettings = { optimized: false, fastBoot: false, idleLock: false, confirm: false, cloak: "none", cloakName: "McCrack-COS", cloakIcon: "", panicKey: "`", panicUrl: "", adblock: false, adblockUrl: "", deviceName: "McCrack-PC", colorMode: "dark", systemStyle: "vertex", fontStyle: "vertex", tabHide: false, tabHideImage: "iready", tabHideImages: [{ id: "black", name: "Black screen", src: "black" }, { id: "white", name: "White screen", src: "white" }, { id: "iready", name: "I-Ready", src: asset("images/tabhide-iready.png") }, { id: "classroom", name: "Google Classroom", src: asset("images/tabhide-classroom.png") }] };
+const defaultSettings: SystemSettings = { optimized: false, fastBoot: false, idleLock: false, confirm: false, cloak: "none", cloakName: "McCrackOS", cloakIcon: "", panicKey: "`", panicUrl: "", adblock: false, adblockUrl: "", deviceName: "McCrack-PC", colorMode: "dark", systemStyle: "vertex", fontStyle: "vertex", tabHide: false, tabHideImage: "iready", tabHideImages: [{ id: "black", name: "Black screen", src: "black" }, { id: "white", name: "White screen", src: "white" }, { id: "iready", name: "I-Ready", src: asset("images/tabhide-iready.png") }, { id: "classroom", name: "Google Classroom", src: asset("images/tabhide-classroom.png") }] };
 const AVATAR_MAX_GIF = 2 * 1024 * 1024;
 const AVATAR_MAX_PIX = 512;
 const PASSWORD_KEY = "vertex-password";
@@ -202,7 +202,7 @@ const pvSrc = (nativeV?: string, lowV?: string) => (!nativeV ? undefined : lowV 
 const BOOT_INTRO_SRC = "https://cineosweb.github.io/Videos/Boot.mp4";
 
 const CLOAKS: Record<string, { title: string; icon: string }> = {
-  none: { title: "McCrack-COS", icon: MCC_LOGO_URL },
+  none: { title: "McCrackOS", icon: MCC_LOGO_URL },
   google: {
     title: "Google",
     icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAA5FBMVEVHcEz9SlD/TkL/RUH/RUD/RkP4gyr/SUX/Rj//SE3/Yjb/UDn/Szz9TFb/Yi7/WTT8TVn/cyf/Zi7/iRz/fSL/lRb/SEjeuwX/qQ7/nhP/tgv9TFX6yQj/wwn/zAffugr8zgb+zwnzzQb4ywkvhv82qo79zgQek+ApjurzzAPlywIvhv0qifjRyQEth/y5yAKnxwAoivaMxQUak94fj+hzxAtawxdawhgLpa4OncYVltc8wCobvFIMuWgHqp0KorWaxQEnvz4bvUwPumUNumQMumgIr4wIqaIRvFoNu2MKtnRJwh6BPIl6AAAATHRSTlMAWZDK7P8Orf//Gv///+b/5P7////4dor///8qmP/9K0j/tu7/DeYwRP//HWr/rv///v/b///+HMT///+XTvD/5f//yGzw///////mXfQ9oAAAAWBJREFUeAF0z1UCgCAQRdEZ7O7u/W9STPr93oMCcENi2Y5jWwRBM9fz7zl0QeCFcidRHLMeJAkRj6dZdom/0+Uu62FRlpcQQILsfFVfIrqE/wPWoWleEXstYutdgO9dP9wi++/VCt0dx0dwL5u4DvNyiaFywbB1WS6ymfp+rJSMM5g2H7fYjOCsi5wOIAiCKNhRnG1bazv/fG7erFW/VcNezFEsKWVVZk2bOVi0BVuawE9GbcGOJrxoD3DEZD5ZtAcLdsX9vvWSW/ZM5g+H7JnHhFMcsI+CPpwXVOGSBsT8+Xy9VX5qfQerC77yDP94rEvB8/VCscO4z1f49+db8D9BFJEQ6N64/0hyqhVV03hxIo7+eMNLhmnZimLLjut6msCKZ3qhR+wN0/f9IAjD0PV4kV3rW/QoXF5sC4+KcEAShMkWzBeQ+QaFLX5rKrOWzcQjsHbUgCJbThA4lmwXVv8BPaBVEHC66TMAAAAASUVORK5CYII=",
@@ -211,7 +211,7 @@ const CLOAKS: Record<string, { title: string; icon: string }> = {
 };
 
 const wallpapers: Wallpaper[] = [
-  { id: "vertex-studio", name: "McCrack Studios", meta: "Animated · McCrack-COS", image: asset("images/vertex-studios-thumb.svg") },
+  { id: "vertex-studio", name: "McCrack", meta: "Animated · McCrackOS", image: asset("images/vertex-studios-thumb.svg") },
   { id: "halloween", name: "Halloween Night", meta: "Animated · Spooky", image: asset("images/halloween-thumb.svg") },
   { id: "macos-default", name: "macOS 27", meta: "macOS · Default", image: asset("images/macos-27-home.jpg") },
   { id: "macos-lock", name: "macOS 27 Night", meta: "macOS · Lock screen", image: asset("images/macos-27-lock.jpg") },
@@ -380,7 +380,7 @@ const baseApps: AppDef[] = [
   { id: "vertube", title: "YouTube", subtitle: t("appSub.vertube"), icon: PlaySquare, iconImg: asset("images/vertube.svg"), pinned: true },
   { id: "movies", title: "Movies", subtitle: t("appSub.movies"), icon: Film, iconImg: "https://images.icon-icons.com/3053/PNG/512/netflix_macos_bigsur_icon_189917.png", pinned: true },
   { id: "settings", title: "Config", subtitle: t("appSub.settings"), icon: Settings2, iconImg: asset("images/config-icon.png"), pinned: true },
-  { id: "appmaker", title: "McCrack Studios", subtitle: "build & publish your own", icon: Code2, iconImg: asset("images/v-studios-logo.svg"), squircle: true },
+  { id: "appmaker", title: "McCrack", subtitle: "build & publish your own", icon: Code2, iconImg: asset("images/v-studios-logo.svg"), squircle: true },
   { id: "webapps", title: "Proxy Apps", subtitle: "create standalone proxied apps", icon: Globe, iconImg: asset("images/links.svg") },
   { id: "spicetify", title: "McCrackify", subtitle: "Music player", icon: Music2, iconImg: MCC_CRACKIFY_ICON, pinned: true },
   { id: "roblox", title: "Roblox", subtitle: t("appSub.roblox"), icon: Gamepad2, iconImg: asset("images/roblox.ico") },
@@ -1031,7 +1031,7 @@ const MARKETPLACE_ITEMS: MarketItem[] = [
 ];
 
 function BrandMark() {
-  return <span className="brand-mark"><img className="brand-mark-logo" src={MCC_LOGO_URL} alt="" /><span>McCrack Studios</span></span>;
+  return <span className="brand-mark"><img className="brand-mark-logo" src={MCC_LOGO_URL} alt="" /><span>McCrack</span></span>;
 }
 
 function AvatarGlyph({ value, name, size = 34 }: { value?: string; name: string; size?: number }) {
@@ -1699,9 +1699,9 @@ onSessionClose: (peerCode) => {
       const shown = Number(sessionStorage.getItem("vertex-lf-promos") || "0");
       if (shown >= 3) return;
       const draft: { title: string; copy: string }[] = [
-        { title: "Link Finder — McCrack-COS", copy: "School site blocked? Find a link that isn't caught yet, for free." },
+        { title: "Link Finder — McCrackOS", copy: "School site blocked? Find a link that isn't caught yet, for free." },
         { title: "New: Link Finder", copy: "Map of what your filter blocks + fresh, unblocked portal links." },
-        { title: "McCrack-COS · Beta Program", copy: "Unblocked games + BETA build — grab a link, no install." },
+        { title: "McCrackOS · Beta Program", copy: "Unblocked games + BETA build — grab a link, no install." },
       ];
       const slots = [8000, 70000, 140000];
       const timers = slots.map((delay, i) => window.setTimeout(() => {
@@ -2175,7 +2175,7 @@ onSessionClose: (peerCode) => {
               : null}
       </div>
 
-      <section className={`boot-screen ${phase !== "boot" ? "hidden" : ""}`} aria-label="McCrack-COS boot sequence">
+      <section className={`boot-screen ${phase !== "boot" ? "hidden" : ""}`} aria-label="McCrackOS boot sequence">
         <video
           ref={bootVideoRef}
           className={`boot-video ${bootVideo ? "on" : ""}`}
@@ -2188,7 +2188,7 @@ onSessionClose: (peerCode) => {
         {!bootVideo && (
           <div className="boot-core">
             <BrandMark />
-            <h1 className="boot-title">McCrack-COS</h1>
+            <h1 className="boot-title">McCrackOS</h1>
             <p className="boot-sub">{t("boot.bootSub")}</p>
             <div className="boot-actions">
               <button className="primary-button" data-testid="button-enter-vertex" onClick={(event) => { event.stopPropagation(); startIntro(); }}>
@@ -2200,7 +2200,7 @@ onSessionClose: (peerCode) => {
         )}
       </section>
 
-      <section className={`profile-screen ${phase === "profile" ? "active" : ""}`} aria-label="Create McCrack-COS profile">
+      <section className={`profile-screen ${phase === "profile" ? "active" : ""}`} aria-label="Create McCrackOS profile">
         {activeLockWallpaper.image
           ? <img className="signin-bg" src={activeLockWallpaper.image} alt="" />
           : phase === "profile"
@@ -2208,7 +2208,7 @@ onSessionClose: (peerCode) => {
             : null}
         <div className="signin-card profile-card">
           <div className="lock-avatar"><BrandMark /></div>
-          <div className="profile-kicker">McCrack-COS · v{VERTEX_VERSION}</div>
+          <div className="profile-kicker">McCrackOS · v{VERTEX_VERSION}</div>
           <h2 className="profile-title">Create your profile</h2>
           <p className="profile-sub">Choose a name, profile picture, and your first desktop wallpaper.</p>
           <div className="profile-avatar-row">
@@ -2298,7 +2298,7 @@ onSessionClose: (peerCode) => {
         </div>
       </section>
 
-      <section className={`lock-screen ${phase === "lock" ? "active" : ""}`} onClick={openSignIn} aria-label="McCrack-COS lock screen">
+      <section className={`lock-screen ${phase === "lock" ? "active" : ""}`} onClick={openSignIn} aria-label="McCrackOS lock screen">
          {activeLockWallpaper.id === "vertex-studio"
           ? <VertexStudioWallpaper className="lock-wallpaper-scene" />
           : activeLockWallpaper.id === "halloween"
@@ -2316,7 +2316,7 @@ onSessionClose: (peerCode) => {
          <div className="lock-help">{t("lock.help")}</div>
       </section>
 
-      <section className={`signin-screen ${phase === "signin" ? "active" : ""}`} aria-label="McCrack-COS sign in" onClick={(event) => { if (event.target === event.currentTarget) setPhase("lock"); }}>
+      <section className={`signin-screen ${phase === "signin" ? "active" : ""}`} aria-label="McCrackOS sign in" onClick={(event) => { if (event.target === event.currentTarget) setPhase("lock"); }}>
         {activeLockWallpaper.image
           ? <img className="signin-bg" src={activeLockWallpaper.image} alt="" />
           : phase === "signin"
@@ -2325,7 +2325,7 @@ onSessionClose: (peerCode) => {
         <div className="signin-card">
            <div className="lock-avatar lock-avatar-account">{selectedAccount ? <AvatarGlyph value={selectedAccount.avatar} name={selectedAccount.name} size={92} /> : <BrandMark />}</div>
            <div className="lock-user">{selectedAccount?.name ?? t("set.passwordLabel")}</div>
-           <div className="lock-version">McCrack-COS · v{VERTEX_VERSION}</div>
+           <div className="lock-version">McCrackOS · v{VERTEX_VERSION}</div>
           <form className="lock-pass-row" onSubmit={(event) => { event.preventDefault(); unlock(); }}>
             <input type="password" autoFocus value={pinInput} onChange={(event) => { setPinInput(event.target.value); setPinError(false); }} placeholder={t("lock.pass")} aria-label={t("lock.pass")} data-testid="input-vertex-password" />
             <button type="submit">{t("lock.signIn")}</button>
@@ -2342,7 +2342,7 @@ onSessionClose: (peerCode) => {
           now={now}
           lang={chosenLang}
           appName={activeWindow ? getApp(activeWindow, appOverrides).title : "Finder"}
-          accountName={activeAccount?.name ?? "McCrack-COS"}
+          accountName={activeAccount?.name ?? "McCrackOS"}
           windows={windows.filter((w) => !w.minimized).map((w) => ({ id: w.id, title: getApp(w.id, appOverrides).title }))}
           activeWindowId={activeWindow}
           unseen={unseenNotifications}
@@ -2352,7 +2352,7 @@ onSessionClose: (peerCode) => {
           onFocusApp={(id) => setActiveWindow(id as AppId)}
           onMinimizeApp={(id) => minimizeWindow(id as AppId)}
           onCloseApp={(id) => closeWindow(id as AppId)}
-          onAbout={() => addToast("McCrack-COS", "Your browser desktop environment.")}
+          onAbout={() => addToast("McCrackOS", "Your browser desktop environment.")}
           onSettings={() => { setStartOpen(false); setDrawerOpen(false); toggleApp("settings"); }}
           onLaunchpad={() => { setStartOpen((v) => !v); setDrawerOpen(false); }}
           onNotifications={() => markNotificationsRead()}
@@ -3326,7 +3326,7 @@ const TERM_HELP_ROWS: [string, string][] = [
   ["ansi", "preview ANSI colors & text styles"],
   ["settings", "open the terminal settings panel"],
   ["!sudo install fsociety.tool?full", "fsociety™ — take over the banner"],
-  ["!sudo uninstall fsociety", "remove fsociety™ and restore McCrack-COS"],
+  ["!sudo uninstall fsociety", "remove fsociety™ and restore McCrackOS"],
   ["!sudo curl install NMAP", "unlock the recon toolkit (needs fsociety)"],
   ["nmap <host>", "port scan a target (needs NMAP)"],
   ["!sudo curl py. geo_tracker.py target <IP>", "target recon — geo, ASN, ISP, proxy check"],
@@ -3463,7 +3463,7 @@ function TerminalSurface({ installed, onInstalled, onFsociety, jarvisInstalled, 
         msLogA(`  \u001b[36m${usage.padEnd(34)}\u001b[0m\u001b[2m${description}\u001b[0m`);
       }
       msLogA("\u001b[2m──────────────────────────────────────────────\u001b[0m");
-      msLogA("\u001b[2m  real P2P delivery — friend must have a McCrack-COS session with an account code.\u001b[0m");
+      msLogA("\u001b[2m  real P2P delivery — friend must have a McCrackOS session with an account code.\u001b[0m");
       return;
     }
     if (head === "!clear") { setMsLines([]); return; }
@@ -3522,7 +3522,7 @@ function TerminalSurface({ installed, onInstalled, onFsociety, jarvisInstalled, 
           if (r === "self") {
             msLogErr(<>delivery blocked — that's <b>this session</b>. <span className="term-cmd">{friend}</span> is your own code.</>);
           } else if (r === "peer-unavailable") {
-            msLogErr(<>delivery failed — <b>{friend}</b> isn't on the P2P cloud. They need a McCrack-COS session open with an account code — in a <b>separate browser, incognito, or another device</b> (two tabs in one browser share a single code, so only one can answer).</>);
+            msLogErr(<>delivery failed — <b>{friend}</b> isn't on the P2P cloud. They need a McCrackOS session open with an account code — in a <b>separate browser, incognito, or another device</b> (two tabs in one browser share a single code, so only one can answer).</>);
           } else if (r === "local") {
             msLogErr(<>delivery failed — your GhostView peer isn't registered yet. wait a second, then use <span className="term-cmd">!probe {friend}</span>.</>);
           } else if (r === "network") {
@@ -3552,7 +3552,7 @@ function TerminalSurface({ installed, onInstalled, onFsociety, jarvisInstalled, 
         } else if (res.reason === "network") {
           msLogErr(<>P2P cloud unreachable — check your connection.</>);
         } else {
-          msLogErr(<>no answer — <b>{who}</b> is offline. they need a McCrack-COS session open with an account code, in a separate browser/incognito/device.</>);
+          msLogErr(<>no answer — <b>{who}</b> is offline. they need a McCrackOS session open with an account code, in a separate browser/incognito/device.</>);
         }
       });
       return;
@@ -3582,7 +3582,7 @@ function TerminalSurface({ installed, onInstalled, onFsociety, jarvisInstalled, 
     if (!cmd) { p(<span className="term-in"><span className="term-prompt">{prompt}</span></span>); return; }
     p(<span className="term-in"><span className="term-prompt">{prompt}</span> <span className="term-cmd">{cmd}</span></span>);
     if (cmd === "help") {
-      pa("\u001b[1m\u001b[38;5;45mMcCrack-COS Terminal\u001b[0m \u001b[2m— available commands\u001b[0m");
+      pa("\u001b[1m\u001b[38;5;45mMcCrackOS Terminal\u001b[0m \u001b[2m— available commands\u001b[0m");
       pa("\u001b[2m──────────────────────────────────────────────\u001b[0m");
       for (const [usage, description] of TERM_HELP_ROWS) {
         pa(`  \u001b[36m${usage.padEnd(32)}\u001b[0m\u001b[2m${description}\u001b[0m`);
@@ -3600,7 +3600,7 @@ function TerminalSurface({ installed, onInstalled, onFsociety, jarvisInstalled, 
     }
     if (cmd === "cat README.md") {
       p(<span className="term-out"># Quick Wallpaper Picker</span>);
-      p(<span className="term-out">Lightweight animated wallpaper picker for McCrack-COS.</span>);
+      p(<span className="term-out">Lightweight animated wallpaper picker for McCrackOS.</span>);
       p(<span className="term-out">Run <span className="term-cmd">./start.sh</span> to install.</span>);
       p("");
       return;
@@ -3671,7 +3671,7 @@ function TerminalSurface({ installed, onInstalled, onFsociety, jarvisInstalled, 
       pa(`\u001b[1m\u001b[38;5;45m${fsociety ? "arch" : "vertex"}\u001b[0m\u001b[2m@\u001b[0m\u001b[1m\u001b[35m${fsociety ? "archlinux" : "vertex-os"}\u001b[0m`);
       pa("\u001b[2m──────────────────────────────\u001b[0m");
       const rows: [string, string][] = [
-        ["OS", fsociety ? "Arch Linux (web)" : "McCrack-COS 1.0 (web)"],
+        ["OS", fsociety ? "Arch Linux (web)" : "McCrackOS 1.0 (web)"],
         ["Host", fsociety ? "fsociety.tools" : "Browser Runtime"],
         ["Shell", fsociety ? "zsh 5.9 (arch)" : "zsh 5.9 (vertex)"],
         ["Terminal", fsociety ? "arch-term" : "vertex-term"],
@@ -3873,7 +3873,7 @@ function TerminalSurface({ installed, onInstalled, onFsociety, jarvisInstalled, 
         { ms: 260, line: <span className="term-out">!sudo uninstall: wiping fsociety.tool?full…</span> },
         { ms: 340, line: <span className="term-dim">  ▸ purge     · ████████████████████░░░░ 100%</span> },
         { ms: 380, line: <span className="term-out">  ▸ remove    · /usr/share/fsociety …</span> },
-        { ms: 320, line: <span className="term-out">  ▸ restore   · shell brand → McCrack-COS …</span> },
+        { ms: 320, line: <span className="term-out">  ▸ restore   · shell brand → McCrackOS …</span> },
         { ms: 360, line: <span className="term-out">  ▸ restore   · startup banner → vertex-shadow …</span> },
       ];
       let elapsed = 0;
@@ -3884,7 +3884,7 @@ function TerminalSurface({ installed, onInstalled, onFsociety, jarvisInstalled, 
       window.setTimeout(() => {
         update({ banner: "vertex-shadow", bannerEnabled: true, fsociety: false, nmap: false, metasploit: false });
         pa("");
-        pa("\u001b[31m✗\u001b[0m \u001b[1mfsociety.tool?full uninstalled\u001b[0m — shell rebranded back to \u001b[1mMcCrack-COS\u001b[0m.");
+        pa("\u001b[31m✗\u001b[0m \u001b[1mfsociety.tool?full uninstalled\u001b[0m — shell rebranded back to \u001b[1mMcCrackOS\u001b[0m.");
         pa("\u001b[2m    goodnight, friend. say hi with:  !sudo install fsociety.tool?full\u001b[0m");
         p("");
         onFsociety(false);
@@ -4253,7 +4253,7 @@ function TerminalSurface({ installed, onInstalled, onFsociety, jarvisInstalled, 
           {introVisible && (
             <div className="term-intro">
               {config.bannerEnabled && <TerminalBanner art={bannerArt} palette={palette} baseSize={bannerBase} fontKey={config.font} />}
-              <div className="term-line"><span className="term-welcome-title">{fsociety ? "Arch Linux Terminal" : "McCrack-COS Terminal"}</span> <span className="term-dim">v1.0</span></div>
+              <div className="term-line"><span className="term-welcome-title">{fsociety ? "Arch Linux Terminal" : "McCrackOS Terminal"}</span> <span className="term-dim">v1.0</span></div>
               <div className="term-line term-dim">{fsociety ? "zsh 5.9 · fsociety™ toolkit installed" : "zsh 5.9 · offline-first shell"} · {TERMINAL_BANNERS.length} banner styles</div>
               <div className="term-line">Type <span className="term-cmd">help</span> for commands, <span className="term-cmd">settings</span> to customize, <span className="term-cmd">theme</span> for colors.</div>
               <div className="term-line term-blank" />
@@ -5654,7 +5654,7 @@ function renderWindowBody(id: AppId, settings: SystemSettings, updateSetting: (k
   if (id === "admin") return <AdminSurface />;
   if (id === "appmaker") return <div className="window-surface vs-app-surface"><VStudiosSurface /></div>;
   if (id === "webapps") return <AppMakerSurface />;
-  // Installed V-MARKET listings run inside their own McCrack-COS window.
+  // Installed V-MARKET listings run inside their own McCrackOS window.
   // Handle legacy custom apps
   if (typeof id === "string" && id.startsWith("custom_")) {
     try {
@@ -6065,21 +6065,21 @@ const SETTINGS_SEARCH: { tab: SettingsTabId; label: string; hint: string }[] = [
   { tab: "home", label: "Color mode", hint: "Bright (light) or black (dark)" },
   { tab: "personalization", label: "Wallpaper", hint: "Desktop background and lock screen" },
   { tab: "personalization", label: "Wallpaper Engine", hint: "Animated backgrounds, workshop and installed wallpapers" },
-  { tab: "personalization", label: "Reset to default wallpaper", hint: "Restore the McCrack Studios wallpaper" },
+  { tab: "personalization", label: "Reset to default wallpaper", hint: "Restore the McCrack wallpaper" },
   { tab: "account", label: "Account name", hint: "The name shown on this device" },
   { tab: "account", label: "Email address", hint: "The Gmail you are signed in with" },
   { tab: "account", label: "Profile picture", hint: "Change your avatar" },
   { tab: "account", label: "Password", hint: "Lock screen password" },
   { tab: "system", label: "Performance", hint: "Optimization, fast boot, idle lock" },
-  { tab: "system", label: "System style", hint: "Switch between McCrack-COS and macOS looks" },
-  { tab: "system", label: "Text style", hint: "Change the font used across McCrack-COS" },
+  { tab: "system", label: "System style", hint: "Switch between McCrackOS and macOS looks" },
+  { tab: "system", label: "Text style", hint: "Change the font used across McCrackOS" },
   { tab: "colors", label: "Color mode", hint: "Bright or black theme" },
   { tab: "language", label: "Language & region", hint: "Idiom and formatting" },
   { tab: "widgets", label: "Widgets", hint: "Rainmeter clock, local weather and TranslucentTB taskbar" },
   { tab: "privacy", label: "Cloak", hint: "Disguise the browser tab" },
   { tab: "privacy", label: "Adblock", hint: "Redirect ads to another page" },
-  { tab: "privacy", label: "Panic key", hint: "Instantly hide McCrack-COS" },
-  { tab: "about", label: "About McCrack-COS", hint: "Version and FAQ" },
+  { tab: "privacy", label: "Panic key", hint: "Instantly hide McCrackOS" },
+  { tab: "about", label: "About McCrackOS", hint: "Version and FAQ" },
   { tab: "about", label: "FAQ", hint: "Common questions" },
 ];
 
@@ -6139,8 +6139,8 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
   const applySystemStyle = (style: SystemStyle) => {
     if (settings.systemStyle === style) return;
     const prompt = style === "macos"
-      ? "Switch to the macOS style? McCrack-COS will restart and return you to the sign-in screen."
-      : "Switch back to the default McCrack-COS style? McCrack-COS will restart and return you to the sign-in screen.";
+      ? "Switch to the macOS style? McCrackOS will restart and return you to the sign-in screen."
+      : "Switch back to the default McCrackOS style? McCrackOS will restart and return you to the sign-in screen.";
     if (typeof window !== "undefined" && !window.confirm(prompt)) return;
     updateSetting("systemStyle", style);
     if (style === "macos") {
@@ -6275,7 +6275,7 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
           </section>
           <section className="win-settings-card">
             <div className="win-settings-row">
-              <div><strong>Device name</strong><small>The name McCrack-COS shows for this device</small></div>
+              <div><strong>Device name</strong><small>The name McCrackOS shows for this device</small></div>
               <div className="win-settings-inline">
                 <input className="setting-input" value={deviceDraft} onChange={(event) => setDeviceDraft(event.target.value)} aria-label="Device name" />
                 <button className="outline-button" onClick={saveDevice}>Rename</button>
@@ -6380,9 +6380,9 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
           <p className="win-settings-sub">Device details and performance options.</p>
           <section className="win-settings-card">
             <div className="setting-group"><Monitor size={13} /> System style</div>
-            <p className="win-settings-note">Choose the overall look of McCrack-COS. Switching restarts the system and returns you to the sign-in screen.</p>
+            <p className="win-settings-note">Choose the overall look of McCrackOS. Switching restarts the system and returns you to the sign-in screen.</p>
             <div className="win-settings-choice">
-              <button className={`win-settings-choice-card ${settings.systemStyle !== "macos" ? "active" : ""}`} onClick={() => applySystemStyle("vertex")}><span className="win-settings-choice-swatch vertex" /><strong>McCrack-COS</strong><small>Default windows, dock and accent</small></button>
+              <button className={`win-settings-choice-card ${settings.systemStyle !== "macos" ? "active" : ""}`} onClick={() => applySystemStyle("vertex")}><span className="win-settings-choice-swatch vertex" /><strong>McCrackOS</strong><small>Default windows, dock and accent</small></button>
               <button className={`win-settings-choice-card ${settings.systemStyle === "macos" ? "active" : ""}`} onClick={() => applySystemStyle("macos")}><span className="win-settings-choice-swatch macos" /><strong>macOS 27 · Golden Gate</strong><small>Apple-style menu bar, windows and wallpaper</small></button>
             </div>
           </section>
@@ -6397,7 +6397,7 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
           </section>
           <section className="win-settings-card">
             <div className="setting-group"><Palette size={13} /> Text style</div>
-            <p className="win-settings-note">Change the font McCrack-COS uses everywhere. Pick the look you like best.</p>
+            <p className="win-settings-note">Change the font McCrackOS uses everywhere. Pick the look you like best.</p>
             <div className="win-settings-fontgrid">
               {FONT_STYLES.map((font) => (
                 <button key={font.id} type="button" className={`win-settings-font ${settings.fontStyle === font.id ? "active" : ""}`} onClick={() => updateSetting("fontStyle", font.id)}>
@@ -6418,7 +6418,7 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
       case "colors":
         return <>
           <h2>Color mode</h2>
-          <p className="win-settings-sub">Choose how McCrack-COS looks. Black is the classic dark theme, Bright is a light theme.</p>
+          <p className="win-settings-sub">Choose how McCrackOS looks. Black is the classic dark theme, Bright is a light theme.</p>
           <section className="win-settings-card">
             <div className="win-settings-choice">
               <button className={`win-settings-choice-card ${settings.colorMode === "dark" ? "active" : ""}`} onClick={() => updateSetting("colorMode", "dark")}><span className="win-settings-choice-swatch dark" /><strong>Black</strong><small>Dark surfaces, glowing accents</small></button>
@@ -6429,7 +6429,7 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
       case "language":
         return <>
           <h2>Language &amp; region</h2>
-          <p className="win-settings-sub">Pick the idiom McCrack-COS uses across windows.</p>
+          <p className="win-settings-sub">Pick the idiom McCrackOS uses across windows.</p>
           <section className="win-settings-card">
             <div className="win-settings-row">
               <div><strong>{t("set.appLangLabel")}</strong><small>{t("set.appLangHelp")}</small></div>
@@ -6460,14 +6460,14 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
           <section className="win-settings-card">
             <div className="setting-group"><LockKeyhole size={13} /> {t("set.groupCloak")}</div>
             <div className="setting-row"><div><strong>{t("set.cloakLabel")}</strong><small>{t("set.cloakHelp")}</small></div><select className="setting-select" value={settings.cloak} onChange={(event) => updateSetting("cloak", event.target.value)} aria-label={t("set.cloakLabel")}><option value="none">{t("set.cloakNone")}</option><option value="google">{t("set.cloakGoogle")}</option><option value="classroom">{t("set.cloakClassroom")}</option><option value="custom">{t("set.cloakCustom")}</option></select></div>
-            {settings.cloak === "custom" && <div className="setting-row setting-stack"><div><strong>{t("set.customNameLabel")}</strong><small>{t("set.cloakHelp")}</small></div><input className="setting-input" value={settings.cloakName} placeholder="McCrack-COS" onChange={(event) => updateSetting("cloakName", event.target.value)} aria-label={t("set.customNameLabel")} /></div>}
+            {settings.cloak === "custom" && <div className="setting-row setting-stack"><div><strong>{t("set.customNameLabel")}</strong><small>{t("set.cloakHelp")}</small></div><input className="setting-input" value={settings.cloakName} placeholder="McCrackOS" onChange={(event) => updateSetting("cloakName", event.target.value)} aria-label={t("set.customNameLabel")} /></div>}
             {settings.cloak === "custom" && <div className="setting-row setting-stack"><div><strong>{t("set.customIconLabel")}</strong><small>{t("set.cloakHelp")}</small></div><input className="setting-input setting-url" type="text" value={settings.cloakIcon} placeholder="https://example.com/logo.png" onChange={(event) => updateSetting("cloakIcon", event.target.value)} aria-label={t("set.customIconLabel")} /></div>}
             <div className="setting-action-row"><button className="outline-button" onClick={openBlankTab}>Open in about:blank</button><span>Runs the OS in a new tab — the URL bar shows only <b>about:blank</b>. Close the original tab after.</span></div>
             {blankNotice && <p className="term-error">{blankNotice}</p>}
           </section>
           <section className="win-settings-card">
             <div className="setting-group"><EyeOff size={13} /> Tab Hiding</div>
-            <SettingToggle label="Blur overlay" help="Show a fake image when this tab loses focus, then restore McCrack-COS when you come back." value={settings.tabHide} onChange={(value) => updateSetting("tabHide", value)} />
+            <SettingToggle label="Blur overlay" help="Show a fake image when this tab loses focus, then restore McCrackOS when you come back." value={settings.tabHide} onChange={(value) => updateSetting("tabHide", value)} />
             {settings.tabHide && <>
               <div className="setting-row"><div><strong>Overlay picture</strong><small>What shows while you are away.</small></div><select className="setting-select" value={settings.tabHideImage} onChange={(event) => updateSetting("tabHideImage", event.target.value)} aria-label="Overlay picture">{settings.tabHideImages.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></div>
               <div className="setting-action-row"><label className="outline-button" style={{ cursor: "pointer" }}><ImagePlus size={13} /> Add custom image<input type="file" accept="image/*,.gif" style={{ display: "none" }} onChange={async (event) => { const file = event.target.files?.[0]; event.target.value = ""; if (!file) return; try { const src = await new Promise<string>((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(String(reader.result)); reader.onerror = () => reject(reader.error); reader.readAsDataURL(file); }); const id = `custom-${Date.now()}`; updateSetting({ tabHideImages: [...settings.tabHideImages, { id, name: file.name, src }], tabHideImage: id }); setTabHideNotice("Custom image added."); } catch { setTabHideNotice("Could not read that image."); } }} /></label><span>Use any picture or GIF as your tab-hiding screen.</span></div>
@@ -6496,9 +6496,9 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
       case "about":
         return <>
           <h2>About</h2>
-          <p className="win-settings-sub">McCrack-COS {VERTEX_VERSION} · {settings.deviceName}</p>
+          <p className="win-settings-sub">McCrackOS {VERTEX_VERSION} · {settings.deviceName}</p>
           <section className="win-settings-card">
-            <div className="win-settings-row"><div><strong>Version</strong><small>McCrack-COS build</small></div><span className="win-settings-badge">v{VERTEX_VERSION}</span></div>
+            <div className="win-settings-row"><div><strong>Version</strong><small>McCrackOS build</small></div><span className="win-settings-badge">v{VERTEX_VERSION}</span></div>
             <div className="win-settings-row"><div><strong>Device</strong><small>This machine</small></div><span className="win-settings-badge">{settings.deviceName}</span></div>
             <div className="win-settings-row"><div><strong>Account</strong><small>Signed in</small></div><span className="win-settings-badge">{accountName ?? "—"}</span></div>
           </section>
@@ -7801,7 +7801,7 @@ function AppMakerSurface() {
   };
   const deleteApp = (id: string) => saveApps(apps.filter((item) => item.id !== id));
   const exportApps = () => {
-    const blob = new Blob([JSON.stringify({ format: "McCrack-COS-AppLibrary", version: 1, apps }, null, 2)], { type: "application/json" });
+    const blob = new Blob([JSON.stringify({ format: "McCrackOS-AppLibrary", version: 1, apps }, null, 2)], { type: "application/json" });
     const href = URL.createObjectURL(blob); const anchor = document.createElement("a"); anchor.href = href; anchor.download = "mccrack-app-library.json"; anchor.click(); URL.revokeObjectURL(href);
   };
   const importApps = (file?: File) => {
