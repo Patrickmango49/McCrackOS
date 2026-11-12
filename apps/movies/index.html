@@ -372,7 +372,7 @@
   function bgOf(m){ return m.background || ("https://images.metahub.space/background/medium/"+m.imdb_id+"/img"); }
 
 
-  function isPlaceholderTitle(name){ return /^movie\\s*\\d+\\s*$/i.test(String(name||"").trim()); }
+  function isPlaceholderTitle(name){ return /^movie\s*\d+\s*$/i.test(String(name||"").trim()); }
   function sortAndCleanMetas(items){
     return (items||[]).filter(function(m){return m && m.imdb_id && !isPlaceholderTitle(m.name);})
       .slice().sort(function(a,b){return String(a.name||"").localeCompare(String(b.name||""),undefined,{numeric:true,sensitivity:"base"});});
