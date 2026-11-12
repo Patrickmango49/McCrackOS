@@ -381,6 +381,7 @@ const baseApps: AppDef[] = [
   { id: "movies", title: "Movies", subtitle: t("appSub.movies"), icon: Film, iconImg: "https://images.icon-icons.com/3053/PNG/512/netflix_macos_bigsur_icon_189917.png", pinned: true },
   { id: "settings", title: "Config", subtitle: t("appSub.settings"), icon: Settings2, iconImg: asset("images/config-icon.png"), pinned: true },
   { id: "appmaker", title: "McCrack Studios", subtitle: "build & publish your own", icon: Code2, iconImg: asset("images/v-studios-logo.svg"), squircle: true },
+  { id: "webapps", title: "Proxy Apps", subtitle: "create standalone proxied apps", icon: Globe, iconImg: asset("images/links.svg") },
   { id: "spicetify", title: "McCrackify", subtitle: "Music player", icon: Music2, iconImg: MCC_CRACKIFY_ICON, pinned: true },
   { id: "roblox", title: "Roblox", subtitle: t("appSub.roblox"), icon: Gamepad2, iconImg: asset("images/roblox.ico") },
   { id: "jarvis", title: "JARVIS", subtitle: t("appSub.jarvis"), icon: Bot, iconImg: asset("images/jarvis-logo.png") },
@@ -400,7 +401,7 @@ const APP_SECTIONS: { id: string; tone: string; all?: boolean; ids: AppId[] }[] 
   { id: "all", tone: "tone-all", all: true, ids: [] },
   { id: "watch", tone: "tone-watch", ids: ["vertube", "movies", "spicetify", "messages", "verai", "jarvis"] },
   { id: "play", tone: "tone-play", ids: ["roblox", "minecraft", "games"] },
-  { id: "create", tone: "tone-create", ids: ["terminal", "browser", "calculator", "appmaker", "settings", "links"] },
+  { id: "create", tone: "tone-create", ids: ["terminal", "browser", "calculator", "appmaker", "webapps", "settings", "links"] },
 ];;
 
 const GV_APP: { id: AppId; title: string; subtitle: string; icon: LucideIcon; pinned: boolean; showName: boolean } = { id: "ghostview", title: "GhostView", subtitle: "remote view", icon: Eye, pinned: false, showName: false };
@@ -411,6 +412,13 @@ function getApp(id: AppId, overrides: Record<string, AppOverride>) {
     return { ...GV_APP, title: gvOv.name ?? GV_APP.title, showName: gvOv.showName ?? false };
   }
   if (id === "admin") return { id: "admin" as AppId, title: "Control Panel", subtitle: "restricted", icon: Settings2, pinned: false, showName: false, squircle: false };
+  if (typeof id === "string" && id.startsWith("custom_")) {
+    try {
+      const saved = JSON.parse(localStorage.getItem("vertex-custom-apps") ?? "[]") as Array<{ id: string; name: string; icon: string; url: string }>;
+      const custom = saved.find((item) => item.id === id);
+      if (custom) return { id, title: custom.name, subtitle: "proxied web app", icon: Compass, iconImg: custom.icon, pinned: false, showName: true, squircle: true };
+    } catch { /* ignore invalid custom app data */ }
+  }
   const base = apps.find((app) => app.id === id) ?? apps[0];
   const ov = overrides[id] ?? {};
   return { ...base, title: ov.name ?? base.title, showName: ov.showName ?? false, iconUrl: ov.iconUrl };
@@ -5635,6 +5643,7 @@ function renderWindowBody(id: AppId, settings: SystemSettings, updateSetting: (k
   if (id === "links") return <LinksApp />;
   if (id === "admin") return <AdminSurface />;
   if (id === "appmaker") return <div className="window-surface vs-app-surface"><VStudiosSurface /></div>;
+  if (id === "webapps") return <AppMakerSurface />;
   // Installed V-MARKET listings run inside their own McCrack-COS window.
   // Handle legacy custom apps
   if (typeof id === "string" && id.startsWith("custom_")) {
@@ -7793,7 +7802,7 @@ function AppMakerSurface() {
         <input 
           value={name} 
           onChange={(e) => setName(e.target.value)} 
-          placeholder="App name (e.g., Pizza Edition)" 
+          placeholder="App name (e.g., My Web App)" 
           style={{ padding: "8px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.2)", background: "rgba(0,0,0,0.3)", color: "white" }}
         />
         <input 
