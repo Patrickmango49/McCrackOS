@@ -387,8 +387,6 @@ const baseApps: AppDef[] = [
   { id: "jarvis", title: "JARVIS", subtitle: t("appSub.jarvis"), icon: Bot, iconImg: asset("images/jarvis-logo.png") },
   { id: "games", title: "PS5 Emu", subtitle: t("appSub.games"), icon: Gamepad2, iconImg: asset("images/ps5-emu.png"), squircle: true },
   { id: "minecraft", title: "Minecraft Launcher", subtitle: t("appSub.minecraft"), icon: Gamepad2, iconImg: MC_ICON, squircle: true },
-  { id: "translucenttb", title: "TranslucentTB", subtitle: t("appSub.translucenttb"), icon: Waves, iconImg: asset("images/translucenttb-logo.png") },
-  { id: "rainmeter", title: "Rainmeter", subtitle: t("appSub.rainmeter"), icon: MonitorCog, iconImg: RAINMETER_ICON },
   { id: "calculator", title: "Calculator", subtitle: t("appSub.calculator"), icon: Calculator, iconImg: asset("images/calculator-logo.svg") },
   { id: "terminal", title: "Terminal", subtitle: t("appSub.terminal"), icon: Terminal, iconImg: ARCH_ICON },
   { id: "links", title: "Links", subtitle: t("appSub.links"), icon: Link2, iconImg: asset("images/links.svg") },
@@ -403,7 +401,7 @@ const APP_SECTIONS: { id: string; tone: string; all?: boolean; ids: AppId[] }[] 
   { id: "all", tone: "tone-all", all: true, ids: [] },
   { id: "watch", tone: "tone-watch", ids: ["vertube", "movies", "spicetify", "messages", "verai", "jarvis"] },
   { id: "play", tone: "tone-play", ids: ["roblox", "minecraft", "games"] },
-  { id: "create", tone: "tone-create", ids: ["terminal", "browser", "calculator", "appmaker", "webapps", "settings", "translucenttb", "rainmeter", "links"] },
+  { id: "create", tone: "tone-create", ids: ["terminal", "browser", "calculator", "appmaker", "webapps", "settings", "links"] },
 ];;
 
 const GV_APP: { id: AppId; title: string; subtitle: string; icon: LucideIcon; pinned: boolean; showName: boolean } = { id: "ghostview", title: "GhostView", subtitle: "remote view", icon: Eye, pinned: false, showName: false };
@@ -418,7 +416,7 @@ function getApp(id: AppId, overrides: Record<string, AppOverride>) {
     try {
       const saved = JSON.parse(localStorage.getItem("vertex-custom-apps") ?? "[]") as Array<{ id: string; name: string; icon: string; url: string }>;
       const custom = saved.find((item) => item.id === id);
-      if (custom) return { id, title: custom.name, subtitle: "proxied web app", icon: Compass, iconImg: custom.icon, pinned: false, showName: true, squircle: true };
+      if (custom) return { id, title: custom.name, subtitle: custom.folder?.trim() || "proxied web app", icon: Compass, iconImg: custom.icon, pinned: Boolean(custom.pinned), showName: true, squircle: true };
     } catch { /* ignore invalid custom app data */ }
   }
   const base = apps.find((app) => app.id === id) ?? apps[0];
@@ -1205,7 +1203,14 @@ storage.read("vertex-jarvis-installed", false));
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   const [contextMenuPos, setContextMenuPos] = useState<{ x: number; y: number } | null>(null);
   const contextMenuRef = useRef<HTMLDivElement>(null);
-  apps = useMemo<AppDef[]>(() => [...baseApps], []);
+  type CustomProxyApp = { id: string; name: string; icon: string; url: string; type: "website" | "game"; pinned?: boolean; folder?: string };
+  const [customApps, setCustomApps] = useState<CustomProxyApp[]>(() => {
+    try { const saved = localStorage.getItem("vertex-custom-apps"); const parsed = saved ? JSON.parse(saved) : []; return Array.isArray(parsed) ? parsed : []; } catch { return []; }
+  });
+  apps = useMemo<AppDef[]>(() => [
+    ...baseApps,
+    ...customApps.map((item) => ({ id: item.id as AppId, title: item.name, subtitle: item.folder?.trim() || "Custom proxied app", icon: Globe, iconImg: item.icon || asset("images/links.svg"), pinned: Boolean(item.pinned), squircle: true })),
+  ], [customApps]);
   const [desktopApps, setDesktopApps] = useState<AppId[]>(() => {
     const saved = storage.read<AppId[]>("vertex-desktop-apps", []);
     const valid = Array.isArray(saved) ? saved.filter((id) => apps.some((app) => app.id === id)) : [];
@@ -1613,10 +1618,12 @@ onSessionClose: (peerCode) => {
     };
     window.addEventListener("keydown", onKey);
     const onAdminLaunch = (event: Event) => { const detail = (event as CustomEvent).detail; if (typeof detail === "string") toggleApp(detail as AppId); };
-    const onCustomAppCreated = (event: Event) => { const detail = (event as CustomEvent).detail; if (detail && typeof detail.id === "string" && detail.id.startsWith("custom_")) toggleApp(detail.id as AppId); };
+    const syncCustomApps = () => { try { const raw = localStorage.getItem("vertex-custom-apps"); const next = raw ? JSON.parse(raw) : []; setCustomApps(Array.isArray(next) ? next : []); } catch { setCustomApps([]); } };
+    const onCustomAppCreated = (event: Event) => { syncCustomApps(); const detail = (event as CustomEvent).detail; if (detail && typeof detail.id === "string" && detail.id.startsWith("custom_")) toggleApp(detail.id as AppId); };
     window.addEventListener("vertex-open-app", onAdminLaunch);
     window.addEventListener("vertex-add-custom-app", onCustomAppCreated);
-    return () => { window.removeEventListener("keydown", onKey); window.removeEventListener("vertex-open-app", onAdminLaunch); window.removeEventListener("vertex-add-custom-app", onCustomAppCreated); };
+    window.addEventListener("vertex-custom-apps-updated", syncCustomApps);
+    return () => { window.removeEventListener("keydown", onKey); window.removeEventListener("vertex-open-app", onAdminLaunch); window.removeEventListener("vertex-add-custom-app", onCustomAppCreated); window.removeEventListener("vertex-custom-apps-updated", syncCustomApps); };
   });
 
   useEffect(() => {
@@ -2329,7 +2336,7 @@ onSessionClose: (peerCode) => {
       </section>
 
       <section className={`desktop-shell ${phase === "desktop" ? "active" : ""} ${iconSize === "large" ? "large-icons" : iconSize === "small" ? "icon-small" : ""} ${translucentTB ? "translucent-tb" : ""} ${taskbarPos !== "bottom" ? `tb-${taskbarPos}` : ""} ${customCursor ? "custom-cursor" : ""} ${pressFx ? "press-fx" : ""} ${chromeHidden ? "chrome-hidden" : ""}`}>
-        {rmCfg.showClock ? <RainmeterWidget cfg={rmCfg} date={now} tone="home" onAlternative={() => toggleApp("rainmeter")} /> : null}
+        {rmCfg.showClock ? <RainmeterWidget cfg={rmCfg} date={now} tone="home" onAlternative={() => toggleApp("settings")} /> : null}
         {settings.systemStyle === "macos" ? <MacMenuBar
           now={now}
           lang={chosenLang}
@@ -2431,7 +2438,7 @@ onSessionClose: (peerCode) => {
           </div>}
         </nav>
 
-        <SystemTray now={now} lang={chosenLang} onPickLanguage={pickLanguage} notifications={notifications} unseen={unseenNotifications} onOpenClock={markNotificationsRead} onDismiss={dismissNotification} onClear={clearNotifications} />
+        <SystemTray now={now} lang={chosenLang} notifications={notifications} unseen={unseenNotifications} onOpenClock={markNotificationsRead} onDismiss={dismissNotification} onClear={clearNotifications} />
 
         {gvInbox.length > 0 && (
           <div className="gv-cards">
@@ -7762,99 +7769,103 @@ function WeCard({ entry, applied, onOpen, installed, onDownload, onApply, onUnin
 }
 
 function AppMakerSurface() {
-  const [apps, setApps] = useState<Array<{ id: string; name: string; icon: string; url: string; type: "website" | "game" }>>(() => {
-    try {
-      const saved = localStorage.getItem("vertex-custom-apps");
-      return saved ? JSON.parse(saved) : [];
-    } catch { return []; }
-  });
+  type CustomProxyApp = { id: string; name: string; icon: string; url: string; type: "website" | "game"; pinned?: boolean; folder?: string };
+  const readApps = (): CustomProxyApp[] => { try { const raw = localStorage.getItem("vertex-custom-apps"); const value = raw ? JSON.parse(raw) : []; return Array.isArray(value) ? value : []; } catch { return []; } };
+  const [apps, setApps] = useState<CustomProxyApp[]>(readApps);
   const [name, setName] = useState("");
   const [icon, setIcon] = useState("");
   const [url, setUrl] = useState("");
   const [type, setType] = useState<"website" | "game">("website");
-
-  const saveApps = (next: typeof apps) => {
+  const [folder, setFolder] = useState("");
+  const importRef = useRef<HTMLInputElement>(null);
+  const saveApps = (next: CustomProxyApp[]) => {
     setApps(next);
     try { localStorage.setItem("vertex-custom-apps", JSON.stringify(next)); } catch {}
+    window.dispatchEvent(new CustomEvent("vertex-custom-apps-updated"));
   };
-
   const createApp = () => {
     if (!name.trim() || !url.trim()) return;
-    const id = `custom_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const rawUrl = url.trim();
-    const safeUrl = /^https?:\/\//i.test(rawUrl) ? rawUrl : `https://${rawUrl}`;
+    const safeUrl = /^https?:\\/\\//i.test(rawUrl) ? rawUrl : `https://${rawUrl}`;
     try { const parsed = new URL(safeUrl); if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return; } catch { return; }
-    const newApp = { id, name: name.trim(), icon: icon.trim() || asset("images/links.svg"), url: safeUrl, type };
-    saveApps([...apps, newApp]);
-    setName(""); setIcon(""); setUrl("");
-    // Dispatch event to add to app list
-    window.dispatchEvent(new CustomEvent("vertex-add-custom-app", { detail: newApp }));
+    const item: CustomProxyApp = { id: `custom_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`, name: name.trim(), icon: icon.trim() || asset("images/links.svg"), url: safeUrl, type, folder: folder.trim() };
+    saveApps([...apps, item]);
+    setName(""); setIcon(""); setUrl(""); setFolder("");
+    window.dispatchEvent(new CustomEvent("vertex-add-custom-app", { detail: item }));
   };
-
-  const deleteApp = (id: string) => {
-    saveApps(apps.filter(a => a.id !== id));
+  const updateApp = (id: string, patch: Partial<CustomProxyApp>) => saveApps(apps.map((item) => item.id === id ? { ...item, ...patch } : item));
+  const moveApp = (index: number, delta: number) => {
+    const target = index + delta; if (target < 0 || target >= apps.length) return;
+    const next = [...apps]; const [item] = next.splice(index, 1); next.splice(target, 0, item); saveApps(next);
   };
-
+  const deleteApp = (id: string) => saveApps(apps.filter((item) => item.id !== id));
+  const exportApps = () => {
+    const blob = new Blob([JSON.stringify({ format: "McCrack-COS-AppLibrary", version: 1, apps }, null, 2)], { type: "application/json" });
+    const href = URL.createObjectURL(blob); const anchor = document.createElement("a"); anchor.href = href; anchor.download = "mccrack-app-library.json"; anchor.click(); URL.revokeObjectURL(href);
+  };
+  const importApps = (file?: File) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(String(reader.result));
+        const incoming = Array.isArray(parsed) ? parsed : parsed.apps;
+        if (!Array.isArray(incoming)) throw new Error("Invalid app library");
+        const clean = incoming.filter((item: any) => item && typeof item.id === "string" && typeof item.name === "string" && typeof item.url === "string" && /^https?:\\/\\//i.test(item.url)).map((item: any) => ({ id: item.id.startsWith("custom_") ? item.id : `custom_${Date.now()}_${Math.random().toString(36).slice(2,8)}`, name: item.name, icon: typeof item.icon === "string" ? item.icon : asset("images/links.svg"), url: item.url, type: item.type === "game" ? "game" : "website", pinned: Boolean(item.pinned), folder: typeof item.folder === "string" ? item.folder : "" }));
+        const merged = [...apps.filter((old) => !clean.some((item: CustomProxyApp) => item.id === old.id)), ...clean];
+        saveApps(merged);
+      } catch { window.alert("That file is not a valid McCrack app-library backup."); }
+    };
+    reader.readAsText(file);
+  };
+  const grouped = apps.reduce<Record<string, CustomProxyApp[]>>((acc, item) => { const key = item.folder?.trim() || "Unfiled"; (acc[key] ??= []).push(item); return acc; }, {});
   return (
-    <div className="window-surface" style={{ padding: "20px", overflow: "auto" }}>
-      <div className="surface-kicker">APP MAKER</div>
-      <h2 className="surface-title">Create Custom Apps</h2>
-      <p className="surface-copy">Make your own apps with custom logos. Create a standalone app that opens its website through the same Scramjet proxy used by Browser.</p>
-      
-      <div style={{ marginTop: "20px", display: "flex", flexDirection: "column", gap: "12px", maxWidth: "400px" }}>
-        <input 
-          value={name} 
-          onChange={(e) => setName(e.target.value)} 
-          placeholder="App name (e.g., My Web App)" 
-          style={{ padding: "8px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.2)", background: "rgba(0,0,0,0.3)", color: "white" }}
-        />
-        <input 
-          value={icon} 
-          onChange={(e) => setIcon(e.target.value)} 
-          placeholder="Logo URL (optional)" 
-          style={{ padding: "8px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.2)", background: "rgba(0,0,0,0.3)", color: "white" }}
-        />
-        <input 
-          value={url} 
-          onChange={(e) => setUrl(e.target.value)} 
-          placeholder="Website URL (https://example.com)" 
-          style={{ padding: "8px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.2)", background: "rgba(0,0,0,0.3)", color: "white" }}
-        />
-        <select 
-          value={type} 
-          onChange={(e) => setType(e.target.value as "website" | "game")}
-          style={{ padding: "8px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.2)", background: "rgba(0,0,0,0.3)", color: "white" }}
-        >
-          <option value="website">Website (Embed)</option>
-          <option value="game">Unblocked Game</option>
-        </select>
-        <button 
-          onClick={createApp}
-          style={{ padding: "10px", borderRadius: "6px", border: "none", background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)", color: "white", cursor: "pointer" }}
-        >
-          Create App
-        </button>
+    <div className="window-surface" style={{ padding: 22, overflow: "auto" }}>
+      <div className="surface-kicker">MCCrack APP LIBRARY</div>
+      <h2 className="surface-title">Proxy Apps</h2>
+      <p className="surface-copy">Create standalone apps that open through the same Scramjet proxy transport as Browser. Saved apps appear in All Apps; pin them to the dock, edit their details, sort them, and organize them into folders.</p>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(190px,1fr))", gap: 10, marginTop: 18 }}>
+        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="App name" />
+        <input value={icon} onChange={(e) => setIcon(e.target.value)} placeholder="Icon URL (optional)" />
+        <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="Website URL" />
+        <input value={folder} onChange={(e) => setFolder(e.target.value)} placeholder="Folder (optional)" />
+        <select value={type} onChange={(e) => setType(e.target.value as "website" | "game")}><option value="website">Website</option><option value="game">Game</option></select>
+        <button onClick={createApp} disabled={!name.trim() || !url.trim()} style={{ padding: "10px 14px", borderRadius: 9, border: 0, background: "linear-gradient(135deg,#0ea5c6,#2563eb)", color: "white", cursor: "pointer" }}>Create App</button>
       </div>
-
-      <div style={{ marginTop: "30px" }}>
-        <h3 style={{ marginBottom: "15px" }}>Your Custom Apps</h3>
-        {apps.length === 0 ? (
-          <p style={{ opacity: 0.6 }}>No custom apps yet</p>
-        ) : (
-          <div style={{ display: "grid", gap: "10px" }}>
-            {apps.map(app => (
-              <div key={app.id} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "10px", background: "rgba(255,255,255,0.05)", borderRadius: "8px" }}>
-                <img src={app.icon} alt="" style={{ width: "32px", height: "32px", borderRadius: "6px" }} onError={(e) => { (e.target as HTMLImageElement).src = asset("images/links.svg"); }} />
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: "600" }}>{app.name}</div>
-                  <div style={{ fontSize: "12px", opacity: 0.7 }}>{app.url}</div>
-                </div>
-                <button onClick={() => window.dispatchEvent(new CustomEvent("vertex-open-app", { detail: app.id }))} style={{ padding: "6px 12px", borderRadius: "4px", border: "1px solid rgba(80,210,240,.45)", background: "rgba(35,175,205,.14)", color: "white", cursor: "pointer" }}>Open</button>
-                <button onClick={() => deleteApp(app.id)} style={{ padding: "6px 12px", borderRadius: "4px", border: "none", background: "#ff4757", color: "white", cursor: "pointer" }}>Delete</button>
-              </div>
-            ))}
-          </div>
-        )}
+      <div style={{ display: "flex", gap: 9, flexWrap: "wrap", margin: "18px 0" }}>
+        <button onClick={exportApps} disabled={!apps.length}>Back up library</button>
+        <button onClick={() => importRef.current?.click()}>Restore backup</button>
+        <input ref={importRef} type="file" accept="application/json,.json" hidden onChange={(e) => { importApps(e.target.files?.[0]); e.target.value = ""; }} />
+        <span style={{ opacity: .65, alignSelf: "center", fontSize: 12 }}>Backups include app names, icons, URLs, pin states, and folders.</span>
+      </div>
+      <div style={{ display: "grid", gap: 16 }}>
+        {Object.entries(grouped).map(([folderName, items]) => (
+          <section key={folderName} style={{ border: "1px solid rgba(255,255,255,.1)", borderRadius: 13, padding: 12 }}>
+            <h3 style={{ margin: "2px 0 10px", fontSize: 14, opacity: .8 }}>{folderName}</h3>
+            <div style={{ display: "grid", gap: 10 }}>
+              {items.map((item) => {
+                const index = apps.findIndex((entry) => entry.id === item.id);
+                return <div key={item.id} style={{ display: "grid", gridTemplateColumns: "42px minmax(0,1fr) auto", gap: 9, alignItems: "center", padding: 10, background: "rgba(255,255,255,.045)", borderRadius: 10 }}>
+                  <img src={item.icon} alt="" style={{ width: 36, height: 36, objectFit: "contain", borderRadius: 8 }} onError={(e) => { (e.target as HTMLImageElement).src = asset("images/links.svg"); }} />
+                  <div style={{ minWidth: 0, display: "grid", gap: 6 }}>
+                    <input aria-label={`Name for ${item.name}`} value={item.name} onChange={(e) => updateApp(item.id, { name: e.target.value })} />
+                    <input aria-label={`Icon URL for ${item.name}`} value={item.icon} onChange={(e) => updateApp(item.id, { icon: e.target.value })} />
+                    <input aria-label={`Folder for ${item.name}`} value={item.folder ?? ""} placeholder="Folder name" onChange={(e) => updateApp(item.id, { folder: e.target.value })} />
+                    <small style={{ opacity: .55, overflowWrap: "anywhere" }}>{item.url}</small>
+                  </div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 5, justifyContent: "flex-end" }}>
+                    <button onClick={() => updateApp(item.id, { pinned: !item.pinned })}>{item.pinned ? "Unpin" : "Pin to dock"}</button>
+                    <button onClick={() => moveApp(index, -1)} disabled={index === 0} aria-label="Move app up">↑</button>
+                    <button onClick={() => moveApp(index, 1)} disabled={index === apps.length - 1} aria-label="Move app down">↓</button>
+                    <button onClick={() => window.dispatchEvent(new CustomEvent("vertex-open-app", { detail: item.id }))}>Open</button>
+                    <button onClick={() => deleteApp(item.id)}>Delete</button>
+                  </div>
+                </div>;
+              })}
+            </div>
+          </section>
+        ))}
+        {!apps.length && <p style={{ opacity: .6 }}>Your library is empty. Create your first proxied app above.</p>}
       </div>
     </div>
   );
