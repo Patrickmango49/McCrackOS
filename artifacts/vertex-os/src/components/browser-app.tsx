@@ -5,8 +5,8 @@ import type { Lang } from "../i18n";
 
 const BASE = import.meta.env.BASE_URL;
 
-/** Browser brand logo (Brave favicon, per request). */
-const BROWSER_LOGO = "https://raw.githubusercontent.com/Patrickmango49/McCrackOSV3/main/artifacts/vertex-browser/assets/icon.png";
+/** Local Apple Safari-style compass mark used consistently across Browser. */
+const BROWSER_LOGO = `${BASE}images/browser-icon.svg`;
 
 /** Scramjet's default config paths are root-absolute ("/~/sj/", "/scramjet/...").
  *  When the app is served from a subpath (e.g. GitHub Pages
