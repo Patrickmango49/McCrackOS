@@ -39,8 +39,8 @@ jobs:
       - name: Copy standalone app bundles into the static site
         run: |
           set -euo pipefail
-          mkdir -p public/apps
-          cp -a ../../apps/. public/apps/
+          mkdir -p artifacts/vertex-os/public/apps
+          cp -a apps/. artifacts/vertex-os/public/apps/
 
       - name: Build McCrackOS for Neocities
         working-directory: artifacts/vertex-os
