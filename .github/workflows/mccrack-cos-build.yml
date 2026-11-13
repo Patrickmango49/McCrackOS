@@ -41,7 +41,7 @@ jobs:
       - name: Build McCrackOS
         env:
           PORT: 5000
-          BASE_PATH: /McCrackOSV3/
+          BASE_PATH: /McCrackOS/
         run: npm run build
       - name: Publish built COS assets to GitHub Pages root
         shell: bash
