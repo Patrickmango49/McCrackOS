@@ -55,6 +55,21 @@ jobs:
           test -f artifacts/vertex-os/dist/public/index.html
           echo "Neocities build is ready."
 
+      - name: Verify the Neocities API key targets McCrackOS
+        env:
+          NEOCITIES_API_TOKEN: ${{ secrets.NEOCITIES_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          SITE_INFO=$(curl --fail --silent --show-error \
+            -H "Authorization: Bearer $NEOCITIES_API_TOKEN" \
+            https://neocities.org/api/info)
+          SITE_NAME=$(printf '%s' "$SITE_INFO" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s).info?.sitename ?? ''))")
+          echo "Authenticated Neocities site: $SITE_NAME"
+          if [ "$SITE_NAME" != "mccrackos" ]; then
+            echo "ERROR: NEOCITIES_API_TOKEN belongs to '$SITE_NAME', not 'mccrackos'. Update the repository secret with the API key from the mccrackos site settings."
+            exit 1
+          fi
+
       - name: Deploy to Neocities
         uses: bcomnes/deploy-to-neocities@v3
         with:
