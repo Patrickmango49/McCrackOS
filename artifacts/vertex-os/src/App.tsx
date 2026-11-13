@@ -2282,7 +2282,7 @@ onSessionClose: (peerCode) => {
               <div className="profile-choice-group">
                 <strong>Appearance</strong>
                 <div className="profile-choice-row">
-                  <button type="button" className={`profile-choice ${setupColorMode === "dark" ? "selected" : ""}`} onClick={() => setSetupColorMode("dark")}><MoonIconFallback /> Dark</button>
+                  <button type="button" className={`profile-choice ${setupColorMode === "dark" ? "selected" : ""}`} onClick={() => setSetupColorMode("dark")}><Contrast size={15} /> Dark</button>
                   <button type="button" className={`profile-choice ${setupColorMode === "light" ? "selected" : ""}`} onClick={() => setSetupColorMode("light")}><SunMoon size={15} /> Light</button>
                 </div>
               </div>
@@ -5674,18 +5674,17 @@ function renderWindowBody(id: AppId, settings: SystemSettings, updateSetting: (k
   if (id === "settings") return <SettingsSurface settings={settings} updateSetting={updateSetting} faqOpen={faqOpen} setFaqOpen={setFaqOpen} lang={lang} onLanguagePick={onLanguagePick} onPanic={onPanic} avatar={activeAccount?.avatar} accountName={activeAccount?.name} accountEmail={activeAccount?.email} onAvatarChange={onAvatarChange ?? undefined} onAccountChange={onAccountChange ?? undefined} appliedWallpaper={appliedWallpaper} appliedLockWallpaper={appliedLockWallpaper} onApplyWallpaper={onApplyWallpaper ?? undefined} onNotify={onNotify ?? undefined} translucent={translucent} onTranslucent={onTranslucent ?? undefined} />;
   if (id === "terminal") return <div className="window-surface term-app-surface">          <TerminalSurface installed={wppInstalled} onInstalled={onInstallPicker ?? (() => {})} onFsociety={onFsociety ?? (() => {})} jarvisInstalled={jarvisInstalled} setJarvisInstalled={onJarvisInstall ?? (() => {})} onJarvisInstall={onJarvisInstall ?? (() => {})} toggleApp={undefined} /></div>;
   if (id === "translucenttb") return <div className="window-surface"><div className="surface-kicker">{t("surf.translucent.kicker")}</div><h2 className="surface-title">{t("surf.translucent.title")}</h2><p className="surface-copy">{t("surf.translucent.body")}</p><div className="settings-list"><SettingToggle label={t("surf.translucent.enable")} help={t("surf.translucent.help")} value={translucent} onChange={(value) => onTranslucent?.(value)} /></div></div>;
-  if (id === "spicetify") return <CinefySurface onClose={onClose ?? (() => undefined)} onMinimize={onMinimize ?? (() => undefined)} onTrackChange={onTrackChange ?? (() => undefined)} />;
+  if (id === "spicetify") return <iframe className="browser-frame" src={`${base}apps/music/web/index.html`} title="McCrackify" allow="autoplay; clipboard-write; fullscreen; encrypted-media; picture-in-picture" allowFullScreen />;
   const adRedir = settings.adblock && settings.adblockUrl.trim() ? settings.adblockUrl : null;
-  if (id === "movies") return <iframe className="browser-frame" srcDoc={moviesAppHtml} title="Movies" allow="autoplay; clipboard-write; camera; microphone; fullscreen; gamepad; encrypted-media; picture-in-picture" allowFullScreen />;
+  if (id === "movies") return <iframe className="browser-frame" src={`${base}apps/movies/index.html`} title="McCrackFlix" allow="autoplay; clipboard-write; fullscreen; encrypted-media; picture-in-picture" allowFullScreen />;
   if (id === "browser") return adRedir
     ? <iframe className="browser-frame" src={adRedir} title="Browser redirect" allow="autoplay; clipboard-write; fullscreen" />
     : <BrowserSurface lang={lang} />;
   if (id === "calculator") return <div className="window-surface calc-app-surface"><CalculatorSurface /></div>;
   if (id === "roblox") return <ProxyUrlFrame url={adRedir ?? "https://73.ip.nowgg.fun/apps/a/19900/b.html"} title="Roblox" />;
-  if (id === "messages") return <div className="window-surface msgs-surface"><MessagesSurface /></div>;
-  if (id === "verai") return <div className="window-surface verai-surface"><VerAiSurface /></div>;
-  if (id === "jarvis") return <div className="window-surface verai-surface"><JarvisSurface onOpenApp={(appId) => { /* opening handled by parent */ }} /></div>;
-  if (id === "vertube") return <div className="window-surface vertube-surface"><VerTubeSurface /></div>;
+  if (id === "messages") return <iframe className="browser-frame" src={`${base}apps/messages/index.html`} title="McCrack Chat" allow="autoplay; clipboard-write; camera; microphone; fullscreen; display-capture" allowFullScreen />;
+
+  if (id === "vertube") return <iframe className="browser-frame" src={`${base}apps/youtube/public/index.html`} title="McCrackTube" allow="autoplay; clipboard-write; fullscreen; encrypted-media; picture-in-picture" allowFullScreen />;
   if (id === "ghostview") return <div className="window-surface gv-app-surface"><GhostViewSurface wallpaperResolve={wallImg} onStop={() => { onClose?.(); }} /></div>;
   if (id === "games") return <div className="window-surface ps5-app-surface"><Ps5EmulatorSurface surfaces={{ spotify: CinefySurface, verTube: VerTubeSurface }} /></div>;
   if (id === "minecraft") return <MinecraftLauncherSurface />;
