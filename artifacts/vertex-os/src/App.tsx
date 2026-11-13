@@ -6218,8 +6218,8 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
       // can never intercept it. That makes the download work even when a stale SW is blocking the local file.
       const urls = [
         ...bases.map((b) => new URL(`single/index.html${bust}`, location.origin + b).href),
-        `https://cdn.jsdelivr.net/gh/Patrickmango49/McCrackOSV3@main/single/index.html${bust}`,
-        `https://raw.githubusercontent.com/Patrickmango49/McCrackOSV3/main/single/index.html${bust}`,
+        `https://cdn.jsdelivr.net/gh/Patrickmango49/McCrackOS@main/single/index.html${bust}`,
+        `https://raw.githubusercontent.com/Patrickmango49/McCrackOS/main/single/index.html${bust}`,
       ];
       let html: string | null = null;
       for (const u of urls) {
@@ -6237,7 +6237,7 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
         // of the same-origin copy, which is not subject to fetch/CORS rules.
         const a = document.createElement("a");
         a.href = new URL("single/index.html", location.origin + bases[0]).href;
-        a.download = "vertex-os.html";
+        a.download = "McCrackOS.html";
         document.body.appendChild(a);
         a.click();
         a.remove();
@@ -6248,12 +6248,12 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "vertex-os.html";
+      a.download = "McCrackOS.html";
       document.body.appendChild(a);
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
-      setOfflineNote("Saved — open vertex-os.html anywhere, no internet needed.");
+      setOfflineNote("Saved as McCrackOS.html. The desktop shell and bundled artwork work offline; online apps, games and services still need internet.");
     } catch {
       setOfflineNote("Couldn't grab the offline copy. Check your connection, then hard-refresh (Ctrl+Shift+R) and try again.");
     } finally {
