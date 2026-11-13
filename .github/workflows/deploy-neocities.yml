@@ -84,36 +84,6 @@ jobs:
           console.log('Standalone HTML export verified (' + (single.length / 1024 / 1024).toFixed(1) + ' MiB).');
           NODE
 
-      # Neocities is returning its HTML with a sandbox policy that blocks all scripts.
-      # Keep the Neocities URL as the entry point, but redirect the browser to the
-      # identical app deployed on GitHub Pages, where JavaScript is permitted.
-      - name: Prepare Neocities redirect to the live McCrackOS app
-        run: |
-          cat > artifacts/vertex-os/dist/public/index.html <<'HTML'
-          <!doctype html>
-          <html lang="en">
-          <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1">
-            <meta http-equiv="refresh" content="0;url=https://patrickmango49.github.io/McCrackOS/">
-            <link rel="canonical" href="https://patrickmango49.github.io/McCrackOS/">
-            <title>Opening McCrackOS…</title>
-            <style>
-              html,body{margin:0;min-height:100%;background:#080b12;color:#eefaff;font:16px system-ui,sans-serif}
-              body{display:grid;place-items:center;min-height:100vh}
-              main{text-align:center;padding:32px}
-              a{color:#55dfff}
-            </style>
-          </head>
-          <body>
-            <main>
-              <h1>Opening McCrackOS…</h1>
-              <p><a href="https://patrickmango49.github.io/McCrackOS/">Continue to McCrackOS</a></p>
-            </main>
-          </body>
-          </html>
-          HTML
-
       - name: Verify the Neocities API key targets McCrackOS
         env:
           NEOCITIES_API_TOKEN: ${{ secrets.NEOCITIES_API_TOKEN }}
@@ -144,7 +114,7 @@ jobs:
           npm install --no-save --no-package-lock playwright
           npx playwright install --with-deps chromium
 
-      - name: Verify Neocities redirects to the working McCrackOS app
+      - name: Diagnose the live Neocities app startup
         working-directory: artifacts/vertex-os
         run: |
           node --input-type=module <<'NODE'
@@ -154,9 +124,21 @@ jobs:
           try {
             const page = await browser.newPage();
             const errors = [];
+            const consoleErrors = [];
+            const siteResponses = [];
             page.on('pageerror', error => errors.push(error.message));
             page.on('console', message => {
-              if (message.type() === 'error') errors.push(message.text());
+              if (message.type() === 'error') consoleErrors.push(message.text());
+            });
+            page.on('response', response => {
+              if (new URL(response.url()).hostname === 'mccrackos.neocities.org') {
+                siteResponses.push({ status: response.status(), url: response.url() });
+              }
+            });
+            page.on('requestfailed', request => {
+              if (new URL(request.url()).hostname === 'mccrackos.neocities.org') {
+                errors.push('Request failed: ' + request.url() + ' — ' + (request.failure()?.errorText ?? 'unknown'));
+              }
             });
 
             const response = await page.goto('https://mccrackos.neocities.org/', {
@@ -167,29 +149,25 @@ jobs:
               throw new Error('Neocities returned HTTP ' + (response?.status() ?? 'no response'));
             }
 
-            await page.waitForURL('https://patrickmango49.github.io/McCrackOS/**', { timeout: 30000 });
-            await page.waitForFunction(
-              () => {
-                const root = document.getElementById('root');
-                return Boolean(root && root.childElementCount > 0);
-              },
-              null,
-              { timeout: 60000 }
-            );
-
+            await page.waitForTimeout(20000);
             const state = await page.evaluate(() => ({
-              url: location.href,
               title: document.title,
+              url: location.href,
               rootChildren: document.getElementById('root')?.childElementCount ?? 0,
-              rootPreview: (document.getElementById('root')?.innerText ?? '').slice(0, 500)
+              rootHtml: (document.getElementById('root')?.innerHTML ?? '').slice(0, 2500),
+              startupCurtain: Boolean(document.getElementById('startup-curtain')),
+              scripts: [...document.scripts].map(s => ({ src: s.src, type: s.type, inline: !s.src })),
+              stylesheets: [...document.styleSheets].map(s => s.href).filter(Boolean),
+              bodyText: (document.body?.innerText ?? '').slice(0, 1000)
             }));
-            console.log('NEOCITIES REDIRECT + LIVE APP TEST: ' + JSON.stringify({ state, errors }, null, 2));
 
-            if (!state.url.startsWith('https://patrickmango49.github.io/McCrackOS/')) {
-              throw new Error('Neocities did not redirect to the GitHub Pages app.');
+            console.log('LIVE PAGE DIAGNOSTICS: ' + JSON.stringify({
+              state, errors, consoleErrors, siteResponses
+            }, null, 2));
+
+            if (!state.rootChildren || state.startupCurtain || errors.length) {
+              throw new Error('Live McCrackOS did not complete startup. See diagnostics above.');
             }
-            if (!state.rootChildren) throw new Error('McCrackOS did not render on GitHub Pages.');
-            if (errors.length) throw new Error('Browser errors: ' + errors.join(' | '));
           } finally {
             await browser.close();
           }
