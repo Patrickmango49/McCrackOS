@@ -77,3 +77,5 @@ jobs:
 
 # Trigger a fresh build after the Neocities verification fix.
 # Trigger a fresh Neocities deployment with the CSP-safe startup loader.
+
+# Trigger a fresh build with improved Neocities startup diagnostics.
