@@ -13,10 +13,7 @@ import {
 
 
 import { Ps5EmulatorSurface } from "./components/ps5-emulator";
-import { VerAiSurface } from "./components/ver-ai";
-import { JarvisSurface } from "./components/jarvis-ai";
 import { BrowserSurface, ProxyUrlFrame } from "./components/browser-app";
-import moviesAppHtml from "./movies/app.html?raw";
 import { VertexStudioWallpaper } from "./components/vertex-wallpaper";
 import { HalloweenDecor, HalloweenWallpaper } from "./components/halloween";
 
@@ -45,7 +42,7 @@ const base = import.meta.env.BASE_URL.endsWith("/") ? import.meta.env.BASE_URL :
 const asset = (path: string) => assetUrl(base, path);
 const MCC_LOGO_URL = "https://raw.githubusercontent.com/Patrickmango49/McCrack/refs/heads/main/assets/icons/favicon.png";
 const BROWSER_APP_ICON = asset("images/browser-icon.svg");
-const MCC_CRACKIFY_ICON = "https://raw.githubusercontent.com/Patrickmango49/McCrackOSV3/main/apps/music/web/logo.png";
+const MCC_CRACKIFY_ICON = asset("apps/music/web/logo.png");
 const isGitHubPages = import.meta.env.BASE_URL.startsWith("/vertexosweb");
 type WallpaperId = "vertex-studio" | "halloween" | "macos-default" | "macos-lock" | "singularity" | "snake-skeleton" | "snow-fox" | "cine55" | "gojo" | "rainy-city" | "green-anime" | "brother" | "99-med" | "gojo-sukuna" | "sukuna-fire" | "desktop-lines" | "skello" | "we-black-hole" | "we-snow-fox" | "we-gojo-sukuna" | "we-sukuna-fire" | "we-cine-55" | "we-snake" | "we-green-anime" | "we-brother" | "we-gojo" | "we-rainy-city" | "we-desktop-lines" | "we-skello" | "we-99-med" | "we-45e33" | "we-f1-formula" | "we-hunt-shadow-2" | "we-minecraft-01" | "we-minecraft-02" | "we-minecraft-03" | "we-monkey" | "we-supra-drift" | "we-yuji-52" | "we-cozy-fox" | "we-yuta" | "we-bmw-car-driving" | "we-eyes-toward-heaven" | "we-goku-ultra" | "we-galaxy-eyes" | "we-celestial-battle" | "we-tess-kotkin" | "we-yuta-rika" | "we-satoru-gojo" | "we-dark-angel" | "we-makima-devilish" | "we-makima-burning" | "we-haimiya-mio" | "we-toji" | "we-mamonir" | "we-lantern-festival" | "we-miyabi" | "we-qingxiao" | "we-megumin" | "we-odette" | "we-blue-sky" | "we-frutiger" | "we-synthwave-dmc" | "we-zankou" | "we-ghost-rider" | "we-molala" | "we-dark-king" | "we-celestial-veil" | "we-miku-nakano" | "we-gotoubun" | "we-quintuplets" | "we-black-silk-waves" | "we-blue-dragon-logo" | "we-astra-yao" | "we-luo-tianyi-christmas" | "we-mc-northern-light" | "we-mc-falling-snow" | "we-mc-aquarium" | "we-mc-holiday-heart" | "we-mc-fireplace" | "we-mc-panels" | "we-mc-cherry-blossom" | "we-mc-raindrops" | "we-silver-surfer" | "we-girl-behind-curtains" | "we-vagabond-miyamoto" | "we-itachi-crow" | "we-gojo-hollow" | "we-quintuplets-sister" | "we-yuta-okkotsu" | "we-gojo-vs-sukuna-2" | "we-gojo-cursed-world" | "we-gojo-six-eyes" | "we-frieren-blue-horizon" | "we-frieren-blooming-stream" | "we-nissan-skyline-r33-mc" | "we-torii";
 type AppId = "hub" | "spicetify" | "browser" | "roblox" | "messages" | "verai" | "jarvis" | "vertube" | "movies" | "settings" | "games" | "translucenttb" | "wallpaper-engine" | "minecraft" | "rainmeter" | "terminal" | "calculator" | "ghostview" | "links" | "discord" | "vcloud" | "admin" | "appmaker" | string & {};
@@ -376,16 +373,14 @@ type AppDef = { id: AppId; title: string; subtitle: string; icon: LucideIcon; ic
 
 const baseApps: AppDef[] = [
   { id: "browser", title: "Browser", subtitle: t("appSub.browser"), icon: Compass, iconImg: BROWSER_APP_ICON, pinned: true },
-  { id: "messages", title: "Messages", subtitle: t("appSub.messages"), icon: MessageCircle, iconImg: "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/51/IMessage_logo.svg/3840px-IMessage_logo.svg.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail", pinned: true },
-  { id: "verai", title: "McCrack AI", subtitle: t("appSub.verai"), icon: Sparkles, iconImg: "https://cdn.simpleicons.org/openai/FFFFFF", pinned: true },
-  { id: "vertube", title: "YouTube", subtitle: t("appSub.vertube"), icon: PlaySquare, iconImg: asset("images/vertube.svg"), pinned: true },
-  { id: "movies", title: "Movies", subtitle: t("appSub.movies"), icon: Film, iconImg: "https://images.icon-icons.com/3053/PNG/512/netflix_macos_bigsur_icon_189917.png", pinned: true },
+  { id: "messages", title: "McCrack Chat", subtitle: "Private messaging", icon: MessageCircle, iconImg: asset("apps/messages/favicon.png"), pinned: true },
+  { id: "vertube", title: "McCrackTube", subtitle: "Video platform", icon: PlaySquare, iconImg: asset("apps/youtube/public/favicon.png"), pinned: true },
+  { id: "movies", title: "McCrackFlix", subtitle: "Movies & TV discovery", icon: Film, iconImg: asset("apps/movies/favicon.png"), pinned: true },
   { id: "settings", title: "Config", subtitle: t("appSub.settings"), icon: Settings2, iconImg: asset("images/config-icon.png"), pinned: true },
   { id: "appmaker", title: "McCrack", subtitle: "build & publish your own", icon: Code2, iconImg: asset("images/v-studios-logo.svg"), squircle: true },
   { id: "webapps", title: "Proxy Apps", subtitle: "create standalone proxied apps", icon: Globe, iconImg: asset("images/links.svg") },
   { id: "spicetify", title: "McCrackify", subtitle: "Music player", icon: Music2, iconImg: MCC_CRACKIFY_ICON, pinned: true },
   { id: "roblox", title: "Roblox", subtitle: t("appSub.roblox"), icon: Gamepad2, iconImg: asset("images/roblox.ico") },
-  { id: "jarvis", title: "JARVIS", subtitle: t("appSub.jarvis"), icon: Bot, iconImg: asset("images/jarvis-logo.png") },
   { id: "games", title: "PS5 Emu", subtitle: t("appSub.games"), icon: Gamepad2, iconImg: asset("images/ps5-emu.png"), squircle: true },
   { id: "minecraft", title: "Minecraft Launcher", subtitle: t("appSub.minecraft"), icon: Gamepad2, iconImg: MC_ICON, squircle: true },
   { id: "calculator", title: "Calculator", subtitle: t("appSub.calculator"), icon: Calculator, iconImg: asset("images/calculator-logo.svg") },
@@ -400,7 +395,7 @@ type AppOverride = { name?: string; showName?: boolean; iconUrl?: string; pinned
 
 const APP_SECTIONS: { id: string; tone: string; all?: boolean; ids: AppId[] }[] = [
   { id: "all", tone: "tone-all", all: true, ids: [] },
-  { id: "watch", tone: "tone-watch", ids: ["vertube", "movies", "spicetify", "messages", "verai", "jarvis"] },
+  { id: "watch", tone: "tone-watch", ids: ["vertube", "movies", "spicetify", "messages"] },
   { id: "play", tone: "tone-play", ids: ["roblox", "minecraft", "games"] },
   { id: "create", tone: "tone-create", ids: ["terminal", "browser", "calculator", "appmaker", "webapps", "settings", "links"] },
 ];;
@@ -1067,6 +1062,9 @@ function App() {
   const [profilePass2, setProfilePass2] = useState("");
   const [profileAvatar, setProfileAvatar] = useState("");
   const [setupWallpaper, setSetupWallpaper] = useState<WallpaperId>("vertex-studio");
+  const [setupColorMode, setSetupColorMode] = useState<ColorMode>("dark");
+  const [setupSystemStyle, setSetupSystemStyle] = useState<SystemStyle>("vertex");
+  const [setupDeviceName, setSetupDeviceName] = useState("McCrack-PC");
   const [profileErr, setProfileErr] = useState("");
   const [profileAskPass, setProfileAskPass] = useState(false);
   const [loginName, setLoginName] = useState("");
@@ -1784,16 +1782,22 @@ onSessionClose: (peerCode) => {
     storage.write(ACCOUNTS_KEY, JSON.stringify(next));
   }
 
-  function createProfile() {
+  function createProfile(skipCustomization = false) {
     const name = profileName.trim();
     if (!name) { setProfileErr(t("lock.needName")); return; }
-    if (profilePass !== profilePass2) { setProfileErr(t("lock.passMismatch")); return; }
-    const account: VertexAccount = { id: `a${Date.now().toString(36)}`, name, createdAt: Date.now(), pass: profilePass, avatar: profileAvatar || "" };
+    const selectedPass = skipCustomization || !profileAskPass ? "" : profilePass;
+    if (selectedPass && selectedPass !== profilePass2) { setProfileErr(t("lock.passMismatch")); return; }
+    const selectedWallpaper = skipCustomization ? "vertex-studio" : setupWallpaper;
+    const selectedAvatar = skipCustomization ? "" : profileAvatar;
+    const account: VertexAccount = { id: `a${Date.now().toString(36)}`, name, createdAt: Date.now(), pass: selectedPass, avatar: selectedAvatar || "" };
     persistAccounts([...accounts, account]);
-    setWallpaper(setupWallpaper);
-    setLockWallpaper(setupWallpaper);
-    storage.write("vertex-wallpaper-v2", setupWallpaper);
-    storage.write("vertex-lock-wallpaper-v2", setupWallpaper);
+    setWallpaper(selectedWallpaper);
+    setLockWallpaper(selectedWallpaper);
+    const nextSettings = { ...settings, colorMode: skipCustomization ? "dark" as ColorMode : setupColorMode, systemStyle: skipCustomization ? "vertex" as SystemStyle : setupSystemStyle, deviceName: skipCustomization ? "McCrack-PC" : (setupDeviceName.trim() || "McCrack-PC") };
+    setSettings(nextSettings);
+    storage.write("vertex-settings", nextSettings);
+    storage.write("vertex-wallpaper-v2", selectedWallpaper);
+    storage.write("vertex-lock-wallpaper-v2", selectedWallpaper);
     setPinInput("");
     setPinError(false);
     signInAs(account);
@@ -2208,59 +2212,94 @@ onSessionClose: (peerCode) => {
             ? <video className="signin-bg" src={bgSrc(activeLockWallpaper.video, activeLockWallpaper.videoLow)} preload="metadata" autoPlay muted loop playsInline aria-hidden="true" />
             : null}
         <div className="signin-card profile-card">
-          <div className="lock-avatar"><BrandMark /></div>
-          <div className="profile-kicker">McCrackOS · v{VERTEX_VERSION}</div>
-          <h2 className="profile-title">Create your profile</h2>
-          <p className="profile-sub">Choose a name, profile picture, and your first desktop wallpaper.</p>
-          <div className="profile-avatar-row">
-            <span className={`profile-avatar-preview ${profileAvatar ? "has-img" : ""}`}>
-              {profileAvatar ? <AvatarGlyph value={profileAvatar} name={profileName} size={52} /> : <span className="profile-avatar-glyph">{profileName.trim().slice(0, 1).toUpperCase() || "?"}</span>}
-            </span>
-            <label className="profile-avatar-upload">
-              <Image size={14} /> Upload image or GIF
-              <input type="file" accept="image/*,.gif" onChange={(event) => {
-                const file = event.target.files?.[0];
-                event.target.value = "";
-                if (!file) return;
-                setProfileErr("");
-                void avatarFromFile(file).then(setProfileAvatar).catch((err: Error) => setProfileErr(err.message));
-              }} />
-            </label>
+          <div className="profile-setup-heading">
+            <div className="lock-avatar"><BrandMark /></div>
+            <div className="profile-kicker">McCrackOS · v{VERTEX_VERSION}</div>
+            <h2 className="profile-title">Set up your desktop</h2>
+            <p className="profile-sub">Make it yours. Everything except your name is optional.</p>
           </div>
-          <div className="setup-wallpaper-picker" style={{ margin: "14px 0", width: "100%" }}>
-            <strong style={{ display: "block", marginBottom: 8 }}>Choose your wallpaper</strong>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8 }}>
-              {wallpapers.filter((wall) => ["vertex-studio", "singularity", "snow-fox", "cine55", "rainy-city", "macos-default"].includes(wall.id)).map((wall) => (
-                <button type="button" key={wall.id} onClick={() => setSetupWallpaper(wall.id)} aria-pressed={setupWallpaper === wall.id} style={{ padding: 4, borderRadius: 10, border: setupWallpaper === wall.id ? "2px solid #36d7f4" : "1px solid rgba(255,255,255,.18)", background: "rgba(255,255,255,.06)", color: "inherit", cursor: "pointer", textAlign: "left" }}>
-                  {wall.image ? <img src={wall.image} alt="" style={{ width: "100%", height: 54, objectFit: "cover", borderRadius: 6 }} /> : <div style={{ height: 54, borderRadius: 6, background: "linear-gradient(135deg,#071a2c,#1b7895)" }} />}
-                  <span style={{ display: "block", fontSize: 11, padding: "4px 2px" }}>{wall.name}</span>
+
+          <div className="profile-setup-grid">
+            <section className="profile-setup-panel profile-identity-panel">
+              <div className="profile-setup-section-title">Your profile</div>
+              <div className="profile-avatar-row">
+                <span className={`profile-avatar-preview ${profileAvatar ? "has-img" : ""}`}>
+                  {profileAvatar ? <AvatarGlyph value={profileAvatar} name={profileName} size={52} /> : <span className="profile-avatar-glyph">{profileName.trim().slice(0, 1).toUpperCase() || "?"}</span>}
+                </span>
+                <label className="profile-avatar-upload">
+                  <Image size={14} /> Add profile picture
+                  <input type="file" accept="image/*,.gif" onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    event.target.value = "";
+                    if (!file) return;
+                    setProfileErr("");
+                    void avatarFromFile(file).then(setProfileAvatar).catch((err: Error) => setProfileErr(err.message));
+                  }} />
+                </label>
+              </div>
+              <form className="profile-fields" onSubmit={(event) => { event.preventDefault(); createProfile(); }}>
+                <label>
+                  <span>Profile name <em>· required</em></span>
+                  <input autoFocus required value={profileName} onChange={(event) => { setProfileName(event.target.value); setProfileErr(""); }} placeholder="What should we call you?" autoComplete="off" data-testid="input-profile-name" />
+                </label>
+                <label>
+                  <span>Device name <em>· optional</em></span>
+                  <input value={setupDeviceName} onChange={(event) => setSetupDeviceName(event.target.value)} placeholder="McCrack-PC" autoComplete="off" />
+                </label>
+                <button type="button" className={`profile-pass-btn ${profileAskPass ? "on" : ""}`} onClick={() => setProfileAskPass((v) => !v)}>
+                  <LockKeyhole size={13} /> {profileAskPass ? "Password enabled · optional" : "Add a password (optional)"}
                 </button>
-              ))}
-            </div>
+                {profileAskPass && (
+                  <div className="profile-password-grid">
+                    <label>
+                      <span>Password</span>
+                      <input type="password" value={profilePass} onChange={(event) => { setProfilePass(event.target.value); setProfileErr(""); }} placeholder="Optional password" data-testid="input-profile-pass" />
+                    </label>
+                    <label>
+                      <span>Confirm password</span>
+                      <input type="password" value={profilePass2} onChange={(event) => { setProfilePass2(event.target.value); setProfileErr(""); }} placeholder="Confirm if used" data-testid="input-profile-pass2" />
+                    </label>
+                  </div>
+                )}
+                {profileErr ? <span className="lock-error">{profileErr}</span> : null}
+                <button type="submit" className="profile-create">Create profile & enter</button>
+              </form>
+            </section>
+
+            <section className="profile-setup-panel profile-customize-panel">
+              <div className="profile-setup-section-title">Personalize your desktop</div>
+              <div className="setup-wallpaper-picker">
+                <strong>Wallpaper</strong>
+                <div className="setup-wallpaper-grid">
+                  {wallpapers.filter((wall) => ["vertex-studio", "singularity", "snow-fox", "cine55", "rainy-city", "macos-default"].includes(wall.id)).map((wall) => (
+                    <button type="button" key={wall.id} onClick={() => setSetupWallpaper(wall.id)} aria-pressed={setupWallpaper === wall.id} className={`setup-wallpaper-option ${setupWallpaper === wall.id ? "selected" : ""}`}>
+                      {wall.image ? <img src={wall.image} alt="" /> : <div className="setup-wallpaper-placeholder" />}
+                      <span>{wall.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="profile-choice-group">
+                <strong>Appearance</strong>
+                <div className="profile-choice-row">
+                  <button type="button" className={`profile-choice ${setupColorMode === "dark" ? "selected" : ""}`} onClick={() => setSetupColorMode("dark")}><MoonIconFallback /> Dark</button>
+                  <button type="button" className={`profile-choice ${setupColorMode === "light" ? "selected" : ""}`} onClick={() => setSetupColorMode("light")}><SunMoon size={15} /> Light</button>
+                </div>
+              </div>
+              <div className="profile-choice-group">
+                <strong>Desktop style</strong>
+                <div className="profile-choice-row">
+                  <button type="button" className={`profile-choice ${setupSystemStyle === "vertex" ? "selected" : ""}`} onClick={() => setSetupSystemStyle("vertex")}><Monitor size={15} /> McCrack</button>
+                  <button type="button" className={`profile-choice ${setupSystemStyle === "macos" ? "selected" : ""}`} onClick={() => setSetupSystemStyle("macos")}><MonitorCog size={15} /> macOS-style</button>
+                </div>
+              </div>
+              <p className="profile-optional-note">You can change all of these later in Settings.</p>
+            </section>
           </div>
-          <form className="profile-fields" onSubmit={(event) => { event.preventDefault(); createProfile(); }}>
-            <label>
-              <span>Profile name</span>
-              <input autoFocus value={profileName} onChange={(event) => { setProfileName(event.target.value); setProfileErr(""); }} placeholder="Type any name…" autoComplete="off" data-testid="input-profile-name" />
-            </label>
-            <button type="button" className={`profile-pass-btn ${profileAskPass ? "on" : ""}`} onClick={() => setProfileAskPass((v) => !v)}>
-              <LockKeyhole size={13} /> {profileAskPass ? "Password on · tap to remove" : "Add a password (optional)"}
-            </button>
-            {profileAskPass && (
-              <>
-                <label>
-                  <span>Password</span>
-                  <input type="password" value={profilePass} onChange={(event) => { setProfilePass(event.target.value); setProfileErr(""); }} placeholder="Keep it secret" data-testid="input-profile-pass" />
-                </label>
-                <label>
-                  <span>Confirm password</span>
-                  <input type="password" value={profilePass2} onChange={(event) => { setProfilePass2(event.target.value); setProfileErr(""); }} placeholder="Repeat your password" data-testid="input-profile-pass2" />
-                </label>
-              </>
-            )}
-            {profileErr ? <span className="lock-error">{profileErr}</span> : null}
-            <button type="submit" className="profile-create">{profileAskPass ? "Create profile & sign in" : "Create & enter"}</button>
-          </form>
+          <div className="profile-setup-footer">
+            <span>Only your profile name is required.</span>
+            <button type="button" className="profile-skip" onClick={() => createProfile(true)}>Skip customization</button>
+          </div>
           {accounts.length > 0 && <button className="signin-back" onClick={() => { setProfileErr(""); setPhase("picker"); }}>Back</button>}
         </div>
       </section>
