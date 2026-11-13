@@ -101,28 +101,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   
-    <style>
-      #startup-curtain {
-        position: fixed; inset: 0; z-index: 2147483647;
-        display: grid; place-items: center; overflow: hidden;
-        background: radial-gradient(circle at 50% 35%, #152a42 0, #070d18 42%, #03060b 100%);
-        color: #f4f8ff; font-family: Inter, system-ui, sans-serif;
-        transition: opacity .18s ease, visibility .18s ease;
-      }
-      #startup-curtain::before {
-        content: ""; position: absolute; inset: 0; opacity: .3;
-        background: linear-gradient(120deg, transparent 0 44%, rgba(141,230,255,.16) 45%, transparent 46%),
-          linear-gradient(0deg, transparent 0 72%, rgba(195,164,255,.12) 73%, transparent 74%);
-        background-size: 100% 100%, 100% 180px;
-      }
-      #startup-curtain .startup-content { position: relative; z-index: 1; text-align: center; padding: 24px; }
-      #startup-curtain .startup-logo { width: 58px; height: 58px; object-fit: contain; filter: drop-shadow(0 0 24px rgba(90,210,255,.28)); }
-      #startup-curtain h1 { margin: 22px 0 10px; font-size: clamp(36px, 8vw, 66px); letter-spacing: .12em; font-weight: 750; }
-      #startup-curtain p { margin: 0; color: #9aaec4; font-size: 11px; letter-spacing: .2em; text-transform: uppercase; }
-      #startup-curtain .startup-status { margin-top: 30px; color: #7f9ab5; font-size: 12px; letter-spacing: .04em; }
-      #startup-curtain.ready { opacity: 0; visibility: hidden; pointer-events: none; }
-    </style>
-  </head>
+</head>
   <body>
     <div id="startup-curtain" role="status" aria-live="polite">
       <div class="startup-content">
@@ -163,27 +142,5 @@
     </div>
 
     <script type="module" src="/src/main.tsx"></script>
-    <script>
-      (() => {
-        const root = document.getElementById('root');
-        const curtain = document.getElementById('startup-curtain');
-        if (!root || !curtain) return;
-        let removed = false;
-        const observer = new MutationObserver(() => {
-          if (removed || root.childElementCount === 0) return;
-          removed = true;
-          observer.disconnect();
-          curtain.classList.add('ready');
-          window.setTimeout(() => curtain.remove(), 220);
-        });
-        observer.observe(root, { childList: true });
-        if (root.childElementCount > 0) observer.takeRecords();
-        window.setTimeout(() => {
-          if (!removed && document.getElementById('startup-status')) {
-            document.getElementById('startup-status').textContent = 'Still starting McCrackOS…';
-          }
-        }, 10000);
-      })();
-    </script>
-  </body>
+</body>
 </html>
