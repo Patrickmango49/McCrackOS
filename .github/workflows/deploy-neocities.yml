@@ -42,6 +42,12 @@ jobs:
           mkdir -p artifacts/vertex-os/public/apps
           cp -a apps/. artifacts/vertex-os/public/apps/
 
+      - name: Build the standalone single-file export
+        working-directory: artifacts/vertex-os
+        env:
+          PORT: 5000
+        run: npm run build:single
+
       - name: Build McCrackOS for Neocities
         working-directory: artifacts/vertex-os
         env:
@@ -50,10 +56,30 @@ jobs:
           BASE_PATH: /
         run: npm run build
 
-      - name: Verify the generated website
+      - name: Verify the generated website and its assets
         run: |
-          test -f artifacts/vertex-os/dist/public/index.html
-          echo "Neocities build is ready."
+          set -euo pipefail
+          test -s artifacts/vertex-os/dist/public/index.html
+          test -s artifacts/vertex-os/dist/public/single/index.html
+          node <<'NODE'
+          const fs = require('node:fs');
+          const path = 'artifacts/vertex-os/dist/public';
+          const html = fs.readFileSync(path + '/index.html', 'utf8');
+          if (html.includes('/src/main.tsx') || html.includes('@vite/client')) {
+            throw new Error('Production index.html still contains Vite development entry points.');
+          }
+          const refs = [...html.matchAll(/(?:src|href)="(\/assets\/[^"]+)"/g)].map(m => m[1]);
+          if (!refs.length) throw new Error('No built JS/CSS assets were referenced by index.html.');
+          for (const ref of refs) {
+            if (!fs.existsSync(path + ref)) throw new Error('Missing built asset: ' + ref);
+          }
+          const single = fs.readFileSync(path + '/single/index.html', 'utf8');
+          if (single.length < 100000 || single.includes('/src/main.tsx')) {
+            throw new Error('Standalone export is missing or looks like the Vite development stub.');
+          }
+          console.log('Production entry point and ' + refs.length + ' JS/CSS assets verified.');
+          console.log('Standalone HTML export verified (' + (single.length / 1024 / 1024).toFixed(1) + ' MiB).');
+          NODE
 
       - name: Verify the Neocities API key targets McCrackOS
         env:
