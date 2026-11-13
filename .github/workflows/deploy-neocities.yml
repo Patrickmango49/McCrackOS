@@ -36,6 +36,12 @@ jobs:
         working-directory: artifacts/vertex-os
         run: npm install --no-package-lock
 
+      - name: Copy standalone app bundles into the static site
+        run: |
+          set -euo pipefail
+          mkdir -p public/apps
+          cp -a ../../apps/. public/apps/
+
       - name: Build McCrackOS for Neocities
         working-directory: artifacts/vertex-os
         env:
