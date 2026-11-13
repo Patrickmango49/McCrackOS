@@ -243,7 +243,7 @@ export function VertexStudioWallpaper({ className, label = "MCCRACK STUDIOS" }: 
             <defs>
               <path id={pathId} d="M 0,100 A 77,77 0 0,1 200,100" fill="none" />
             </defs>
-            <text className="vws-wordmark" fontFamily="'Paytone One', 'Space Grotesk', sans-serif" fontWeight={900} fontSize={30} fill="#ffffff" letterSpacing="4">
+            <text className="vws-wordmark" fontFamily="'Paytone One', 'Space Grotesk', sans-serif" fontWeight={900} fontSize={24} fill="#ffffff" letterSpacing="2" textLength={205} lengthAdjust="spacingAndGlyphs">
               <textPath href={`#${pathId}`} startOffset="50%" textAnchor="middle">{label}</textPath>
             </text>
           </svg>
