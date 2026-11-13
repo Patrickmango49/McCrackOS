@@ -6843,11 +6843,17 @@ function CinefySurface({ onClose, onMinimize, onTrackChange }: { onClose: () => 
       if (!response.ok) throw new Error("Music search unavailable");
       const data = await response.json() as { tracks?: unknown };
       const out = mapTungTracks(data.tracks as TungTrack[] | undefined);
-      setTracks(out);
-      cacheTracks(out);
-      if (!out.length) setError(t("sp.noResults"));
+      if (out.length) {
+        setTracks(out);
+        cacheTracks(out);
+        return;
+      }
+      // If the full-length catalog is unavailable or has no matches, use Apple's
+      // public song catalog so search still returns playable preview results.
+      await searchTracks(cleanTerm);
     } catch {
-      setError(t("sp.relayError"));
+      await searchTracks(cleanTerm);
+      if (!tracks.length) setError(t("sp.relayError"));
     } finally {
       setLoading(false);
     }
