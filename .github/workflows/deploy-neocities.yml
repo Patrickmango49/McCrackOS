@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: deploy-mccrackos-neocities
+  group: deploy-mccrackos1-neocities
   cancel-in-progress: true
 
 permissions:
@@ -94,8 +94,8 @@ jobs:
             https://neocities.org/api/info)
           SITE_NAME=$(printf '%s' "$SITE_INFO" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s).info?.sitename ?? ''))")
           echo "Authenticated Neocities site: $SITE_NAME"
-          if [ "$SITE_NAME" != "mccrackos" ]; then
-            echo "ERROR: NEOCITIES_API_TOKEN belongs to '$SITE_NAME', not 'mccrackos'. Update the repository secret with the API key from the mccrackos site settings."
+          if [ "$SITE_NAME" != "mccrackos1" ]; then
+            echo "ERROR: NEOCITIES_API_TOKEN belongs to '$SITE_NAME', not 'mccrackos1'. Update the repository secret with the API key from the mccrackos1 site settings."
             exit 1
           fi
 
@@ -131,17 +131,17 @@ jobs:
               if (message.type() === 'error') consoleErrors.push(message.text());
             });
             page.on('response', response => {
-              if (new URL(response.url()).hostname === 'mccrackos.neocities.org') {
+              if (new URL(response.url()).hostname === 'mccrackos1.neocities.org') {
                 siteResponses.push({ status: response.status(), url: response.url() });
               }
             });
             page.on('requestfailed', request => {
-              if (new URL(request.url()).hostname === 'mccrackos.neocities.org') {
+              if (new URL(request.url()).hostname === 'mccrackos1.neocities.org') {
                 errors.push('Request failed: ' + request.url() + ' — ' + (request.failure()?.errorText ?? 'unknown'));
               }
             });
 
-            const response = await page.goto('https://mccrackos.neocities.org/', {
+            const response = await page.goto('https://mccrackos1.neocities.org/', {
               waitUntil: 'domcontentloaded',
               timeout: 90000
             });
