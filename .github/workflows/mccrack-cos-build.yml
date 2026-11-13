@@ -74,3 +74,5 @@ jobs:
             git commit -m "Deploy McCrackOS browser integration"
             git push origin HEAD:main
           fi
+
+# Trigger a fresh build after the Neocities verification fix.
