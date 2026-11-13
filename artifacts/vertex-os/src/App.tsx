@@ -45,7 +45,7 @@ const BROWSER_APP_ICON = asset("images/browser-icon.svg");
 const MCC_CRACKIFY_ICON = asset("apps/music/web/logo.png");
 const isGitHubPages = import.meta.env.BASE_URL.startsWith("/vertexosweb");
 type WallpaperId = "vertex-studio" | "halloween" | "macos-default" | "macos-lock" | "singularity" | "snake-skeleton" | "snow-fox" | "cine55" | "gojo" | "rainy-city" | "green-anime" | "brother" | "99-med" | "gojo-sukuna" | "sukuna-fire" | "desktop-lines" | "skello" | "we-black-hole" | "we-snow-fox" | "we-gojo-sukuna" | "we-sukuna-fire" | "we-cine-55" | "we-snake" | "we-green-anime" | "we-brother" | "we-gojo" | "we-rainy-city" | "we-desktop-lines" | "we-skello" | "we-99-med" | "we-45e33" | "we-f1-formula" | "we-hunt-shadow-2" | "we-minecraft-01" | "we-minecraft-02" | "we-minecraft-03" | "we-monkey" | "we-supra-drift" | "we-yuji-52" | "we-cozy-fox" | "we-yuta" | "we-bmw-car-driving" | "we-eyes-toward-heaven" | "we-goku-ultra" | "we-galaxy-eyes" | "we-celestial-battle" | "we-tess-kotkin" | "we-yuta-rika" | "we-satoru-gojo" | "we-dark-angel" | "we-makima-devilish" | "we-makima-burning" | "we-haimiya-mio" | "we-toji" | "we-mamonir" | "we-lantern-festival" | "we-miyabi" | "we-qingxiao" | "we-megumin" | "we-odette" | "we-blue-sky" | "we-frutiger" | "we-synthwave-dmc" | "we-zankou" | "we-ghost-rider" | "we-molala" | "we-dark-king" | "we-celestial-veil" | "we-miku-nakano" | "we-gotoubun" | "we-quintuplets" | "we-black-silk-waves" | "we-blue-dragon-logo" | "we-astra-yao" | "we-luo-tianyi-christmas" | "we-mc-northern-light" | "we-mc-falling-snow" | "we-mc-aquarium" | "we-mc-holiday-heart" | "we-mc-fireplace" | "we-mc-panels" | "we-mc-cherry-blossom" | "we-mc-raindrops" | "we-silver-surfer" | "we-girl-behind-curtains" | "we-vagabond-miyamoto" | "we-itachi-crow" | "we-gojo-hollow" | "we-quintuplets-sister" | "we-yuta-okkotsu" | "we-gojo-vs-sukuna-2" | "we-gojo-cursed-world" | "we-gojo-six-eyes" | "we-frieren-blue-horizon" | "we-frieren-blooming-stream" | "we-nissan-skyline-r33-mc" | "we-torii";
-type AppId = "hub" | "spicetify" | "browser" | "roblox" | "messages" | "verai" | "jarvis" | "vertube" | "movies" | "settings" | "games" | "translucenttb" | "wallpaper-engine" | "minecraft" | "rainmeter" | "terminal" | "calculator" | "ghostview" | "links" | "discord" | "vcloud" | "admin" | "appmaker" | string & {};
+type AppId = "hub" | "spicetify" | "browser" | "roblox" | "messages" | "vertube" | "movies" | "settings" | "games" | "translucenttb" | "wallpaper-engine" | "minecraft" | "rainmeter" | "terminal" | "calculator" | "ghostview" | "links" | "discord" | "vcloud" | "admin" | "appmaker" | string & {};
 type Ps5DesktopShortcut = { id: string; name: string; cover: string };
 type TaskbarPos = "bottom" | "top" | "left" | "right";
 type WindowRect = { x: number; y: number; w: number; h: number };
@@ -1249,7 +1249,7 @@ storage.read("vertex-jarvis-installed", false));
     const saved = storage.read<Record<string, AppOverride>>("vertex-app-overrides", {});
     if (storage.read("mccrack-dock-v1-migrated", false)) return saved;
     const next = { ...saved };
-    const defaults = new Set(["browser", "messages", "verai", "vertube", "movies", "settings"]);
+    const defaults = new Set(["browser", "messages", "vertube", "movies", "spicetify", "settings"]);
     for (const app of baseApps) {
       const current = next[app.id] ?? {};
       if (defaults.has(app.id)) next[app.id] = { ...current, pinned: true };
