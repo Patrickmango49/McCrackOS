@@ -6853,7 +6853,6 @@ function CinefySurface({ onClose, onMinimize, onTrackChange }: { onClose: () => 
       await searchTracks(cleanTerm);
     } catch {
       await searchTracks(cleanTerm);
-      if (!tracks.length) setError(t("sp.relayError"));
     } finally {
       setLoading(false);
     }
