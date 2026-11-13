@@ -79,3 +79,5 @@ jobs:
 # Trigger a fresh Neocities deployment with the CSP-safe startup loader.
 
 # Trigger a fresh build with improved Neocities startup diagnostics.
+
+# Rebuild after switching Neocities to a no-script redirect entry page.
