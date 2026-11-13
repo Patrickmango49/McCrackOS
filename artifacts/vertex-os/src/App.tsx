@@ -20,7 +20,6 @@ import { HalloweenDecor, HalloweenWallpaper } from "./components/halloween";
 import { LockAppsLayer, recordRecentApp } from "./components/lock-apps";
 import { AdminSurface } from "./components/admin-app";
 import { startAnalytics, trackEvent } from "./analytics";
-import { MessagesSurface } from "./messages";
 import { MC_REALMS, type McRealm } from "./mcrealms";
 import { LANG, LANGS, t, tf, tp, readLang, saveLang, localeOf, type Lang } from "./i18n";
 import { WallpaperPicker, type PickerWallpaper, loadCustomWallpapers, persistCustomWallpaper, removeCustomWallpaper, readCustomWallpapersLocal } from "./components/wallpaper-picker";
