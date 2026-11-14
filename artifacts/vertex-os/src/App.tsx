@@ -5955,7 +5955,6 @@ function RainmeterSurface() {
         {settingsTab === "general" ? <>
           <div className="setting-group"><Cpu size={13} /> Widget</div>
           <SettingToggle label="Mond Clock" help="Show / hide the clock widget on this screen" value={cfg.showClock} onChange={(value) => set("showClock", value)} />
-          <SettingToggle label="Draggable" help="Move the clock by dragging it around" value={cfg.draggable} onChange={(value) => set("draggable", value)} />
           <div className="setting-group"><LayoutGrid size={13} /> Layout</div>
           <div className="setting-row"><div><strong>Position</strong><small>Anchor point of the widget</small></div><select className="setting-select" value={cfg.position} onChange={(event) => set("position", event.target.value as RainmeterPosition)} aria-label="Position">{RM_POSITIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></div>
           <div className="setting-row"><div><strong>Horizontal margin</strong><small>Shifts the widget sideways (px)</small></div><input className="rainmeter-numeric" type="number" min={-500} max={500} value={cfg.marginH} onChange={(event) => set("marginH", Number(event.target.value))} aria-label="Horizontal margin" /></div>
@@ -6022,7 +6021,7 @@ const SETTINGS_SEARCH: { tab: SettingsTabId; label: string; hint: string }[] = [
   { tab: "system", label: "Text style", hint: "Change the font used across McCrackOS" },
   { tab: "colors", label: "Color mode", hint: "Bright or black theme" },
   { tab: "language", label: "Language & region", hint: "Idiom and formatting" },
-  { tab: "widgets", label: "Widgets", hint: "Rainmeter clock, local weather and TranslucentTB taskbar" },
+  { tab: "widgets", label: "Widgets", hint: "Rainmeter clock and TranslucentTB taskbar" },
   { tab: "privacy", label: "Cloak", hint: "Disguise the browser tab" },
   { tab: "privacy", label: "Adblock", hint: "Redirect ads to another page" },
   { tab: "privacy", label: "Panic key", hint: "Instantly hide McCrackOS" },
@@ -6396,7 +6395,7 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
           </section>
           <section className="win-settings-card">
             <div className="setting-group"><MonitorCog size={14} /> Rainmeter</div>
-            <p className="win-settings-sub">Configure the Mond clock, date, weather, layout and appearance.</p>
+            <p className="win-settings-sub">Configure the fixed Mond clock, date, layout and appearance.</p>
             <RainmeterSurface />
           </section>
         </>;
