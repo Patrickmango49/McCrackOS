@@ -41,7 +41,10 @@ const base = import.meta.env.BASE_URL.endsWith("/") ? import.meta.env.BASE_URL :
 const asset = (path: string) => assetUrl(base, path);
 const MCC_LOGO_URL = "https://raw.githubusercontent.com/Patrickmango49/McCrack/refs/heads/main/assets/icons/favicon.png";
 const BROWSER_APP_ICON = asset("images/browser-icon.svg");
-const MCC_CRACKIFY_ICON = asset("apps/music/web/logo.png");
+const MCC_CRACKIFY_ICON = "https://cdn.simpleicons.org/spotify/1DB954";
+const MESSAGES_APP_ICON = "https://cdn.simpleicons.org/imessage/FFFFFF";
+const YOUTUBE_APP_ICON = "https://cdn.simpleicons.org/youtube/FF0033";
+const NETFLIX_APP_ICON = "https://cdn.simpleicons.org/netflix/E50914";
 const isGitHubPages = import.meta.env.BASE_URL.startsWith("/vertexosweb");
 type WallpaperId = "vertex-studio" | "halloween" | "macos-default" | "macos-lock" | "singularity" | "snake-skeleton" | "snow-fox" | "cine55" | "gojo" | "rainy-city" | "green-anime" | "brother" | "99-med" | "gojo-sukuna" | "sukuna-fire" | "desktop-lines" | "skello" | "we-black-hole" | "we-snow-fox" | "we-gojo-sukuna" | "we-sukuna-fire" | "we-cine-55" | "we-snake" | "we-green-anime" | "we-brother" | "we-gojo" | "we-rainy-city" | "we-desktop-lines" | "we-skello" | "we-99-med" | "we-45e33" | "we-f1-formula" | "we-hunt-shadow-2" | "we-minecraft-01" | "we-minecraft-02" | "we-minecraft-03" | "we-monkey" | "we-supra-drift" | "we-yuji-52" | "we-cozy-fox" | "we-yuta" | "we-bmw-car-driving" | "we-eyes-toward-heaven" | "we-goku-ultra" | "we-galaxy-eyes" | "we-celestial-battle" | "we-tess-kotkin" | "we-yuta-rika" | "we-satoru-gojo" | "we-dark-angel" | "we-makima-devilish" | "we-makima-burning" | "we-haimiya-mio" | "we-toji" | "we-mamonir" | "we-lantern-festival" | "we-miyabi" | "we-qingxiao" | "we-megumin" | "we-odette" | "we-blue-sky" | "we-frutiger" | "we-synthwave-dmc" | "we-zankou" | "we-ghost-rider" | "we-molala" | "we-dark-king" | "we-celestial-veil" | "we-miku-nakano" | "we-gotoubun" | "we-quintuplets" | "we-black-silk-waves" | "we-blue-dragon-logo" | "we-astra-yao" | "we-luo-tianyi-christmas" | "we-mc-northern-light" | "we-mc-falling-snow" | "we-mc-aquarium" | "we-mc-holiday-heart" | "we-mc-fireplace" | "we-mc-panels" | "we-mc-cherry-blossom" | "we-mc-raindrops" | "we-silver-surfer" | "we-girl-behind-curtains" | "we-vagabond-miyamoto" | "we-itachi-crow" | "we-gojo-hollow" | "we-quintuplets-sister" | "we-yuta-okkotsu" | "we-gojo-vs-sukuna-2" | "we-gojo-cursed-world" | "we-gojo-six-eyes" | "we-frieren-blue-horizon" | "we-frieren-blooming-stream" | "we-nissan-skyline-r33-mc" | "we-torii";
 type AppId = "hub" | "spicetify" | "browser" | "roblox" | "messages" | "vertube" | "movies" | "settings" | "games" | "translucenttb" | "wallpaper-engine" | "minecraft" | "rainmeter" | "terminal" | "calculator" | "ghostview" | "links" | "discord" | "vcloud" | "admin" | "appmaker" | string & {};
@@ -372,9 +375,9 @@ type AppDef = { id: AppId; title: string; subtitle: string; icon: LucideIcon; ic
 
 const baseApps: AppDef[] = [
   { id: "browser", title: "Browser", subtitle: t("appSub.browser"), icon: Compass, iconImg: BROWSER_APP_ICON, pinned: true },
-  { id: "messages", title: "McCrack Chat", subtitle: "Private messaging", icon: MessageCircle, iconImg: asset("apps/messages/favicon.png"), pinned: true },
-  { id: "vertube", title: "McCrackTube", subtitle: "Video platform", icon: PlaySquare, iconImg: asset("apps/youtube/public/favicon.png"), pinned: true },
-  { id: "movies", title: "McCrackFlix", subtitle: "Movies & TV discovery", icon: Film, iconImg: asset("apps/movies/favicon.png"), pinned: true },
+  { id: "messages", title: "McCrack Chat", subtitle: "Private messaging", icon: MessageCircle, iconImg: MESSAGES_APP_ICON, pinned: true },
+  { id: "vertube", title: "McCrackTube", subtitle: "Video platform", icon: PlaySquare, iconImg: YOUTUBE_APP_ICON, pinned: true },
+  { id: "movies", title: "McCrackFlix", subtitle: "Movies & TV discovery", icon: Film, iconImg: NETFLIX_APP_ICON, pinned: true },
   { id: "settings", title: "Config", subtitle: t("appSub.settings"), icon: Settings2, iconImg: asset("images/config-icon.png"), pinned: true },
   { id: "appmaker", title: "McCrack", subtitle: "build & publish your own", icon: Code2, iconImg: asset("images/v-studios-logo.svg"), squircle: true },
   { id: "webapps", title: "Proxy Apps", subtitle: "create standalone proxied apps", icon: Globe, iconImg: asset("images/links.svg") },
@@ -665,42 +668,9 @@ function RainmeterClock({ cfg, date, tone, color }: { cfg: RainmeterSettings; da
 }
 
 function MondWeather() {
-  const [weather, setWeather] = useState<{ temperature: number; condition: string } | null>(null);
-  const [status, setStatus] = useState<"loading" | "denied" | "failed">("loading");
-  useEffect(() => {
-    let alive = true;
-    let interval = 0;
-    const loadWeather = (latitude: number, longitude: number) => {
-      const params = new URLSearchParams({ latitude: String(latitude), longitude: String(longitude), current: "temperature_2m,weather_code", temperature_unit: "fahrenheit", timezone: "auto" });
-      void fetch(`https://api.open-meteo.com/v1/forecast?${params.toString()}`, { cache: "no-store" })
-        .then((response) => { if (!response.ok) throw new Error("Weather unavailable"); return response.json(); })
-        .then((data: { current?: { temperature_2m?: number; weather_code?: number } }) => {
-          if (!alive || typeof data.current?.temperature_2m !== "number") return;
-          const code = Number(data.current.weather_code ?? -1);
-          const conditions: Record<number, string> = { 0: "Clear", 1: "Mostly clear", 2: "Partly cloudy", 3: "Cloudy", 45: "Fog", 48: "Fog", 51: "Drizzle", 53: "Drizzle", 55: "Drizzle", 61: "Rain", 63: "Rain", 65: "Heavy rain", 71: "Snow", 73: "Snow", 75: "Heavy snow", 80: "Showers", 81: "Showers", 82: "Heavy showers", 95: "Thunderstorm", 96: "Thunderstorm", 99: "Thunderstorm" };
-          setWeather({ temperature: Math.round(data.current.temperature_2m), condition: conditions[code] ?? "Current conditions" });
-          setStatus("loading");
-        })
-        .catch(() => { if (alive) setStatus("failed"); });
-    };
-    if (!("geolocation" in navigator)) { setStatus("denied"); return () => { alive = false; }; }
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        if (!alive) return;
-        loadWeather(position.coords.latitude, position.coords.longitude);
-        interval = window.setInterval(() => {
-          if (!alive) return;
-          navigator.geolocation.getCurrentPosition((next) => loadWeather(next.coords.latitude, next.coords.longitude), () => { if (alive) setStatus("denied"); }, { enableHighAccuracy: false, maximumAge: 10 * 60 * 1000, timeout: 12000 });
-        }, 30 * 60 * 1000);
-      },
-      () => { if (alive) setStatus("denied"); },
-      { enableHighAccuracy: false, maximumAge: 10 * 60 * 1000, timeout: 12000 }
-    );
-    return () => { alive = false; if (interval) window.clearInterval(interval); };
-  }, []);
   return <div className="rm-mond-weather" aria-live="polite">
     <Cloud size={15} strokeWidth={1.7} />
-    {weather ? <><span>Local weather</span><span className="rm-weather-dot">·</span><strong>{weather.temperature}°F</strong><span className="rm-weather-dot">·</span><span>{weather.condition}</span></> : <span>{status === "denied" ? "Allow location for local weather" : status === "failed" ? "Local weather unavailable" : "Loading local weather…"}</span>}
+    <span>Weather is off — location access is not used</span>
   </div>;
 }
 
