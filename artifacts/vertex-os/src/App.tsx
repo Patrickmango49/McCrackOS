@@ -42,7 +42,7 @@ const asset = (path: string) => assetUrl(base, path);
 const MCC_LOGO_URL = "https://raw.githubusercontent.com/Patrickmango49/McCrack/refs/heads/main/assets/icons/favicon.png";
 const BROWSER_APP_ICON = asset("images/browser-icon.svg");
 const MCC_CRACKIFY_ICON = "https://cdn.simpleicons.org/spotify/1DB954";
-const MESSAGES_APP_ICON = "https://cdn.simpleicons.org/imessage/FFFFFF";
+const MESSAGES_APP_ICON = "https://upload.wikimedia.org/wikipedia/commons/8/85/Messages_2025_logo.jpg";
 const YOUTUBE_APP_ICON = "https://cdn.simpleicons.org/youtube/FF0033";
 const NETFLIX_APP_ICON = "https://cdn.simpleicons.org/netflix/E50914";
 const isGitHubPages = import.meta.env.BASE_URL.startsWith("/vertexosweb");
@@ -667,12 +667,6 @@ function RainmeterClock({ cfg, date, tone, color }: { cfg: RainmeterSettings; da
   </div></div>;
 }
 
-function MondWeather() {
-  return <div className="rm-mond-weather" aria-live="polite">
-    <Cloud size={15} strokeWidth={1.7} />
-    <span>Weather is off — location access is not used</span>
-  </div>;
-}
 
 function RainmeterWidget({ cfg, date, tone, wallpaper, onAlternative }: { cfg: RainmeterSettings; date: Date; tone: "lock" | "home"; wallpaper?: PickerWallpaper; onAlternative?: () => void }) {
   const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
@@ -697,55 +691,10 @@ function RainmeterWidget({ cfg, date, tone, wallpaper, onAlternative }: { cfg: R
     return () => { alive = false; };
   }, [cfg.autoTextColor, cfg.darkThreshold, cfg.lightThreshold, cfg.centerRegionPct, wallpaperSrc]);
 
-  useEffect(() => {
-    if (cfg.position === "free") setDragPos({ x: cfg.posX, y: cfg.posY });
-    else setDragPos(null);
-  }, [cfg.position, cfg.posX, cfg.posY]);
-
   const commit = (patch: Partial<RainmeterSettings>) => {
     storage.write("rainmeter-config", { ...cfg, ...patch });
     window.dispatchEvent(new CustomEvent("rainmeter-config-updated"));
     setMenu(null);
-  };
-
-  const handleDown = (event: ReactPointerEvent<HTMLDivElement>) => {
-    if ((event.target as HTMLElement).closest(".rm-context-menu, .rm-menu-backdrop")) return;
-    if (!cfg.draggable || event.button !== 0) return;
-    const rect = event.currentTarget.getBoundingClientRect();
-    dragRef.current = { dx: event.clientX - rect.left, dy: event.clientY - rect.top };
-    targetRef.current = null;
-    didDrag.current = false;
-    setDragging(true);
-    setMenu(null);
-    try { event.currentTarget.setPointerCapture(event.pointerId); } catch { /* ignore */ }
-    event.preventDefault();
-  };
-
-  const handleMove = (event: ReactPointerEvent<HTMLDivElement>) => {
-    if (!dragRef.current) return;
-    didDrag.current = true;
-    const dx = event.clientX - dragRef.current.dx;
-    const dy = event.clientY - dragRef.current.dy;
-    const x = Math.min(100, Math.max(0, (dx / window.innerWidth) * 100));
-    const y = Math.min(100, Math.max(0, (dy / window.innerHeight) * 100));
-    targetRef.current = { x, y };
-    setDragPos({ x, y });
-  };
-
-  const handleUp = () => {
-    if (!dragRef.current) return;
-    dragRef.current = null;
-    setDragging(false);
-    const target = targetRef.current;
-    targetRef.current = null;
-    if (target) commit({ position: "free", posX: target.x, posY: target.y });
-  };
-
-  const handleClick = (event: ReactMouseEvent<HTMLDivElement>) => {
-    if (didDrag.current) {
-      didDrag.current = false;
-      event.stopPropagation();
-    }
   };
 
   const handleContext = (event: ReactMouseEvent<HTMLDivElement>) => {
@@ -754,30 +703,20 @@ function RainmeterWidget({ cfg, date, tone, wallpaper, onAlternative }: { cfg: R
     setMenu({ x: event.clientX, y: event.clientY });
   };
 
-  const free = dragPos ?? (cfg.position === "free" ? { x: cfg.posX, y: cfg.posY } : null);
+  const free = cfg.position === "free" ? { x: cfg.posX, y: cfg.posY } : null;
   const style: CSSProperties = free
     ? { left: `${free.x}%`, top: `${free.y}%`, transform: "none" }
     : rmAnchorStyle(cfg.position, cfg.marginH, cfg.marginV);
 
   return <div
-    className={`rm-widget ${cfg.draggable ? "" : "rm-widget--static"} ${dragging ? "rm-dragging" : ""}`}
+    className="rm-widget rm-widget--static"
     style={style}
-    onPointerDown={handleDown}
-    onPointerMove={handleMove}
-    onPointerUp={handleUp}
-    onPointerCancel={handleUp}
-    onClick={handleClick}
     onContextMenu={handleContext}
   >
     <RainmeterClock cfg={cfg} date={date} tone={tone} color={autoColor ?? undefined} />
-    {cfg.skin === "mond" && tone === "home" ? <MondWeather /> : null}
     {menu ? <>
       <div className="rm-menu-backdrop" onClick={() => setMenu(null)} onContextMenu={(event) => { event.preventDefault(); event.stopPropagation(); setMenu(null); }} />
       <div className="rm-context-menu" style={{ left: menu.x, top: menu.y }}>
-        <button className="rm-menu-row" onClick={() => commit({ draggable: !cfg.draggable })}>
-          <span className={`rm-menu-check ${cfg.draggable ? "on" : ""}`}>{cfg.draggable ? <Check size={12} strokeWidth={3} /> : null}</span>
-          Draggable
-        </button>
         {onAlternative ? <button className="rm-menu-row" onClick={() => { setMenu(null); onAlternative(); }}><SlidersHorizontal size={14} /> Alternative</button> : null}
         <div className="rm-menu-sep" />
         <button className="rm-menu-row rm-menu-danger" onClick={() => commit({ showClock: false })}>Unload skin</button>
