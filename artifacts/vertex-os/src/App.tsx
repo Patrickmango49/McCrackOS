@@ -49,7 +49,7 @@ function embeddedAppDocument(path: string, remoteBase: string): string | undefin
     const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
     let html = new TextDecoder().decode(bytes);
     const baseTag = `<base href="${remoteBase}">`;
-    html = /<head(?:\\s[^>]*)?>/i.test(html)
+    html = /<head(?:\s[^>]*)?>/i.test(html)
       ? html.replace(/<head([^>]*)>/i, (head) => head + baseTag)
       : html.replace(/<html([^>]*)>/i, (rootTag) => rootTag + "<head>" + baseTag + "</head>");
     return html;
