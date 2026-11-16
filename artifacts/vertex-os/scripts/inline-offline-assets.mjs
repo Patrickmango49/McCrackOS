@@ -23,7 +23,7 @@ const publicDir = join(root, "public");
 const htmlPath = join(root, "dist", "single", "index.html");
 
 /** Folders under /public to embed. Order does not matter. */
-const INCLUDE_DIRS = ["images", "fonts", "wallpapers", "themes"];
+const INCLUDE_DIRS = ["images", "fonts", "wallpapers", "themes", "games"];
 /** Individual files at the root of /public to embed. */
 const INCLUDE_FILES = ["vertex-hub-logo.png", "vertex-hub-logo-halloween.png", "favicon.svg"];
 
@@ -46,6 +46,7 @@ const MIME = {
   ".webm": "video/webm",
   ".css": "text/css",
   ".json": "application/json",
+  ".html": "text/html",
 };
 
 function mimeFor(file) {
