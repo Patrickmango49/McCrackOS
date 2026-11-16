@@ -29,6 +29,7 @@ import { MacMenuBar } from "./components/mac-menubar";
 import { LinksApp } from "./components/links-app";
 import { assetUrl } from "./asset-map";
 import { VStudiosSurface } from "./v-market";
+import { getMcCrackCloudAccount, signUpMcCrackAccount, signInMcCrackAccount, updateMcCrackCloudProfile, signOutMcCrackAccount } from "./mccrack-account";
 
 import { TerminalBanner } from "./terminal/TerminalBanner";
 import { ansiToNodes } from "./terminal/ansi";
@@ -97,7 +98,7 @@ const VERTEX_VERSION = "4.1";
 const HALLOWEEN_ACTIVE = new Date().getMonth() === 9;
 const SEASON_WALLPAPER: WallpaperId = HALLOWEEN_ACTIVE ? "halloween" : "vertex-studio";
 
-type VertexAccount = { id: string; name: string; createdAt: number; pass?: string; avatar?: string; email?: string };
+type VertexAccount = { id: string; name: string; createdAt: number; pass?: string; avatar?: string; email?: string; username?: string; banner?: string; bio?: string; authUserId?: string };
 
 function avatarFromFile(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -143,6 +144,11 @@ function readAccounts(): VertexAccount[] {
             createdAt: Number(a.createdAt) || 0,
             pass: typeof a.pass === "string" ? a.pass : "",
             avatar: typeof a.avatar === "string" ? a.avatar : "",
+            email: typeof a.email === "string" ? a.email : "",
+            username: typeof a.username === "string" ? a.username : "",
+            banner: typeof a.banner === "string" ? a.banner : "",
+            bio: typeof a.bio === "string" ? a.bio : "",
+            authUserId: typeof a.authUserId === "string" ? a.authUserId : "",
           })) as VertexAccount[];
       }
     }
@@ -999,6 +1005,11 @@ function App() {
   const [profilePass, setProfilePass] = useState("");
   const [profilePass2, setProfilePass2] = useState("");
   const [profileAvatar, setProfileAvatar] = useState("");
+  const [profileEmail, setProfileEmail] = useState("");
+  const [profileUsername, setProfileUsername] = useState("");
+  const [profileCloudPass, setProfileCloudPass] = useState("");
+  const [profileCloudPass2, setProfileCloudPass2] = useState("");
+  const [cloudAccountBusy, setCloudAccountBusy] = useState(false);
   const [setupWallpaper, setSetupWallpaper] = useState<WallpaperId>("vertex-studio");
   const [setupColorMode, setSetupColorMode] = useState<ColorMode>("dark");
   const [setupSystemStyle, setSetupSystemStyle] = useState<SystemStyle>("vertex");
@@ -1617,6 +1628,40 @@ onSessionClose: (peerCode) => {
     syncPasswordMirror();
   }, [activeAccount]);
 
+  // Keep the OS profile in step with the same Supabase session used by McCrack Chat.
+  useEffect(() => {
+    let alive = true;
+    const syncCloudAccount = async () => {
+      try {
+        const cloud = await getMcCrackCloudAccount();
+        if (!alive) return;
+        if (!cloud) {
+          if (activeAccount?.authUserId) setActiveAccount(null);
+          setAccounts((current) => { const next = current.filter((item) => !item.authUserId); if (next.length !== current.length) storage.write(ACCOUNTS_KEY, JSON.stringify(next)); return next; });
+          return;
+        }
+        const account: VertexAccount = { id: cloud.id, authUserId: cloud.id, name: cloud.name, email: cloud.email, username: cloud.username, avatar: cloud.avatar, banner: cloud.banner, bio: cloud.bio, createdAt: Date.now(), pass: "" };
+        setAccounts((current) => {
+          const next = [...current.filter((item) => !item.authUserId), account];
+          storage.write(ACCOUNTS_KEY, JSON.stringify(next));
+          return next;
+        });
+        setActiveAccount(account);
+      } catch (error) {
+        console.warn("McCrack account sync:", error);
+      }
+    };
+    const onStorage = (event: StorageEvent) => {
+      if (event.key?.includes("agcrweayleevlkgcmqpy-auth-token")) void syncCloudAccount();
+    };
+    const onMessage = (event: MessageEvent) => {
+      if (event.origin === window.location.origin && event.data?.type === "mccrack-account-updated") void syncCloudAccount();
+    };
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("message", onMessage);
+    return () => { alive = false; window.removeEventListener("storage", onStorage); window.removeEventListener("message", onMessage); };
+  }, [activeAccount?.authUserId]);
+
   useEffect(() => {
     const onSetAccountPassword = (event: Event) => {
       const pass = (event as CustomEvent<string>).detail ?? "";
@@ -1691,12 +1736,23 @@ onSessionClose: (peerCode) => {
     setBootVideo(true);
   }
 
-  function finishBoot() {
+  async function finishBoot() {
     if (phase !== "boot") return;
     setBootVideo(false);
     const video = bootVideoRef.current;
     if (video) { video.pause(); video.currentTime = 0; }
-    const first = accounts.length === 0;
+    try {
+      const cloud = await getMcCrackCloudAccount();
+      if (cloud) {
+        const account: VertexAccount = { id: cloud.id, authUserId: cloud.id, name: cloud.name, email: cloud.email, username: cloud.username, avatar: cloud.avatar, banner: cloud.banner, bio: cloud.bio, createdAt: Date.now(), pass: "" };
+        persistAccounts([...accounts.filter((item) => !item.authUserId), account]);
+        signInAs(account);
+        return;
+      }
+    } catch (error) { console.warn("Could not restore McCrack account:", error); }
+    const guestAccounts = accounts.filter((item) => !item.authUserId);
+    if (guestAccounts.length !== accounts.length) persistAccounts(guestAccounts);
+    const first = guestAccounts.length === 0;
     setPhase(first ? "profile" : "lock");
     if (!first) { setSelectedAccount(null); setPinInput(""); setPinError(false); }
   }
@@ -1720,15 +1776,36 @@ onSessionClose: (peerCode) => {
     storage.write(ACCOUNTS_KEY, JSON.stringify(next));
   }
 
-  function createProfile(skipCustomization = false) {
+  async function createProfile(skipCustomization = false) {
     const name = profileName.trim();
     if (!name) { setProfileErr(t("lock.needName")); return; }
     const selectedPass = skipCustomization || !profileAskPass ? "" : profilePass;
     if (selectedPass && selectedPass !== profilePass2) { setProfileErr(t("lock.passMismatch")); return; }
     const selectedWallpaper = skipCustomization ? "vertex-studio" : setupWallpaper;
     const selectedAvatar = skipCustomization ? "" : profileAvatar;
-    const account: VertexAccount = { id: `a${Date.now().toString(36)}`, name, createdAt: Date.now(), pass: selectedPass, avatar: selectedAvatar || "" };
-    persistAccounts([...accounts, account]);
+    let account: VertexAccount = { id: `a${Date.now().toString(36)}`, name, createdAt: Date.now(), pass: selectedPass, avatar: selectedAvatar || "" };
+    if (profileEmail.trim()) {
+      if (!profileUsername.trim()) { setProfileErr("Choose a unique McCrack username for your account."); return; }
+      if (profileCloudPass.length < 8 || profileCloudPass !== profileCloudPass2) { setProfileErr(profileCloudPass.length < 8 ? "Use a password with at least 8 characters." : "Your account passwords do not match."); return; }
+      setCloudAccountBusy(true);
+      try {
+        const result = await signUpMcCrackAccount({ email: profileEmail, password: profileCloudPass, username: profileUsername, name, avatar: selectedAvatar });
+        if (result.needsConfirmation || !result.account) {
+          setProfileErr("Your account was created. Check your email to confirm it, then sign in from the account screen.");
+          setCloudAccountBusy(false);
+          return;
+        }
+        const cloud = result.account;
+        account = { id: cloud.id, authUserId: cloud.id, name: cloud.name, email: cloud.email, username: cloud.username, avatar: cloud.avatar, banner: cloud.banner, bio: cloud.bio, createdAt: Date.now(), pass: "" };
+        setProfileCloudPass(""); setProfileCloudPass2("");
+      } catch (error) {
+        setProfileErr(error instanceof Error ? error.message : "Could not create your McCrack account.");
+        setCloudAccountBusy(false);
+        return;
+      }
+      setCloudAccountBusy(false);
+    }
+    persistAccounts([...accounts.filter((item) => item.authUserId !== account.authUserId), account]);
     setWallpaper(selectedWallpaper);
     setLockWallpaper(selectedWallpaper);
     const nextSettings = { ...settings, colorMode: skipCustomization ? "dark" as ColorMode : setupColorMode, systemStyle: skipCustomization ? "vertex" as SystemStyle : setupSystemStyle, deviceName: skipCustomization ? "McCrack-PC" : (setupDeviceName.trim() || "McCrack-PC") };
@@ -1741,18 +1818,33 @@ onSessionClose: (peerCode) => {
     signInAs(account);
   }
 
+  async function handleMcCrackSignOut() {
+    try {
+      await signOutMcCrackAccount();
+      const guests = accounts.filter((item) => !item.authUserId);
+      persistAccounts(guests);
+      setActiveAccount(null);
+      setSelectedAccount(null);
+      setProfileEmail(""); setProfileUsername(""); setProfileCloudPass(""); setProfileCloudPass2("");
+      setPhase(guests.length ? "lock" : "profile");
+      addToast("Signed out", "Your McCrack account has been signed out of this device.");
+    } catch (error) { addToast("Sign out failed", error instanceof Error ? error.message : "Could not sign out."); }
+  }
+
   function updateActiveAvatar(avatar: string) {
     if (!activeAccount) return;
     const updated: VertexAccount = { ...activeAccount, avatar };
     persistAccounts(accounts.map((a) => (a.id === updated.id ? updated : a)));
     setActiveAccount(updated);
+    if (activeAccount.authUserId) void updateMcCrackCloudProfile({ avatar }).then((cloud) => { if (cloud) { const synced = { ...updated, avatar: cloud.avatar }; setActiveAccount(synced); persistAccounts(accounts.map((item) => item.id === synced.id ? synced : item)); document.querySelectorAll("iframe").forEach((frame) => frame.contentWindow?.postMessage({ type: "mccrack-account-updated" }, window.location.origin)); } }).catch((error) => addToast("Profile sync failed", error instanceof Error ? error.message : "Could not sync your profile picture."));
   }
 
-  function updateActiveAccount(patch: { name?: string; email?: string }) {
+  function updateActiveAccount(patch: { name?: string; email?: string; username?: string; bio?: string; banner?: string }) {
     if (!activeAccount) return;
     const updated: VertexAccount = { ...activeAccount, ...patch };
     persistAccounts(accounts.map((a) => (a.id === updated.id ? updated : a)));
     setActiveAccount(updated);
+    if (activeAccount.authUserId) void updateMcCrackCloudProfile({ name: patch.name, username: patch.username, bio: patch.bio, banner: patch.banner }).then((cloud) => { if (cloud) { const synced: VertexAccount = { ...updated, name: cloud.name, username: cloud.username, avatar: cloud.avatar, banner: cloud.banner, bio: cloud.bio }; setActiveAccount(synced); persistAccounts(accounts.map((item) => item.id === synced.id ? synced : item)); document.querySelectorAll("iframe").forEach((frame) => frame.contentWindow?.postMessage({ type: "mccrack-account-updated" }, "*")); } }).catch((error) => addToast("Profile sync failed", error instanceof Error ? error.message : "Could not sync your profile."));
   }
 
   function openSignIn() {
@@ -1775,22 +1867,22 @@ onSessionClose: (peerCode) => {
     setPhase("signin");
   }
 
-  function loginWithCredentials() {
+  async function loginWithCredentials() {
     const name = loginName.trim();
-    if (!name) { setLoginErr("Enter an account name."); return; }
+    if (!name) { setLoginErr("Enter your account email or a device account name."); return; }
+    if (name.includes("@")) {
+      try {
+        const cloud = await signInMcCrackAccount(name, loginPass);
+        const account: VertexAccount = { id: cloud.id, authUserId: cloud.id, name: cloud.name, email: cloud.email, username: cloud.username, avatar: cloud.avatar, banner: cloud.banner, bio: cloud.bio, createdAt: Date.now(), pass: "" };
+        persistAccounts([...accounts.filter((item) => item.authUserId !== cloud.id), account]);
+        setLoginErr(""); setPinInput(""); setPinError(false); signInAs(account);
+      } catch (error) { setLoginErr(error instanceof Error ? error.message : "Could not sign in to McCrack."); }
+      return;
+    }
     const match = accounts.find((a) => a.name.toLowerCase() === name.toLowerCase());
-    if (!match) {
-      setLoginErr(`No account named "${name}" on this device.`);
-      return;
-    }
-    if (match.pass && match.pass !== loginPass) {
-      setLoginErr("Wrong password — try again.");
-      return;
-    }
-    setLoginErr("");
-    setPinInput("");
-    setPinError(false);
-    signInAs(match);
+    if (!match) { setLoginErr(`No device profile named "${name}". Use your McCrack email to sign in across devices.`); return; }
+    if (match.pass && match.pass !== loginPass) { setLoginErr("Wrong password — try again."); return; }
+    setLoginErr(""); setPinInput(""); setPinError(false); signInAs(match);
   }
 
   function unlock() {
@@ -2180,6 +2272,14 @@ onSessionClose: (peerCode) => {
                   <span>Profile name <em>· required</em></span>
                   <input autoFocus required value={profileName} onChange={(event) => { setProfileName(event.target.value); setProfileErr(""); }} placeholder="What should we call you?" autoComplete="off" data-testid="input-profile-name" />
                 </label>
+                <div className="profile-cloud-account">
+                  <div className="profile-setup-section-title">McCrack account <em>· recommended</em></div>
+                  <p>Use one email-based account to keep your name, username and profile picture with you across McCrackOS and McCrack Chat. You can skip this and use a local profile instead.</p>
+                  <label><span>Email address</span><input type="email" value={profileEmail} onChange={(event) => { setProfileEmail(event.target.value); setProfileErr(""); }} placeholder="you@example.com" autoComplete="email" /></label>
+                  <label><span>McCrack username</span><input value={profileUsername} onChange={(event) => { setProfileUsername(event.target.value.replace(/[^a-zA-Z0-9_-]/g, "")); setProfileErr(""); }} maxLength={24} placeholder="yourusername" autoComplete="username" /></label>
+                  <label><span>Account password</span><input type="password" value={profileCloudPass} onChange={(event) => { setProfileCloudPass(event.target.value); setProfileErr(""); }} placeholder="At least 8 characters" autoComplete="new-password" /></label>
+                  <label><span>Confirm account password</span><input type="password" value={profileCloudPass2} onChange={(event) => { setProfileCloudPass2(event.target.value); setProfileErr(""); }} placeholder="Confirm password" autoComplete="new-password" /></label>
+                </div>
                 <label>
                   <span>Device name <em>· optional</em></span>
                   <input value={setupDeviceName} onChange={(event) => setSetupDeviceName(event.target.value)} placeholder="McCrack-PC" autoComplete="off" />
@@ -2200,7 +2300,7 @@ onSessionClose: (peerCode) => {
                   </div>
                 )}
                 {profileErr ? <span className="lock-error">{profileErr}</span> : null}
-                <button type="submit" className="profile-create">Create profile & enter</button>
+                <button type="submit" className="profile-create" disabled={cloudAccountBusy}>{cloudAccountBusy ? "Creating McCrack account…" : profileEmail.trim() ? "Create McCrack account & enter" : "Create local profile & enter"}</button>
               </form>
             </section>
 
@@ -2235,9 +2335,10 @@ onSessionClose: (peerCode) => {
             </section>
           </div>
           <div className="profile-setup-footer">
-            <span>Only your profile name is required.</span>
+            <span>Only your profile name is required. A McCrack account is recommended, not required.</span>
             <button type="button" className="profile-skip" onClick={() => createProfile(true)}>Skip customization</button>
           </div>
+          <div className="profile-setup-footer"><button type="button" className="signin-back" onClick={() => { setProfileErr(""); setLoginErr(""); setLoginName(""); setLoginPass(""); setPhase("picker"); }}>Already have a McCrack account? Sign in</button></div>
           {accounts.length > 0 && <button className="signin-back" onClick={() => { setProfileErr(""); setPhase("picker"); }}>Back</button>}
         </div>
       </section>
@@ -2257,21 +2358,21 @@ onSessionClose: (peerCode) => {
                 <span className="checker-name">{account.name}</span>
               </button>
             ))}
-            <button className="checker-tile checker-add" onClick={() => { setProfileName(""); setProfilePass(""); setProfilePass2(""); setProfileAvatar(""); setProfileAskPass(false); setProfileErr(""); setPhase("profile"); }} data-testid="button-add-account">
+            <button className="checker-tile checker-add" onClick={() => { setProfileName(""); setProfilePass(""); setProfilePass2(""); setProfileAvatar(""); setProfileEmail(""); setProfileUsername(""); setProfileCloudPass(""); setProfileCloudPass2(""); setProfileAskPass(false); setProfileErr(""); setPhase("profile"); }} data-testid="button-add-account">
               <span className="checker-avatar checker-add-avatar"><Plus size={30} /></span>
               <span className="checker-name">Add profile</span>
             </button>
           </div>
-          <div className="account-divider">or log in with an account name</div>
+          <div className="account-divider">Sign in with your McCrack email, or use a local device profile</div>
           <form className="account-login" onSubmit={(event) => { event.preventDefault(); loginWithCredentials(); }}>
-            <input value={loginName} onChange={(event) => { setLoginName(event.target.value); setLoginErr(""); }} placeholder="Account name" autoComplete="off" data-testid="input-login-name" />
+            <input value={loginName} onChange={(event) => { setLoginName(event.target.value); setLoginErr(""); }} placeholder="McCrack email or device account name" autoComplete="username" data-testid="input-login-name" />
             <div className="account-login-row">
               <input type="password" value={loginPass} onChange={(event) => { setLoginPass(event.target.value); setLoginErr(""); }} placeholder="Password" data-testid="input-login-pass" />
               <button type="submit" aria-label="Log in"><ArrowRight size={15} /></button>
             </div>
             {loginErr ? <span className="lock-error">{loginErr}</span> : null}
           </form>
-          <button className="account-add" onClick={() => { setProfileName(""); setProfilePass(""); setProfilePass2(""); setProfileAvatar(""); setProfileAskPass(false); setProfileErr(""); setPhase("profile"); }}><Plus size={15} /> Create new account</button>
+          <button className="account-add" onClick={() => { setProfileName(""); setProfilePass(""); setProfilePass2(""); setProfileAvatar(""); setProfileEmail(""); setProfileUsername(""); setProfileCloudPass(""); setProfileCloudPass2(""); setProfileAskPass(false); setProfileErr(""); setPhase("profile"); }}><Plus size={15} /> Create new account</button>
           <button className="signin-back" onClick={() => setPhase("lock")}>Back</button>
         </div>
       </section>
@@ -2386,7 +2487,7 @@ onSessionClose: (peerCode) => {
           })}
         </div>
 
-        <WindowLayer windows={windows} activeWindow={activeWindow} onFocus={setActiveWindow} onClose={closeWindow} onMinimize={minimizeWindow} onMaximize={toggleMaximize} onMove={moveWindow} settings={settings} updateSetting={updateSetting} faqOpen={faqOpen} setFaqOpen={setFaqOpen} lang={chosenLang} onLanguagePick={pickLanguage} onPanic={redirectPanic} onTrackChange={setCurrentTrack} translucent={translucentTB} onTranslucent={setTranslucentTB} onApplyWallpaper={applyWallEngine} appliedWallpaper={wallpaper} appliedLockWallpaper={lockWallpaper} onNotify={addToast} wppInstalled={wppInstalled} onInstallPicker={() => { installWallpaperPicker(); setStartOpen(false); setDrawerOpen(false); addToast("Quick Wallpaper Picker", "Installed — press Alt+W to open it."); }} onJarvisInstall={() => setJarvisInstalled(true)} jarvisInstalled={jarvisInstalled} onFsociety={setFsocietyOverride} appOverrides={appOverrides} activeAccount={activeAccount} onAvatarChange={updateActiveAvatar} onAccountChange={updateActiveAccount} />
+        <WindowLayer onSignOut={handleMcCrackSignOut} windows={windows} activeWindow={activeWindow} onFocus={setActiveWindow} onClose={closeWindow} onMinimize={minimizeWindow} onMaximize={toggleMaximize} onMove={moveWindow} settings={settings} updateSetting={updateSetting} faqOpen={faqOpen} setFaqOpen={setFaqOpen} lang={chosenLang} onLanguagePick={pickLanguage} onPanic={redirectPanic} onTrackChange={setCurrentTrack} translucent={translucentTB} onTranslucent={setTranslucentTB} onApplyWallpaper={applyWallEngine} appliedWallpaper={wallpaper} appliedLockWallpaper={lockWallpaper} onNotify={addToast} wppInstalled={wppInstalled} onInstallPicker={() => { installWallpaperPicker(); setStartOpen(false); setDrawerOpen(false); addToast("Quick Wallpaper Picker", "Installed — press Alt+W to open it."); }} onJarvisInstall={() => setJarvisInstalled(true)} jarvisInstalled={jarvisInstalled} onFsociety={setFsocietyOverride} appOverrides={appOverrides} activeAccount={activeAccount} onAvatarChange={updateActiveAvatar} onAccountChange={updateActiveAccount} />
 
         <div className={`tb-hotzone tb-hotzone--${taskbarPos}`} aria-hidden="true" />
 
@@ -2482,7 +2583,7 @@ onSessionClose: (peerCode) => {
               <span className="start-avatar">{activeAccount ? <AvatarGlyph value={activeAccount.avatar} name={activeAccount.name} size={40} /> : "VX"}</span>
               <div className="start-hero-meta">
                 <strong>{activeAccount?.name ?? t("start.administrator")}</strong>
-                <span>{activeAccount?.email || t("start.adminLocal")}</span>
+                <span>{activeAccount?.username ? `@${activeAccount.username}` : activeAccount?.email || t("start.adminLocal")}</span>
               </div>
             </div>
             <button className="start-all-btn" onClick={() => { setStartOpen(false); setDrawerOpen(true); }} data-testid="button-start-all-apps"><Grid2X2 size={15} /> All apps</button>
@@ -2641,9 +2742,10 @@ onSessionClose: (peerCode) => {
   );
 }
 
-function WindowLayer({ windows, activeWindow, onFocus, onClose, onMinimize, onMaximize, onMove, settings, updateSetting, faqOpen, setFaqOpen, lang, onLanguagePick, onPanic, onTrackChange, translucent, onTranslucent, onApplyWallpaper, appliedWallpaper, appliedLockWallpaper, onNotify, wppInstalled, onInstallPicker, jarvisInstalled, onJarvisInstall, onFsociety, appOverrides, activeAccount, onAvatarChange, onAccountChange }: {
+function WindowLayer({ onSignOut, windows, activeWindow, onFocus, onClose, onMinimize, onMaximize, onMove, settings, updateSetting, faqOpen, setFaqOpen, lang, onLanguagePick, onPanic, onTrackChange, translucent, onTranslucent, onApplyWallpaper, appliedWallpaper, appliedLockWallpaper, onNotify, wppInstalled, onInstallPicker, jarvisInstalled, onJarvisInstall, onFsociety, appOverrides, activeAccount, onAvatarChange, onAccountChange }: {
   jarvisInstalled?: boolean;
   onJarvisInstall?: () => void;
+  onSignOut: () => void;
   windows: WindowState[];
   activeWindow: AppId | null;
   onFocus: (id: AppId) => void;
@@ -2671,7 +2773,7 @@ function WindowLayer({ windows, activeWindow, onFocus, onClose, onMinimize, onMa
   appOverrides: Record<string, AppOverride>;
   activeAccount: VertexAccount | null;
   onAvatarChange: (avatar: string) => void;
-  onAccountChange: (patch: { name?: string; email?: string }) => void;
+  onAccountChange: (patch: { name?: string; email?: string; username?: string; bio?: string; banner?: string }) => void;
 }) {
   const dragRef = useRef<{ id: AppId; dx: number; dy: number } | null>(null);
 
@@ -2732,7 +2834,7 @@ function WindowLayer({ windows, activeWindow, onFocus, onClose, onMinimize, onMa
           </div>
         </>}
       </header>
-      <div className="window-body">{renderWindowBody(win.id, settings, updateSetting, faqOpen, setFaqOpen, lang, onLanguagePick, onPanic, () => onClose(win.id), () => onMinimize(win.id), onTrackChange, translucent, onTranslucent, onApplyWallpaper, appliedWallpaper, appliedLockWallpaper, onNotify, wppInstalled, onInstallPicker, jarvisInstalled, onJarvisInstall, onFsociety, activeAccount, onAvatarChange, onAccountChange)}</div>
+      <div className="window-body">{renderWindowBody(win.id, settings, updateSetting, faqOpen, setFaqOpen, lang, onLanguagePick, onPanic, () => onClose(win.id), () => onMinimize(win.id), onTrackChange, translucent, onTranslucent, onApplyWallpaper, appliedWallpaper, appliedLockWallpaper, onNotify, wppInstalled, onInstallPicker, jarvisInstalled, onJarvisInstall, onFsociety, activeAccount, onAvatarChange, onAccountChange, onSignOut)}</div>
     </article>;
   })}</div>;
 }
@@ -5608,8 +5710,8 @@ function VerTubeSurface() {
   );
 }
 
-function renderWindowBody(id: AppId, settings: SystemSettings, updateSetting: (key: keyof SystemSettings | Partial<SystemSettings>, value?: boolean | string | TabHideImage[]) => void, faqOpen: number | null, setFaqOpen: (value: number | null) => void, lang: Lang, onLanguagePick: (language: Lang) => void, onPanic: () => void, onClose: (() => void) | null = null, onMinimize: (() => void) | null = null, onTrackChange: ((track: { name: string; artist: string; artwork: string } | null) => void) | null = null, translucent: boolean = false, onTranslucent: ((value: boolean) => void) | null = null, onApplyWallpaper: ((id: WallpaperId, target: "both" | "home" | "lock") => void) | null = null, appliedWallpaper: WallpaperId = "singularity", appliedLockWallpaper: WallpaperId = "singularity", onNotify: ((title: string, copy: string) => void) | null = null, wppInstalled: boolean = false, onInstallPicker: (() => void) | null = null, jarvisInstalled: boolean = false, onJarvisInstall: (() => void) | null = null, onFsociety: ((active: boolean) => void) | null = null, activeAccount: VertexAccount | null = null, onAvatarChange: ((avatar: string) => void) | null = null, onAccountChange: ((patch: { name?: string; email?: string }) => void) | null = null) {
-  if (id === "settings") return <SettingsSurface settings={settings} updateSetting={updateSetting} faqOpen={faqOpen} setFaqOpen={setFaqOpen} lang={lang} onLanguagePick={onLanguagePick} onPanic={onPanic} avatar={activeAccount?.avatar} accountName={activeAccount?.name} accountEmail={activeAccount?.email} onAvatarChange={onAvatarChange ?? undefined} onAccountChange={onAccountChange ?? undefined} appliedWallpaper={appliedWallpaper} appliedLockWallpaper={appliedLockWallpaper} onApplyWallpaper={onApplyWallpaper ?? undefined} onNotify={onNotify ?? undefined} translucent={translucent} onTranslucent={onTranslucent ?? undefined} />;
+function renderWindowBody(id: AppId, settings: SystemSettings, updateSetting: (key: keyof SystemSettings | Partial<SystemSettings>, value?: boolean | string | TabHideImage[]) => void, faqOpen: number | null, setFaqOpen: (value: number | null) => void, lang: Lang, onLanguagePick: (language: Lang) => void, onPanic: () => void, onClose: (() => void) | null = null, onMinimize: (() => void) | null = null, onTrackChange: ((track: { name: string; artist: string; artwork: string } | null) => void) | null = null, translucent: boolean = false, onTranslucent: ((value: boolean) => void) | null = null, onApplyWallpaper: ((id: WallpaperId, target: "both" | "home" | "lock") => void) | null = null, appliedWallpaper: WallpaperId = "singularity", appliedLockWallpaper: WallpaperId = "singularity", onNotify: ((title: string, copy: string) => void) | null = null, wppInstalled: boolean = false, onInstallPicker: (() => void) | null = null, jarvisInstalled: boolean = false, onJarvisInstall: (() => void) | null = null, onFsociety: ((active: boolean) => void) | null = null, activeAccount: VertexAccount | null = null, onAvatarChange: ((avatar: string) => void) | null = null, onAccountChange: ((patch: { name?: string; email?: string; username?: string; bio?: string; banner?: string }) => void) | null = null, onSignOut: (() => void) | null = null) {
+  if (id === "settings") return <SettingsSurface settings={settings} updateSetting={updateSetting} faqOpen={faqOpen} setFaqOpen={setFaqOpen} lang={lang} onLanguagePick={onLanguagePick} onPanic={onPanic} avatar={activeAccount?.avatar} accountName={activeAccount?.name} accountEmail={activeAccount?.email} accountUsername={activeAccount?.username} accountBio={activeAccount?.bio} accountBanner={activeAccount?.banner} onAvatarChange={onAvatarChange ?? undefined} onAccountChange={onAccountChange ?? undefined} onSignOut={onSignOut ?? undefined} appliedWallpaper={appliedWallpaper} appliedLockWallpaper={appliedLockWallpaper} onApplyWallpaper={onApplyWallpaper ?? undefined} onNotify={onNotify ?? undefined} translucent={translucent} onTranslucent={onTranslucent ?? undefined} />;
   if (id === "terminal") return <div className="window-surface term-app-surface">          <TerminalSurface installed={wppInstalled} onInstalled={onInstallPicker ?? (() => {})} onFsociety={onFsociety ?? (() => {})} jarvisInstalled={jarvisInstalled} setJarvisInstalled={onJarvisInstall ?? (() => {})} onJarvisInstall={onJarvisInstall ?? (() => {})} toggleApp={undefined} /></div>;
   if (id === "translucenttb") return <div className="window-surface"><div className="surface-kicker">{t("surf.translucent.kicker")}</div><h2 className="surface-title">{t("surf.translucent.title")}</h2><p className="surface-copy">{t("surf.translucent.body")}</p><div className="settings-list"><SettingToggle label={t("surf.translucent.enable")} help={t("surf.translucent.help")} value={translucent} onChange={(value) => onTranslucent?.(value)} /></div></div>;
   if (id === "spicetify") return <iframe className="browser-frame" src={appFallbackSrc("apps/music/web/index.html", "https://raw.githack.com/Patrickmango49/McCrackOS/main/apps/music/web/index.html")} srcDoc={embeddedAppDocument("apps/music/web/index.html", "https://raw.githack.com/Patrickmango49/McCrackOS/main/apps/music/web/")} title="McCrackify" allow="autoplay; clipboard-write; fullscreen; encrypted-media; picture-in-picture" allowFullScreen />;
@@ -6077,7 +6179,7 @@ const FONT_STYLES: { id: string; label: string; note: string; family: string }[]
   { id: "tuesday", label: "Tuesday Night", note: "Handwritten", family: '"Tuesday Night", cursive' },
 ];
 
-function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, onLanguagePick, onPanic, avatar, accountName, accountEmail, onAvatarChange, onAccountChange, appliedWallpaper, appliedLockWallpaper, onApplyWallpaper, onNotify, translucent, onTranslucent }: {
+function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, onLanguagePick, onPanic, avatar, accountName, accountEmail, accountUsername, accountBio, accountBanner, onAvatarChange, onAccountChange, onSignOut, appliedWallpaper, appliedLockWallpaper, onApplyWallpaper, onNotify, translucent, onTranslucent }: {
   settings: SystemSettings;
     updateSetting: (key: keyof SystemSettings | Partial<SystemSettings>, value?: boolean | string | TabHideImage[]) => void;
   faqOpen: number | null;
@@ -6088,8 +6190,12 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
   avatar?: string;
   accountName?: string;
   accountEmail?: string;
+  accountUsername?: string;
+  accountBio?: string;
+  accountBanner?: string;
   onAvatarChange?: (avatar: string) => void;
-  onAccountChange?: (patch: { name?: string; email?: string }) => void;
+  onAccountChange?: (patch: { name?: string; email?: string; username?: string; bio?: string; banner?: string }) => void;
+  onSignOut?: () => void;
   appliedWallpaper: WallpaperId;
   appliedLockWallpaper: WallpaperId;
   onApplyWallpaper?: (id: WallpaperId, target: "both" | "home" | "lock") => void;
@@ -6105,6 +6211,9 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
   const [query, setQuery] = useState("");
   const [nameDraft, setNameDraft] = useState(accountName ?? "");
   const [emailDraft, setEmailDraft] = useState(accountEmail ?? "");
+  const [usernameDraft, setUsernameDraft] = useState("");
+  const [bioDraft, setBioDraft] = useState("");
+  const [bannerDraft, setBannerDraft] = useState("");
   const [deviceDraft, setDeviceDraft] = useState(settings.deviceName);
   const [passwordDraft, setPasswordDraft] = useState("");
   const [passwordSaved, setPasswordSaved] = useState(false);
@@ -6133,6 +6242,9 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
 
   useEffect(() => { setNameDraft(accountName ?? ""); }, [accountName]);
   useEffect(() => { setEmailDraft(accountEmail ?? ""); }, [accountEmail]);
+  useEffect(() => { setUsernameDraft(accountUsername ?? ""); }, [accountUsername]);
+  useEffect(() => { setBioDraft(accountBio ?? ""); }, [accountBio]);
+  useEffect(() => { setBannerDraft(accountBanner ?? ""); }, [accountBanner]);
   useEffect(() => { setDeviceDraft(settings.deviceName); }, [settings.deviceName]);
 
   const currentHome = wallpapers.find((w) => w.id === appliedWallpaper);
@@ -6141,14 +6253,19 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
   const avatarNode = avatar ? <AvatarGlyph value={avatar} name={accountName ?? "?"} size={40} /> : <span>{(accountName ?? "?").slice(0, 1).toUpperCase()}</span>;
 
   const saveProfile = () => {
-    const patch: { name?: string; email?: string } = {};
+    const patch: { name?: string; email?: string; username?: string; bio?: string; banner?: string } = {};
     const name = nameDraft.trim();
     const email = emailDraft.trim();
     if (name && name !== (accountName ?? "")) patch.name = name;
     if (email !== (accountEmail ?? "")) patch.email = email;
+    const username = usernameDraft.trim();
+    if (username && !/^[a-zA-Z0-9_-]{3,24}$/.test(username)) { onNotify?.("Invalid username", "Use 3–24 letters, numbers, underscores or hyphens."); return; }
+    if (username && username !== (accountUsername ?? "")) patch.username = username;
+    if (bioDraft !== (accountBio ?? "")) patch.bio = bioDraft;
+    if (bannerDraft !== (accountBanner ?? "")) patch.banner = bannerDraft;
     if (!Object.keys(patch).length) { onNotify?.("Nothing to save", "Your account details are already up to date."); return; }
     onAccountChange?.(patch);
-    onNotify?.("Account updated", "Your name and email were saved.");
+    onNotify?.("Account updated", "Your shared McCrack profile was saved.");
   };
   const saveDevice = () => {
     const name = deviceDraft.trim();
@@ -6325,10 +6442,14 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
               <input className="setting-input" value={nameDraft} onChange={(event) => setNameDraft(event.target.value)} placeholder="Your name" aria-label="Account name" />
             </div>
             <div className="win-settings-row setting-stack">
-              <div><strong>Email address</strong><small>The Gmail you are signed in with</small></div>
-              <input className="setting-input setting-url" type="email" value={emailDraft} onChange={(event) => setEmailDraft(event.target.value)} placeholder="you@gmail.com" aria-label="Email address" />
+              <div><strong>Email address</strong><small>Your McCrack sign-in email</small></div>
+              <input className="setting-input setting-url" type="email" value={emailDraft} readOnly aria-label="McCrack sign-in email" />
             </div>
-            <div className="setting-action-row"><button className="outline-button" onClick={saveProfile}>Save changes</button><span>Updates your name and email.</span></div>
+            <div className="win-settings-row setting-stack"><div><strong>Username</strong><small>Your public @username across McCrack</small></div><input className="setting-input" value={usernameDraft} onChange={(event) => setUsernameDraft(event.target.value.replace(/[^a-zA-Z0-9_-]/g, ""))} maxLength={24} placeholder="yourusername" aria-label="McCrack username" /></div>
+            <div className="win-settings-row setting-stack"><div><strong>Bio</strong><small>Shown on your McCrack profile</small></div><textarea className="setting-input" value={bioDraft} onChange={(event) => setBioDraft(event.target.value.slice(0, 240))} maxLength={240} rows={3} aria-label="Profile bio" /></div>
+            <div className="win-settings-row setting-stack"><div><strong>Profile banner</strong><small>Shared with McCrack Chat and other account-aware apps</small></div><div className="profile-banner-settings">{bannerDraft ? <img src={bannerDraft} alt="Profile banner preview" /> : <span>No banner selected</span>}<label className="profile-avatar-upload"><Image size={14} /> Upload banner<input type="file" accept="image/*" onChange={(event) => { const file = event.target.files?.[0]; event.target.value = ""; if (file) void avatarFromFile(file).then(setBannerDraft); }} /></label></div></div>
+            <div className="setting-action-row"><button className="outline-button" onClick={saveProfile}>Save changes</button><span>Updates your shared McCrack profile.</span></div>
+            {accountEmail && onSignOut ? <div className="setting-action-row"><button className="outline-button" onClick={onSignOut}>Sign out of McCrack</button><span>Your local guest profiles remain available.</span></div> : null}
           </section>
           {onAvatarChange && <section className="win-settings-card">
             <div className="setting-group"><Image size={13} /> Profile picture</div>

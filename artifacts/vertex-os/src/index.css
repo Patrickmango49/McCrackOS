@@ -7029,3 +7029,19 @@ to{opacity:1;transform:translateY(0)}
   .profile-setup-footer { align-items: stretch; flex-direction: column; }
   .profile-setup-footer .profile-skip { width: 100%; }
 }
+
+
+/* Universal McCrack account setup and profile fields */
+.profile-cloud-account{display:flex;flex-direction:column;gap:11px;margin:4px 0 15px;padding:15px;border:1px solid rgba(75,190,230,.2);border-radius:16px;background:linear-gradient(135deg,rgba(34,190,230,.09),rgba(15,25,38,.16))}
+.profile-cloud-account>p{margin:0;color:var(--muted);font-size:11px;line-height:1.55}
+.profile-cloud-account .profile-setup-section-title{margin:0;color:var(--ink);font-size:12px;font-weight:800}
+.profile-cloud-account .profile-setup-section-title em{color:#36b9df;font-style:normal;font-size:10px;letter-spacing:.04em;text-transform:uppercase}
+.profile-cloud-account label{display:flex;flex-direction:column;gap:6px}
+.profile-cloud-account label span{font-size:11px;font-weight:700;color:var(--muted)}
+.profile-cloud-account input{width:100%;min-width:0;border:1px solid var(--line);border-radius:11px;padding:10px 12px;background:var(--app);color:var(--ink);font:inherit;font-size:12px}
+.profile-cloud-account input:focus{outline:2px solid rgba(54,185,223,.24);border-color:#36b9df}
+.profile-create:disabled{opacity:.65;cursor:wait}
+.profile-banner-settings{display:flex;flex-direction:column;gap:9px;min-width:0;width:100%}
+.profile-banner-settings img{width:100%;height:86px;object-fit:cover;border-radius:11px;border:1px solid var(--line)}
+.profile-banner-settings>span{display:grid;place-items:center;height:70px;border:1px dashed var(--line);border-radius:11px;color:var(--muted);font-size:11px}
+.profile-banner-settings .profile-avatar-upload{align-self:flex-start}
