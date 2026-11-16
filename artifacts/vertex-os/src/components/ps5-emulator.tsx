@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ComponentType, type CSSProperties } from "react";
 import { Check, ChevronRight, Download, Gamepad2, Home, Loader2, Maximize, Minimize, Monitor, MoreHorizontal, Music, PanelsTopLeft, Pause, Play, Plus, Power, Search, Settings, SkipBack, SkipForward, Sparkles, Star, Trash2, UserPlus, Volume2, VolumeX, X } from "lucide-react";
 import Peer from "peerjs";
+import { getMcCrackCloudAccount, updateMcCrackCloudProfile, type McCrackCloudAccount } from "../mccrack-account";
 import { PS5_GAMES, PS5_TOTAL, type Ps5Game } from "../ps5-games";
 import { getMediaSession, publishNowPlaying, subscribeMediaSession } from "../now-playing";
 import { MessagesSurface } from "../messages";
@@ -59,12 +60,12 @@ function readTheme(): string {
   return "blue";
 }
 
-const USERNAME_RE = /^[a-z0-9]{3,16}$/;
+const USERNAME_RE = /^[a-z0-9_-]{3,24}$/;
 const NAME_RE = /^.{1,20}$/;
 
 const AVATAR_HUES = [212, 268, 330, 22, 158, 190];
 
-type Ps5Account = { username: string; displayName: string; dob?: string; hue?: number; avatar?: string };
+type Ps5Account = { username: string; displayName: string; dob?: string; hue?: number; avatar?: string; email?: string; cloudUserId?: string; bio?: string; banner?: string; status?: string };
 
 function readAccount(): Ps5Account | null {
   try {
@@ -86,7 +87,20 @@ function saveAccount(acc: Ps5Account) {
   }
 }
 
-/** The Messages app keeps its own profile; reuse it so nobody has to sign up twice. */
+function accountFromCloud(cloud: McCrackCloudAccount): Ps5Account {
+  return {
+    username: cloud.username,
+    displayName: cloud.name,
+    email: cloud.email,
+    cloudUserId: cloud.id,
+    avatar: cloud.avatar || undefined,
+    bio: cloud.bio,
+    banner: cloud.banner,
+    status: cloud.status,
+  };
+}
+
+/** Keep older local-only console profiles usable as optional guest profiles. */
 function accountFromMessages(): Ps5Account | null {
   try {
     const raw = localStorage.getItem(MSGS_PROFILE_KEY);
@@ -100,10 +114,6 @@ function accountFromMessages(): Ps5Account | null {
   } catch {
     return null;
   }
-}
-
-function hasMessagesProfile(): boolean {
-  return accountFromMessages() !== null;
 }
 
 function avatarStyle(hue?: number) {
@@ -298,6 +308,45 @@ export function Ps5EmulatorSurface({ surfaces }: { surfaces?: Ps5EmbeddedSurface
 
   useEffect(() => subscribeAudio(() => setSound(getAudioSettings())), []);
 
+  // McCrack Station uses the same Supabase identity/profile as McCrackOS and Chat.
+  useEffect(() => {
+    let alive = true;
+    const applyCloudAccount = (cloud: McCrackCloudAccount | null) => {
+      if (!alive) return;
+      if (cloud) {
+        const next = accountFromCloud(cloud);
+        saveAccount(next);
+        setAccount(next);
+      } else {
+        setAccount((current) => {
+          if (!current?.cloudUserId) return current;
+          try { localStorage.removeItem(ACCOUNT_KEY); } catch { /* ignore */ }
+          return null;
+        });
+      }
+    };
+    const loadCloudAccount = async () => {
+      try { applyCloudAccount(await getMcCrackCloudAccount()); }
+      catch (error) { console.warn("McCrack Station account sync:", error); }
+    };
+    const onAccountUpdated = (event: Event) => {
+      const detail = (event as CustomEvent<McCrackCloudAccount | null>).detail;
+      if (detail !== undefined) applyCloudAccount(detail);
+      else void loadCloudAccount();
+    };
+    const onStorage = (event: StorageEvent) => {
+      if (event.key?.includes("agcrweayleevlkgcmqpy-auth-token")) void loadCloudAccount();
+    };
+    void loadCloudAccount();
+    window.addEventListener("vertex-cloud-account-changed", onAccountUpdated);
+    window.addEventListener("storage", onStorage);
+    return () => {
+      alive = false;
+      window.removeEventListener("vertex-cloud-account-changed", onAccountUpdated);
+      window.removeEventListener("storage", onStorage);
+    };
+  }, []);
+
   // Sound engine: unlock on the first real interaction, run ambient music on the console.
   useEffect(() => {
     if (stage !== "ready") return;
@@ -421,10 +470,24 @@ export function Ps5EmulatorSurface({ surfaces }: { surfaces?: Ps5EmbeddedSurface
     window.setTimeout(() => setToast(null), 2400);
   }, [playing]);
 
-  const updateAccount = useCallback((next: Ps5Account) => {
+  const updateAccount = useCallback(async (next: Ps5Account) => {
+    if (account?.cloudUserId) {
+      const cloud = await updateMcCrackCloudProfile({
+        name: next.displayName,
+        username: next.username,
+        avatar: next.avatar ?? "",
+      });
+      if (!cloud) throw new Error("Your McCrack account session has expired. Sign in again from McCrackOS.");
+      const synced = accountFromCloud(cloud);
+      saveAccount(synced);
+      setAccount(synced);
+      window.dispatchEvent(new CustomEvent("mccrack-account-updated", { detail: cloud }));
+      document.querySelectorAll("iframe").forEach((frame) => frame.contentWindow?.postMessage({ type: "mccrack-account-updated" }, window.location.origin));
+      return;
+    }
     saveAccount(next);
     setAccount(next);
-  }, []);
+  }, [account?.cloudUserId]);
 
   const openSettings = useCallback((tabName: "profile" | "sound" | "theme" | "library") => {
     sfx("controlOpen");
@@ -570,7 +633,7 @@ export function Ps5EmulatorSurface({ surfaces }: { surfaces?: Ps5EmbeddedSurface
         <Ps5DeviceSurface
           onSelect={(mode) => {
             setDeviceMode(mode);
-            if (readAccount() || account) {
+            if (account?.cloudUserId || readAccount() || account) {
               setStage("ready");
               return;
             }
@@ -1328,15 +1391,15 @@ function Ps5AccountSurface({ onDone }: { onDone: (acc: Ps5Account) => void }) {
       <div className="ps5-account-glow" aria-hidden="true" />
       <div className="ps5-account-card">
         <span className="ps5-account-badge">MCCRACK-COS PRESENTS :</span>
-        <h1 className="ps5-account-title">Create your account</h1>
-        <p className="ps5-account-sub">One account for your console profile. Your username is unique, your display name is shown on the console.</p>
+        <h1 className="ps5-account-title">Create a guest profile</h1>
+        <p className="ps5-account-sub">Create a local guest profile to use the console. To sync your name and picture across McCrack, sign in to your McCrack account in McCrackOS first.</p>
         {err && <div className="ps5-account-err">{err}</div>}
         <label className="ps5-account-field"><span>Username</span>
           <div className="ps5-account-prefix">
             <span>@</span>
             <input className="ps5-account-input" placeholder="onirifalx" maxLength={16} value={username} onChange={(e) => { setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, "")); setStatus("idle"); }} aria-label="Username" autoFocus spellCheck={false} />
           </div>
-          <em>3–16 letters or numbers · unique — no one else can take it</em>
+          <em>3–24 letters, numbers, underscores or hyphens · local guest name</em>
         </label>
         <label className="ps5-account-field"><span>Display name</span>
           <input className="ps5-account-input" placeholder="How the console shows you" maxLength={20} value={displayName} onChange={(e) => setDisplayName(e.target.value)} aria-label="Display name" spellCheck={false} />
@@ -1349,7 +1412,7 @@ function Ps5AccountSurface({ onDone }: { onDone: (acc: Ps5Account) => void }) {
         <button type="button" className="ps5-account-btn" onClick={submit} disabled={checking}>
           {checking ? <><Loader2 size={15} className="ps5-spin" /> Checking availability…</> : status === "taken" ? <><UserPlus size={15} /> Try another username</> : <><Check size={15} /> Create account</>}
         </button>
-        <p className="ps5-account-note">Your username is your console ID — nobody else can claim it. Change your display name any time from console Settings.</p>
+        <p className="ps5-account-note">Guest profiles stay on this device. A signed-in McCrack account automatically replaces this profile and syncs its name and picture.</p>
       </div>
     </div>
   );
@@ -1617,7 +1680,7 @@ function Ps5SettingsPanel({
   onSound: (patch: Partial<AudioSettings>) => void;
   onTheme: (theme: string) => void;
   onDeviceMode: (mode: DeviceMode) => void;
-  onUpdate: (next: Ps5Account) => void;
+  onUpdate: (next: Ps5Account) => Promise<void>;
   onPower: () => void;
   onClose: () => void;
 }) {
@@ -1637,8 +1700,8 @@ function Ps5SettingsPanel({
     setError("");
   }, [account]);
 
-  const cleanUser = username.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
-  const userError = !cleanUser ? "Pick a username." : !USERNAME_RE.test(cleanUser) ? "3 to 16 letters or numbers, no spaces." : "";
+  const cleanUser = username.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0, 24);
+  const userError = !cleanUser ? "Pick a username." : !USERNAME_RE.test(cleanUser) ? "3 to 24 letters, numbers, underscores or hyphens." : "";
   const nameError = !displayName.trim() ? "Your display name can't be empty." : "";
   const draft = { hue, avatar };
 
@@ -1681,16 +1744,20 @@ function Ps5SettingsPanel({
     reader.readAsDataURL(file);
   };
 
-  const save = () => {
+  const save = async () => {
     if (!account) return;
     if (userError || nameError) {
       setError(userError || nameError);
       return;
     }
-    onUpdate({ ...account, displayName: displayName.trim().slice(0, 20), username: cleanUser, hue, avatar });
-    setError("");
-    setSaved(true);
-    window.setTimeout(() => setSaved(false), 1800);
+    try {
+      await onUpdate({ ...account, displayName: displayName.trim().slice(0, 20), username: cleanUser, hue, avatar });
+      setError("");
+      setSaved(true);
+      window.setTimeout(() => setSaved(false), 1800);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not save your profile.");
+    }
   };
 
   return (
@@ -1716,6 +1783,7 @@ function Ps5SettingsPanel({
                 <div className="profile-summary-name">
                   <h3>{displayName || account?.displayName || "Player"}</h3>
                   <p>@{username || account?.username || "guest"}</p>
+                  {account?.cloudUserId ? <small className="ps5-cloud-account-label">McCrack account · {account.email || "Connected"}</small> : <small className="ps5-cloud-account-label">Guest profile · this device only</small>}
                 </div>
               </div>
               <div className="profile-editor">
@@ -1747,7 +1815,7 @@ function Ps5SettingsPanel({
                   <span>Username</span>
                   <input
                     value={username}
-                    maxLength={16}
+                    maxLength={24}
                     onChange={(e) => { setUsername(e.target.value); setError(""); }}
                     aria-label="Console username"
                     spellCheck={false}
