@@ -2565,7 +2565,7 @@ onSessionClose: (peerCode) => {
               <span className="start-avatar">{activeAccount ? <AvatarGlyph value={activeAccount.avatar} name={activeAccount.name} size={40} /> : "VX"}</span>
               <div className="start-hero-meta">
                 <strong>{activeAccount?.name ?? t("start.administrator")}</strong>
-                <span>{activeAccount?.email || t("start.adminLocal")}</span>
+                <span>{activeAccount?.username ? `@${activeAccount.username}` : activeAccount?.email || t("start.adminLocal")}</span>
               </div>
             </div>
             <button className="start-all-btn" onClick={() => { setStartOpen(false); setDrawerOpen(true); }} data-testid="button-start-all-apps"><Grid2X2 size={15} /> All apps</button>
@@ -2754,7 +2754,7 @@ function WindowLayer({ windows, activeWindow, onFocus, onClose, onMinimize, onMa
   appOverrides: Record<string, AppOverride>;
   activeAccount: VertexAccount | null;
   onAvatarChange: (avatar: string) => void;
-  onAccountChange: (patch: { name?: string; email?: string }) => void;
+  onAccountChange: (patch: { name?: string; email?: string; username?: string; bio?: string; banner?: string }) => void;
 }) {
   const dragRef = useRef<{ id: AppId; dx: number; dy: number } | null>(null);
 
@@ -5691,7 +5691,7 @@ function VerTubeSurface() {
   );
 }
 
-function renderWindowBody(id: AppId, settings: SystemSettings, updateSetting: (key: keyof SystemSettings | Partial<SystemSettings>, value?: boolean | string | TabHideImage[]) => void, faqOpen: number | null, setFaqOpen: (value: number | null) => void, lang: Lang, onLanguagePick: (language: Lang) => void, onPanic: () => void, onClose: (() => void) | null = null, onMinimize: (() => void) | null = null, onTrackChange: ((track: { name: string; artist: string; artwork: string } | null) => void) | null = null, translucent: boolean = false, onTranslucent: ((value: boolean) => void) | null = null, onApplyWallpaper: ((id: WallpaperId, target: "both" | "home" | "lock") => void) | null = null, appliedWallpaper: WallpaperId = "singularity", appliedLockWallpaper: WallpaperId = "singularity", onNotify: ((title: string, copy: string) => void) | null = null, wppInstalled: boolean = false, onInstallPicker: (() => void) | null = null, jarvisInstalled: boolean = false, onJarvisInstall: (() => void) | null = null, onFsociety: ((active: boolean) => void) | null = null, activeAccount: VertexAccount | null = null, onAvatarChange: ((avatar: string) => void) | null = null, onAccountChange: ((patch: { name?: string; email?: string }) => void) | null = null) {
+function renderWindowBody(id: AppId, settings: SystemSettings, updateSetting: (key: keyof SystemSettings | Partial<SystemSettings>, value?: boolean | string | TabHideImage[]) => void, faqOpen: number | null, setFaqOpen: (value: number | null) => void, lang: Lang, onLanguagePick: (language: Lang) => void, onPanic: () => void, onClose: (() => void) | null = null, onMinimize: (() => void) | null = null, onTrackChange: ((track: { name: string; artist: string; artwork: string } | null) => void) | null = null, translucent: boolean = false, onTranslucent: ((value: boolean) => void) | null = null, onApplyWallpaper: ((id: WallpaperId, target: "both" | "home" | "lock") => void) | null = null, appliedWallpaper: WallpaperId = "singularity", appliedLockWallpaper: WallpaperId = "singularity", onNotify: ((title: string, copy: string) => void) | null = null, wppInstalled: boolean = false, onInstallPicker: (() => void) | null = null, jarvisInstalled: boolean = false, onJarvisInstall: (() => void) | null = null, onFsociety: ((active: boolean) => void) | null = null, activeAccount: VertexAccount | null = null, onAvatarChange: ((avatar: string) => void) | null = null, onAccountChange: ((patch: { name?: string; email?: string; username?: string; bio?: string; banner?: string }) => void) | null = null) {
   if (id === "settings") return <SettingsSurface settings={settings} updateSetting={updateSetting} faqOpen={faqOpen} setFaqOpen={setFaqOpen} lang={lang} onLanguagePick={onLanguagePick} onPanic={onPanic} avatar={activeAccount?.avatar} accountName={activeAccount?.name} accountEmail={activeAccount?.email} accountUsername={activeAccount?.username} accountBio={activeAccount?.bio} accountBanner={activeAccount?.banner} onAvatarChange={onAvatarChange ?? undefined} onAccountChange={onAccountChange ?? undefined} appliedWallpaper={appliedWallpaper} appliedLockWallpaper={appliedLockWallpaper} onApplyWallpaper={onApplyWallpaper ?? undefined} onNotify={onNotify ?? undefined} translucent={translucent} onTranslucent={onTranslucent ?? undefined} />;
   if (id === "terminal") return <div className="window-surface term-app-surface">          <TerminalSurface installed={wppInstalled} onInstalled={onInstallPicker ?? (() => {})} onFsociety={onFsociety ?? (() => {})} jarvisInstalled={jarvisInstalled} setJarvisInstalled={onJarvisInstall ?? (() => {})} onJarvisInstall={onJarvisInstall ?? (() => {})} toggleApp={undefined} /></div>;
   if (id === "translucenttb") return <div className="window-surface"><div className="surface-kicker">{t("surf.translucent.kicker")}</div><h2 className="surface-title">{t("surf.translucent.title")}</h2><p className="surface-copy">{t("surf.translucent.body")}</p><div className="settings-list"><SettingToggle label={t("surf.translucent.enable")} help={t("surf.translucent.help")} value={translucent} onChange={(value) => onTranslucent?.(value)} /></div></div>;
@@ -6160,7 +6160,7 @@ const FONT_STYLES: { id: string; label: string; note: string; family: string }[]
   { id: "tuesday", label: "Tuesday Night", note: "Handwritten", family: '"Tuesday Night", cursive' },
 ];
 
-function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, onLanguagePick, onPanic, avatar, accountName, accountEmail, onAvatarChange, onAccountChange, appliedWallpaper, appliedLockWallpaper, onApplyWallpaper, onNotify, translucent, onTranslucent }: {
+function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, onLanguagePick, onPanic, avatar, accountName, accountEmail, accountUsername, accountBio, accountBanner, onAvatarChange, onAccountChange, appliedWallpaper, appliedLockWallpaper, onApplyWallpaper, onNotify, translucent, onTranslucent }: {
   settings: SystemSettings;
     updateSetting: (key: keyof SystemSettings | Partial<SystemSettings>, value?: boolean | string | TabHideImage[]) => void;
   faqOpen: number | null;
@@ -6244,7 +6244,7 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
     if (bannerDraft !== (accountBanner ?? "")) patch.banner = bannerDraft;
     if (!Object.keys(patch).length) { onNotify?.("Nothing to save", "Your account details are already up to date."); return; }
     onAccountChange?.(patch);
-    onNotify?.("Account updated", "Your name and email were saved.");
+    onNotify?.("Account updated", "Your shared McCrack profile was saved.");
   };
   const saveDevice = () => {
     const name = deviceDraft.trim();
