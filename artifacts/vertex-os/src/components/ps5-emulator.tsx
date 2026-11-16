@@ -1413,6 +1413,15 @@ function canInlineGame(src: string): boolean {
   try { return INLINEABLE_GAME_HOSTS.has(new URL(src).hostname); } catch { return false; }
 }
 
+function embeddedGameAsset(src: string): string | null {
+  const map = (globalThis as { __VERTEX_ASSETS__?: Record<string, string> }).__VERTEX_ASSETS__;
+  if (!map) return null;
+  const base = import.meta.env.BASE_URL;
+  const withoutBase = base && src.startsWith(base) ? src.slice(base.length) : src;
+  const key = withoutBase.replace(/^\\.\\//, "").replace(/^\\/+/, "");
+  return map[key] ?? null;
+}
+
 const GAME_URL_SHIM = `(function(){var B={genizy:1,"web-ports":1,waycrosspublicmedia:1,"gn-math":1,Stinkalistic:1,"67-Factory":1,slqntdevss:1,aukak:1,Pixelsuft:1,NotRexed:1,WhoIsEv:1,R74nCom:1,New25Said:1,faralong:1};function fix(u){if(typeof u!="string")return u;var m=/^(https?:)\\/\\/(?:cdn|fastly|gcore|testingcf)\\.jsdelivr\\.net\\/gh\\/([^\\/@]+)\\/([^\\/@]+)(?:@([^\\/]+))?(\\/[^?#]*)?(\\?[^#]*)?/i.exec(u);if(m&&B[m[2]]){return "https://raw.githack.com/"+m[2]+"/"+m[3]+"/"+(m[4]||"HEAD")+(m[5]||"")+(m[6]||"");}return u;}window.__fix=fix;try{var of=window.fetch;if(of){window.fetch=function(i,init){if(typeof i==="string")i=fix(i);return of.call(this,i,init);};}}catch(e){}try{var xo=XMLHttpRequest.prototype.open;XMLHttpRequest.prototype.open=function(){var a=[].slice.call(arguments);if(a.length>1)a[1]=fix(a[1]);return xo.apply(this,a);};}catch(e){}function sp2(proto,prop){try{var d=Object.getOwnPropertyDescriptor(proto,prop);if(!d||!d.set||!d.get)return;Object.defineProperty(proto,prop,{configurable:true,enumerable:d.enumerable,get:d.get,set:function(v){return d.set.call(this,fix(v));}});}catch(e){}}sp2(HTMLScriptElement.prototype,"src");sp2(HTMLImageElement.prototype,"src");sp2(HTMLLinkElement.prototype,"href");sp2(HTMLIFrameElement.prototype,"src");sp2(HTMLSourceElement.prototype,"src");sp2(HTMLVideoElement.prototype,"src");sp2(HTMLAudioElement.prototype,"src");})();`;
 
 function GameFrame({ game, onLoad }: { game: Ps5Game; onLoad?: () => void }) {
@@ -1421,8 +1430,10 @@ function GameFrame({ game, onLoad }: { game: Ps5Game; onLoad?: () => void }) {
   const [direct, setDirect] = useState(false);
   const [attempt, setAttempt] = useState(0);
 
+  const embeddedSrc = embeddedGameAsset(game.play);
+
   useEffect(() => {
-    if (!canInlineGame(game.play)) {
+    if (!embeddedSrc && !canInlineGame(game.play)) {
       setState("ready");
       setDirect(true);
       setSrc(null);
@@ -1436,7 +1447,7 @@ function GameFrame({ game, onLoad }: { game: Ps5Game; onLoad?: () => void }) {
 
     (async () => {
       try {
-        const res = await fetch(game.play, { mode: "cors" });
+        const res = await fetch(embeddedSrc ?? game.play, { mode: "cors" });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         let html = await res.text();
         html = html.replace(/^\uFEFF/, "");
@@ -1470,7 +1481,7 @@ function GameFrame({ game, onLoad }: { game: Ps5Game; onLoad?: () => void }) {
       cancelled = true;
       if (objUrl) URL.revokeObjectURL(objUrl);
     };
-  }, [game.play, attempt]);
+  }, [game.play, embeddedSrc, attempt]);
 
   if (game.proxy) {
     return (
