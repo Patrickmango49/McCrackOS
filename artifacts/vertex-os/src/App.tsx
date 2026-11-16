@@ -52,6 +52,14 @@ function embeddedAppDocument(path: string, remoteBase: string): string | undefin
     const binary = atob(uri.slice(uri.indexOf(",") + 1));
     const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
     let html = new TextDecoder().decode(bytes);
+    // McCrackify's standalone mobile redirect assumes a normal page URL. In
+    // the bundled iframe the parent OS already provides the responsive shell.
+    if (path === "apps/music/web/index.html") {
+      html = html.replace(
+        "if(isMobile&&!isMobilePage)window.location.replace",
+        "if(isMobile&&!isMobilePage&&window.top===window.self)window.location.replace",
+      );
+    }
     const baseTag = `<base href="${remoteBase}">`;
     html = /<head(?:\s[^>]*)?>/i.test(html)
       ? html.replace(/<head([^>]*)>/i, (head) => head + baseTag)
