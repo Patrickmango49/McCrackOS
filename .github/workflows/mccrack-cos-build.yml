@@ -38,6 +38,33 @@ jobs:
         run: npm install --no-package-lock
       - name: Type-check
         run: npm run typecheck
+      - name: Build downloadable single-file bundle
+        env:
+          PORT: 5000
+        run: |
+          set -euo pipefail
+          npm run build:single
+          mkdir -p ../../single
+          cp public/single/index.html ../../single/index.html
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const html = fs.readFileSync('../../single/index.html', 'utf8');
+          const required = [
+            'apps/messages/index.html',
+            'apps/movies/index.html',
+            'apps/music/web/index.html',
+            'apps/youtube/public/index.html',
+            'games/bowmasters.html',
+            'games/ovo-3-dimensions.html',
+            'games/ice-dodo.html',
+            'games/block-blast.html',
+            'games/jetpack-joyride.html',
+            'games/baldis-basics.html',
+          ];
+          const missing = required.filter((key) => !html.includes(key));
+          if (missing.length) throw new Error('Standalone HTML is missing bundled entries: ' + missing.join(', '));
+          console.log('Verified all bundled app entry points and local game pages (' + (html.length / 1024 / 1024).toFixed(1) + ' MiB).');
+          NODE
       - name: Build McCrackOS
         env:
           PORT: 5000
@@ -69,7 +96,7 @@ jobs:
           cd ../..
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add index.html assets browser-ui scramjet controller utils sw.js
+          git add index.html assets browser-ui scramjet controller utils sw.js single/index.html artifacts/vertex-os/public/single/index.html
           if ! git diff --cached --quiet; then
             git commit -m "Deploy McCrackOS browser integration"
             git push origin HEAD:main
