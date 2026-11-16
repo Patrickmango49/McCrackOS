@@ -26,6 +26,15 @@ const htmlPath = join(root, "dist", "single", "index.html");
 const INCLUDE_DIRS = ["images", "fonts", "wallpapers", "themes", "games"];
 /** Individual files at the root of /public to embed. */
 const INCLUDE_FILES = ["vertex-hub-logo.png", "vertex-hub-logo-halloween.png", "favicon.svg"];
+/** App entry points and their small runtime companions, stored in the repo-level /apps folder. */
+const APP_FILES = [
+  "apps/messages/index.html",
+  "apps/messages/calls.js",
+  "apps/movies/index.html",
+  "apps/music/web/index.html",
+  "apps/music/web/mobile.html",
+  "apps/youtube/public/index.html",
+];
 
 const MIME = {
   ".png": "image/png",
@@ -47,6 +56,7 @@ const MIME = {
   ".css": "text/css",
   ".json": "application/json",
   ".html": "text/html",
+  ".js": "text/javascript",
 };
 
 function mimeFor(file) {
@@ -110,6 +120,18 @@ const script = `<script>globalThis.__VERTEX_ASSETS__=${JSON.stringify(map)};</sc
 html = html.includes("<head>") ? html.replace("<head>", `<head>${script}`) : `${script}${html}`;
 
 writeFileSync(htmlPath, html);
+
+// App source lives at the repository root rather than under /public. Embed the
+// actual entry documents so the downloaded OS does not point at missing folders.
+for (const key of APP_FILES) {
+  const abs = join(root, "..", "..", key);
+  try {
+    if (!statSync(abs).isFile()) continue;
+    const buf = readFileSync(abs);
+    raw += buf.length;
+    map[key] = `data:${mimeFor(abs)};base64,${buf.toString("base64")}`;
+  } catch { /* app source may be absent in a reduced checkout */ }
+}
 
 const keys = Object.keys(map).length;
 console.log(`[inline-offline-assets] embedded ${keys} files (${(raw / 1024 / 1024).toFixed(2)} MiB) → dist/single/index.html is now ${(Buffer.byteLength(html) / 1024 / 1024).toFixed(2)} MiB`);
