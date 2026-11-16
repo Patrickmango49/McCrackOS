@@ -1797,6 +1797,7 @@ onSessionClose: (peerCode) => {
         }
         const cloud = result.account;
         account = { id: cloud.id, authUserId: cloud.id, name: cloud.name, email: cloud.email, username: cloud.username, avatar: cloud.avatar, banner: cloud.banner, bio: cloud.bio, createdAt: Date.now(), pass: "" };
+        setProfileCloudPass(""); setProfileCloudPass2("");
       } catch (error) {
         setProfileErr(error instanceof Error ? error.message : "Could not create your McCrack account.");
         setCloudAccountBusy(false);
@@ -1824,6 +1825,7 @@ onSessionClose: (peerCode) => {
       persistAccounts(guests);
       setActiveAccount(null);
       setSelectedAccount(null);
+      setProfileEmail(""); setProfileUsername(""); setProfileCloudPass(""); setProfileCloudPass2("");
       setPhase(guests.length ? "lock" : "profile");
       addToast("Signed out", "Your McCrack account has been signed out of this device.");
     } catch (error) { addToast("Sign out failed", error instanceof Error ? error.message : "Could not sign out."); }
@@ -6257,6 +6259,7 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
     if (name && name !== (accountName ?? "")) patch.name = name;
     if (email !== (accountEmail ?? "")) patch.email = email;
     const username = usernameDraft.trim();
+    if (username && !/^[a-zA-Z0-9_-]{3,24}$/.test(username)) { onNotify?.("Invalid username", "Use 3–24 letters, numbers, underscores or hyphens."); return; }
     if (username && username !== (accountUsername ?? "")) patch.username = username;
     if (bioDraft !== (accountBio ?? "")) patch.bio = bioDraft;
     if (bannerDraft !== (accountBanner ?? "")) patch.banner = bannerDraft;
