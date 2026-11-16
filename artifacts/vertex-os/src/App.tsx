@@ -1814,6 +1814,18 @@ onSessionClose: (peerCode) => {
     signInAs(account);
   }
 
+  async function handleMcCrackSignOut() {
+    try {
+      await signOutMcCrackAccount();
+      const guests = accounts.filter((item) => !item.authUserId);
+      persistAccounts(guests);
+      setActiveAccount(null);
+      setSelectedAccount(null);
+      setPhase(guests.length ? "lock" : "profile");
+      addToast("Signed out", "Your McCrack account has been signed out of this device.");
+    } catch (error) { addToast("Sign out failed", error instanceof Error ? error.message : "Could not sign out."); }
+  }
+
   function updateActiveAvatar(avatar: string) {
     if (!activeAccount) return;
     const updated: VertexAccount = { ...activeAccount, avatar };
@@ -2469,7 +2481,7 @@ onSessionClose: (peerCode) => {
           })}
         </div>
 
-        <WindowLayer windows={windows} activeWindow={activeWindow} onFocus={setActiveWindow} onClose={closeWindow} onMinimize={minimizeWindow} onMaximize={toggleMaximize} onMove={moveWindow} settings={settings} updateSetting={updateSetting} faqOpen={faqOpen} setFaqOpen={setFaqOpen} lang={chosenLang} onLanguagePick={pickLanguage} onPanic={redirectPanic} onTrackChange={setCurrentTrack} translucent={translucentTB} onTranslucent={setTranslucentTB} onApplyWallpaper={applyWallEngine} appliedWallpaper={wallpaper} appliedLockWallpaper={lockWallpaper} onNotify={addToast} wppInstalled={wppInstalled} onInstallPicker={() => { installWallpaperPicker(); setStartOpen(false); setDrawerOpen(false); addToast("Quick Wallpaper Picker", "Installed — press Alt+W to open it."); }} onJarvisInstall={() => setJarvisInstalled(true)} jarvisInstalled={jarvisInstalled} onFsociety={setFsocietyOverride} appOverrides={appOverrides} activeAccount={activeAccount} onAvatarChange={updateActiveAvatar} onAccountChange={updateActiveAccount} />
+        <WindowLayer onSignOut={handleMcCrackSignOut} windows={windows} activeWindow={activeWindow} onFocus={setActiveWindow} onClose={closeWindow} onMinimize={minimizeWindow} onMaximize={toggleMaximize} onMove={moveWindow} settings={settings} updateSetting={updateSetting} faqOpen={faqOpen} setFaqOpen={setFaqOpen} lang={chosenLang} onLanguagePick={pickLanguage} onPanic={redirectPanic} onTrackChange={setCurrentTrack} translucent={translucentTB} onTranslucent={setTranslucentTB} onApplyWallpaper={applyWallEngine} appliedWallpaper={wallpaper} appliedLockWallpaper={lockWallpaper} onNotify={addToast} wppInstalled={wppInstalled} onInstallPicker={() => { installWallpaperPicker(); setStartOpen(false); setDrawerOpen(false); addToast("Quick Wallpaper Picker", "Installed — press Alt+W to open it."); }} onJarvisInstall={() => setJarvisInstalled(true)} jarvisInstalled={jarvisInstalled} onFsociety={setFsocietyOverride} appOverrides={appOverrides} activeAccount={activeAccount} onAvatarChange={updateActiveAvatar} onAccountChange={updateActiveAccount} />
 
         <div className={`tb-hotzone tb-hotzone--${taskbarPos}`} aria-hidden="true" />
 
@@ -2724,9 +2736,10 @@ onSessionClose: (peerCode) => {
   );
 }
 
-function WindowLayer({ windows, activeWindow, onFocus, onClose, onMinimize, onMaximize, onMove, settings, updateSetting, faqOpen, setFaqOpen, lang, onLanguagePick, onPanic, onTrackChange, translucent, onTranslucent, onApplyWallpaper, appliedWallpaper, appliedLockWallpaper, onNotify, wppInstalled, onInstallPicker, jarvisInstalled, onJarvisInstall, onFsociety, appOverrides, activeAccount, onAvatarChange, onAccountChange }: {
+function WindowLayer({ onSignOut, windows, activeWindow, onFocus, onClose, onMinimize, onMaximize, onMove, settings, updateSetting, faqOpen, setFaqOpen, lang, onLanguagePick, onPanic, onTrackChange, translucent, onTranslucent, onApplyWallpaper, appliedWallpaper, appliedLockWallpaper, onNotify, wppInstalled, onInstallPicker, jarvisInstalled, onJarvisInstall, onFsociety, appOverrides, activeAccount, onAvatarChange, onAccountChange }: {
   jarvisInstalled?: boolean;
   onJarvisInstall?: () => void;
+  onSignOut: () => void;
   windows: WindowState[];
   activeWindow: AppId | null;
   onFocus: (id: AppId) => void;
@@ -2815,7 +2828,7 @@ function WindowLayer({ windows, activeWindow, onFocus, onClose, onMinimize, onMa
           </div>
         </>}
       </header>
-      <div className="window-body">{renderWindowBody(win.id, settings, updateSetting, faqOpen, setFaqOpen, lang, onLanguagePick, onPanic, () => onClose(win.id), () => onMinimize(win.id), onTrackChange, translucent, onTranslucent, onApplyWallpaper, appliedWallpaper, appliedLockWallpaper, onNotify, wppInstalled, onInstallPicker, jarvisInstalled, onJarvisInstall, onFsociety, activeAccount, onAvatarChange, onAccountChange)}</div>
+      <div className="window-body">{renderWindowBody(win.id, settings, updateSetting, faqOpen, setFaqOpen, lang, onLanguagePick, onPanic, () => onClose(win.id), () => onMinimize(win.id), onTrackChange, translucent, onTranslucent, onApplyWallpaper, appliedWallpaper, appliedLockWallpaper, onNotify, wppInstalled, onInstallPicker, jarvisInstalled, onJarvisInstall, onFsociety, activeAccount, onAvatarChange, onAccountChange, onSignOut)}</div>
     </article>;
   })}</div>;
 }
@@ -5691,8 +5704,8 @@ function VerTubeSurface() {
   );
 }
 
-function renderWindowBody(id: AppId, settings: SystemSettings, updateSetting: (key: keyof SystemSettings | Partial<SystemSettings>, value?: boolean | string | TabHideImage[]) => void, faqOpen: number | null, setFaqOpen: (value: number | null) => void, lang: Lang, onLanguagePick: (language: Lang) => void, onPanic: () => void, onClose: (() => void) | null = null, onMinimize: (() => void) | null = null, onTrackChange: ((track: { name: string; artist: string; artwork: string } | null) => void) | null = null, translucent: boolean = false, onTranslucent: ((value: boolean) => void) | null = null, onApplyWallpaper: ((id: WallpaperId, target: "both" | "home" | "lock") => void) | null = null, appliedWallpaper: WallpaperId = "singularity", appliedLockWallpaper: WallpaperId = "singularity", onNotify: ((title: string, copy: string) => void) | null = null, wppInstalled: boolean = false, onInstallPicker: (() => void) | null = null, jarvisInstalled: boolean = false, onJarvisInstall: (() => void) | null = null, onFsociety: ((active: boolean) => void) | null = null, activeAccount: VertexAccount | null = null, onAvatarChange: ((avatar: string) => void) | null = null, onAccountChange: ((patch: { name?: string; email?: string; username?: string; bio?: string; banner?: string }) => void) | null = null) {
-  if (id === "settings") return <SettingsSurface settings={settings} updateSetting={updateSetting} faqOpen={faqOpen} setFaqOpen={setFaqOpen} lang={lang} onLanguagePick={onLanguagePick} onPanic={onPanic} avatar={activeAccount?.avatar} accountName={activeAccount?.name} accountEmail={activeAccount?.email} accountUsername={activeAccount?.username} accountBio={activeAccount?.bio} accountBanner={activeAccount?.banner} onAvatarChange={onAvatarChange ?? undefined} onAccountChange={onAccountChange ?? undefined} appliedWallpaper={appliedWallpaper} appliedLockWallpaper={appliedLockWallpaper} onApplyWallpaper={onApplyWallpaper ?? undefined} onNotify={onNotify ?? undefined} translucent={translucent} onTranslucent={onTranslucent ?? undefined} />;
+function renderWindowBody(id: AppId, settings: SystemSettings, updateSetting: (key: keyof SystemSettings | Partial<SystemSettings>, value?: boolean | string | TabHideImage[]) => void, faqOpen: number | null, setFaqOpen: (value: number | null) => void, lang: Lang, onLanguagePick: (language: Lang) => void, onPanic: () => void, onClose: (() => void) | null = null, onMinimize: (() => void) | null = null, onTrackChange: ((track: { name: string; artist: string; artwork: string } | null) => void) | null = null, translucent: boolean = false, onTranslucent: ((value: boolean) => void) | null = null, onApplyWallpaper: ((id: WallpaperId, target: "both" | "home" | "lock") => void) | null = null, appliedWallpaper: WallpaperId = "singularity", appliedLockWallpaper: WallpaperId = "singularity", onNotify: ((title: string, copy: string) => void) | null = null, wppInstalled: boolean = false, onInstallPicker: (() => void) | null = null, jarvisInstalled: boolean = false, onJarvisInstall: (() => void) | null = null, onFsociety: ((active: boolean) => void) | null = null, activeAccount: VertexAccount | null = null, onAvatarChange: ((avatar: string) => void) | null = null, onAccountChange: ((patch: { name?: string; email?: string; username?: string; bio?: string; banner?: string }) => void) | null = null, onSignOut: (() => void) | null = null) {
+  if (id === "settings") return <SettingsSurface settings={settings} updateSetting={updateSetting} faqOpen={faqOpen} setFaqOpen={setFaqOpen} lang={lang} onLanguagePick={onLanguagePick} onPanic={onPanic} avatar={activeAccount?.avatar} accountName={activeAccount?.name} accountEmail={activeAccount?.email} accountUsername={activeAccount?.username} accountBio={activeAccount?.bio} accountBanner={activeAccount?.banner} onAvatarChange={onAvatarChange ?? undefined} onAccountChange={onAccountChange ?? undefined} onSignOut={onSignOut ?? undefined} appliedWallpaper={appliedWallpaper} appliedLockWallpaper={appliedLockWallpaper} onApplyWallpaper={onApplyWallpaper ?? undefined} onNotify={onNotify ?? undefined} translucent={translucent} onTranslucent={onTranslucent ?? undefined} />;
   if (id === "terminal") return <div className="window-surface term-app-surface">          <TerminalSurface installed={wppInstalled} onInstalled={onInstallPicker ?? (() => {})} onFsociety={onFsociety ?? (() => {})} jarvisInstalled={jarvisInstalled} setJarvisInstalled={onJarvisInstall ?? (() => {})} onJarvisInstall={onJarvisInstall ?? (() => {})} toggleApp={undefined} /></div>;
   if (id === "translucenttb") return <div className="window-surface"><div className="surface-kicker">{t("surf.translucent.kicker")}</div><h2 className="surface-title">{t("surf.translucent.title")}</h2><p className="surface-copy">{t("surf.translucent.body")}</p><div className="settings-list"><SettingToggle label={t("surf.translucent.enable")} help={t("surf.translucent.help")} value={translucent} onChange={(value) => onTranslucent?.(value)} /></div></div>;
   if (id === "spicetify") return <iframe className="browser-frame" src={appFallbackSrc("apps/music/web/index.html", "https://raw.githack.com/Patrickmango49/McCrackOS/main/apps/music/web/index.html")} srcDoc={embeddedAppDocument("apps/music/web/index.html", "https://raw.githack.com/Patrickmango49/McCrackOS/main/apps/music/web/")} title="McCrackify" allow="autoplay; clipboard-write; fullscreen; encrypted-media; picture-in-picture" allowFullScreen />;
@@ -6160,7 +6173,7 @@ const FONT_STYLES: { id: string; label: string; note: string; family: string }[]
   { id: "tuesday", label: "Tuesday Night", note: "Handwritten", family: '"Tuesday Night", cursive' },
 ];
 
-function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, onLanguagePick, onPanic, avatar, accountName, accountEmail, accountUsername, accountBio, accountBanner, onAvatarChange, onAccountChange, appliedWallpaper, appliedLockWallpaper, onApplyWallpaper, onNotify, translucent, onTranslucent }: {
+function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, onLanguagePick, onPanic, avatar, accountName, accountEmail, accountUsername, accountBio, accountBanner, onAvatarChange, onAccountChange, onSignOut, appliedWallpaper, appliedLockWallpaper, onApplyWallpaper, onNotify, translucent, onTranslucent }: {
   settings: SystemSettings;
     updateSetting: (key: keyof SystemSettings | Partial<SystemSettings>, value?: boolean | string | TabHideImage[]) => void;
   faqOpen: number | null;
@@ -6176,6 +6189,7 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
   accountBanner?: string;
   onAvatarChange?: (avatar: string) => void;
   onAccountChange?: (patch: { name?: string; email?: string; username?: string; bio?: string; banner?: string }) => void;
+  onSignOut?: () => void;
   appliedWallpaper: WallpaperId;
   appliedLockWallpaper: WallpaperId;
   onApplyWallpaper?: (id: WallpaperId, target: "both" | "home" | "lock") => void;
@@ -6428,6 +6442,7 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
             <div className="win-settings-row setting-stack"><div><strong>Bio</strong><small>Shown on your McCrack profile</small></div><textarea className="setting-input" value={bioDraft} onChange={(event) => setBioDraft(event.target.value.slice(0, 240))} maxLength={240} rows={3} aria-label="Profile bio" /></div>
             <div className="win-settings-row setting-stack"><div><strong>Profile banner</strong><small>Shared with McCrack Chat and other account-aware apps</small></div><div className="profile-banner-settings">{bannerDraft ? <img src={bannerDraft} alt="Profile banner preview" /> : <span>No banner selected</span>}<label className="profile-avatar-upload"><Image size={14} /> Upload banner<input type="file" accept="image/*" onChange={(event) => { const file = event.target.files?.[0]; event.target.value = ""; if (file) void avatarFromFile(file).then(setBannerDraft); }} /></label></div></div>
             <div className="setting-action-row"><button className="outline-button" onClick={saveProfile}>Save changes</button><span>Updates your shared McCrack profile.</span></div>
+            {accountEmail && onSignOut ? <div className="setting-action-row"><button className="outline-button" onClick={onSignOut}>Sign out of McCrack</button><span>Your local guest profiles remain available.</span></div> : null}
           </section>
           {onAvatarChange && <section className="win-settings-card">
             <div className="setting-group"><Image size={13} /> Profile picture</div>
