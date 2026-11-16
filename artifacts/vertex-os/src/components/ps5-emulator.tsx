@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ComponentType, type CSSProperties } from "react";
 import { Check, ChevronRight, Download, Gamepad2, Home, Loader2, Maximize, Minimize, Monitor, MoreHorizontal, Music, PanelsTopLeft, Pause, Play, Plus, Power, Search, Settings, SkipBack, SkipForward, Sparkles, Star, Trash2, UserPlus, Volume2, VolumeX, X } from "lucide-react";
+import Peer from "peerjs";
 import { getMcCrackCloudAccount, updateMcCrackCloudProfile, type McCrackCloudAccount } from "../mccrack-account";
 import { PS5_GAMES, PS5_TOTAL, type Ps5Game } from "../ps5-games";
 import { getMediaSession, publishNowPlaying, subscribeMediaSession } from "../now-playing";
@@ -1813,7 +1814,7 @@ function Ps5SettingsPanel({
                   <span>Username</span>
                   <input
                     value={username}
-                    maxLength={16}
+                    maxLength={24}
                     onChange={(e) => { setUsername(e.target.value); setError(""); }}
                     aria-label="Console username"
                     spellCheck={false}
