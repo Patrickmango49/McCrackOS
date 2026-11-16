@@ -1638,6 +1638,7 @@ onSessionClose: (peerCode) => {
         if (!cloud) {
           if (activeAccount?.authUserId) setActiveAccount(null);
           setAccounts((current) => { const next = current.filter((item) => !item.authUserId); if (next.length !== current.length) storage.write(ACCOUNTS_KEY, JSON.stringify(next)); return next; });
+          window.dispatchEvent(new CustomEvent("vertex-cloud-account-changed", { detail: null }));
           return;
         }
         const account: VertexAccount = { id: cloud.id, authUserId: cloud.id, name: cloud.name, email: cloud.email, username: cloud.username, avatar: cloud.avatar, banner: cloud.banner, bio: cloud.bio, createdAt: Date.now(), pass: "" };
@@ -1647,6 +1648,7 @@ onSessionClose: (peerCode) => {
           return next;
         });
         setActiveAccount(account);
+        window.dispatchEvent(new CustomEvent("vertex-cloud-account-changed", { detail: cloud }));
       } catch (error) {
         console.warn("McCrack account sync:", error);
       }
@@ -1657,9 +1659,11 @@ onSessionClose: (peerCode) => {
     const onMessage = (event: MessageEvent) => {
       if (event.origin === window.location.origin && event.data?.type === "mccrack-account-updated") void syncCloudAccount();
     };
+    const onLocalAccountUpdate = () => { void syncCloudAccount(); };
     window.addEventListener("storage", onStorage);
     window.addEventListener("message", onMessage);
-    return () => { alive = false; window.removeEventListener("storage", onStorage); window.removeEventListener("message", onMessage); };
+    window.addEventListener("mccrack-account-updated", onLocalAccountUpdate);
+    return () => { alive = false; window.removeEventListener("storage", onStorage); window.removeEventListener("message", onMessage); window.removeEventListener("mccrack-account-updated", onLocalAccountUpdate); };
   }, [activeAccount?.authUserId]);
 
   useEffect(() => {
