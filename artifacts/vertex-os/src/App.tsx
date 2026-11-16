@@ -6164,7 +6164,7 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
     setOfflineNote(null);
     try {
       if (location.protocol === "file:") {
-        setOfflineNote("You're already running the offline copy.");
+        setOfflineNote("You're already running the downloaded McCrackOS HTML file.");
         return;
       }
       // Vite dev servers fall back to the (almost empty) dev index.html for unknown paths —
@@ -6205,7 +6205,7 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
         document.body.appendChild(a);
         a.click();
         a.remove();
-        setOfflineNote("Download started using the browser directly. If the file looks empty, hard-refresh (Ctrl+Shift+R) and try again.");
+        setOfflineNote("Download started in your browser. If the file does not open correctly, refresh the hosted page and download the latest copy again.");
         return;
       }
       const blob = new Blob([html], { type: "text/html" });
@@ -6217,9 +6217,9 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
-      setOfflineNote("Saved as McCrackOS.html. The desktop shell and bundled artwork work offline; online apps, games and services still need internet.");
+      setOfflineNote("Saved as McCrackOS.html. The OS interface, game catalogue, local game pages and app entry pages are bundled. Internet is still needed for game content, images, streaming, APIs and cloud services.");
     } catch {
-      setOfflineNote("Couldn't grab the offline copy. Check your connection, then hard-refresh (Ctrl+Shift+R) and try again.");
+      setOfflineNote("Couldn't download the standalone HTML copy. Check your connection, refresh the hosted page and try again.");
     } finally {
       setOfflineBusy(false);
     }
@@ -6452,8 +6452,8 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
             {settings.adblock && <div className="setting-row setting-stack"><div><strong>{t("set.adblockTargetLabel")}</strong><small>{t("set.adblockTargetHelp")}</small></div><input className="setting-input setting-url" type="url" value={settings.adblockUrl} placeholder="https://hideout-now.lovable.app/" onChange={(event) => updateSetting("adblockUrl", event.target.value)} aria-label={t("set.adblockTargetLabel")} /></div>}
           </section>
           <section className="win-settings-card">
-            <div className="setting-group"><FileDown size={13} /> Offline copy</div>
-            <div className="setting-action-row"><button className="outline-button" onClick={() => void downloadOfflineHtml()} disabled={offlineBusy}>{offlineBusy ? "Working…" : "Download as HTML file"}</button><span>Saves the whole OS into one HTML file you can open directly, no browser tab or internet needed.</span></div>
+            <div className="setting-group"><FileDown size={13} /> Portable HTML copy</div>
+            <div className="setting-action-row"><button className="outline-button" onClick={() => void downloadOfflineHtml()} disabled={offlineBusy}>{offlineBusy ? "Working…" : "Download as HTML file"}</button><span>Saves McCrackOS into one HTML file you can open directly. It uses the internet for online games, images, streaming, APIs and cloud services.</span></div>
             {offlineNote && <p className="term-error">{offlineNote}</p>}
           </section>
         </>;
