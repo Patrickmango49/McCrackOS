@@ -29,6 +29,7 @@ import { MacMenuBar } from "./components/mac-menubar";
 import { LinksApp } from "./components/links-app";
 import { assetUrl } from "./asset-map";
 import { VStudiosSurface } from "./v-market";
+import { getMcCrackCloudAccount, signUpMcCrackAccount, signInMcCrackAccount, updateMcCrackCloudProfile, signOutMcCrackAccount } from "./mccrack-account";
 
 import { TerminalBanner } from "./terminal/TerminalBanner";
 import { ansiToNodes } from "./terminal/ansi";
@@ -97,7 +98,7 @@ const VERTEX_VERSION = "4.1";
 const HALLOWEEN_ACTIVE = new Date().getMonth() === 9;
 const SEASON_WALLPAPER: WallpaperId = HALLOWEEN_ACTIVE ? "halloween" : "vertex-studio";
 
-type VertexAccount = { id: string; name: string; createdAt: number; pass?: string; avatar?: string; email?: string };
+type VertexAccount = { id: string; name: string; createdAt: number; pass?: string; avatar?: string; email?: string; username?: string; banner?: string; bio?: string; authUserId?: string };
 
 function avatarFromFile(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -143,6 +144,11 @@ function readAccounts(): VertexAccount[] {
             createdAt: Number(a.createdAt) || 0,
             pass: typeof a.pass === "string" ? a.pass : "",
             avatar: typeof a.avatar === "string" ? a.avatar : "",
+            email: typeof a.email === "string" ? a.email : "",
+            username: typeof a.username === "string" ? a.username : "",
+            banner: typeof a.banner === "string" ? a.banner : "",
+            bio: typeof a.bio === "string" ? a.bio : "",
+            authUserId: typeof a.authUserId === "string" ? a.authUserId : "",
           })) as VertexAccount[];
       }
     }
@@ -999,6 +1005,11 @@ function App() {
   const [profilePass, setProfilePass] = useState("");
   const [profilePass2, setProfilePass2] = useState("");
   const [profileAvatar, setProfileAvatar] = useState("");
+  const [profileEmail, setProfileEmail] = useState("");
+  const [profileUsername, setProfileUsername] = useState("");
+  const [profileCloudPass, setProfileCloudPass] = useState("");
+  const [profileCloudPass2, setProfileCloudPass2] = useState("");
+  const [cloudAccountBusy, setCloudAccountBusy] = useState(false);
   const [setupWallpaper, setSetupWallpaper] = useState<WallpaperId>("vertex-studio");
   const [setupColorMode, setSetupColorMode] = useState<ColorMode>("dark");
   const [setupSystemStyle, setSetupSystemStyle] = useState<SystemStyle>("vertex");
@@ -1617,6 +1628,39 @@ onSessionClose: (peerCode) => {
     syncPasswordMirror();
   }, [activeAccount]);
 
+  // Keep the OS profile in step with the same Supabase session used by McCrack Chat.
+  useEffect(() => {
+    let alive = true;
+    const syncCloudAccount = async () => {
+      try {
+        const cloud = await getMcCrackCloudAccount();
+        if (!alive) return;
+        if (!cloud) {
+          if (activeAccount?.authUserId) setActiveAccount(null);
+          return;
+        }
+        const account: VertexAccount = { id: cloud.id, authUserId: cloud.id, name: cloud.name, email: cloud.email, username: cloud.username, avatar: cloud.avatar, banner: cloud.banner, bio: cloud.bio, createdAt: Date.now(), pass: "" };
+        setAccounts((current) => {
+          const next = [...current.filter((item) => item.authUserId !== cloud.id), account];
+          storage.write(ACCOUNTS_KEY, JSON.stringify(next));
+          return next;
+        });
+        setActiveAccount((current) => current?.authUserId === cloud.id ? account : current);
+      } catch (error) {
+        console.warn("McCrack account sync:", error);
+      }
+    };
+    const onStorage = (event: StorageEvent) => {
+      if (event.key?.includes("agcrweayleevlkgcmqpy-auth-token")) void syncCloudAccount();
+    };
+    const onMessage = (event: MessageEvent) => {
+      if (event.data?.type === "mccrack-account-updated") void syncCloudAccount();
+    };
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("message", onMessage);
+    return () => { alive = false; window.removeEventListener("storage", onStorage); window.removeEventListener("message", onMessage); };
+  }, [activeAccount?.authUserId]);
+
   useEffect(() => {
     const onSetAccountPassword = (event: Event) => {
       const pass = (event as CustomEvent<string>).detail ?? "";
@@ -1691,11 +1735,20 @@ onSessionClose: (peerCode) => {
     setBootVideo(true);
   }
 
-  function finishBoot() {
+  async function finishBoot() {
     if (phase !== "boot") return;
     setBootVideo(false);
     const video = bootVideoRef.current;
     if (video) { video.pause(); video.currentTime = 0; }
+    try {
+      const cloud = await getMcCrackCloudAccount();
+      if (cloud) {
+        const account: VertexAccount = { id: cloud.id, authUserId: cloud.id, name: cloud.name, email: cloud.email, username: cloud.username, avatar: cloud.avatar, banner: cloud.banner, bio: cloud.bio, createdAt: Date.now(), pass: "" };
+        persistAccounts([...accounts.filter((item) => item.authUserId !== cloud.id), account]);
+        signInAs(account);
+        return;
+      }
+    } catch (error) { console.warn("Could not restore McCrack account:", error); }
     const first = accounts.length === 0;
     setPhase(first ? "profile" : "lock");
     if (!first) { setSelectedAccount(null); setPinInput(""); setPinError(false); }
@@ -1720,15 +1773,35 @@ onSessionClose: (peerCode) => {
     storage.write(ACCOUNTS_KEY, JSON.stringify(next));
   }
 
-  function createProfile(skipCustomization = false) {
+  async function createProfile(skipCustomization = false) {
     const name = profileName.trim();
     if (!name) { setProfileErr(t("lock.needName")); return; }
     const selectedPass = skipCustomization || !profileAskPass ? "" : profilePass;
     if (selectedPass && selectedPass !== profilePass2) { setProfileErr(t("lock.passMismatch")); return; }
     const selectedWallpaper = skipCustomization ? "vertex-studio" : setupWallpaper;
     const selectedAvatar = skipCustomization ? "" : profileAvatar;
-    const account: VertexAccount = { id: `a${Date.now().toString(36)}`, name, createdAt: Date.now(), pass: selectedPass, avatar: selectedAvatar || "" };
-    persistAccounts([...accounts, account]);
+    let account: VertexAccount = { id: `a${Date.now().toString(36)}`, name, createdAt: Date.now(), pass: selectedPass, avatar: selectedAvatar || "" };
+    if (profileEmail.trim()) {
+      if (!profileUsername.trim()) { setProfileErr("Choose a unique McCrack username for your account."); return; }
+      if (profileCloudPass.length < 8 || profileCloudPass !== profileCloudPass2) { setProfileErr(profileCloudPass.length < 8 ? "Use a password with at least 8 characters." : "Your account passwords do not match."); return; }
+      setCloudAccountBusy(true);
+      try {
+        const result = await signUpMcCrackAccount({ email: profileEmail, password: profileCloudPass, username: profileUsername, name, avatar: selectedAvatar });
+        if (result.needsConfirmation || !result.account) {
+          setProfileErr("Your account was created. Check your email to confirm it, then sign in from the account screen.");
+          setCloudAccountBusy(false);
+          return;
+        }
+        const cloud = result.account;
+        account = { id: cloud.id, authUserId: cloud.id, name: cloud.name, email: cloud.email, username: cloud.username, avatar: cloud.avatar, banner: cloud.banner, bio: cloud.bio, createdAt: Date.now(), pass: "" };
+      } catch (error) {
+        setProfileErr(error instanceof Error ? error.message : "Could not create your McCrack account.");
+        setCloudAccountBusy(false);
+        return;
+      }
+      setCloudAccountBusy(false);
+    }
+    persistAccounts([...accounts.filter((item) => item.authUserId !== account.authUserId), account]);
     setWallpaper(selectedWallpaper);
     setLockWallpaper(selectedWallpaper);
     const nextSettings = { ...settings, colorMode: skipCustomization ? "dark" as ColorMode : setupColorMode, systemStyle: skipCustomization ? "vertex" as SystemStyle : setupSystemStyle, deviceName: skipCustomization ? "McCrack-PC" : (setupDeviceName.trim() || "McCrack-PC") };
@@ -1746,6 +1819,7 @@ onSessionClose: (peerCode) => {
     const updated: VertexAccount = { ...activeAccount, avatar };
     persistAccounts(accounts.map((a) => (a.id === updated.id ? updated : a)));
     setActiveAccount(updated);
+    if (activeAccount.authUserId) void updateMcCrackCloudProfile({ avatar }).catch((error) => addToast("Profile sync failed", error instanceof Error ? error.message : "Could not sync your profile picture."));
   }
 
   function updateActiveAccount(patch: { name?: string; email?: string }) {
@@ -1753,6 +1827,7 @@ onSessionClose: (peerCode) => {
     const updated: VertexAccount = { ...activeAccount, ...patch };
     persistAccounts(accounts.map((a) => (a.id === updated.id ? updated : a)));
     setActiveAccount(updated);
+    if (activeAccount.authUserId && patch.name !== undefined) void updateMcCrackCloudProfile({ name: patch.name }).catch((error) => addToast("Profile sync failed", error instanceof Error ? error.message : "Could not sync your profile."));
   }
 
   function openSignIn() {
@@ -1775,22 +1850,22 @@ onSessionClose: (peerCode) => {
     setPhase("signin");
   }
 
-  function loginWithCredentials() {
+  async function loginWithCredentials() {
     const name = loginName.trim();
-    if (!name) { setLoginErr("Enter an account name."); return; }
+    if (!name) { setLoginErr("Enter your account email or a device account name."); return; }
+    if (name.includes("@")) {
+      try {
+        const cloud = await signInMcCrackAccount(name, loginPass);
+        const account: VertexAccount = { id: cloud.id, authUserId: cloud.id, name: cloud.name, email: cloud.email, username: cloud.username, avatar: cloud.avatar, banner: cloud.banner, bio: cloud.bio, createdAt: Date.now(), pass: "" };
+        persistAccounts([...accounts.filter((item) => item.authUserId !== cloud.id), account]);
+        setLoginErr(""); setPinInput(""); setPinError(false); signInAs(account);
+      } catch (error) { setLoginErr(error instanceof Error ? error.message : "Could not sign in to McCrack."); }
+      return;
+    }
     const match = accounts.find((a) => a.name.toLowerCase() === name.toLowerCase());
-    if (!match) {
-      setLoginErr(`No account named "${name}" on this device.`);
-      return;
-    }
-    if (match.pass && match.pass !== loginPass) {
-      setLoginErr("Wrong password — try again.");
-      return;
-    }
-    setLoginErr("");
-    setPinInput("");
-    setPinError(false);
-    signInAs(match);
+    if (!match) { setLoginErr(`No device profile named "${name}". Use your McCrack email to sign in across devices.`); return; }
+    if (match.pass && match.pass !== loginPass) { setLoginErr("Wrong password — try again."); return; }
+    setLoginErr(""); setPinInput(""); setPinError(false); signInAs(match);
   }
 
   function unlock() {
@@ -2180,6 +2255,14 @@ onSessionClose: (peerCode) => {
                   <span>Profile name <em>· required</em></span>
                   <input autoFocus required value={profileName} onChange={(event) => { setProfileName(event.target.value); setProfileErr(""); }} placeholder="What should we call you?" autoComplete="off" data-testid="input-profile-name" />
                 </label>
+                <div className="profile-cloud-account">
+                  <div className="profile-setup-section-title">McCrack account <em>· recommended</em></div>
+                  <p>Use one email-based account to keep your name, username and profile picture with you across McCrackOS and McCrack Chat. You can skip this and use a local profile instead.</p>
+                  <label><span>Email address</span><input type="email" value={profileEmail} onChange={(event) => { setProfileEmail(event.target.value); setProfileErr(""); }} placeholder="you@example.com" autoComplete="email" /></label>
+                  <label><span>McCrack username</span><input value={profileUsername} onChange={(event) => { setProfileUsername(event.target.value.replace(/[^a-zA-Z0-9_-]/g, "")); setProfileErr(""); }} maxLength={24} placeholder="yourusername" autoComplete="username" /></label>
+                  <label><span>Account password</span><input type="password" value={profileCloudPass} onChange={(event) => { setProfileCloudPass(event.target.value); setProfileErr(""); }} placeholder="At least 8 characters" autoComplete="new-password" /></label>
+                  <label><span>Confirm account password</span><input type="password" value={profileCloudPass2} onChange={(event) => { setProfileCloudPass2(event.target.value); setProfileErr(""); }} placeholder="Confirm password" autoComplete="new-password" /></label>
+                </div>
                 <label>
                   <span>Device name <em>· optional</em></span>
                   <input value={setupDeviceName} onChange={(event) => setSetupDeviceName(event.target.value)} placeholder="McCrack-PC" autoComplete="off" />
@@ -2200,7 +2283,7 @@ onSessionClose: (peerCode) => {
                   </div>
                 )}
                 {profileErr ? <span className="lock-error">{profileErr}</span> : null}
-                <button type="submit" className="profile-create">Create profile & enter</button>
+                <button type="submit" className="profile-create" disabled={cloudAccountBusy}>{cloudAccountBusy ? "Creating McCrack account…" : profileEmail.trim() ? "Create McCrack account & enter" : "Create local profile & enter"}</button>
               </form>
             </section>
 
@@ -2235,7 +2318,7 @@ onSessionClose: (peerCode) => {
             </section>
           </div>
           <div className="profile-setup-footer">
-            <span>Only your profile name is required.</span>
+            <span>Only your profile name is required. A McCrack account is recommended, not required.</span>
             <button type="button" className="profile-skip" onClick={() => createProfile(true)}>Skip customization</button>
           </div>
           {accounts.length > 0 && <button className="signin-back" onClick={() => { setProfileErr(""); setPhase("picker"); }}>Back</button>}
@@ -2257,21 +2340,21 @@ onSessionClose: (peerCode) => {
                 <span className="checker-name">{account.name}</span>
               </button>
             ))}
-            <button className="checker-tile checker-add" onClick={() => { setProfileName(""); setProfilePass(""); setProfilePass2(""); setProfileAvatar(""); setProfileAskPass(false); setProfileErr(""); setPhase("profile"); }} data-testid="button-add-account">
+            <button className="checker-tile checker-add" onClick={() => { setProfileName(""); setProfilePass(""); setProfilePass2(""); setProfileAvatar(""); setProfileEmail(""); setProfileUsername(""); setProfileCloudPass(""); setProfileCloudPass2(""); setProfileAskPass(false); setProfileErr(""); setPhase("profile"); }} data-testid="button-add-account">
               <span className="checker-avatar checker-add-avatar"><Plus size={30} /></span>
               <span className="checker-name">Add profile</span>
             </button>
           </div>
-          <div className="account-divider">or log in with an account name</div>
+          <div className="account-divider">Sign in with your McCrack email, or use a local device profile</div>
           <form className="account-login" onSubmit={(event) => { event.preventDefault(); loginWithCredentials(); }}>
-            <input value={loginName} onChange={(event) => { setLoginName(event.target.value); setLoginErr(""); }} placeholder="Account name" autoComplete="off" data-testid="input-login-name" />
+            <input value={loginName} onChange={(event) => { setLoginName(event.target.value); setLoginErr(""); }} placeholder="McCrack email or device account name" autoComplete="username" data-testid="input-login-name" />
             <div className="account-login-row">
               <input type="password" value={loginPass} onChange={(event) => { setLoginPass(event.target.value); setLoginErr(""); }} placeholder="Password" data-testid="input-login-pass" />
               <button type="submit" aria-label="Log in"><ArrowRight size={15} /></button>
             </div>
             {loginErr ? <span className="lock-error">{loginErr}</span> : null}
           </form>
-          <button className="account-add" onClick={() => { setProfileName(""); setProfilePass(""); setProfilePass2(""); setProfileAvatar(""); setProfileAskPass(false); setProfileErr(""); setPhase("profile"); }}><Plus size={15} /> Create new account</button>
+          <button className="account-add" onClick={() => { setProfileName(""); setProfilePass(""); setProfilePass2(""); setProfileAvatar(""); setProfileEmail(""); setProfileUsername(""); setProfileCloudPass(""); setProfileCloudPass2(""); setProfileAskPass(false); setProfileErr(""); setPhase("profile"); }}><Plus size={15} /> Create new account</button>
           <button className="signin-back" onClick={() => setPhase("lock")}>Back</button>
         </div>
       </section>
