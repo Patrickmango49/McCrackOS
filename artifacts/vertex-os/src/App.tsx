@@ -39,6 +39,28 @@ import { GhostPayloadCard, GhostViewSurface, captureScreenHtml, ghostDeliver, gh
 import { getMediaSession, setMediaSession, notifyMediaSession, subscribeMediaSession, type MediaSession } from "./now-playing";
 const base = import.meta.env.BASE_URL.endsWith("/") ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
 const asset = (path: string) => assetUrl(base, path);
+
+function embeddedAppDocument(path: string, remoteBase: string): string | undefined {
+  const map = (globalThis as { __VERTEX_ASSETS__?: Record<string, string> }).__VERTEX_ASSETS__;
+  const uri = map?.[path];
+  if (!uri || !uri.startsWith("data:text/html;base64,")) return undefined;
+  try {
+    const binary = atob(uri.slice(uri.indexOf(",") + 1));
+    const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+    let html = new TextDecoder().decode(bytes);
+    const baseTag = `<base href="${remoteBase}">`;
+    html = /<head(?:\\s[^>]*)?>/i.test(html)
+      ? html.replace(/<head([^>]*)>/i, `const base = import.meta.env.BASE_URL.endsWith("/") ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
+const asset = (path: string) => assetUrl(base, path);
+${baseTag}`)
+      : html.replace(/<html([^>]*)>/i, `const base = import.meta.env.BASE_URL.endsWith("/") ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
+const asset = (path: string) => assetUrl(base, path);
+<head>${baseTag}</head>`);
+    return html;
+  } catch {
+    return undefined;
+  }
+}
 const MCC_LOGO_URL = "https://raw.githubusercontent.com/Patrickmango49/McCrack/refs/heads/main/assets/icons/favicon.png";
 const BROWSER_APP_ICON = asset("images/browser-icon.svg");
 const MCC_CRACKIFY_ICON = "https://cdn.simpleicons.org/spotify/1DB954";
@@ -5582,17 +5604,17 @@ function renderWindowBody(id: AppId, settings: SystemSettings, updateSetting: (k
   if (id === "settings") return <SettingsSurface settings={settings} updateSetting={updateSetting} faqOpen={faqOpen} setFaqOpen={setFaqOpen} lang={lang} onLanguagePick={onLanguagePick} onPanic={onPanic} avatar={activeAccount?.avatar} accountName={activeAccount?.name} accountEmail={activeAccount?.email} onAvatarChange={onAvatarChange ?? undefined} onAccountChange={onAccountChange ?? undefined} appliedWallpaper={appliedWallpaper} appliedLockWallpaper={appliedLockWallpaper} onApplyWallpaper={onApplyWallpaper ?? undefined} onNotify={onNotify ?? undefined} translucent={translucent} onTranslucent={onTranslucent ?? undefined} />;
   if (id === "terminal") return <div className="window-surface term-app-surface">          <TerminalSurface installed={wppInstalled} onInstalled={onInstallPicker ?? (() => {})} onFsociety={onFsociety ?? (() => {})} jarvisInstalled={jarvisInstalled} setJarvisInstalled={onJarvisInstall ?? (() => {})} onJarvisInstall={onJarvisInstall ?? (() => {})} toggleApp={undefined} /></div>;
   if (id === "translucenttb") return <div className="window-surface"><div className="surface-kicker">{t("surf.translucent.kicker")}</div><h2 className="surface-title">{t("surf.translucent.title")}</h2><p className="surface-copy">{t("surf.translucent.body")}</p><div className="settings-list"><SettingToggle label={t("surf.translucent.enable")} help={t("surf.translucent.help")} value={translucent} onChange={(value) => onTranslucent?.(value)} /></div></div>;
-  if (id === "spicetify") return <iframe className="browser-frame" src={`${base}apps/music/web/index.html`} title="McCrackify" allow="autoplay; clipboard-write; fullscreen; encrypted-media; picture-in-picture" allowFullScreen />;
+  if (id === "spicetify") return <iframe className="browser-frame" src="https://raw.githack.com/Patrickmango49/McCrackOS/main/apps/music/web/index.html" srcDoc={embeddedAppDocument("apps/music/web/index.html", "https://raw.githack.com/Patrickmango49/McCrackOS/main/apps/music/web/")} title="McCrackify" allow="autoplay; clipboard-write; fullscreen; encrypted-media; picture-in-picture" allowFullScreen />;
   const adRedir = settings.adblock && settings.adblockUrl.trim() ? settings.adblockUrl : null;
-  if (id === "movies") return <iframe className="browser-frame" src={`${base}apps/movies/index.html`} title="McCrackFlix" allow="autoplay; clipboard-write; fullscreen; encrypted-media; picture-in-picture" allowFullScreen />;
+  if (id === "movies") return <iframe className="browser-frame" src="https://raw.githack.com/Patrickmango49/McCrackOS/main/apps/movies/index.html" srcDoc={embeddedAppDocument("apps/movies/index.html", "https://raw.githack.com/Patrickmango49/McCrackOS/main/apps/movies/")} title="McCrackFlix" allow="autoplay; clipboard-write; fullscreen; encrypted-media; picture-in-picture" allowFullScreen />;
   if (id === "browser") return adRedir
     ? <iframe className="browser-frame" src={adRedir} title="Browser redirect" allow="autoplay; clipboard-write; fullscreen" />
     : <BrowserSurface lang={lang} />;
   if (id === "calculator") return <div className="window-surface calc-app-surface"><CalculatorSurface /></div>;
   if (id === "roblox") return <ProxyUrlFrame url={adRedir ?? "https://73.ip.nowgg.fun/apps/a/19900/b.html"} title="Roblox" />;
-  if (id === "messages") return <iframe className="browser-frame" src={`${base}apps/messages/index.html`} title="McCrack Chat" allow="autoplay; clipboard-write; camera; microphone; fullscreen; display-capture" allowFullScreen />;
+  if (id === "messages") return <iframe className="browser-frame" src="https://raw.githack.com/Patrickmango49/McCrackOS/main/apps/messages/index.html" srcDoc={embeddedAppDocument("apps/messages/index.html", "https://raw.githack.com/Patrickmango49/McCrackOS/main/apps/messages/")} title="McCrack Chat" allow="autoplay; clipboard-write; camera; microphone; fullscreen; display-capture" allowFullScreen />;
 
-  if (id === "vertube") return <iframe className="browser-frame" src={`${base}apps/youtube/public/index.html`} title="McCrackTube" allow="autoplay; clipboard-write; fullscreen; encrypted-media; picture-in-picture" allowFullScreen />;
+  if (id === "vertube") return <iframe className="browser-frame" src="https://raw.githack.com/Patrickmango49/McCrackOS/main/apps/youtube/public/index.html" srcDoc={embeddedAppDocument("apps/youtube/public/index.html", "https://raw.githack.com/Patrickmango49/McCrackOS/main/apps/youtube/public/")} title="McCrackTube" allow="autoplay; clipboard-write; fullscreen; encrypted-media; picture-in-picture" allowFullScreen />;
   if (id === "ghostview") return <div className="window-surface gv-app-surface"><GhostViewSurface wallpaperResolve={wallImg} onStop={() => { onClose?.(); }} /></div>;
   if (id === "games") return <div className="window-surface ps5-app-surface"><Ps5EmulatorSurface surfaces={{ spotify: CinefySurface, verTube: VerTubeSurface }} /></div>;
   if (id === "minecraft") return <MinecraftLauncherSurface />;
