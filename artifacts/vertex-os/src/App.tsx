@@ -6183,14 +6183,12 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
         "/",
         new URL(".", location.href).pathname,
       ])).map((b) => (b.endsWith("/") ? b : `${b}/`));
-      // Try the same-origin copies first (fast, always current), each with a cache-busting query so a
-      // stale cached 404 can't win. If none work, fall back to a cross-origin raw GitHub mirror — it is
-      // served with CORS * and lives on a different origin, so this site's own service worker / cache
-      // can never intercept it. That makes the download work even when a stale SW is blocking the local file.
+      // Prefer the repository's freshly built bundle so a stale copy on a static host cannot
+      // win. Both mirrors support cross-origin fetches; same-origin copies remain as fallbacks.
       const urls = [
-        ...bases.map((b) => new URL(`single/index.html${bust}`, location.origin + b).href),
         `https://cdn.jsdelivr.net/gh/Patrickmango49/McCrackOS@main/single/index.html${bust}`,
         `https://raw.githubusercontent.com/Patrickmango49/McCrackOS/main/single/index.html${bust}`,
+        ...bases.map((b) => new URL(`single/index.html${bust}`, location.origin + b).href),
       ];
       let html: string | null = null;
       for (const u of urls) {
