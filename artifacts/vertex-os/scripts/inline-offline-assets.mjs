@@ -119,9 +119,9 @@ for (const key of APP_FILES.filter((file) => file.endsWith(".html"))) {
   try {
     let appHtml = readFileSync(abs, "utf8");
     const folder = key.slice(0, key.lastIndexOf("/") + 1);
-    appHtml = appHtml.replace(/(<script\\b[^>]*\\bsrc=["'])([^"']+)(["'][^>]*>\\s*<\\/script>)/gi, (whole, start, src, end) => {
-      if (/^(data:|https?:|\\/\\/)/i.test(src)) return whole;
-      const target = folder + src.replace(/^\\.\\//, "");
+    appHtml = appHtml.replace(/(<script\b[^>]*\bsrc=["'])([^"']+)(["'][^>]*>\s*<\/script>)/gi, (whole, start, src, end) => {
+      if (/^(data:|https?:|\/\/)/i.test(src)) return whole;
+      const target = folder + src.replace(/^\.\//, "");
       return map[target] ? start + map[target] + end : whole;
     });
     map[key] = `data:text/html;base64,${Buffer.from(appHtml, "utf8").toString("base64")}`;
@@ -130,16 +130,16 @@ for (const key of APP_FILES.filter((file) => file.endsWith(".html"))) {
 
 let html = readFileSync(htmlPath, "utf8");
 
-const normalise = (value) => value.replace(/^\\.\\//, "").replace(/^\\//, "");
+const normalise = (value) => value.replace(/^\.\//, "").replace(/^\//, "");
 
-html = html.replace(/url\\((["']?)([^)"']+)\\1\\)/g, (whole, _q, path) => {
+html = html.replace(/url\((["']?)([^)"']+)\1\)/g, (whole, _q, path) => {
   if (/^data:/i.test(path)) return whole;
   const hit = map[normalise(path)];
   return hit ? `url("${hit}")` : whole;
 });
 
 html = html.replace(/href="([^"]+)"/g, (whole, path) => {
-  if (/^(data:|https?:|#|\\/\\/)/i.test(path)) return whole;
+  if (/^(data:|https?:|#|\/\/)/i.test(path)) return whole;
   const hit = map[normalise(path)];
   return hit ? `href="${hit}"` : whole;
 });
