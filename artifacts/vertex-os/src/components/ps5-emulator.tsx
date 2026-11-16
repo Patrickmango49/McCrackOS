@@ -1418,7 +1418,7 @@ function embeddedGameAsset(src: string): string | null {
   if (!map) return null;
   const base = import.meta.env.BASE_URL;
   const withoutBase = base && src.startsWith(base) ? src.slice(base.length) : src;
-  const key = withoutBase.replace(/^\\.\\//, "").replace(/^\\/+/, "");
+  const key = withoutBase.replace(/^\.\//, "").replace(/^\/+/, "");
   return map[key] ?? null;
 }
 
