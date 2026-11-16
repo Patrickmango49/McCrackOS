@@ -100,29 +100,8 @@ for (const abs of collect()) {
   map[key] = `data:${mimeFor(abs)};base64,${buf.toString("base64")}`;
 }
 
-let html = readFileSync(htmlPath, "utf8");
-
-const normalise = (value) => value.replace(/^\.\//, "").replace(/^\//, "");
-
-html = html.replace(/url\((["']?)([^)"']+)\1\)/g, (whole, _q, path) => {
-  if (/^data:/i.test(path)) return whole;
-  const hit = map[normalise(path)];
-  return hit ? `url("${hit}")` : whole;
-});
-
-html = html.replace(/href="([^"]+)"/g, (whole, path) => {
-  if (/^(data:|https?:|#|\/\/)/i.test(path)) return whole;
-  const hit = map[normalise(path)];
-  return hit ? `href="${hit}"` : whole;
-});
-
-const script = `<script>globalThis.__VERTEX_ASSETS__=${JSON.stringify(map)};</script>`;
-html = html.includes("<head>") ? html.replace("<head>", `<head>${script}`) : `${script}${html}`;
-
-writeFileSync(htmlPath, html);
-
-// App source lives at the repository root rather than under /public. Embed the
-// actual entry documents so the downloaded OS does not point at missing folders.
+// App source lives at the repository root rather than under /public. Add it
+// to the same runtime map before serialising that map into the final HTML.
 for (const key of APP_FILES) {
   const abs = join(root, "..", "..", key);
   try {
@@ -132,6 +111,43 @@ for (const key of APP_FILES) {
     map[key] = `data:${mimeFor(abs)};base64,${buf.toString("base64")}`;
   } catch { /* app source may be absent in a reduced checkout */ }
 }
+
+// Inline local app scripts when their source is already in the bundle. Any
+// remaining relative assets resolve through the app's hosted base URL at runtime.
+for (const key of APP_FILES.filter((file) => file.endsWith(".html"))) {
+  const abs = join(root, "..", "..", key);
+  try {
+    let appHtml = readFileSync(abs, "utf8");
+    const folder = key.slice(0, key.lastIndexOf("/") + 1);
+    appHtml = appHtml.replace(/(<script\\b[^>]*\\bsrc=["'])([^"']+)(["'][^>]*>\\s*<\\/script>)/gi, (whole, start, src, end) => {
+      if (/^(data:|https?:|\\/\\/)/i.test(src)) return whole;
+      const target = folder + src.replace(/^\\.\\//, "");
+      return map[target] ? start + map[target] + end : whole;
+    });
+    map[key] = `data:text/html;base64,${Buffer.from(appHtml, "utf8").toString("base64")}`;
+  } catch { /* retain the original data URI if a source cannot be read */ }
+}
+
+let html = readFileSync(htmlPath, "utf8");
+
+const normalise = (value) => value.replace(/^\\.\\//, "").replace(/^\\//, "");
+
+html = html.replace(/url\\((["']?)([^)"']+)\\1\\)/g, (whole, _q, path) => {
+  if (/^data:/i.test(path)) return whole;
+  const hit = map[normalise(path)];
+  return hit ? `url("${hit}")` : whole;
+});
+
+html = html.replace(/href="([^"]+)"/g, (whole, path) => {
+  if (/^(data:|https?:|#|\\/\\/)/i.test(path)) return whole;
+  const hit = map[normalise(path)];
+  return hit ? `href="${hit}"` : whole;
+});
+
+const assetScript = `<script>globalThis.__VERTEX_ASSETS__=${JSON.stringify(map)};</script>`;
+html = html.includes("<head>") ? html.replace("<head>", `<head>${assetScript}`) : `${assetScript}${html}`;
+
+writeFileSync(htmlPath, html);
 
 const keys = Object.keys(map).length;
 console.log(`[inline-offline-assets] embedded ${keys} files (${(raw / 1024 / 1024).toFixed(2)} MiB) → dist/single/index.html is now ${(Buffer.byteLength(html) / 1024 / 1024).toFixed(2)} MiB`);
