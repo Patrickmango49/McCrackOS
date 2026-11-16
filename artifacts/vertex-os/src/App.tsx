@@ -1655,7 +1655,7 @@ onSessionClose: (peerCode) => {
       if (event.key?.includes("agcrweayleevlkgcmqpy-auth-token")) void syncCloudAccount();
     };
     const onMessage = (event: MessageEvent) => {
-      if (event.data?.type === "mccrack-account-updated") void syncCloudAccount();
+      if (event.origin === window.location.origin && event.data?.type === "mccrack-account-updated") void syncCloudAccount();
     };
     window.addEventListener("storage", onStorage);
     window.addEventListener("message", onMessage);
@@ -1836,7 +1836,7 @@ onSessionClose: (peerCode) => {
     const updated: VertexAccount = { ...activeAccount, avatar };
     persistAccounts(accounts.map((a) => (a.id === updated.id ? updated : a)));
     setActiveAccount(updated);
-    if (activeAccount.authUserId) void updateMcCrackCloudProfile({ avatar }).then((cloud) => { if (cloud) { const synced = { ...updated, avatar: cloud.avatar }; setActiveAccount(synced); persistAccounts(accounts.map((item) => item.id === synced.id ? synced : item)); document.querySelectorAll("iframe").forEach((frame) => frame.contentWindow?.postMessage({ type: "mccrack-account-updated" }, "*")); } }).catch((error) => addToast("Profile sync failed", error instanceof Error ? error.message : "Could not sync your profile picture."));
+    if (activeAccount.authUserId) void updateMcCrackCloudProfile({ avatar }).then((cloud) => { if (cloud) { const synced = { ...updated, avatar: cloud.avatar }; setActiveAccount(synced); persistAccounts(accounts.map((item) => item.id === synced.id ? synced : item)); document.querySelectorAll("iframe").forEach((frame) => frame.contentWindow?.postMessage({ type: "mccrack-account-updated" }, window.location.origin)); } }).catch((error) => addToast("Profile sync failed", error instanceof Error ? error.message : "Could not sync your profile picture."));
   }
 
   function updateActiveAccount(patch: { name?: string; email?: string; username?: string; bio?: string; banner?: string }) {
