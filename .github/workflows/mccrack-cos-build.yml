@@ -6,6 +6,7 @@ on:
       - "artifacts/vertex-os/**"
       - "apps/**"
       - ".github/workflows/mccrack-cos-build.yml"
+      - ".github/workflows/deploy-neocities.yml"
   workflow_dispatch:
 
 permissions:
