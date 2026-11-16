@@ -5665,11 +5665,14 @@ function NowPlayingCard() {
     return null;
 }
 
-const EAGLER_SINGLE = `${base}eaglercraft/index.html`;
-const EAGLER_ARCHMC = `${base}eaglercraft/index.html?server=wss%3A%2F%2Fmc.arch.lol%2F`;
-const MODPACK_WASM = `${base}eaglercraft-modpack/index.html`;
-const EAGLER_112 = `${base}eaglercraft-1.12/index.html`;
-const EAGLER_152 = `${base}eaglercraft-1.5/index.html`;
+const MINECRAFT_ASSET_BASE = location.protocol === "file:"
+  ? "https://raw.githack.com/Patrickmango49/McCrackOS/main/artifacts/vertex-os/public/"
+  : base;
+const EAGLER_SINGLE = `${MINECRAFT_ASSET_BASE}eaglercraft/index.html`;
+const EAGLER_ARCHMC = `${MINECRAFT_ASSET_BASE}eaglercraft/index.html?server=wss%3A%2F%2Fmc.arch.lol%2F`;
+const MODPACK_WASM = `${MINECRAFT_ASSET_BASE}eaglercraft-modpack/index.html`;
+const EAGLER_112 = `${MINECRAFT_ASSET_BASE}eaglercraft-1.12/index.html`;
+const EAGLER_152 = `${MINECRAFT_ASSET_BASE}eaglercraft-1.5/index.html`;
 const MC_STORE_ICON = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTKxNUnlY6yNmkSbNQvrCsC_ijNVTFl463i6SO8b5jCo9LsAvicsF9PqTKZ&s=10";
 const MC_TRAILER = "https://cdn.eaglercraft.ru/Official_Minecraft_Trailer.webm";
 const MC_LOGO_SVG = "https://www.minecraft.net/content/dam/minecraftnet/games/minecraft/logos/Global-Header_MCCB-Logo_300x51.svg";
