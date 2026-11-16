@@ -124,8 +124,23 @@ export async function updateMcCrackCloudProfile(patch: McCrackProfilePatch): Pro
   if (patch.bio !== undefined) row.bio = patch.bio.slice(0, 240);
   if (patch.avatar !== undefined) row.avatar_url = (await uploadProfileImage(user.id, patch.avatar, "avatar.jpg")) || null;
   if (patch.banner !== undefined) row.banner_url = (await uploadProfileImage(user.id, patch.banner, "banner.jpg")) || null;
-  const { error } = await mccrackAuth.from("profiles").upsert({ id: user.id, ...row }, { onConflict: "id" });
+  const { data: updated, error } = await mccrackAuth.from("profiles").update(row).eq("id", user.id).select("id").maybeSingle();
   if (error) throw error;
+  if (!updated) {
+    const username = String(patch.username ?? user.user_metadata?.username ?? user.email?.split("@")[0] ?? "user").toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0, 24) || "user";
+    const displayName = String(patch.name ?? user.user_metadata?.display_name ?? username).slice(0, 40);
+    const { error: insertError } = await mccrackAuth.from("profiles").insert({
+      id: user.id,
+      username,
+      display_name: displayName,
+      status: String(patch.status ?? "Available to chat"),
+      avatar_url: typeof row.avatar_url === "string" ? row.avatar_url : null,
+      banner_url: typeof row.banner_url === "string" ? row.banner_url : null,
+      bio: String(patch.bio ?? ""),
+      updated_at: new Date().toISOString(),
+    });
+    if (insertError) throw insertError;
+  }
   return getMcCrackCloudAccount();
 }
 
