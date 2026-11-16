@@ -100,8 +100,12 @@ export async function signUpMcCrackAccount(input: {
     bio: "",
     updated_at: new Date().toISOString(),
   };
-  const { error: profileError } = await mccrackAuth.from("profiles").upsert(row, { onConflict: "id" });
-  if (profileError) throw profileError;
+  let profileSave = await mccrackAuth.from("profiles").upsert(row, { onConflict: "id" });
+  if (profileSave.error && /username|duplicate|unique/i.test(profileSave.error.message || "")) {
+    row.username = username.slice(0, 17) + "_" + userId.slice(0, 5);
+    profileSave = await mccrackAuth.from("profiles").upsert(row, { onConflict: "id" });
+  }
+  if (profileSave.error) throw profileSave.error;
   return { account: await getMcCrackCloudAccount(), needsConfirmation: false };
 }
 
