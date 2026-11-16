@@ -1783,6 +1783,7 @@ function Ps5SettingsPanel({
                 <div className="profile-summary-name">
                   <h3>{displayName || account?.displayName || "Player"}</h3>
                   <p>@{username || account?.username || "guest"}</p>
+                  {account?.cloudUserId ? <small className="ps5-cloud-account-label">McCrack account · {account.email || "Connected"}</small> : <small className="ps5-cloud-account-label">Guest profile · this device only</small>}
                 </div>
               </div>
               <div className="profile-editor">
