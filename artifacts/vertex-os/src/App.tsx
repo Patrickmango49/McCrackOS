@@ -50,12 +50,8 @@ function embeddedAppDocument(path: string, remoteBase: string): string | undefin
     let html = new TextDecoder().decode(bytes);
     const baseTag = `<base href="${remoteBase}">`;
     html = /<head(?:\\s[^>]*)?>/i.test(html)
-      ? html.replace(/<head([^>]*)>/i, `const base = import.meta.env.BASE_URL.endsWith("/") ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
-const asset = (path: string) => assetUrl(base, path);
-${baseTag}`)
-      : html.replace(/<html([^>]*)>/i, `const base = import.meta.env.BASE_URL.endsWith("/") ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
-const asset = (path: string) => assetUrl(base, path);
-<head>${baseTag}</head>`);
+      ? html.replace(/<head([^>]*)>/i, (head) => head + baseTag)
+      : html.replace(/<html([^>]*)>/i, (rootTag) => rootTag + "<head>" + baseTag + "</head>");
     return html;
   } catch {
     return undefined;
