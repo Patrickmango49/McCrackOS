@@ -1636,7 +1636,10 @@ onSessionClose: (peerCode) => {
         const cloud = await getMcCrackCloudAccount();
         if (!alive) return;
         if (!cloud) {
-          if (activeAccount?.authUserId) setActiveAccount(null);
+          if (activeAccount?.authUserId) {
+            setActiveAccount(null);
+            setAccounts((current) => { const next = current.filter((item) => !item.authUserId); storage.write(ACCOUNTS_KEY, JSON.stringify(next)); return next; });
+          }
           return;
         }
         const account: VertexAccount = { id: cloud.id, authUserId: cloud.id, name: cloud.name, email: cloud.email, username: cloud.username, avatar: cloud.avatar, banner: cloud.banner, bio: cloud.bio, createdAt: Date.now(), pass: "" };
@@ -1831,7 +1834,7 @@ onSessionClose: (peerCode) => {
     const updated: VertexAccount = { ...activeAccount, avatar };
     persistAccounts(accounts.map((a) => (a.id === updated.id ? updated : a)));
     setActiveAccount(updated);
-    if (activeAccount.authUserId) void updateMcCrackCloudProfile({ avatar }).catch((error) => addToast("Profile sync failed", error instanceof Error ? error.message : "Could not sync your profile picture."));
+    if (activeAccount.authUserId) void updateMcCrackCloudProfile({ avatar }).then((cloud) => { if (cloud) { const synced = { ...updated, avatar: cloud.avatar }; setActiveAccount(synced); persistAccounts(accounts.map((item) => item.id === synced.id ? synced : item)); document.querySelectorAll("iframe").forEach((frame) => frame.contentWindow?.postMessage({ type: "mccrack-account-updated" }, "*")); } }).catch((error) => addToast("Profile sync failed", error instanceof Error ? error.message : "Could not sync your profile picture."));
   }
 
   function updateActiveAccount(patch: { name?: string; email?: string; username?: string; bio?: string; banner?: string }) {
@@ -1839,7 +1842,7 @@ onSessionClose: (peerCode) => {
     const updated: VertexAccount = { ...activeAccount, ...patch };
     persistAccounts(accounts.map((a) => (a.id === updated.id ? updated : a)));
     setActiveAccount(updated);
-    if (activeAccount.authUserId) void updateMcCrackCloudProfile({ name: patch.name, username: patch.username, bio: patch.bio, banner: patch.banner }).then((cloud) => { if (cloud) { const synced: VertexAccount = { ...updated, name: cloud.name, username: cloud.username, avatar: cloud.avatar, banner: cloud.banner, bio: cloud.bio }; setActiveAccount(synced); persistAccounts(accounts.map((item) => item.id === synced.id ? synced : item)); } }).catch((error) => addToast("Profile sync failed", error instanceof Error ? error.message : "Could not sync your profile."));
+    if (activeAccount.authUserId) void updateMcCrackCloudProfile({ name: patch.name, username: patch.username, bio: patch.bio, banner: patch.banner }).then((cloud) => { if (cloud) { const synced: VertexAccount = { ...updated, name: cloud.name, username: cloud.username, avatar: cloud.avatar, banner: cloud.banner, bio: cloud.bio }; setActiveAccount(synced); persistAccounts(accounts.map((item) => item.id === synced.id ? synced : item)); document.querySelectorAll("iframe").forEach((frame) => frame.contentWindow?.postMessage({ type: "mccrack-account-updated" }, "*")); } }).catch((error) => addToast("Profile sync failed", error instanceof Error ? error.message : "Could not sync your profile."));
   }
 
   function openSignIn() {
@@ -2333,6 +2336,7 @@ onSessionClose: (peerCode) => {
             <span>Only your profile name is required. A McCrack account is recommended, not required.</span>
             <button type="button" className="profile-skip" onClick={() => createProfile(true)}>Skip customization</button>
           </div>
+          <div className="profile-setup-footer"><button type="button" className="signin-back" onClick={() => { setProfileErr(""); setLoginErr(""); setLoginName(""); setLoginPass(""); setPhase("picker"); }}>Already have a McCrack account? Sign in</button></div>
           {accounts.length > 0 && <button className="signin-back" onClick={() => { setProfileErr(""); setPhase("picker"); }}>Back</button>}
         </div>
       </section>
