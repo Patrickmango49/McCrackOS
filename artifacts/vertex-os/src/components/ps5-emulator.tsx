@@ -337,11 +337,11 @@ export function Ps5EmulatorSurface({ surfaces }: { surfaces?: Ps5EmbeddedSurface
       if (event.key?.includes("agcrweayleevlkgcmqpy-auth-token")) void loadCloudAccount();
     };
     void loadCloudAccount();
-    window.addEventListener("mccrack-account-updated", onAccountUpdated);
+    window.addEventListener("vertex-cloud-account-changed", onAccountUpdated);
     window.addEventListener("storage", onStorage);
     return () => {
       alive = false;
-      window.removeEventListener("mccrack-account-updated", onAccountUpdated);
+      window.removeEventListener("vertex-cloud-account-changed", onAccountUpdated);
       window.removeEventListener("storage", onStorage);
     };
   }, []);
