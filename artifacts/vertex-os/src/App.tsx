@@ -1636,15 +1636,13 @@ onSessionClose: (peerCode) => {
         const cloud = await getMcCrackCloudAccount();
         if (!alive) return;
         if (!cloud) {
-          if (activeAccount?.authUserId) {
-            setActiveAccount(null);
-            setAccounts((current) => { const next = current.filter((item) => !item.authUserId); storage.write(ACCOUNTS_KEY, JSON.stringify(next)); return next; });
-          }
+          if (activeAccount?.authUserId) setActiveAccount(null);
+          setAccounts((current) => { const next = current.filter((item) => !item.authUserId); if (next.length !== current.length) storage.write(ACCOUNTS_KEY, JSON.stringify(next)); return next; });
           return;
         }
         const account: VertexAccount = { id: cloud.id, authUserId: cloud.id, name: cloud.name, email: cloud.email, username: cloud.username, avatar: cloud.avatar, banner: cloud.banner, bio: cloud.bio, createdAt: Date.now(), pass: "" };
         setAccounts((current) => {
-          const next = [...current.filter((item) => item.authUserId !== cloud.id), account];
+          const next = [...current.filter((item) => !item.authUserId), account];
           storage.write(ACCOUNTS_KEY, JSON.stringify(next));
           return next;
         });
@@ -1747,12 +1745,14 @@ onSessionClose: (peerCode) => {
       const cloud = await getMcCrackCloudAccount();
       if (cloud) {
         const account: VertexAccount = { id: cloud.id, authUserId: cloud.id, name: cloud.name, email: cloud.email, username: cloud.username, avatar: cloud.avatar, banner: cloud.banner, bio: cloud.bio, createdAt: Date.now(), pass: "" };
-        persistAccounts([...accounts.filter((item) => item.authUserId !== cloud.id), account]);
+        persistAccounts([...accounts.filter((item) => !item.authUserId), account]);
         signInAs(account);
         return;
       }
     } catch (error) { console.warn("Could not restore McCrack account:", error); }
-    const first = accounts.length === 0;
+    const guestAccounts = accounts.filter((item) => !item.authUserId);
+    if (guestAccounts.length !== accounts.length) persistAccounts(guestAccounts);
+    const first = guestAccounts.length === 0;
     setPhase(first ? "profile" : "lock");
     if (!first) { setSelectedAccount(null); setPinInput(""); setPinError(false); }
   }
