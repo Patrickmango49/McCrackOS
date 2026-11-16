@@ -6199,7 +6199,7 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
-      setOfflineNote("Saved as McCrackOS.html. The desktop shell, artwork, game catalogue, and bundled local game files are included. Online games, apps, and services still need internet.");
+      setOfflineNote("Saved as McCrackOS.html. The desktop shell and bundled artwork work offline; online apps, games and services still need internet.");
     } catch {
       setOfflineNote("Couldn't grab the offline copy. Check your connection, then hard-refresh (Ctrl+Shift+R) and try again.");
     } finally {
