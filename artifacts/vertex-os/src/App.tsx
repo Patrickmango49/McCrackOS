@@ -1645,7 +1645,7 @@ onSessionClose: (peerCode) => {
           storage.write(ACCOUNTS_KEY, JSON.stringify(next));
           return next;
         });
-        setActiveAccount((current) => current?.authUserId === cloud.id ? account : current);
+        setActiveAccount(account);
       } catch (error) {
         console.warn("McCrack account sync:", error);
       }
@@ -1822,12 +1822,12 @@ onSessionClose: (peerCode) => {
     if (activeAccount.authUserId) void updateMcCrackCloudProfile({ avatar }).catch((error) => addToast("Profile sync failed", error instanceof Error ? error.message : "Could not sync your profile picture."));
   }
 
-  function updateActiveAccount(patch: { name?: string; email?: string }) {
+  function updateActiveAccount(patch: { name?: string; email?: string; username?: string; bio?: string; banner?: string }) {
     if (!activeAccount) return;
     const updated: VertexAccount = { ...activeAccount, ...patch };
     persistAccounts(accounts.map((a) => (a.id === updated.id ? updated : a)));
     setActiveAccount(updated);
-    if (activeAccount.authUserId && patch.name !== undefined) void updateMcCrackCloudProfile({ name: patch.name }).catch((error) => addToast("Profile sync failed", error instanceof Error ? error.message : "Could not sync your profile."));
+    if (activeAccount.authUserId) void updateMcCrackCloudProfile({ name: patch.name, username: patch.username, bio: patch.bio, banner: patch.banner }).then((cloud) => { if (cloud) { const synced: VertexAccount = { ...updated, name: cloud.name, username: cloud.username, avatar: cloud.avatar, banner: cloud.banner, bio: cloud.bio }; setActiveAccount(synced); persistAccounts(accounts.map((item) => item.id === synced.id ? synced : item)); } }).catch((error) => addToast("Profile sync failed", error instanceof Error ? error.message : "Could not sync your profile."));
   }
 
   function openSignIn() {
@@ -5692,7 +5692,7 @@ function VerTubeSurface() {
 }
 
 function renderWindowBody(id: AppId, settings: SystemSettings, updateSetting: (key: keyof SystemSettings | Partial<SystemSettings>, value?: boolean | string | TabHideImage[]) => void, faqOpen: number | null, setFaqOpen: (value: number | null) => void, lang: Lang, onLanguagePick: (language: Lang) => void, onPanic: () => void, onClose: (() => void) | null = null, onMinimize: (() => void) | null = null, onTrackChange: ((track: { name: string; artist: string; artwork: string } | null) => void) | null = null, translucent: boolean = false, onTranslucent: ((value: boolean) => void) | null = null, onApplyWallpaper: ((id: WallpaperId, target: "both" | "home" | "lock") => void) | null = null, appliedWallpaper: WallpaperId = "singularity", appliedLockWallpaper: WallpaperId = "singularity", onNotify: ((title: string, copy: string) => void) | null = null, wppInstalled: boolean = false, onInstallPicker: (() => void) | null = null, jarvisInstalled: boolean = false, onJarvisInstall: (() => void) | null = null, onFsociety: ((active: boolean) => void) | null = null, activeAccount: VertexAccount | null = null, onAvatarChange: ((avatar: string) => void) | null = null, onAccountChange: ((patch: { name?: string; email?: string }) => void) | null = null) {
-  if (id === "settings") return <SettingsSurface settings={settings} updateSetting={updateSetting} faqOpen={faqOpen} setFaqOpen={setFaqOpen} lang={lang} onLanguagePick={onLanguagePick} onPanic={onPanic} avatar={activeAccount?.avatar} accountName={activeAccount?.name} accountEmail={activeAccount?.email} onAvatarChange={onAvatarChange ?? undefined} onAccountChange={onAccountChange ?? undefined} appliedWallpaper={appliedWallpaper} appliedLockWallpaper={appliedLockWallpaper} onApplyWallpaper={onApplyWallpaper ?? undefined} onNotify={onNotify ?? undefined} translucent={translucent} onTranslucent={onTranslucent ?? undefined} />;
+  if (id === "settings") return <SettingsSurface settings={settings} updateSetting={updateSetting} faqOpen={faqOpen} setFaqOpen={setFaqOpen} lang={lang} onLanguagePick={onLanguagePick} onPanic={onPanic} avatar={activeAccount?.avatar} accountName={activeAccount?.name} accountEmail={activeAccount?.email} accountUsername={activeAccount?.username} accountBio={activeAccount?.bio} accountBanner={activeAccount?.banner} onAvatarChange={onAvatarChange ?? undefined} onAccountChange={onAccountChange ?? undefined} appliedWallpaper={appliedWallpaper} appliedLockWallpaper={appliedLockWallpaper} onApplyWallpaper={onApplyWallpaper ?? undefined} onNotify={onNotify ?? undefined} translucent={translucent} onTranslucent={onTranslucent ?? undefined} />;
   if (id === "terminal") return <div className="window-surface term-app-surface">          <TerminalSurface installed={wppInstalled} onInstalled={onInstallPicker ?? (() => {})} onFsociety={onFsociety ?? (() => {})} jarvisInstalled={jarvisInstalled} setJarvisInstalled={onJarvisInstall ?? (() => {})} onJarvisInstall={onJarvisInstall ?? (() => {})} toggleApp={undefined} /></div>;
   if (id === "translucenttb") return <div className="window-surface"><div className="surface-kicker">{t("surf.translucent.kicker")}</div><h2 className="surface-title">{t("surf.translucent.title")}</h2><p className="surface-copy">{t("surf.translucent.body")}</p><div className="settings-list"><SettingToggle label={t("surf.translucent.enable")} help={t("surf.translucent.help")} value={translucent} onChange={(value) => onTranslucent?.(value)} /></div></div>;
   if (id === "spicetify") return <iframe className="browser-frame" src={appFallbackSrc("apps/music/web/index.html", "https://raw.githack.com/Patrickmango49/McCrackOS/main/apps/music/web/index.html")} srcDoc={embeddedAppDocument("apps/music/web/index.html", "https://raw.githack.com/Patrickmango49/McCrackOS/main/apps/music/web/")} title="McCrackify" allow="autoplay; clipboard-write; fullscreen; encrypted-media; picture-in-picture" allowFullScreen />;
@@ -6171,8 +6171,11 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
   avatar?: string;
   accountName?: string;
   accountEmail?: string;
+  accountUsername?: string;
+  accountBio?: string;
+  accountBanner?: string;
   onAvatarChange?: (avatar: string) => void;
-  onAccountChange?: (patch: { name?: string; email?: string }) => void;
+  onAccountChange?: (patch: { name?: string; email?: string; username?: string; bio?: string; banner?: string }) => void;
   appliedWallpaper: WallpaperId;
   appliedLockWallpaper: WallpaperId;
   onApplyWallpaper?: (id: WallpaperId, target: "both" | "home" | "lock") => void;
@@ -6188,6 +6191,9 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
   const [query, setQuery] = useState("");
   const [nameDraft, setNameDraft] = useState(accountName ?? "");
   const [emailDraft, setEmailDraft] = useState(accountEmail ?? "");
+  const [usernameDraft, setUsernameDraft] = useState("");
+  const [bioDraft, setBioDraft] = useState("");
+  const [bannerDraft, setBannerDraft] = useState("");
   const [deviceDraft, setDeviceDraft] = useState(settings.deviceName);
   const [passwordDraft, setPasswordDraft] = useState("");
   const [passwordSaved, setPasswordSaved] = useState(false);
@@ -6216,6 +6222,9 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
 
   useEffect(() => { setNameDraft(accountName ?? ""); }, [accountName]);
   useEffect(() => { setEmailDraft(accountEmail ?? ""); }, [accountEmail]);
+  useEffect(() => { setUsernameDraft(accountUsername ?? ""); }, [accountUsername]);
+  useEffect(() => { setBioDraft(accountBio ?? ""); }, [accountBio]);
+  useEffect(() => { setBannerDraft(accountBanner ?? ""); }, [accountBanner]);
   useEffect(() => { setDeviceDraft(settings.deviceName); }, [settings.deviceName]);
 
   const currentHome = wallpapers.find((w) => w.id === appliedWallpaper);
@@ -6224,11 +6233,15 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
   const avatarNode = avatar ? <AvatarGlyph value={avatar} name={accountName ?? "?"} size={40} /> : <span>{(accountName ?? "?").slice(0, 1).toUpperCase()}</span>;
 
   const saveProfile = () => {
-    const patch: { name?: string; email?: string } = {};
+    const patch: { name?: string; email?: string; username?: string; bio?: string; banner?: string } = {};
     const name = nameDraft.trim();
     const email = emailDraft.trim();
     if (name && name !== (accountName ?? "")) patch.name = name;
     if (email !== (accountEmail ?? "")) patch.email = email;
+    const username = usernameDraft.trim();
+    if (username && username !== (accountUsername ?? "")) patch.username = username;
+    if (bioDraft !== (accountBio ?? "")) patch.bio = bioDraft;
+    if (bannerDraft !== (accountBanner ?? "")) patch.banner = bannerDraft;
     if (!Object.keys(patch).length) { onNotify?.("Nothing to save", "Your account details are already up to date."); return; }
     onAccountChange?.(patch);
     onNotify?.("Account updated", "Your name and email were saved.");
@@ -6408,10 +6421,13 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
               <input className="setting-input" value={nameDraft} onChange={(event) => setNameDraft(event.target.value)} placeholder="Your name" aria-label="Account name" />
             </div>
             <div className="win-settings-row setting-stack">
-              <div><strong>Email address</strong><small>The Gmail you are signed in with</small></div>
-              <input className="setting-input setting-url" type="email" value={emailDraft} onChange={(event) => setEmailDraft(event.target.value)} placeholder="you@gmail.com" aria-label="Email address" />
+              <div><strong>Email address</strong><small>Your McCrack sign-in email</small></div>
+              <input className="setting-input setting-url" type="email" value={emailDraft} readOnly aria-label="McCrack sign-in email" />
             </div>
-            <div className="setting-action-row"><button className="outline-button" onClick={saveProfile}>Save changes</button><span>Updates your name and email.</span></div>
+            <div className="win-settings-row setting-stack"><div><strong>Username</strong><small>Your public @username across McCrack</small></div><input className="setting-input" value={usernameDraft} onChange={(event) => setUsernameDraft(event.target.value.replace(/[^a-zA-Z0-9_-]/g, ""))} maxLength={24} placeholder="yourusername" aria-label="McCrack username" /></div>
+            <div className="win-settings-row setting-stack"><div><strong>Bio</strong><small>Shown on your McCrack profile</small></div><textarea className="setting-input" value={bioDraft} onChange={(event) => setBioDraft(event.target.value.slice(0, 240))} maxLength={240} rows={3} aria-label="Profile bio" /></div>
+            <div className="win-settings-row setting-stack"><div><strong>Profile banner</strong><small>Shared with McCrack Chat and other account-aware apps</small></div><div className="profile-banner-settings">{bannerDraft ? <img src={bannerDraft} alt="Profile banner preview" /> : <span>No banner selected</span>}<label className="profile-avatar-upload"><Image size={14} /> Upload banner<input type="file" accept="image/*" onChange={(event) => { const file = event.target.files?.[0]; event.target.value = ""; if (file) void avatarFromFile(file).then(setBannerDraft); }} /></label></div></div>
+            <div className="setting-action-row"><button className="outline-button" onClick={saveProfile}>Save changes</button><span>Updates your shared McCrack profile.</span></div>
           </section>
           {onAvatarChange && <section className="win-settings-card">
             <div className="setting-group"><Image size={13} /> Profile picture</div>
