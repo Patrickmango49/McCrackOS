@@ -84,8 +84,8 @@
   --violet: #c3a4ff;
   --orange: #ffbe7b;
   --danger: #ff8e99;
-  --font-ui: "Space Grotesk", "Trebuchet MS", sans-serif;
-  --font-display: "Orbitron", "Space Grotesk", sans-serif;
+  --font-ui: "Quicksand", "Trebuchet MS", sans-serif;
+  --font-display: "Quicksand", "Space Grotesk", sans-serif;
   color: var(--ink);
   font-family: var(--font-ui);
   background: #050a13;
@@ -5842,7 +5842,7 @@ html[data-style="macos"] .desktop-widget { border-color:rgba(219,225,255,.23); b
 @font-face { font-family: "Tuesday Night"; src: url("/fonts/Tuesday Night.otf") format("opentype"); font-style: normal; font-display: swap; }
 @font-face { font-family: "Minecraftia"; src: local("Minecraftia"), url("https://fonts.cdnfonts.com/s/31977/Minecraftia.woff") format("woff"); font-style: normal; font-display: swap; }
 
-:root[data-font="vertex"] { --font-ui: "Space Grotesk", "Trebuchet MS", sans-serif; --font-display: "Orbitron", "Space Grotesk", sans-serif; }
+:root[data-font="vertex"] { --font-ui: "Quicksand", "Trebuchet MS", sans-serif; --font-display: "Quicksand", "Space Grotesk", sans-serif; }
 :root[data-font="minecraft"] { --font-ui: "Minecraftia", "Courier New", monospace; --font-display: "Minecraftia", "Courier New", monospace; }
 :root[data-font="aquatico"] { --font-ui: "Aquatico", "Space Grotesk", sans-serif; --font-display: "Aquatico", sans-serif; }
 :root[data-font="anurati"] { --font-ui: "Anurati", "Space Grotesk", sans-serif; --font-display: "Anurati", sans-serif; }
@@ -7045,3 +7045,15 @@ to{opacity:1;transform:translateY(0)}
 .profile-banner-settings img{width:100%;height:86px;object-fit:cover;border-radius:11px;border:1px solid var(--line)}
 .profile-banner-settings>span{display:grid;place-items:center;height:70px;border:1px dashed var(--line);border-radius:11px;color:var(--muted);font-size:11px}
 .profile-banner-settings .profile-avatar-upload{align-self:flex-start}
+
+
+/* McCrack Chat OS call banner + optional McCrackify mini-player */
+.os-incoming-call{position:fixed;z-index:100000;top:18px;left:50%;transform:translateX(-50%);width:min(620px,calc(100vw - 28px));display:flex;align-items:center;gap:13px;padding:13px 15px;border:1px solid rgba(141,230,255,.35);border-radius:18px;background:rgba(7,15,27,.94);color:#f4f7fb;box-shadow:0 18px 55px rgba(0,0,0,.55),0 0 32px rgba(55,198,237,.16);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);font-family:var(--font-ui)}
+.os-incoming-call-mark{width:40px;height:40px;flex:0 0 40px;border-radius:13px;display:grid;place-items:center;background:rgba(48,190,120,.16);color:#62e6a0;font-size:22px}
+.os-incoming-call-copy{min-width:0;flex:1;display:flex;flex-direction:column;gap:3px}.os-incoming-call-copy strong{font-size:13px}.os-incoming-call-copy span{font-size:11px;color:#aab8ca;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.os-incoming-call button{padding:9px 13px;border-radius:11px;color:white;font-size:11px;font-weight:700}.os-call-decline{background:#d94757}.os-call-answer{background:#209b61}
+.music-widget{position:fixed;z-index:95;left:22px;bottom:82px;width:min(292px,calc(100vw - 32px));padding:13px;border:1px solid rgba(205,225,246,.2);border-radius:18px;background:rgba(7,15,27,.9);color:var(--ink);box-shadow:0 16px 45px rgba(0,0,0,.4);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);font-family:var(--font-ui)}
+.music-widget-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;color:var(--muted);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}.music-widget-head span{display:flex;align-items:center;gap:7px}.music-widget-head i{width:7px;height:7px;border-radius:50%;background:#36d98b;box-shadow:0 0 9px #36d98b}.music-widget-head button{color:var(--muted);font-size:20px;line-height:1;padding:0 3px}
+.music-widget-track{display:flex;align-items:center;gap:11px;min-width:0}.music-widget-track img,.music-widget-art{width:54px;height:54px;flex:0 0 54px;object-fit:cover;border-radius:11px;background:linear-gradient(135deg,#12364a,#17203c);display:grid;place-items:center;color:var(--cyan);font-size:23px}.music-widget-meta{display:flex;flex-direction:column;gap:5px;min-width:0}.music-widget-meta strong,.music-widget-meta span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.music-widget-meta strong{font-size:13px}.music-widget-meta span{font-size:11px;color:var(--muted)}
+.music-widget-seek{width:100%;height:4px;margin:13px 0 0;accent-color:var(--cyan);cursor:pointer}.music-widget-times{display:flex;justify-content:space-between;color:var(--dim);font-size:9px}.music-widget-controls{display:flex;align-items:center;justify-content:center;gap:18px;margin-top:8px}.music-widget-controls button{color:var(--muted);font-size:13px;padding:5px 8px}.music-widget-controls .music-widget-play{width:34px;height:34px;border-radius:50%;background:var(--cyan);color:#06111b;font-weight:800}.music-widget-reopen{position:fixed;z-index:95;left:22px;bottom:82px;padding:10px 14px;border:1px solid rgba(205,225,246,.2);border-radius:999px;background:rgba(7,15,27,.9);color:var(--ink);font:600 11px var(--font-ui);box-shadow:0 12px 35px rgba(0,0,0,.35);backdrop-filter:blur(18px)}
+@media(max-width:600px){.os-incoming-call{top:10px;gap:8px;padding:10px}.os-incoming-call button{padding:8px 10px}.music-widget{left:12px;bottom:76px}}
