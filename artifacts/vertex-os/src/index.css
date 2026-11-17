@@ -5842,7 +5842,7 @@ html[data-style="macos"] .desktop-widget { border-color:rgba(219,225,255,.23); b
 @font-face { font-family: "Tuesday Night"; src: url("/fonts/Tuesday Night.otf") format("opentype"); font-style: normal; font-display: swap; }
 @font-face { font-family: "Minecraftia"; src: local("Minecraftia"), url("https://fonts.cdnfonts.com/s/31977/Minecraftia.woff") format("woff"); font-style: normal; font-display: swap; }
 
-:root[data-font="vertex"] { --font-ui: "Quicksand", "Trebuchet MS", sans-serif; --font-display: "Quicksand", "Space Grotesk", sans-serif; }
+:root[data-font="vertex"] { --font-ui: "Space Grotesk", "Trebuchet MS", sans-serif; --font-display: "Orbitron", "Space Grotesk", sans-serif; }
 :root[data-font="minecraft"] { --font-ui: "Minecraftia", "Courier New", monospace; --font-display: "Minecraftia", "Courier New", monospace; }
 :root[data-font="aquatico"] { --font-ui: "Aquatico", "Space Grotesk", sans-serif; --font-display: "Aquatico", sans-serif; }
 :root[data-font="anurati"] { --font-ui: "Anurati", "Space Grotesk", sans-serif; --font-display: "Anurati", sans-serif; }
