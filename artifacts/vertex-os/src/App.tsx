@@ -87,8 +87,8 @@ type Wallpaper = { id: WallpaperId; name: string; meta: string; video?: string; 
 type ColorMode = "dark" | "light";
 type SystemStyle = "vertex" | "macos";
 type TabHideImage = { id: string; name: string; src: string };
-type SystemSettings = { optimized: boolean; fastBoot: boolean; idleLock: boolean; confirm: boolean; cloak: string; cloakName: string; cloakIcon: string; panicKey: string; panicUrl: string; adblock: boolean; adblockUrl: string; deviceName: string; colorMode: ColorMode; systemStyle: SystemStyle; fontStyle: string; tabHide: boolean; tabHideImage: string; tabHideImages: TabHideImage[] };
-const defaultSettings: SystemSettings = { optimized: false, fastBoot: false, idleLock: false, confirm: false, cloak: "none", cloakName: "McCrackOS", cloakIcon: "", panicKey: "`", panicUrl: "", adblock: false, adblockUrl: "", deviceName: "McCrack-PC", colorMode: "dark", systemStyle: "vertex", fontStyle: "quicksand", tabHide: false, tabHideImage: "iready", tabHideImages: [{ id: "black", name: "Black screen", src: "black" }, { id: "white", name: "White screen", src: "white" }, { id: "iready", name: "I-Ready", src: asset("images/tabhide-iready.png") }, { id: "classroom", name: "Google Classroom", src: asset("images/tabhide-classroom.png") }] };
+type SystemSettings = { optimized: boolean; idleLock: boolean; confirm: boolean; cloak: string; cloakName: string; cloakIcon: string; panicKey: string; panicUrl: string; adblock: boolean; adblockUrl: string; deviceName: string; colorMode: ColorMode; systemStyle: SystemStyle; fontStyle: string; tabHide: boolean; tabHideImage: string; tabHideImages: TabHideImage[] };
+const defaultSettings: SystemSettings = { optimized: false, idleLock: false, confirm: false, cloak: "none", cloakName: "McCrackOS", cloakIcon: "", panicKey: "`", panicUrl: "", adblock: false, adblockUrl: "", deviceName: "McCrack-PC", colorMode: "dark", systemStyle: "vertex", fontStyle: "quicksand", tabHide: false, tabHideImage: "iready", tabHideImages: [{ id: "black", name: "Black screen", src: "black" }, { id: "white", name: "White screen", src: "white" }, { id: "iready", name: "I-Ready", src: asset("images/tabhide-iready.png") }, { id: "classroom", name: "Google Classroom", src: asset("images/tabhide-classroom.png") }] };
 const AVATAR_MAX_GIF = 2 * 1024 * 1024;
 const AVATAR_MAX_PIX = 512;
 const PASSWORD_KEY = "vertex-password";
@@ -235,7 +235,7 @@ const nativeVideoQualified = !PERF.low && screenHighRes;
 const bgSrc = (nativeV?: string, lowV?: string) => (!nativeV ? undefined : lowV && !nativeVideoQualified ? lowV : nativeV);
 const pvSrc = (nativeV?: string, lowV?: string) => (!nativeV ? undefined : lowV ?? nativeV);
 
-const BOOT_INTRO_SRC = "https://cineosweb.github.io/Videos/Boot.mp4";
+
 
 const CLOAKS: Record<string, { title: string; icon: string }> = {
   none: { title: "McCrackOS", icon: MCC_LOGO_URL },
@@ -996,9 +996,8 @@ function AppIcon({ app, size = 21 }: { app: { icon: LucideIcon; iconImg?: string
 }
 
 function App() {
-  const [phase, setPhase] = useState<"boot" | "profile" | "lock" | "picker" | "signin" | "desktop">("boot");
-  const [bootVideo, setBootVideo] = useState(false);
   const [accounts, setAccounts] = useState<VertexAccount[]>(() => readAccounts());
+  const [phase, setPhase] = useState<"profile" | "lock" | "picker" | "signin" | "desktop">(() => accounts.length ? "picker" : "profile");
   const [activeAccount, setActiveAccount] = useState<VertexAccount | null>(null);
   const [selectedAccount, setSelectedAccount] = useState<VertexAccount | null>(null);
   const [profileName, setProfileName] = useState("");
@@ -1010,6 +1009,8 @@ function App() {
   const [profileCloudPass, setProfileCloudPass] = useState("");
   const [profileCloudPass2, setProfileCloudPass2] = useState("");
   const [cloudAccountBusy, setCloudAccountBusy] = useState(false);
+  const [setupStep, setSetupStep] = useState<"account" | "customize">("account");
+  const [pendingSetupAccount, setPendingSetupAccount] = useState<VertexAccount | null>(null);
   const [setupWallpaper, setSetupWallpaper] = useState<WallpaperId>("vertex-studio");
   const [setupColorMode, setSetupColorMode] = useState<ColorMode>("dark");
   const [setupSystemStyle, setSetupSystemStyle] = useState<SystemStyle>("vertex");
@@ -1046,8 +1047,6 @@ function App() {
   const [languageOpen, setLanguageOpen] = useState(false);
   const homeVideoRef = useRef<HTMLVideoElement>(null);
   const lockVideoRef = useRef<HTMLVideoElement>(null);
-  const bootVideoRef = useRef<HTMLVideoElement>(null);
-  const bootEnters = useRef(0);
   const [wallpaper, setWallpaper] = useState<WallpaperId>(() => storage.read("vertex-wallpaper-v2", SEASON_WALLPAPER));
   const [lockWallpaper, setLockWallpaper] = useState<WallpaperId>(() => storage.read("vertex-lock-wallpaper-v2", SEASON_WALLPAPER));
   const [iconSize, setIconSize] = useState<"small" | "medium" | "large">(() => storage.read("vertex-icon-size", "medium"));
@@ -1538,14 +1537,6 @@ onSessionClose: (peerCode) => {
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (phase === "boot" && (event.key === "Enter" || event.key === " ")) {
-        event.preventDefault();
-        if (!bootVideo) { startIntro(); return; }
-        bootEnters.current += 1;
-        window.setTimeout(() => { bootEnters.current = 0; }, 1200);
-        if (bootEnters.current >= 2) finishBoot();
-        return;
-      }
       if (event.key === "Escape") {
         setContextMenu(null);
         setStartOpen(false);
@@ -1582,19 +1573,6 @@ onSessionClose: (peerCode) => {
     const stop = startAnalytics();
     return stop;
   }, []);
-
-  useEffect(() => {
-    if (phase !== "boot" || !settings.fastBoot) return;
-    const skip = window.setTimeout(() => finishBoot(), 150);
-    return () => window.clearTimeout(skip);
-  }, [phase, settings.fastBoot]);
-
-  useEffect(() => {
-    if (phase !== "boot" || !bootVideo) return;
-    const video = bootVideoRef.current;
-    if (!video || !video.paused) return;
-    void video.play().catch(() => undefined);
-  }, [phase, bootVideo]);
 
   useEffect(() => {
     if (phase !== "desktop" || !settings.idleLock) return;
@@ -1860,38 +1838,30 @@ onSessionClose: (peerCode) => {
     return () => document.removeEventListener("pointerdown", handler);
   }, [pressFx]);
 
-  function startIntro() {
-    if (phase !== "boot" || bootVideo) return;
-    if (settings.fastBoot) { finishBoot(); return; }
-    const video = bootVideoRef.current;
-    if (video) {
-      video.currentTime = 0;
-      video.muted = false;
-      void video.play().catch(() => { video.muted = true; void video.play().catch(() => undefined); });
-    }
-    setBootVideo(true);
-  }
-
-  async function finishBoot() {
-    if (phase !== "boot") return;
-    setBootVideo(false);
-    const video = bootVideoRef.current;
-    if (video) { video.pause(); video.currentTime = 0; }
-    try {
-      const cloud = await getMcCrackCloudAccount();
-      if (cloud) {
-        const account: VertexAccount = { id: cloud.id, authUserId: cloud.id, name: cloud.name, email: cloud.email, username: cloud.username, avatar: cloud.avatar, banner: cloud.banner, bio: cloud.bio, createdAt: Date.now(), pass: "" };
-        persistAccounts([...accounts.filter((item) => !item.authUserId), account]);
-        signInAs(account);
-        return;
-      }
-    } catch (error) { console.warn("Could not restore McCrack account:", error); }
-    const guestAccounts = accounts.filter((item) => !item.authUserId);
-    if (guestAccounts.length !== accounts.length) persistAccounts(guestAccounts);
-    const first = guestAccounts.length === 0;
-    setPhase(first ? "profile" : "lock");
-    if (!first) { setSelectedAccount(null); setPinInput(""); setPinError(false); }
-  }
+  useEffect(() => {
+    let cancelled = false;
+    const restoreSession = async () => {
+      try {
+        const cloud = await getMcCrackCloudAccount();
+        if (cancelled) return;
+        if (cloud) {
+          const account: VertexAccount = { id: cloud.id, authUserId: cloud.id, name: cloud.name, email: cloud.email, username: cloud.username, avatar: cloud.avatar, banner: cloud.banner, bio: cloud.bio, createdAt: Date.now(), pass: "" };
+          persistAccounts([...accounts.filter((item) => !item.authUserId), account]);
+          signInAs(account);
+          return;
+        }
+      } catch (error) { console.warn("Could not restore McCrack account:", error); }
+      if (cancelled) return;
+      const guestAccounts = accounts.filter((item) => !item.authUserId);
+      if (guestAccounts.length !== accounts.length) persistAccounts(guestAccounts);
+      setSelectedAccount(null);
+      setPinInput("");
+      setPinError(false);
+      setPhase(guestAccounts.length ? "picker" : "profile");
+    };
+    void restoreSession();
+    return () => { cancelled = true; };
+  }, []);
 
   function syncPasswordMirror() {
     try { storage.write(PASSWORD_KEY, activeAccount?.pass ?? ""); } catch { /* ignore */ }
@@ -2255,7 +2225,7 @@ onSessionClose: (peerCode) => {
     setStartOpen(false);
     setWindows([]);
     setActiveWindow(null);
-    setPhase("boot");
+    setPhase("lock");
   }
 
   const dockRef = useRef<HTMLElement | null>(null);
@@ -2341,35 +2311,10 @@ onSessionClose: (peerCode) => {
             ? <HalloweenWallpaper className="wallpaper-scene" />
             : activeWallpaper.image
             ? <img className="wallpaper-image" src={activeWallpaper.image} alt={`${activeWallpaper.name} wallpaper`} />
-            : (phase === "boot" || phase === "desktop")
+            : phase === "desktop"
               ? <video key={activeWallpaper.id} ref={homeVideoRef} className="wallpaper-video" src={bgSrc(activeWallpaper.video, activeWallpaper.videoLow)} preload="metadata" autoPlay muted loop playsInline aria-label={`${activeWallpaper.name} wallpaper`} />
               : null}
       </div>
-
-      <section className={`boot-screen ${phase !== "boot" ? "hidden" : ""}`} aria-label="McCrackOS boot sequence">
-        <video
-          ref={bootVideoRef}
-          className={`boot-video ${bootVideo ? "on" : ""}`}
-          src={BOOT_INTRO_SRC}
-          preload="auto"
-          playsInline
-          onEnded={() => finishBoot()}
-          onError={() => finishBoot()}
-        />
-        {!bootVideo && (
-          <div className="boot-core">
-            <BrandMark />
-            <h1 className="boot-title">McCrackOS</h1>
-            <p className="boot-sub">{t("boot.bootSub")}</p>
-            <div className="boot-actions">
-              <button className="primary-button" data-testid="button-enter-vertex" onClick={(event) => { event.stopPropagation(); startIntro(); }}>
-                {t("boot.enter")}
-              </button>
-              <span className="boot-hint">{t("boot.hint")}</span>
-            </div>
-          </div>
-        )}
-      </section>
 
       <section className={`profile-screen ${phase === "profile" ? "active" : ""}`} aria-label="Create McCrackOS profile">
         {activeLockWallpaper.image
@@ -6360,7 +6305,7 @@ const SETTINGS_SEARCH: { tab: SettingsTabId; label: string; hint: string }[] = [
   { tab: "account", label: "Email address", hint: "The Gmail you are signed in with" },
   { tab: "account", label: "Profile picture", hint: "Change your avatar" },
   { tab: "account", label: "Password", hint: "Lock screen password" },
-  { tab: "system", label: "Performance", hint: "Optimization, fast boot, idle lock" },
+  { tab: "system", label: "Performance", hint: "Optimization and idle lock" },
   { tab: "system", label: "System style", hint: "Switch between McCrackOS and macOS looks" },
   { tab: "system", label: "Text style", hint: "Change the font used across McCrackOS" },
   { tab: "colors", label: "Color mode", hint: "Bright or black theme" },
@@ -6717,7 +6662,6 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
           <section className="win-settings-card">
             <div className="setting-group"><Cpu size={13} /> {t("set.groupPerf")}</div>
             <SettingToggle label={t("set.optLabel")} help={t("set.optHelp")} value={settings.optimized} onChange={(value) => updateSetting("optimized", value)} />
-            <SettingToggle label={t("set.fastBootLabel")} help={t("set.fastBootHelp")} value={settings.fastBoot} onChange={(value) => updateSetting("fastBoot", value)} />
             <SettingToggle label={t("set.idleLabel")} help={t("set.idleHelp")} value={settings.idleLock} onChange={(value) => updateSetting("idleLock", value)} />
             <SettingToggle label={t("set.confirmLabel")} help={t("set.confirmHelp")} value={settings.confirm} onChange={(value) => updateSetting("confirm", value)} />
           </section>
