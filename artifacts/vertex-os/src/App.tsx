@@ -1645,12 +1645,12 @@ onSessionClose: (peerCode) => {
         const title = String(data.title || "McCrack Chat").slice(0, 90);
         const copy = String(data.copy || "").slice(0, 180);
         addToast(title, copy);
-        toastPopup(title, copy);
+        if (localStorage.getItem("vertex-do-not-disturb") !== "1") toastPopup(title, copy);
       } else if (data?.type === "mccrack-call-history") {
         const item = data.entry;
         if (item && typeof item.title === "string") {
           addToast(item.title.slice(0, 90), String(item.copy || "").slice(0, 180));
-          toastPopup(item.title.slice(0, 90), String(item.copy || "").slice(0, 180));
+          if (localStorage.getItem("vertex-do-not-disturb") !== "1") toastPopup(item.title.slice(0, 90), String(item.copy || "").slice(0, 180));
         }
       } else if (data?.type === "mccrack-call-state") {
         const next = data.call;
