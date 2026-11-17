@@ -29,7 +29,7 @@ import { MacMenuBar } from "./components/mac-menubar";
 import { LinksApp } from "./components/links-app";
 import { assetUrl } from "./asset-map";
 import { VStudiosSurface } from "./v-market";
-import { getMcCrackCloudAccount, signUpMcCrackAccount, signInMcCrackAccount, updateMcCrackCloudProfile, signOutMcCrackAccount } from "./mccrack-account";
+import { getMcCrackCloudAccount, getMcCrackCloudPreferences, saveMcCrackCloudPreferences, signUpMcCrackAccount, signInMcCrackAccount, updateMcCrackCloudProfile, signOutMcCrackAccount } from "./mccrack-account";
 
 import { TerminalBanner } from "./terminal/TerminalBanner";
 import { ansiToNodes } from "./terminal/ansi";
@@ -1241,6 +1241,7 @@ storage.read("vertex-jarvis-installed", false));
   const [activeWindow, setActiveWindow] = useState<AppId | null>(null);
   const gvWindowsRef = useRef<WindowState[]>([]);
   gvWindowsRef.current = windows;
+  const cloudPrefsReady = useRef(false);
   const [settings, setSettings] = useState<SystemSettings>(() => {
     const savedSettings = storage.read<Partial<SystemSettings>>("vertex-settings", {});
     const loaded = { ...defaultSettings, ...savedSettings };
@@ -1455,7 +1456,7 @@ onSessionClose: (peerCode) => {
   }, [settings.colorMode, settings.systemStyle, settings.fontStyle]);
   const [faqOpen, setFaqOpen] = useState<number | null>(null);
   const [toasts, setToasts] = useState<{ id: number; title: string; copy: string; href?: string }[]>([]);
-  const [notifications, setNotifications] = useState<{ id: number; title: string; copy: string; href?: string }[]>([]);
+  const [notifications, setNotifications] = useState<{ id: number; title: string; copy: string; href?: string; at?: number; kind?: string }[]>(() => storage.read("vertex-notifications", []));
   const [notifReadCut, setNotifReadCut] = useState(0);
   const [currentTrack, setCurrentTrack] = useState<{ name: string; artist: string; artwork: string } | null>(null);
   const [incomingCall, setIncomingCall] = useState<{ id: string; mode: string; name: string; subtitle: string } | null>(null);
@@ -1607,7 +1608,7 @@ onSessionClose: (peerCode) => {
 
   function addToast(title: string, copy: string, href?: string) {
     const id = Date.now() + Math.random();
-    setNotifications((items) => [{ id, title, copy, href }, ...items].slice(0, 12));
+    setNotifications((items) => [{ id, title, copy, href, at: Date.now(), kind: title.toLowerCase().includes("call") ? "call" : title.toLowerCase().includes("friend") ? "friend" : "message" }, ...items].slice(0, 30));
   }
 
   function toastPopup(title: string, copy: string, href?: string) {
@@ -1622,7 +1623,17 @@ onSessionClose: (peerCode) => {
 
   function clearNotifications() {
     setNotifications([]);
+    setNotifReadCut(0);
   }
+
+  function openNotificationTarget() {
+    setWindows((items) => items.some((item) => item.id === "messages")
+      ? items.map((item) => item.id === "messages" ? { ...item, minimized: false } : item)
+      : [...items, { id: "messages", minimized: false, maximized: false, rect: defaultWindowRect(items.length), prevRect: null }]);
+    setActiveWindow("messages");
+  }
+
+  useEffect(() => { storage.write("vertex-notifications", notifications); }, [notifications]);
 
   useEffect(() => {
     const onMessagesBridge = (event: MessageEvent) => {
@@ -1635,6 +1646,12 @@ onSessionClose: (peerCode) => {
         const copy = String(data.copy || "").slice(0, 180);
         addToast(title, copy);
         toastPopup(title, copy);
+      } else if (data?.type === "mccrack-call-history") {
+        const item = data.entry;
+        if (item && typeof item.title === "string") {
+          addToast(item.title.slice(0, 90), String(item.copy || "").slice(0, 180));
+          toastPopup(item.title.slice(0, 90), String(item.copy || "").slice(0, 180));
+        }
       } else if (data?.type === "mccrack-call-state") {
         const next = data.call;
         if (!next || typeof next.id !== "string") setIncomingCall(null);
@@ -1656,10 +1673,15 @@ onSessionClose: (peerCode) => {
           playing: Boolean(data.playing),
           progress: Number.isFinite(Number(data.progress)) ? Math.max(0, Number(data.progress)) : 0,
           duration: Number.isFinite(Number(data.duration)) ? Math.max(0, Number(data.duration)) : 0,
+          volume: Number.isFinite(Number(data.volume)) ? Math.max(0, Math.min(100, Number(data.volume))) : 100,
+          muted: Boolean(data.muted),
+          queue: Array.isArray(data.queue) ? data.queue.slice(0, 4).map((item: unknown) => String(item).slice(0, 80)) : [],
           onToggle: () => sendControl("toggle"),
           onSeek: (time) => sendControl("seek", time),
           onNext: () => sendControl("next"),
           onPrev: () => sendControl("previous"),
+          onSetVolume: (volume) => sendControl("volume", volume),
+          onToggleMute: () => sendControl("mute"),
         };
         setMediaSession(session);
       }
@@ -1694,6 +1716,39 @@ onSessionClose: (peerCode) => {
   useEffect(() => {
     syncPasswordMirror();
   }, [activeAccount]);
+
+  // Restore and persist the user's desktop preferences across signed-in devices.
+  useEffect(() => {
+    let alive = true;
+    cloudPrefsReady.current = false;
+    if (!activeAccount?.authUserId) return () => { alive = false; };
+    getMcCrackCloudPreferences().then((prefs) => {
+      if (!alive) return;
+      if (prefs?.settings) setSettings((current) => ({ ...current, ...prefs.settings }) as SystemSettings);
+      if (prefs?.wallpaper) setWallpaper(prefs.wallpaper as WallpaperId);
+      if (prefs?.lockWallpaper) setLockWallpaper(prefs.lockWallpaper as WallpaperId);
+      if (Array.isArray(prefs?.dockOrder)) setDockOrder(prefs.dockOrder as AppId[]);
+      if (prefs?.placedCells && typeof prefs.placedCells === "object") setPlacedCells(prefs.placedCells);
+      cloudPrefsReady.current = true;
+    }).catch((error) => {
+      if (alive) { cloudPrefsReady.current = true; addToast("Cloud settings unavailable", error instanceof Error ? error.message : "Local settings will continue to work."); }
+    });
+    return () => { alive = false; };
+  }, [activeAccount?.authUserId]);
+
+  useEffect(() => {
+    if (!activeAccount?.authUserId || !cloudPrefsReady.current) return;
+    const timer = window.setTimeout(() => {
+      void saveMcCrackCloudPreferences({
+        settings: settings as unknown as Record<string, unknown>,
+        wallpaper,
+        lockWallpaper,
+        dockOrder: dockOrder as string[],
+        placedCells,
+      }).catch((error) => addToast("Cloud sync failed", error instanceof Error ? error.message : "Your local settings are still saved."));
+    }, 900);
+    return () => window.clearTimeout(timer);
+  }, [activeAccount?.authUserId, settings, wallpaper, lockWallpaper, dockOrder, placedCells]);
 
   // Keep the OS profile in step with the same Supabase session used by McCrack Chat.
   useEffect(() => {
@@ -2589,7 +2644,7 @@ onSessionClose: (peerCode) => {
           </div>}
         </nav>
 
-        <SystemTray now={now} lang={chosenLang} notifications={notifications} unseen={unseenNotifications} onOpenClock={markNotificationsRead} onDismiss={dismissNotification} onClear={clearNotifications} />
+        <SystemTray now={now} lang={chosenLang} notifications={notifications} unseen={unseenNotifications} onOpenClock={markNotificationsRead} onDismiss={dismissNotification} onClear={clearNotifications} onActivate={openNotificationTarget} />
 
         {incomingCall && (
           <div className="os-incoming-call" role="alertdialog" aria-live="assertive" aria-label="Incoming McCrack Chat call" onClick={(event) => event.stopPropagation()}>
