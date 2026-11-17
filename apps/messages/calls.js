@@ -269,7 +269,7 @@ function init(){
  $("endActiveCall").addEventListener("click",()=>endCall(false));$("toggleCallMute").addEventListener("click",toggleMute);$("toggleCallCamera").addEventListener("click",toggleCamera);
  const head=$("dmHeaderName");if(head)new MutationObserver(setCallButtons).observe(head,{childList:true,subtree:true,characterData:true});
  const refreshAuth=async()=>{const {data}=await db.auth.getSession();call.user=data?.session?.user||null;setCallButtons();if(call.user){if(call.incomingPoll)clearInterval(call.incomingPoll);pollIncoming();call.incomingPoll=setInterval(pollIncoming,2400)}else{if(call.incomingPoll)clearInterval(call.incomingPoll);call.incomingPoll=null;call.lastIncomingId=null;cleanup(false)}};
- db.auth.onAuthStateChange((_event,session)=>{call.user=session?.user||null;setCallButtons();if(call.user)pollIncoming();else{call.lastIncomingId=null;cleanup(false)}});
+ db.auth.onAuthStateChange((_event,session)=>{call.user=session?.user||null;setCallButtons();if(call.user)pollIncoming();else{if(call.incomingPoll)clearInterval(call.incomingPoll);call.incomingPoll=null;call.lastIncomingId=null;cleanup(false)}});
  refreshAuth();
  document.addEventListener("visibilitychange",()=>{if(!document.hidden)pollIncoming()});
 }
