@@ -2631,7 +2631,7 @@ onSessionClose: (peerCode) => {
               onContextMenu={(event) => { event.preventDefault(); event.stopPropagation(); openAppMenu(appId, event.clientX, event.clientY); }}
               data-testid={`button-desktop-${appId}`}>
               <span className="icon-tile"><AppIcon app={app} size={22} /></span>
-              {app.showName && <span>{app.title}</span>}
+              <span className="desktop-icon-label">{app.title}</span>
             </button>;
           })}
           {ps5Shortcuts.map((shortcut, index) => {
