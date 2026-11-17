@@ -88,7 +88,7 @@ type ColorMode = "dark" | "light";
 type SystemStyle = "vertex" | "macos";
 type TabHideImage = { id: string; name: string; src: string };
 type SystemSettings = { optimized: boolean; fastBoot: boolean; idleLock: boolean; confirm: boolean; cloak: string; cloakName: string; cloakIcon: string; panicKey: string; panicUrl: string; adblock: boolean; adblockUrl: string; deviceName: string; colorMode: ColorMode; systemStyle: SystemStyle; fontStyle: string; tabHide: boolean; tabHideImage: string; tabHideImages: TabHideImage[] };
-const defaultSettings: SystemSettings = { optimized: false, fastBoot: false, idleLock: false, confirm: false, cloak: "none", cloakName: "McCrackOS", cloakIcon: "", panicKey: "`", panicUrl: "", adblock: false, adblockUrl: "", deviceName: "McCrack-PC", colorMode: "dark", systemStyle: "vertex", fontStyle: "vertex", tabHide: false, tabHideImage: "iready", tabHideImages: [{ id: "black", name: "Black screen", src: "black" }, { id: "white", name: "White screen", src: "white" }, { id: "iready", name: "I-Ready", src: asset("images/tabhide-iready.png") }, { id: "classroom", name: "Google Classroom", src: asset("images/tabhide-classroom.png") }] };
+const defaultSettings: SystemSettings = { optimized: false, fastBoot: false, idleLock: false, confirm: false, cloak: "none", cloakName: "McCrackOS", cloakIcon: "", panicKey: "`", panicUrl: "", adblock: false, adblockUrl: "", deviceName: "McCrack-PC", colorMode: "dark", systemStyle: "vertex", fontStyle: "quicksand", tabHide: false, tabHideImage: "iready", tabHideImages: [{ id: "black", name: "Black screen", src: "black" }, { id: "white", name: "White screen", src: "white" }, { id: "iready", name: "I-Ready", src: asset("images/tabhide-iready.png") }, { id: "classroom", name: "Google Classroom", src: asset("images/tabhide-classroom.png") }] };
 const AVATAR_MAX_GIF = 2 * 1024 * 1024;
 const AVATAR_MAX_PIX = 512;
 const PASSWORD_KEY = "vertex-password";
@@ -1242,7 +1242,9 @@ storage.read("vertex-jarvis-installed", false));
   const gvWindowsRef = useRef<WindowState[]>([]);
   gvWindowsRef.current = windows;
   const [settings, setSettings] = useState<SystemSettings>(() => {
-    const loaded = { ...defaultSettings, ...storage.read<Partial<SystemSettings>>("vertex-settings", {}) };
+    const savedSettings = storage.read<Partial<SystemSettings>>("vertex-settings", {});
+    const loaded = { ...defaultSettings, ...savedSettings };
+    if (savedSettings.fontStyle === "vertex") loaded.fontStyle = "quicksand";
     if (loaded.cloak === "canvas") loaded.cloak = "none";
     if (!Array.isArray(loaded.tabHideImages) || !loaded.tabHideImages.length) loaded.tabHideImages = defaultSettings.tabHideImages;
     else {
@@ -1456,6 +1458,7 @@ onSessionClose: (peerCode) => {
   const [notifications, setNotifications] = useState<{ id: number; title: string; copy: string; href?: string }[]>([]);
   const [notifReadCut, setNotifReadCut] = useState(0);
   const [currentTrack, setCurrentTrack] = useState<{ name: string; artist: string; artwork: string } | null>(null);
+  const [incomingCall, setIncomingCall] = useState<{ id: string; mode: string; name: string; subtitle: string } | null>(null);
 
   const activeWallpaper = wallpapers.find((item) => item.id === wallpaper) ?? customWallpapers.find((item) => item.id === wallpaper) ?? wallpapers[0];
   const activeLockWallpaper = wallpapers.find((item) => item.id === lockWallpaper) ?? customWallpapers.find((item) => item.id === lockWallpaper) ?? wallpapers[1];
@@ -1619,6 +1622,69 @@ onSessionClose: (peerCode) => {
 
   function clearNotifications() {
     setNotifications([]);
+  }
+
+  useEffect(() => {
+    const onMessagesBridge = (event: MessageEvent) => {
+      const sourceFrame = Array.from(document.querySelectorAll<HTMLIFrameElement>("iframe")).find((frame) => frame.contentWindow === event.source);
+      const trustedChild = sourceFrame?.title === "McCrack Chat" || sourceFrame?.title === "McCrackify";
+      if (event.origin !== window.location.origin && !trustedChild) return;
+      const data = event.data;
+      if (data?.type === "mccrack-os-notification") {
+        const title = String(data.title || "McCrack Chat").slice(0, 90);
+        const copy = String(data.copy || "").slice(0, 180);
+        addToast(title, copy);
+        toastPopup(title, copy);
+      } else if (data?.type === "mccrack-call-state") {
+        const next = data.call;
+        if (!next || typeof next.id !== "string") setIncomingCall(null);
+        else setIncomingCall({ id: next.id, mode: next.mode === "voice" ? "voice" : "video", name: String(next.name || "Incoming call").slice(0, 80), subtitle: String(next.subtitle || "McCrack Chat").slice(0, 100) });
+      } else if (data?.type === "mccrack-music-state" && sourceFrame?.title === "McCrackify") {
+        const song = data.song;
+        if (!song || typeof song !== "object") {
+          if (getMediaSession()?.source === "music") setMediaSession(null);
+          return;
+        }
+        const sendControl = (action: string, value?: number) => {
+          try { sourceFrame.contentWindow?.postMessage({ type: "mccrack-music-control", action, value }, "*"); } catch { /* ignore */ }
+        };
+        const session: MediaSession = {
+          source: "music",
+          title: String(song.title || "Unknown track"),
+          artist: String(song.artist || "Unknown artist"),
+          artwork: String(song.artwork || ""),
+          playing: Boolean(data.playing),
+          progress: Number.isFinite(Number(data.progress)) ? Math.max(0, Number(data.progress)) : 0,
+          duration: Number.isFinite(Number(data.duration)) ? Math.max(0, Number(data.duration)) : 0,
+          onToggle: () => sendControl("toggle"),
+          onSeek: (time) => sendControl("seek", time),
+          onNext: () => sendControl("next"),
+          onPrev: () => sendControl("previous"),
+        };
+        setMediaSession(session);
+      }
+    };
+    window.addEventListener("message", onMessagesBridge);
+    return () => window.removeEventListener("message", onMessagesBridge);
+  }, []);
+
+  useEffect(() => {
+    if (!windows.some((item) => item.id === "spicetify") && getMediaSession()?.source === "music") setMediaSession(null);
+  }, [windows]);
+
+  function respondToIncomingCall(action: "accept" | "decline") {
+    setIncomingCall(null);
+    if (action === "accept") {
+      setWindows((items) => items.some((item) => item.id === "messages")
+        ? items.map((item) => item.id === "messages" ? { ...item, minimized: false } : item)
+        : [...items, { id: "messages", minimized: false, maximized: false, rect: defaultWindowRect(items.length), prevRect: null }]);
+      setActiveWindow("messages");
+    }
+    window.setTimeout(() => {
+      document.querySelectorAll<HTMLIFrameElement>("iframe").forEach((frame) => {
+        try { frame.contentWindow?.postMessage({ type: "mccrack-call-action", action }, "*"); } catch { /* ignore unrelated frames */ }
+      });
+    }, 280);
   }
 
   const unseenNotifications = Math.max(0, notifications.length - notifReadCut);
@@ -2523,6 +2589,16 @@ onSessionClose: (peerCode) => {
         </nav>
 
         <SystemTray now={now} lang={chosenLang} notifications={notifications} unseen={unseenNotifications} onOpenClock={markNotificationsRead} onDismiss={dismissNotification} onClear={clearNotifications} />
+
+        {incomingCall && (
+          <div className="os-incoming-call" role="alertdialog" aria-live="assertive" aria-label="Incoming McCrack Chat call" onClick={(event) => event.stopPropagation()}>
+            <div className="os-incoming-call-mark">☎</div>
+            <div className="os-incoming-call-copy"><strong>{incomingCall.name} is calling</strong><span>{incomingCall.subtitle}</span></div>
+            <button className="os-call-decline" onClick={() => respondToIncomingCall("decline")}>Decline</button>
+            <button className="os-call-answer" onClick={() => respondToIncomingCall("accept")}>Answer</button>
+          </div>
+        )}
+        <NowPlayingCard />
 
         {gvInbox.length > 0 && (
           <div className="gv-cards">
@@ -5762,13 +5838,8 @@ function useMediaSession(): MediaSession | null {
 
 function NowPlayingCard() {
   const session = useMediaSession();
-  const [, tick] = useState(0);
-  useEffect(() => {
-    if (!session) return;
-    const id = window.setInterval(() => tick((n) => (n + 1) % 1000), 500);
-    return () => window.clearInterval(id);
-  }, [session]);
-  if (!session) return null;
+  const [hidden, setHidden] = useState(() => { try { return localStorage.getItem("vertex-music-widget-hidden") === "1"; } catch { return false; } });
+  if (!session || session.source !== "music") return null;
   const dur = Number.isFinite(session.duration) && session.duration > 0 ? session.duration : 0;
   const prog = Number.isFinite(session.progress) && session.progress > 0 ? Math.min(session.progress, dur || session.progress) : 0;
   const pct = dur ? Math.min(100, (prog / dur) * 100) : 0;
@@ -5776,7 +5847,24 @@ function NowPlayingCard() {
     const total = Math.max(0, Math.floor(Number.isFinite(value) ? value : 0));
     return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
   };
-    return null;
+  const setWidgetHidden = (value: boolean) => { setHidden(value); try { localStorage.setItem("vertex-music-widget-hidden", value ? "1" : "0"); } catch { /* ignore */ } };
+  if (hidden) return <button className="music-widget-reopen" onClick={() => setWidgetHidden(false)}>♫ Now Playing</button>;
+  return (
+    <section className="music-widget" aria-label="McCrackify now playing">
+      <div className="music-widget-head"><span><i /> McCrackify</span><button onClick={() => setWidgetHidden(true)} aria-label="Hide music widget">×</button></div>
+      <div className="music-widget-track">
+        {session.artwork ? <img src={session.artwork} alt="" /> : <div className="music-widget-art">♫</div>}
+        <div className="music-widget-meta"><strong title={session.title}>{session.title || "Unknown track"}</strong><span title={session.artist}>{session.artist || "Unknown artist"}</span></div>
+      </div>
+      <input className="music-widget-seek" aria-label="Seek song" type="range" min={0} max={dur || 1} step={1} value={Math.min(prog, dur || prog || 0)} onChange={(event) => session.onSeek?.(Number(event.target.value))} />
+      <div className="music-widget-times"><span>{fmt(prog)}</span><span>{fmt(dur)}</span></div>
+      <div className="music-widget-controls">
+        <button onClick={() => session.onPrev?.()} aria-label="Previous track">|◀</button>
+        <button className="music-widget-play" onClick={() => session.onToggle?.()} aria-label={session.playing ? "Pause" : "Play"}>{session.playing ? "Ⅱ" : "▶"}</button>
+        <button onClick={() => session.onNext?.()} aria-label="Next track">▶|</button>
+      </div>
+    </section>
+  );
 }
 
 const MINECRAFT_ASSET_BASE = location.protocol === "file:"

@@ -23,8 +23,8 @@ function setText(id,value){const el=$(id);if(el)el.textContent=value}
 function initials(name){return String(name||"?").trim().split(/\s+/).slice(0,2).map(x=>x[0]||"").join("").toUpperCase()||"?"}
 function currentUser(){return call.user||api.state.user||null}
 function setCallButtons(){const active=!!(currentUser()&&$("dmHeaderName")&&$("dmHeaderName").textContent.trim()!=="Choose a friend");["startVoiceCall","startVideoCall"].forEach(id=>{const b=$(id);if(b)b.disabled=!active||!!call.session})}
-function showIncoming(row,profile){call.incoming=row;call.lastIncomingId=row.id;setText("incomingCallTitle",profile?.display_name||profile?.username||"Incoming call");setText("incomingCallSubtitle",(row.mode==="video"?"Video call":"Voice call")+" · "+(profile?.username?"@"+profile.username:"McCrack Chat"));$("incomingCallOverlay").classList.add("open")}
-function hideIncoming(){$("incomingCallOverlay").classList.remove("open")}
+function showIncoming(row,profile){call.incoming=row;call.lastIncomingId=row.id;const name=profile?.display_name||profile?.username||"Incoming call";const subtitle=(row.mode==="video"?"Video call":"Voice call")+" · "+(profile?.username?"@"+profile.username:"McCrack Chat");setText("incomingCallTitle",name);setText("incomingCallSubtitle",subtitle);$("incomingCallOverlay").classList.add("open");if("Notification"in window&&Notification.permission==="granted"&&document.hidden){try{new Notification(name,{body:subtitle,icon:"favicon.png"})}catch(e){}}try{if(window.parent&&window.parent!==window)window.parent.postMessage({type:"mccrack-call-state",call:{id:row.id,mode:row.mode||"video",name,subtitle}},"*")}catch(e){}}
+function hideIncoming(){$("incomingCallOverlay").classList.remove("open");try{if(window.parent&&window.parent!==window)window.parent.postMessage({type:"mccrack-call-state",call:null},"*")}catch(e){}}
 function updateCallStatus(text){setText("callStatusText",text)}
 function setCallMode(mode){call.mode=mode;const voice=mode==="voice";$("remoteCallVideo").hidden=voice;$("localCallVideo").hidden=voice;setText("remoteCallHint",voice?"Voice call connected":"Waiting for video…")}
 function showActive(profile){
@@ -60,7 +60,7 @@ async function createPeer(){
   if(s==="connected"){updateCallStatus("Connected");startDuration()}
   else if(s==="connecting"||s==="new")updateCallStatus("Connecting…");
   else if(s==="disconnected")updateCallStatus("Reconnecting…");
-  else if(s==="failed"){updateCallStatus("Connection failed");toast("Could not establish the call. A TURN relay may be needed on this network.",true);endCall(true)}
+  else if(s==="failed"){updateCallStatus("Connection failed");toast("Could not establish the call. A TURN relay may be needed on this network.",true);void endCall(false)}
  };
  call.pc.oniceconnectionstatechange=()=>{if(call.pc?.iceConnectionState==="disconnected")updateCallStatus("Reconnecting…")};
  if(call.localStream){
@@ -140,7 +140,8 @@ async function startCall(mode){
  if(!match||!calleeId){toast("Open a private conversation with a friend first.",true);return}
  try{
   // Check local devices and permissions before creating an invitation in Supabase.
-  call.localStream=await acquireMedia(mode);
+  const available=await acquireAvailableMedia(mode);
+  call.localStream=available.stream;
   const {data:row,error}=await db.from("call_sessions").insert({conversation_id:match.id,caller_id:currentUser().id,callee_id:calleeId,mode,status:"ringing"}).select("*").single();
   if(error)throw error;
   call.session=row;call.mode=mode;setCallButtons();setCallMode(mode);
@@ -148,9 +149,10 @@ async function startCall(mode){
   $("localCallVideo").srcObject=call.localStream;
   await createPeer();const offer=await call.pc.createOffer();await call.pc.setLocalDescription(offer);subscribeSignals();await signal("offer",call.pc.localDescription.toJSON());
   toast("Calling "+(profile?.display_name||profile?.username||"friend")+"…");
+  if(available.missing.length){const missing=available.missing.join(" and ");toast("Call started in receive-only mode: no "+missing+" "+(available.missing.length===1?"is":"are")+" connected.",true)}
   if(call.statusPoll)clearInterval(call.statusPoll);
   call.statusPoll=setInterval(checkActiveSession,1800);
-  setTimeout(()=>{if(call.session?.id===row.id&&call.session.status==="ringing"){db.from("call_sessions").update({status:"missed",ended_at:new Date().toISOString()}).eq("id",row.id);cleanup(false);toast("No answer")}},45000);
+  setTimeout(async()=>{if(call.session?.id!==row.id)return;const {data:latest}=await db.from("call_sessions").select("status").eq("id",row.id).maybeSingle();if(latest?.status==="ringing"){await db.from("call_sessions").update({status:"missed",ended_at:new Date().toISOString()}).eq("id",row.id).eq("status","ringing");cleanup(false);toast("No answer")}else if(latest?.status==="accepted")call.session.status="accepted"},45000);
  }catch(e){console.error(e);if(call.session)await db.from("call_sessions").update({status:"ended",ended_at:new Date().toISOString()}).eq("id",call.session.id);toast("Could not start call: "+mediaErrorMessage(e,mode),true);cleanup(false)}
 }
 async function checkActiveSession(){
@@ -179,12 +181,15 @@ async function acquireAvailableMedia(mode){
 async function acceptIncoming(){
  const row=call.incoming;if(!row||call.session)return;
  hideIncoming();call.session=row;call.mode=row.mode||"video";setCallMode(call.mode);
+ let accepted=false;
  try{
   // Accept with whichever local devices exist; receive-only media keeps the call usable without them.
   const available=await acquireAvailableMedia(call.mode);
   call.localStream=available.stream;
-  const {error}=await db.from("call_sessions").update({status:"accepted",accepted_at:new Date().toISOString()}).eq("id",row.id).eq("status","ringing");
+  const {data:acceptedRow,error}=await db.from("call_sessions").update({status:"accepted",accepted_at:new Date().toISOString()}).eq("id",row.id).eq("status","ringing").select("id,status").maybeSingle();
   if(error)throw error;
+  if(!acceptedRow)throw new Error("This call is no longer ringing.");
+  accepted=true;
   const profile=await getProfile(row.caller_id);showActive(profile);
   $("localCallVideo").srcObject=call.localStream;
   await createPeer();subscribeSignals();await syncSignals();
@@ -193,12 +198,26 @@ async function acceptIncoming(){
    toast("Call connected, but no "+missing+" "+(available.missing.length===1?"is":"are")+" connected on this device.",true);
   }
   if(call.statusPoll)clearInterval(call.statusPoll);call.statusPoll=setInterval(checkActiveSession,1800);
- }catch(e){console.error(e);toast("Could not answer call: "+mediaErrorMessage(e,call.mode),true);await db.from("call_sessions").update({status:"ended",ended_at:new Date().toISOString()}).eq("id",row.id);cleanup(false)}
+ }catch(e){
+  console.error(e);toast("Could not answer call: "+mediaErrorMessage(e,call.mode),true);
+  if(accepted)await db.from("call_sessions").update({status:"ended",ended_at:new Date().toISOString()}).eq("id",row.id);
+  const {data:latest}=await db.from("call_sessions").select("status").eq("id",row.id).maybeSingle();
+  cleanup(false);
+  if(!accepted&&latest?.status==="ringing"){
+   call.incoming=row;
+   const profile=await getProfile(row.caller_id);
+   showIncoming(row,profile);
+  }
+  return;
+ }
  call.incoming=null;
 }
 async function declineIncoming(){
- const row=call.incoming;hideIncoming();call.incoming=null;
- if(row)await db.from("call_sessions").update({status:"declined",ended_at:new Date().toISOString()}).eq("id",row.id);
+ const row=call.incoming;if(!row)return;
+ const {data,error}=await db.from("call_sessions").update({status:"declined",ended_at:new Date().toISOString()}).eq("id",row.id).eq("status","ringing").select("id").maybeSingle();
+ if(error){toast("Could not decline the call: "+error.message,true);return}
+ hideIncoming();call.incoming=null;
+ if(!data)toast("This call is no longer ringing.");
 }
 async function endCall(remote){
  const row=call.session;if(!row)return;
@@ -222,7 +241,7 @@ function cleanup(showToast){
 }
 async function pollIncoming(){
  if(!currentUser()||call.session)return;
- if(call.incoming){const {data:active}=await db.from("call_sessions").select("status").eq("id",call.incoming.id).maybeSingle();if(!active||active.status!=="ringing"){hideIncoming();call.incoming=null}return}
+ if(call.incoming){const row=call.incoming;const {data:active}=await db.from("call_sessions").select("status").eq("id",row.id).maybeSingle();if(!active||active.status!=="ringing"){hideIncoming();call.incoming=null;if(active?.status==="missed"){const profile=await getProfile(row.caller_id);const who=profile?.display_name||profile?.username||"Someone";const title="Missed call";const copy="You missed a "+(row.mode==="video"?"video":"voice")+" call from "+who+".";toast(title+": "+copy);if("Notification"in window&&Notification.permission==="granted"&&document.hidden){try{new Notification(title,{body:copy,icon:"favicon.png"})}catch(e){}}try{if(window.parent&&window.parent!==window)window.parent.postMessage({type:"mccrack-os-notification",title,copy},"*")}catch(e){}}}return}
  const {data,error}=await db.from("call_sessions").select("*").eq("callee_id",currentUser().id).eq("status","ringing").order("created_at",{ascending:false}).limit(1);
  if(error){if(!/relation .* does not exist/i.test(error.message||""))console.warn("Incoming call check:",error.message);return}
  const row=data&&data[0];if(!row||row.id===call.lastIncomingId)return;
@@ -242,14 +261,15 @@ function toggleCamera(){
  $("toggleCallCamera").innerHTML=call.cameraOff?'<i class="fa-solid fa-video-slash"></i>':'<i class="fa-solid fa-video"></i>';
  $("toggleCallCamera").title=call.cameraOff?"Turn camera on":"Turn camera off";
 }
+window.addEventListener("message",event=>{if((event.origin!==location.origin&&event.origin!=="null")||event.source!==window.parent)return;const data=event.data;if(data?.type!=="mccrack-call-action")return;if(data.action==="accept")void acceptIncoming();else if(data.action==="decline")void declineIncoming()});
 function init(){
  $("startVoiceCall").addEventListener("click",()=>startCall("voice").catch(e=>toast(e.message||"Could not start voice call",true)));
  $("startVideoCall").addEventListener("click",()=>startCall("video").catch(e=>toast(e.message||"Could not start video call",true)));
  $("acceptIncomingCall").addEventListener("click",acceptIncoming);$("declineIncomingCall").addEventListener("click",declineIncoming);
  $("endActiveCall").addEventListener("click",()=>endCall(false));$("toggleCallMute").addEventListener("click",toggleMute);$("toggleCallCamera").addEventListener("click",toggleCamera);
  const head=$("dmHeaderName");if(head)new MutationObserver(setCallButtons).observe(head,{childList:true,subtree:true,characterData:true});
- const refreshAuth=async()=>{const {data}=await db.auth.getSession();call.user=data?.session?.user||null;setCallButtons();if(call.user){if(call.incomingPoll)clearInterval(call.incomingPoll);pollIncoming();call.incomingPoll=setInterval(pollIncoming,2400)}else{if(call.incomingPoll)clearInterval(call.incomingPoll);call.incomingPoll=null;cleanup(false)}};
- db.auth.onAuthStateChange((_event,session)=>{call.user=session?.user||null;setCallButtons();if(call.user)pollIncoming();else cleanup(false)});
+ const refreshAuth=async()=>{const {data}=await db.auth.getSession();call.user=data?.session?.user||null;setCallButtons();if(call.user){if(call.incomingPoll)clearInterval(call.incomingPoll);pollIncoming();call.incomingPoll=setInterval(pollIncoming,2400)}else{if(call.incomingPoll)clearInterval(call.incomingPoll);call.incomingPoll=null;call.lastIncomingId=null;cleanup(false)}};
+ db.auth.onAuthStateChange((_event,session)=>{call.user=session?.user||null;setCallButtons();if(call.user)pollIncoming();else{call.lastIncomingId=null;cleanup(false)}});
  refreshAuth();
  document.addEventListener("visibilitychange",()=>{if(!document.hidden)pollIncoming()});
 }
