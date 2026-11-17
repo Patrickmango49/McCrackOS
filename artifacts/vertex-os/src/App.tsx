@@ -1456,7 +1456,7 @@ onSessionClose: (peerCode) => {
   }, [settings.colorMode, settings.systemStyle, settings.fontStyle]);
   const [faqOpen, setFaqOpen] = useState<number | null>(null);
   const [toasts, setToasts] = useState<{ id: number; title: string; copy: string; href?: string }[]>([]);
-  const [notifications, setNotifications] = useState<{ id: number; title: string; copy: string; href?: string; at?: number; kind?: string }[]>(() => storage.read("vertex-notifications", []));
+  const [notifications, setNotifications] = useState<{ id: number; title: string; copy: string; href?: string; at?: number; kind?: string; conversationId?: string; senderId?: string }[]>(() => storage.read("vertex-notifications", []));
   const [notifReadCut, setNotifReadCut] = useState(0);
   const [currentTrack, setCurrentTrack] = useState<{ name: string; artist: string; artwork: string } | null>(null);
   const [incomingCall, setIncomingCall] = useState<{ id: string; mode: string; name: string; subtitle: string } | null>(null);
