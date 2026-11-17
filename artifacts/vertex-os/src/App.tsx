@@ -1673,7 +1673,6 @@ onSessionClose: (peerCode) => {
   }, [windows]);
 
   function respondToIncomingCall(action: "accept" | "decline") {
-    setIncomingCall(null);
     if (action === "accept") {
       setWindows((items) => items.some((item) => item.id === "messages")
         ? items.map((item) => item.id === "messages" ? { ...item, minimized: false } : item)
