@@ -1989,7 +1989,7 @@ onSessionClose: (peerCode) => {
 
   function openSignIn() {
     if (phase !== "lock") return;
-    if (accounts.length === 0) { setProfileErr(""); setLoginErr(""); setPhase("profile"); return; }
+    if (accounts.length === 0) { setProfileErr(""); setLoginErr(""); setSetupStep("account"); setPendingSetupAccount(null); setPhase("profile"); return; }
     setSelectedAccount(null);
     setPinInput("");
     setPinError(false);
@@ -2495,7 +2495,7 @@ onSessionClose: (peerCode) => {
                 <span className="checker-name">{account.name}</span>
               </button>
             ))}
-            <button className="checker-tile checker-add" onClick={() => { setProfileName(""); setProfilePass(""); setProfilePass2(""); setProfileAvatar(""); setProfileEmail(""); setProfileUsername(""); setProfileCloudPass(""); setProfileCloudPass2(""); setProfileAskPass(false); setProfileErr(""); setPhase("profile"); }} data-testid="button-add-account">
+            <button className="checker-tile checker-add" onClick={() => { setProfileName(""); setProfilePass(""); setProfilePass2(""); setProfileAvatar(""); setProfileEmail(""); setProfileUsername(""); setProfileCloudPass(""); setProfileCloudPass2(""); setProfileAskPass(false); setProfileErr(""); setSetupStep("account"); setPendingSetupAccount(null); setPhase("profile"); }} data-testid="button-add-account">
               <span className="checker-avatar checker-add-avatar"><Plus size={30} /></span>
               <span className="checker-name">Add profile</span>
             </button>
@@ -2509,7 +2509,7 @@ onSessionClose: (peerCode) => {
             </div>
             {loginErr ? <span className="lock-error">{loginErr}</span> : null}
           </form>
-          <button className="account-add" onClick={() => { setProfileName(""); setProfilePass(""); setProfilePass2(""); setProfileAvatar(""); setProfileEmail(""); setProfileUsername(""); setProfileCloudPass(""); setProfileCloudPass2(""); setProfileAskPass(false); setProfileErr(""); setPhase("profile"); }}><Plus size={15} /> Create new account</button>
+          <button className="account-add" onClick={() => { setProfileName(""); setProfilePass(""); setProfilePass2(""); setProfileAvatar(""); setProfileEmail(""); setProfileUsername(""); setProfileCloudPass(""); setProfileCloudPass2(""); setProfileAskPass(false); setProfileErr(""); setSetupStep("account"); setPendingSetupAccount(null); setPhase("profile"); }}><Plus size={15} /> Create new account</button>
           <button className="signin-back" onClick={() => setPhase("lock")}>Back</button>
         </div>
       </section>
