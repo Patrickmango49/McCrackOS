@@ -23,8 +23,8 @@ function setText(id,value){const el=$(id);if(el)el.textContent=value}
 function initials(name){return String(name||"?").trim().split(/\s+/).slice(0,2).map(x=>x[0]||"").join("").toUpperCase()||"?"}
 function currentUser(){return call.user||api.state.user||null}
 function setCallButtons(){const active=!!(currentUser()&&$("dmHeaderName")&&$("dmHeaderName").textContent.trim()!=="Choose a friend");["startVoiceCall","startVideoCall"].forEach(id=>{const b=$(id);if(b)b.disabled=!active||!!call.session})}
-function showIncoming(row,profile){call.incoming=row;call.lastIncomingId=row.id;setText("incomingCallTitle",profile?.display_name||profile?.username||"Incoming call");setText("incomingCallSubtitle",(row.mode==="video"?"Video call":"Voice call")+" · "+(profile?.username?"@"+profile.username:"McCrack Chat"));$("incomingCallOverlay").classList.add("open")}
-function hideIncoming(){$("incomingCallOverlay").classList.remove("open")}
+function showIncoming(row,profile){call.incoming=row;call.lastIncomingId=row.id;const name=profile?.display_name||profile?.username||"Incoming call";const subtitle=(row.mode==="video"?"Video call":"Voice call")+" · "+(profile?.username?"@"+profile.username:"McCrack Chat");setText("incomingCallTitle",name);setText("incomingCallSubtitle",subtitle);$("incomingCallOverlay").classList.add("open");try{if(window.parent&&window.parent!==window)window.parent.postMessage({type:"mccrack-call-state",call:{id:row.id,mode:row.mode||"video",name,subtitle}},"*")}catch(e){}}
+function hideIncoming(){$("incomingCallOverlay").classList.remove("open");try{if(window.parent&&window.parent!==window)window.parent.postMessage({type:"mccrack-call-state",call:null},"*")}catch(e){}}
 function updateCallStatus(text){setText("callStatusText",text)}
 function setCallMode(mode){call.mode=mode;const voice=mode==="voice";$("remoteCallVideo").hidden=voice;$("localCallVideo").hidden=voice;setText("remoteCallHint",voice?"Voice call connected":"Waiting for video…")}
 function showActive(profile){
@@ -242,6 +242,7 @@ function toggleCamera(){
  $("toggleCallCamera").innerHTML=call.cameraOff?'<i class="fa-solid fa-video-slash"></i>':'<i class="fa-solid fa-video"></i>';
  $("toggleCallCamera").title=call.cameraOff?"Turn camera on":"Turn camera off";
 }
+window.addEventListener("message",event=>{if(event.origin!==location.origin||event.source!==window.parent)return;const data=event.data;if(data?.type!=="mccrack-call-action")return;if(data.action==="accept")void acceptIncoming();else if(data.action==="decline")void declineIncoming()});
 function init(){
  $("startVoiceCall").addEventListener("click",()=>startCall("voice").catch(e=>toast(e.message||"Could not start voice call",true)));
  $("startVideoCall").addEventListener("click",()=>startCall("video").catch(e=>toast(e.message||"Could not start video call",true)));
