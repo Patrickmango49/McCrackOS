@@ -29,7 +29,7 @@ import { MacMenuBar } from "./components/mac-menubar";
 import { LinksApp } from "./components/links-app";
 import { assetUrl } from "./asset-map";
 import { VStudiosSurface } from "./v-market";
-import { getMcCrackCloudAccount, getMcCrackCloudPreferences, saveMcCrackCloudPreferences, signUpMcCrackAccount, signInMcCrackAccount, updateMcCrackCloudProfile, signOutMcCrackAccount } from "./mccrack-account";
+import { getMcCrackCloudAccount, getMcCrackCloudPreferences, saveMcCrackCloudPreferences, sendMcCrackQuickReply, signUpMcCrackAccount, signInMcCrackAccount, updateMcCrackCloudProfile, signOutMcCrackAccount } from "./mccrack-account";
 
 import { TerminalBanner } from "./terminal/TerminalBanner";
 import { ansiToNodes } from "./terminal/ansi";
@@ -1606,9 +1606,9 @@ onSessionClose: (peerCode) => {
     return () => { window.clearTimeout(timer); window.removeEventListener("mousemove", reset); window.removeEventListener("keydown", reset); };
   }, [phase, settings.idleLock]);
 
-  function addToast(title: string, copy: string, href?: string) {
+  function addToast(title: string, copy: string, href?: string, meta?: { conversationId?: string; senderId?: string }) {
     const id = Date.now() + Math.random();
-    setNotifications((items) => [{ id, title, copy, href, at: Date.now(), kind: title.toLowerCase().includes("call") ? "call" : title.toLowerCase().includes("friend") ? "friend" : "message" }, ...items].slice(0, 30));
+    setNotifications((items) => [{ id, title, copy, href, at: Date.now(), kind: title.toLowerCase().includes("call") ? "call" : title.toLowerCase().includes("friend") ? "friend" : "message", conversationId: meta?.conversationId, senderId: meta?.senderId }, ...items].slice(0, 30));
   }
 
   function toastPopup(title: string, copy: string, href?: string) {
@@ -1633,6 +1633,16 @@ onSessionClose: (peerCode) => {
     setActiveWindow("messages");
   }
 
+  async function handleQuickReply(notification: { conversationId?: string }, content: string) {
+    if (!notification.conversationId) return;
+    try {
+      await sendMcCrackQuickReply(notification.conversationId, content);
+      addToast("Reply sent", "Your private message was sent.");
+    } catch (error) {
+      addToast("Could not send reply", error instanceof Error ? error.message : "Check your McCrack Chat connection.");
+    }
+  }
+
   useEffect(() => { storage.write("vertex-notifications", notifications); }, [notifications]);
 
   useEffect(() => {
@@ -1644,7 +1654,7 @@ onSessionClose: (peerCode) => {
       if (data?.type === "mccrack-os-notification") {
         const title = String(data.title || "McCrack Chat").slice(0, 90);
         const copy = String(data.copy || "").slice(0, 180);
-        addToast(title, copy);
+        addToast(title, copy, undefined, { conversationId: typeof data.conversationId === "string" ? data.conversationId : undefined, senderId: typeof data.senderId === "string" ? data.senderId : undefined });
         if (localStorage.getItem("vertex-do-not-disturb") !== "1") toastPopup(title, copy);
       } else if (data?.type === "mccrack-call-history") {
         const item = data.entry;
@@ -2644,7 +2654,7 @@ onSessionClose: (peerCode) => {
           </div>}
         </nav>
 
-        <SystemTray now={now} lang={chosenLang} notifications={notifications} unseen={unseenNotifications} onOpenClock={markNotificationsRead} onDismiss={dismissNotification} onClear={clearNotifications} onActivate={openNotificationTarget} />
+        <SystemTray now={now} lang={chosenLang} notifications={notifications} unseen={unseenNotifications} onOpenClock={markNotificationsRead} onDismiss={dismissNotification} onClear={clearNotifications} onActivate={openNotificationTarget} onQuickReply={handleQuickReply} />
 
         {incomingCall && (
           <div className="os-incoming-call" role="alertdialog" aria-live="assertive" aria-label="Incoming McCrack Chat call" onClick={(event) => event.stopPropagation()}>
