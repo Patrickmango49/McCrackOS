@@ -2601,18 +2601,6 @@ onSessionClose: (peerCode) => {
         )}
         <NowPlayingCard />
 
-        {phase !== "boot" && phase !== "profile" && phase !== "picker" && !windows.some((item) => item.id === "messages") && (
-          <iframe
-            className="messages-background-frame"
-            src={appFallbackSrc("apps/messages/index.html", "https://raw.githack.com/Patrickmango49/McCrackOS/main/apps/messages/index.html")}
-            srcDoc={embeddedAppDocument("apps/messages/index.html", "https://raw.githack.com/Patrickmango49/McCrackOS/main/apps/messages/")}
-            title="McCrack Chat"
-            allow="autoplay; clipboard-write; camera; microphone; fullscreen; display-capture"
-            aria-hidden="true"
-            tabIndex={-1}
-          />
-        )}
-
         {gvInbox.length > 0 && (
           <div className="gv-cards">
             {gvInbox.map((item) => (
@@ -5910,9 +5898,9 @@ function NowPlayingCard() {
     return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
   };
   const setWidgetHidden = (value: boolean) => { setHidden(value); try { localStorage.setItem("vertex-music-widget-hidden", value ? "1" : "0"); } catch { /* ignore */ } };
-  if (hidden) return <button ref={(node) => { cardRef.current = node; }} style={widgetStyle} className="music-widget-reopen" onPointerDown={startDrag} onClick={() => setWidgetHidden(false)}>♫ Now Playing</button>;
+  if (hidden) return <button ref={(node) => { cardRef.current = node; }} style={widgetStyle} className="music-widget-reopen" data-native-drag="true" onPointerDown={startDrag} onClick={() => setWidgetHidden(false)}>♫ Now Playing</button>;
   return (
-    <section ref={(node) => { cardRef.current = node; }} style={widgetStyle} className={`music-widget${dragging ? " is-dragging" : ""}`} aria-label="McCrackify now playing">
+    <section ref={(node) => { cardRef.current = node; }} style={widgetStyle} className={`music-widget${dragging ? " is-dragging" : ""}`} data-native-drag="true" aria-label="McCrackify now playing">
       <div className="music-widget-head" onPointerDown={startDrag}><span><i /> McCrackify <small className="music-widget-drag-hint">DRAG TO MOVE</small></span><button onClick={() => setWidgetHidden(true)} aria-label="Hide music widget">×</button></div>
       <div className="music-widget-track">
         {session.artwork ? <img src={session.artwork} alt="" /> : <div className="music-widget-art">♫</div>}
