@@ -191,3 +191,20 @@ export async function saveMcCrackCloudPreferences(patch: McCrackCloudPreferences
   }, { onConflict: "id" });
   if (error) throw error;
 }
+
+
+export async function sendMcCrackQuickReply(conversationId: string, content: string): Promise<void> {
+  const message = content.trim();
+  if (!conversationId || !message || message.length > 4000) throw new Error("Enter a reply under 4,000 characters.");
+  const { data: sessionData, error: sessionError } = await mccrackAuth.auth.getSession();
+  if (sessionError) throw sessionError;
+  const user = sessionData.session?.user;
+  if (!user) throw new Error("Sign in to McCrack Chat before replying.");
+  const { error } = await mccrackAuth.from("dm_messages").insert({
+    conversation_id: conversationId,
+    sender_id: user.id,
+    content: message,
+  });
+  if (error) throw error;
+  await mccrackAuth.from("private_conversations").update({ last_message_at: new Date().toISOString() }).eq("id", conversationId);
+}
