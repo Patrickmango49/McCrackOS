@@ -5963,6 +5963,8 @@ function NowPlayingCard() {
       </div>
       <input className="music-widget-seek" aria-label="Seek song" type="range" min={0} max={dur || 1} step={1} value={Math.min(prog, dur || prog || 0)} onChange={(event) => session.onSeek?.(Number(event.target.value))} />
       <div className="music-widget-times"><span>{fmt(prog)}</span><span>{fmt(dur)}</span></div>
+      <div className="music-widget-volume"><button onClick={() => session.onToggleMute?.()} aria-label={session.muted ? "Unmute music" : "Mute music"}>{session.muted ? "×" : "◖"}</button><input aria-label="Music volume" type="range" min={0} max={100} value={session.muted ? 0 : session.volume ?? 100} onChange={(event) => session.onSetVolume?.(Number(event.target.value))} /></div>
+      {session.queue?.length ? <div className="music-widget-queue"><span>UP NEXT</span>{session.queue.slice(0,3).map((track,index) => <small key={`${track}-${index}`}>{track}</small>)}</div> : null}
       <div className="music-widget-controls">
         <button onClick={() => session.onPrev?.()} aria-label="Previous track">|◀</button>
         <button className="music-widget-play" onClick={() => session.onToggle?.()} aria-label={session.playing ? "Pause" : "Play"}>{session.playing ? "Ⅱ" : "▶"}</button>
