@@ -25,6 +25,15 @@ function currentUser(){return call.user||api.state.user||null}
 function setCallButtons(){const active=!!(currentUser()&&$("dmHeaderName")&&$("dmHeaderName").textContent.trim()!=="Choose a friend");["startVoiceCall","startVideoCall"].forEach(id=>{const b=$(id);if(b)b.disabled=!active||!!call.session})}
 function showIncoming(row,profile){call.incoming=row;call.lastIncomingId=row.id;const name=profile?.display_name||profile?.username||"Incoming call";const subtitle=(row.mode==="video"?"Video call":"Voice call")+" · "+(profile?.username?"@"+profile.username:"McCrack Chat");setText("incomingCallTitle",name);setText("incomingCallSubtitle",subtitle);$("incomingCallOverlay").classList.add("open");if("Notification"in window&&Notification.permission==="granted"&&document.hidden){try{new Notification(name,{body:subtitle,icon:"favicon.png"})}catch(e){}}try{if(window.parent&&window.parent!==window)window.parent.postMessage({type:"mccrack-call-state",call:{id:row.id,mode:row.mode||"video",name,subtitle}},"*")}catch(e){}}
 function hideIncoming(){$("incomingCallOverlay").classList.remove("open");try{if(window.parent&&window.parent!==window)window.parent.postMessage({type:"mccrack-call-state",call:null},"*")}catch(e){}}
+function recordCallHistory(row,outcome,person){
+ const who=person?.display_name||person?.username||"Someone";
+ const mode=row?.mode==="voice"?"voice":"video";
+ const title=outcome==="missed"?"Missed call":outcome==="declined"?"Declined call":outcome==="answered"?"Call answered":"Call ended";
+ const copy=(mode==="video"?"Video":"Voice")+" call "+outcome+" "+(outcome==="missed"?"from ":"with ")+who+".";
+ const entry={id:String(row?.id||Date.now()),title,copy,mode,outcome,at:new Date().toISOString(),name:who};
+ try{const list=JSON.parse(localStorage.getItem("mcchat.callHistory")||"[]");list.unshift(entry);localStorage.setItem("mcchat.callHistory",JSON.stringify(list.slice(0,50)))}catch(e){}
+ try{if(window.parent&&window.parent!==window)window.parent.postMessage({type:"mccrack-call-history",entry:{title,copy,at:entry.at,outcome}}, "*")}catch(e){}
+}
 function updateCallStatus(text){setText("callStatusText",text)}
 function setCallMode(mode){call.mode=mode;const voice=mode==="voice";$("remoteCallVideo").hidden=voice;$("localCallVideo").hidden=voice;setText("remoteCallHint",voice?"Voice call connected":"Waiting for video…")}
 function showActive(profile){
@@ -216,12 +225,13 @@ async function declineIncoming(){
  const row=call.incoming;if(!row)return;
  const {data,error}=await db.from("call_sessions").update({status:"declined",ended_at:new Date().toISOString()}).eq("id",row.id).eq("status","ringing").select("id").maybeSingle();
  if(error){toast("Could not decline the call: "+error.message,true);return}
- hideIncoming();call.incoming=null;
+ hideIncoming();if(data){const profile=await getProfile(row.caller_id);recordCallHistory(row,"declined",profile)}call.incoming=null;
  if(!data)toast("This call is no longer ringing.");
 }
 async function endCall(remote){
  const row=call.session;if(!row)return;
  if(!remote){try{await signal("hangup",{})}catch(e){}await db.from("call_sessions").update({status:"ended",ended_at:new Date().toISOString()}).eq("id",row.id)}
+ const otherId=row.caller_id===currentUser()?.id?row.callee_id:row.caller_id;const profile=await getProfile(otherId);recordCallHistory(row,"ended",profile);
  cleanup(false);
 }
 function cleanup(showToast){
@@ -241,7 +251,7 @@ function cleanup(showToast){
 }
 async function pollIncoming(){
  if(!currentUser()||call.session)return;
- if(call.incoming){const row=call.incoming;const {data:active}=await db.from("call_sessions").select("status").eq("id",row.id).maybeSingle();if(!active||active.status!=="ringing"){hideIncoming();call.incoming=null;if(active?.status==="missed"){const profile=await getProfile(row.caller_id);const who=profile?.display_name||profile?.username||"Someone";const title="Missed call";const copy="You missed a "+(row.mode==="video"?"video":"voice")+" call from "+who+".";toast(title+": "+copy);if("Notification"in window&&Notification.permission==="granted"&&document.hidden){try{new Notification(title,{body:copy,icon:"favicon.png"})}catch(e){}}try{if(window.parent&&window.parent!==window)window.parent.postMessage({type:"mccrack-os-notification",title,copy},"*")}catch(e){}}}return}
+ if(call.incoming){const row=call.incoming;const {data:active}=await db.from("call_sessions").select("status").eq("id",row.id).maybeSingle();if(!active||active.status!=="ringing"){hideIncoming();call.incoming=null;if(active?.status==="missed"){const profile=await getProfile(row.caller_id);const who=profile?.display_name||profile?.username||"Someone";const title="Missed call";const copy="You missed a "+(row.mode==="video"?"video":"voice")+" call from "+who+".";recordCallHistory(row,"missed",profile);toast(title+": "+copy);if("Notification"in window&&Notification.permission==="granted"&&document.hidden){try{new Notification(title,{body:copy,icon:"favicon.png"})}catch(e){}}try{if(window.parent&&window.parent!==window)window.parent.postMessage({type:"mccrack-os-notification",title,copy},"*")}catch(e){}}}return}
  const {data,error}=await db.from("call_sessions").select("*").eq("callee_id",currentUser().id).eq("status","ringing").order("created_at",{ascending:false}).limit(1);
  if(error){if(!/relation .* does not exist/i.test(error.message||""))console.warn("Incoming call check:",error.message);return}
  const row=data&&data[0];if(!row||row.id===call.lastIncomingId)return;
