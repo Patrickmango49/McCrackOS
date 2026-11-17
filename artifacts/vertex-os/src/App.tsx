@@ -2686,7 +2686,7 @@ onSessionClose: (peerCode) => {
           </div>}
         </nav>
 
-        <SystemTray now={now} lang={chosenLang} notifications={notifications} unseen={unseenNotifications} onOpenClock={markNotificationsRead} onDismiss={dismissNotification} onClear={clearNotifications} onActivate={openNotificationTarget} onQuickReply={handleQuickReply} />
+        <SystemTray now={now} lang={chosenLang} notifications={notifications} unseen={unseenNotifications} onOpenClock={markNotificationsRead} onDismiss={dismissNotification} onClear={clearNotifications} onActivate={openNotificationTarget} onQuickReply={handleQuickReply} onOpenSettings={() => toggleApp("settings")} />
 
         {incomingCall && (
           <div className="os-incoming-call" role="alertdialog" aria-live="assertive" aria-label="Incoming McCrack Chat call" onClick={(event) => event.stopPropagation()}>
