@@ -152,3 +152,42 @@ export async function signOutMcCrackAccount(): Promise<void> {
   const { error } = await mccrackAuth.auth.signOut();
   if (error) throw error;
 }
+
+
+export interface McCrackCloudPreferences {
+  settings?: Record<string, unknown>;
+  wallpaper?: string;
+  lockWallpaper?: string;
+  dockOrder?: string[];
+  placedCells?: Record<string, number>;
+}
+
+export async function getMcCrackCloudPreferences(): Promise<McCrackCloudPreferences | null> {
+  const { data: sessionData } = await mccrackAuth.auth.getSession();
+  const user = sessionData.session?.user;
+  if (!user) return null;
+  const { data, error } = await mccrackAuth.from("user_preferences")
+    .select("settings")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (error) throw error;
+  return (data?.settings && typeof data.settings === "object" ? data.settings : {}) as McCrackCloudPreferences;
+}
+
+export async function saveMcCrackCloudPreferences(patch: McCrackCloudPreferences): Promise<void> {
+  const { data: sessionData } = await mccrackAuth.auth.getSession();
+  const user = sessionData.session?.user;
+  if (!user) return;
+  const { data: existing, error: readError } = await mccrackAuth.from("user_preferences")
+    .select("settings")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (readError) throw readError;
+  const settings = { ...(existing?.settings && typeof existing.settings === "object" ? existing.settings : {}), ...patch };
+  const { error } = await mccrackAuth.from("user_preferences").upsert({
+    id: user.id,
+    settings,
+    updated_at: new Date().toISOString(),
+  }, { onConflict: "id" });
+  if (error) throw error;
+}
