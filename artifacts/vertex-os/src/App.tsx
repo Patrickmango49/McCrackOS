@@ -1679,11 +1679,13 @@ onSessionClose: (peerCode) => {
         : [...items, { id: "messages", minimized: false, maximized: false, rect: defaultWindowRect(items.length), prevRect: null }]);
       setActiveWindow("messages");
     }
-    window.setTimeout(() => {
-      document.querySelectorAll<HTMLIFrameElement>("iframe").forEach((frame) => {
-        try { frame.contentWindow?.postMessage({ type: "mccrack-call-action", action }, "*"); } catch { /* ignore unrelated frames */ }
+    const sendCallAction = () => {
+      document.querySelectorAll<HTMLIFrameElement>('iframe[title="McCrack Chat"]').forEach((frame) => {
+        try { frame.contentWindow?.postMessage({ type: "mccrack-call-action", action }, "*"); } catch { /* ignore */ }
       });
-    }, 280);
+    };
+    // The Messages window may still be loading when the OS opens it to answer.
+    [180, 550, 1100].forEach((delay) => window.setTimeout(sendCallAction, delay));
   }
 
   const unseenNotifications = Math.max(0, notifications.length - notifReadCut);
@@ -2598,6 +2600,18 @@ onSessionClose: (peerCode) => {
           </div>
         )}
         <NowPlayingCard />
+
+        {phase !== "boot" && phase !== "profile" && phase !== "picker" && !windows.some((item) => item.id === "messages") && (
+          <iframe
+            className="messages-background-frame"
+            src={appFallbackSrc("apps/messages/index.html", "https://raw.githack.com/Patrickmango49/McCrackOS/main/apps/messages/index.html")}
+            srcDoc={embeddedAppDocument("apps/messages/index.html", "https://raw.githack.com/Patrickmango49/McCrackOS/main/apps/messages/")}
+            title="McCrack Chat"
+            allow="autoplay; clipboard-write; camera; microphone; fullscreen; display-capture"
+            aria-hidden="true"
+            tabIndex={-1}
+          />
+        )}
 
         {gvInbox.length > 0 && (
           <div className="gv-cards">
@@ -5838,19 +5852,68 @@ function useMediaSession(): MediaSession | null {
 function NowPlayingCard() {
   const session = useMediaSession();
   const [hidden, setHidden] = useState(() => { try { return localStorage.getItem("vertex-music-widget-hidden") === "1"; } catch { return false; } });
+  const [position, setPosition] = useState<{ left: number; top: number } | null>(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("vertex-music-widget-position") || "null");
+      return saved && Number.isFinite(saved.left) && Number.isFinite(saved.top) ? saved : null;
+    } catch { return null; }
+  });
+  const [dragging, setDragging] = useState(false);
+  const cardRef = useRef<HTMLElement | null>(null);
+  const dragRef = useRef<{ x: number; y: number; left: number; top: number } | null>(null);
+  const widgetStyle: CSSProperties | undefined = position ? { left: position.left, top: position.top, bottom: "auto" } : undefined;
+
+  const startDrag = (event: ReactPointerEvent<HTMLElement>) => {
+    const target = event.target as HTMLElement;
+    if (event.button !== 0 || (target.closest("button,input") && !target.closest(".music-widget-reopen"))) return;
+    const rect = cardRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    event.preventDefault();
+    dragRef.current = { x: event.clientX, y: event.clientY, left: rect.left, top: rect.top };
+    setDragging(true);
+  };
+
+  useEffect(() => {
+    const move = (event: PointerEvent) => {
+      const start = dragRef.current;
+      const node = cardRef.current;
+      if (!start || !node) return;
+      const rect = node.getBoundingClientRect();
+      const left = Math.max(8, Math.min(window.innerWidth - rect.width - 8, start.left + event.clientX - start.x));
+      const top = Math.max(8, Math.min(window.innerHeight - rect.height - 8, start.top + event.clientY - start.y));
+      setPosition({ left, top });
+    };
+    const finish = () => {
+      if (!dragRef.current) return;
+      dragRef.current = null;
+      setDragging(false);
+      setPosition((current) => {
+        if (current) { try { localStorage.setItem("vertex-music-widget-position", JSON.stringify(current)); } catch { /* ignore */ } }
+        return current;
+      });
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", finish);
+    window.addEventListener("pointercancel", finish);
+    return () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", finish);
+      window.removeEventListener("pointercancel", finish);
+    };
+  }, []);
+
   if (!session || session.source !== "music") return null;
   const dur = Number.isFinite(session.duration) && session.duration > 0 ? session.duration : 0;
   const prog = Number.isFinite(session.progress) && session.progress > 0 ? Math.min(session.progress, dur || session.progress) : 0;
-  const pct = dur ? Math.min(100, (prog / dur) * 100) : 0;
   const fmt = (value: number) => {
     const total = Math.max(0, Math.floor(Number.isFinite(value) ? value : 0));
     return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
   };
   const setWidgetHidden = (value: boolean) => { setHidden(value); try { localStorage.setItem("vertex-music-widget-hidden", value ? "1" : "0"); } catch { /* ignore */ } };
-  if (hidden) return <button className="music-widget-reopen" onClick={() => setWidgetHidden(false)}>♫ Now Playing</button>;
+  if (hidden) return <button ref={(node) => { cardRef.current = node; }} style={widgetStyle} className="music-widget-reopen" onPointerDown={startDrag} onClick={() => setWidgetHidden(false)}>♫ Now Playing</button>;
   return (
-    <section className="music-widget" aria-label="McCrackify now playing">
-      <div className="music-widget-head"><span><i /> McCrackify</span><button onClick={() => setWidgetHidden(true)} aria-label="Hide music widget">×</button></div>
+    <section ref={(node) => { cardRef.current = node; }} style={widgetStyle} className={`music-widget${dragging ? " is-dragging" : ""}`} aria-label="McCrackify now playing">
+      <div className="music-widget-head" onPointerDown={startDrag}><span><i /> McCrackify <small className="music-widget-drag-hint">DRAG TO MOVE</small></span><button onClick={() => setWidgetHidden(true)} aria-label="Hide music widget">×</button></div>
       <div className="music-widget-track">
         {session.artwork ? <img src={session.artwork} alt="" /> : <div className="music-widget-art">♫</div>}
         <div className="music-widget-meta"><strong title={session.title}>{session.title || "Unknown track"}</strong><span title={session.artist}>{session.artist || "Unknown artist"}</span></div>
