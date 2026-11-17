@@ -8,7 +8,7 @@ const BASE = import.meta.env.BASE_URL.endsWith("/") ? import.meta.env.BASE_URL :
 type TrayPanel = null | "clock" | "audio" | "battery";
 type SysAudioState = { on: boolean; vol: number; muted: boolean; output: "speakers" | "headphones" };
 
-export type TrayNotification = { id: number; title: string; copy: string; href?: string; at?: number; kind?: string };
+export type TrayNotification = { id: number; title: string; copy: string; href?: string; at?: number; kind?: string; conversationId?: string; senderId?: string };
 
 type BatteryState = { supported: boolean; level: number; charging: boolean; chargingTime: number; dischargingTime: number };
 
@@ -44,7 +44,7 @@ function readSysAudio(): SysAudioState {
   return { on: false, vol: 40, muted: false, output: "speakers" };
 }
 
-export function SystemTray({ now, lang, notifications, unseen, onOpenClock, onDismiss, onClear, onActivate }: {
+export function SystemTray({ now, lang, notifications, unseen, onOpenClock, onDismiss, onClear, onActivate, onQuickReply }: {
   now: Date;
   lang: Lang;
   notifications: TrayNotification[];
@@ -53,9 +53,11 @@ export function SystemTray({ now, lang, notifications, unseen, onOpenClock, onDi
   onDismiss: (id: number) => void;
   onClear: () => void;
   onActivate: () => void;
+  onQuickReply: (notification: TrayNotification, content: string) => void;
 }) {
   const [panel, setPanel] = useState<TrayPanel>(null);
   const [doNotDisturb, setDoNotDisturb] = useState(() => { try { return localStorage.getItem("vertex-do-not-disturb") === "1"; } catch { return false; } });
+  const [replyDrafts, setReplyDrafts] = useState<Record<number, string>>({});
   const [sys, setSys] = useState(readSysAudio);
   const [battery, setBattery] = useState<BatteryState>({ supported: false, level: 1, charging: false, chargingTime: Infinity, dischargingTime: Infinity });
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -256,7 +258,7 @@ export function SystemTray({ now, lang, notifications, unseen, onOpenClock, onDi
                     {n.href
                       ? <a className="tray-notif-body" href={n.href} target="_blank" rel="noopener noreferrer"><span className="tray-notif-title">{n.title}</span><span className="tray-notif-copy">{n.copy}</span><span className="tray-notif-time">{n.at ? new Intl.DateTimeFormat(loc, { hour: "numeric", minute: "2-digit" }).format(new Date(n.at)) : "Earlier"}</span></a>
                       : <div className="tray-notif-body"><span className="tray-notif-title">{n.title}</span><span className="tray-notif-copy">{n.copy}</span><span className="tray-notif-time">{n.at ? new Intl.DateTimeFormat(loc, { hour: "numeric", minute: "2-digit" }).format(new Date(n.at)) : "Earlier"}</span></div>}
-                    <div className="tray-notif-actions"><button className="tray-notif-open" onClick={onActivate}>Open</button><button className="tray-notif-x" onClick={() => onDismiss(n.id)} aria-label="Dismiss notification"><X size={11} /></button></div>
+                    <div className="tray-notif-actions">{n.conversationId ? <button className="tray-notif-open" onClick={() => { const value = (replyDrafts[n.id] || "").trim(); if (value) { onQuickReply(n, value); setReplyDrafts((items) => ({ ...items, [n.id]: "" })); } else onActivate(); }}>{(replyDrafts[n.id] || "").trim() ? "Send" : "Open"}</button> : <button className="tray-notif-open" onClick={onActivate}>Open</button>}<button className="tray-notif-x" onClick={() => onDismiss(n.id)} aria-label="Dismiss notification"><X size={11} /></button></div>{n.conversationId && <div className="tray-notif-quick-reply"><input value={replyDrafts[n.id] || ""} maxLength={4000} placeholder="Quick reply…" onChange={(event) => setReplyDrafts((items) => ({ ...items, [n.id]: event.target.value }))} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); const value = (replyDrafts[n.id] || "").trim(); if (value) { onQuickReply(n, value); setReplyDrafts((items) => ({ ...items, [n.id]: "" })); } } }} aria-label="Quick reply to private message" />}</div>}
                   </div>
                 ))
               )}
