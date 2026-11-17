@@ -1680,7 +1680,7 @@ onSessionClose: (peerCode) => {
     setActiveWindow("messages");
     window.setTimeout(() => {
       document.querySelectorAll<HTMLIFrameElement>("iframe").forEach((frame) => {
-        try { frame.contentWindow?.postMessage({ type: "mccrack-call-action", action }, window.location.origin); } catch { /* ignore unrelated frames */ }
+        try { frame.contentWindow?.postMessage({ type: "mccrack-call-action", action }, "*"); } catch { /* ignore unrelated frames */ }
       });
     }, 280);
   }
