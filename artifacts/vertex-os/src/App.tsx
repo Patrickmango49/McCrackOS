@@ -1238,6 +1238,7 @@ storage.read("vertex-jarvis-installed", false));
   const [translucentTB, setTranslucentTB] = useState<boolean>(() => storage.read("vertex-translucenttb", false) !== false);
   const [windows, setWindows] = useState<WindowState[]>([]);
   const [activeWindow, setActiveWindow] = useState<AppId | null>(null);
+  const closeTimersRef = useRef<Map<AppId, number>>(new Map());
   const gvWindowsRef = useRef<WindowState[]>([]);
   gvWindowsRef.current = windows;
   const cloudPrefsReady = useRef(false);
@@ -2119,6 +2120,14 @@ onSessionClose: (peerCode) => {
       setActiveWindow(id);
       return;
     }
+    if (existing.closingAt) {
+      const timer = closeTimersRef.current.get(id);
+      if (timer !== undefined) window.clearTimeout(timer);
+      closeTimersRef.current.delete(id);
+      setWindows((items) => items.map((item) => item.id === id ? { ...item, minimized: false, closingAt: undefined } : item));
+      setActiveWindow(id);
+      return;
+    }
     if (activeWindow === id && !existing.minimized) {
       setWindows((items) => items.map((item) => item.id === id ? { ...item, minimized: true } : item));
       setActiveWindow(null);
@@ -2145,11 +2154,16 @@ onSessionClose: (peerCode) => {
   }
 
   function closeWindow(id: AppId) {
-    setWindows((items) => items.map((item) => item.id === id ? { ...item, closingAt: Date.now() } : item));
-    setTimeout(() => {
-      setWindows((items) => items.filter((item) => item.id !== id));
+    const previous = closeTimersRef.current.get(id);
+    if (previous !== undefined) window.clearTimeout(previous);
+    const closingAt = Date.now();
+    setWindows((items) => items.map((item) => item.id === id ? { ...item, closingAt } : item));
+    const timer = window.setTimeout(() => {
+      closeTimersRef.current.delete(id);
+      setWindows((items) => items.filter((item) => item.id !== id || item.closingAt !== closingAt));
       setActiveWindow((active) => active === id ? null : active);
     }, 200);
+    closeTimersRef.current.set(id, timer);
   }
 
   function minimizeWindow(id: AppId) {
@@ -2256,6 +2270,8 @@ onSessionClose: (peerCode) => {
 
   function restart() {
     setStartOpen(false);
+    closeTimersRef.current.forEach((timer) => window.clearTimeout(timer));
+    closeTimersRef.current.clear();
     setWindows([]);
     setActiveWindow(null);
     setPhase("lock");
@@ -2965,7 +2981,11 @@ function WindowLayer({ onSignOut, windows, activeWindow, onFocus, onClose, onMin
           </div>
         </>}
       </header>
-      <div className="window-body">{renderWindowBody(win.id, settings, updateSetting, faqOpen, setFaqOpen, lang, onLanguagePick, onPanic, () => onClose(win.id), () => onMinimize(win.id), onTrackChange, translucent, onTranslucent, onApplyWallpaper, appliedWallpaper, appliedLockWallpaper, onNotify, wppInstalled, onInstallPicker, jarvisInstalled, onJarvisInstall, onFsociety, activeAccount, onAvatarChange, onAccountChange, onSignOut)}</div>
+      <div className="window-body">
+        <PreviewBoundary fallback={<div className="app-error-state" role="alert"><div className="app-error-icon"><X size={18} /></div><h3>This app hit a problem</h3><p>The rest of McCrackOS is still running. Close and reopen this app to try again.</p><button type="button" onClick={() => onClose(win.id)}>Close app</button></div>}>
+          {renderWindowBody(win.id, settings, updateSetting, faqOpen, setFaqOpen, lang, onLanguagePick, onPanic, () => onClose(win.id), () => onMinimize(win.id), onTrackChange, translucent, onTranslucent, onApplyWallpaper, appliedWallpaper, appliedLockWallpaper, onNotify, wppInstalled, onInstallPicker, jarvisInstalled, onJarvisInstall, onFsociety, activeAccount, onAvatarChange, onAccountChange, onSignOut)}
+        </PreviewBoundary>
+      </div>
     </article>;
   })}</div>;
 }
