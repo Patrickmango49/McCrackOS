@@ -55,6 +55,7 @@ export function SystemTray({ now, lang, notifications, unseen, onOpenClock, onDi
   onActivate: () => void;
 }) {
   const [panel, setPanel] = useState<TrayPanel>(null);
+  const [doNotDisturb, setDoNotDisturb] = useState(() => { try { return localStorage.getItem("vertex-do-not-disturb") === "1"; } catch { return false; } });
   const [sys, setSys] = useState(readSysAudio);
   const [battery, setBattery] = useState<BatteryState>({ supported: false, level: 1, charging: false, chargingTime: Infinity, dischargingTime: Infinity });
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -242,6 +243,7 @@ export function SystemTray({ now, lang, notifications, unseen, onOpenClock, onDi
 
             <div className="tray-action-head">
               <span className="tray-action-title"><Bell size={13} /> Notifications</span>
+              <button className={`tray-dnd-toggle${doNotDisturb ? " active" : ""}`} onClick={() => { const next = !doNotDisturb; setDoNotDisturb(next); try { localStorage.setItem("vertex-do-not-disturb", next ? "1" : "0"); } catch {} window.dispatchEvent(new CustomEvent("vertex-dnd-change", { detail: next })); }} aria-pressed={doNotDisturb}>{doNotDisturb ? "Do Not Disturb on" : "Do Not Disturb"}</button>
               {notifications.length > 0 && <span className="tray-action-count">{notifications.length}</span>}
               {notifications.length > 0 && <button className="tray-action-clear" onClick={onClear}>Clear all</button>}
             </div>
@@ -252,7 +254,7 @@ export function SystemTray({ now, lang, notifications, unseen, onOpenClock, onDi
                 notifications.slice(0, 12).map((n) => (
                   <div className="tray-notif" key={n.id}>
                     {n.href
-                      ? <a className="tray-notif-body" href={n.href} target="_blank" rel="noopener noreferrer"><span className="tray-notif-title">{n.title}</span><span className="tray-notif-copy">{n.copy}</span></a>
+                      ? <a className="tray-notif-body" href={n.href} target="_blank" rel="noopener noreferrer"><span className="tray-notif-title">{n.title}</span><span className="tray-notif-copy">{n.copy}</span><span className="tray-notif-time">{n.at ? new Intl.DateTimeFormat(loc, { hour: "numeric", minute: "2-digit" }).format(new Date(n.at)) : "Earlier"}</span></a>
                       : <div className="tray-notif-body"><span className="tray-notif-title">{n.title}</span><span className="tray-notif-copy">{n.copy}</span><span className="tray-notif-time">{n.at ? new Intl.DateTimeFormat(loc, { hour: "numeric", minute: "2-digit" }).format(new Date(n.at)) : "Earlier"}</span></div>}
                     <div className="tray-notif-actions"><button className="tray-notif-open" onClick={onActivate}>Open</button><button className="tray-notif-x" onClick={() => onDismiss(n.id)} aria-label="Dismiss notification"><X size={11} /></button></div>
                   </div>
