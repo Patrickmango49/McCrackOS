@@ -261,7 +261,7 @@ function toggleCamera(){
  $("toggleCallCamera").innerHTML=call.cameraOff?'<i class="fa-solid fa-video-slash"></i>':'<i class="fa-solid fa-video"></i>';
  $("toggleCallCamera").title=call.cameraOff?"Turn camera on":"Turn camera off";
 }
-window.addEventListener("message",event=>{if(event.origin!==location.origin||event.source!==window.parent)return;const data=event.data;if(data?.type!=="mccrack-call-action")return;if(data.action==="accept")void acceptIncoming();else if(data.action==="decline")void declineIncoming()});
+window.addEventListener("message",event=>{if((event.origin!==location.origin&&event.origin!=="null")||event.source!==window.parent)return;const data=event.data;if(data?.type!=="mccrack-call-action")return;if(data.action==="accept")void acceptIncoming();else if(data.action==="decline")void declineIncoming()});
 function init(){
  $("startVoiceCall").addEventListener("click",()=>startCall("voice").catch(e=>toast(e.message||"Could not start voice call",true)));
  $("startVideoCall").addEventListener("click",()=>startCall("video").catch(e=>toast(e.message||"Could not start video call",true)));
