@@ -1674,10 +1674,12 @@ onSessionClose: (peerCode) => {
 
   function respondToIncomingCall(action: "accept" | "decline") {
     setIncomingCall(null);
-    setWindows((items) => items.some((item) => item.id === "messages")
-      ? items.map((item) => item.id === "messages" ? { ...item, minimized: false } : item)
-      : [...items, { id: "messages", minimized: false, maximized: false, rect: defaultWindowRect(items.length), prevRect: null }]);
-    setActiveWindow("messages");
+    if (action === "accept") {
+      setWindows((items) => items.some((item) => item.id === "messages")
+        ? items.map((item) => item.id === "messages" ? { ...item, minimized: false } : item)
+        : [...items, { id: "messages", minimized: false, maximized: false, rect: defaultWindowRect(items.length), prevRect: null }]);
+      setActiveWindow("messages");
+    }
     window.setTimeout(() => {
       document.querySelectorAll<HTMLIFrameElement>("iframe").forEach((frame) => {
         try { frame.contentWindow?.postMessage({ type: "mccrack-call-action", action }, "*"); } catch { /* ignore unrelated frames */ }
