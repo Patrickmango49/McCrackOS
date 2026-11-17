@@ -140,6 +140,12 @@ create policy "Users can remove accepted friendships" on public.friend_requests
     status = 'accepted' and (auth.uid() = sender_id or auth.uid() = recipient_id)
   );
 
+drop policy if exists "Users can clear declined friend requests" on public.friend_requests;
+create policy "Users can clear declined friend requests" on public.friend_requests
+  for delete to authenticated using (
+    status = 'declined' and (auth.uid() = sender_id or auth.uid() = recipient_id)
+  );
+
 
 -- Extended profiles, private DMs, presence, notifications, and private attachments.
 alter table public.profiles add column if not exists bio text not null default '';
