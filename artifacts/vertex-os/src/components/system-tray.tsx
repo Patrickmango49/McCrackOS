@@ -8,7 +8,7 @@ const BASE = import.meta.env.BASE_URL.endsWith("/") ? import.meta.env.BASE_URL :
 type TrayPanel = null | "clock" | "audio" | "battery";
 type SysAudioState = { on: boolean; vol: number; muted: boolean; output: "speakers" | "headphones" };
 
-export type TrayNotification = { id: number; title: string; copy: string; href?: string };
+export type TrayNotification = { id: number; title: string; copy: string; href?: string; at?: number; kind?: string };
 
 type BatteryState = { supported: boolean; level: number; charging: boolean; chargingTime: number; dischargingTime: number };
 
@@ -44,7 +44,7 @@ function readSysAudio(): SysAudioState {
   return { on: false, vol: 40, muted: false, output: "speakers" };
 }
 
-export function SystemTray({ now, lang, notifications, unseen, onOpenClock, onDismiss, onClear }: {
+export function SystemTray({ now, lang, notifications, unseen, onOpenClock, onDismiss, onClear, onActivate }: {
   now: Date;
   lang: Lang;
   notifications: TrayNotification[];
@@ -52,6 +52,7 @@ export function SystemTray({ now, lang, notifications, unseen, onOpenClock, onDi
   onOpenClock: () => void;
   onDismiss: (id: number) => void;
   onClear: () => void;
+  onActivate: () => void;
 }) {
   const [panel, setPanel] = useState<TrayPanel>(null);
   const [sys, setSys] = useState(readSysAudio);
@@ -248,12 +249,12 @@ export function SystemTray({ now, lang, notifications, unseen, onOpenClock, onDi
               {notifications.length === 0 ? (
                 <div className="tray-notif-empty">Nothing here yet — notifications will show up in this panel.</div>
               ) : (
-                notifications.slice(0, 8).map((n) => (
+                notifications.slice(0, 12).map((n) => (
                   <div className="tray-notif" key={n.id}>
                     {n.href
                       ? <a className="tray-notif-body" href={n.href} target="_blank" rel="noopener noreferrer"><span className="tray-notif-title">{n.title}</span><span className="tray-notif-copy">{n.copy}</span></a>
-                      : <div className="tray-notif-body"><span className="tray-notif-title">{n.title}</span><span className="tray-notif-copy">{n.copy}</span></div>}
-                    <button className="tray-notif-x" onClick={() => onDismiss(n.id)} aria-label="Dismiss notification"><X size={11} /></button>
+                      : <div className="tray-notif-body"><span className="tray-notif-title">{n.title}</span><span className="tray-notif-copy">{n.copy}</span><span className="tray-notif-time">{n.at ? new Intl.DateTimeFormat(loc, { hour: "numeric", minute: "2-digit" }).format(new Date(n.at)) : "Earlier"}</span></div>}
+                    <div className="tray-notif-actions"><button className="tray-notif-open" onClick={onActivate}>Open</button><button className="tray-notif-x" onClick={() => onDismiss(n.id)} aria-label="Dismiss notification"><X size={11} /></button></div>
                   </div>
                 ))
               )}
@@ -285,3 +286,6 @@ export function SystemTray({ now, lang, notifications, unseen, onOpenClock, onDi
     </>
   );
 }
+
+
+/* Notification center refinements */
