@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
-import { Battery, BatteryCharging, BatteryFull, BatteryLow, BatteryMedium, Bell, ChevronLeft, ChevronRight, Pause, Play, PlugZap, Volume2, VolumeX, X } from "lucide-react";
+import { Battery, BatteryCharging, BatteryFull, BatteryLow, BatteryMedium, Bell, ChevronLeft, ChevronRight, Pause, Play, PlugZap, Volume2, VolumeX, X, SlidersHorizontal, Moon, Settings2 } from "lucide-react";
 import { localeOf, type Lang } from "../i18n";
 
 const BASE = import.meta.env.BASE_URL.endsWith("/") ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
 
-type TrayPanel = null | "clock" | "audio" | "battery";
+type TrayPanel = null | "clock" | "audio" | "battery" | "quick";
 type SysAudioState = { on: boolean; vol: number; muted: boolean; output: "speakers" | "headphones" };
 
 export type TrayNotification = { id: number; title: string; copy: string; href?: string; at?: number; kind?: string; conversationId?: string; senderId?: string };
@@ -44,7 +44,7 @@ function readSysAudio(): SysAudioState {
   return { on: false, vol: 40, muted: false, output: "speakers" };
 }
 
-export function SystemTray({ now, lang, notifications, unseen, onOpenClock, onDismiss, onClear, onActivate, onQuickReply }: {
+export function SystemTray({ now, lang, notifications, unseen, onOpenClock, onDismiss, onClear, onActivate, onQuickReply, onOpenSettings }: {
   now: Date;
   lang: Lang;
   notifications: TrayNotification[];
@@ -54,6 +54,7 @@ export function SystemTray({ now, lang, notifications, unseen, onOpenClock, onDi
   onClear: () => void;
   onActivate: () => void;
   onQuickReply: (notification: TrayNotification, content: string) => void;
+  onOpenSettings?: () => void;
 }) {
   const [panel, setPanel] = useState<TrayPanel>(null);
   const [doNotDisturb, setDoNotDisturb] = useState(() => { try { return localStorage.getItem("vertex-do-not-disturb") === "1"; } catch { return false; } });
@@ -189,11 +190,32 @@ export function SystemTray({ now, lang, notifications, unseen, onOpenClock, onDi
             <span className="tray-bat-pct">{batPct}%</span>
           </div>
         )}
+        <button className={`tray-seg tray-seg-quick${panel === "quick" ? " is-open" : ""}`} onClick={() => toggle("quick")} aria-label="Quick settings" aria-expanded={panel === "quick"}><SlidersHorizontal size={17} /></button>
         <div className={`tray-seg tray-seg-clock${panel === "clock" ? " is-open" : ""}`} onClick={openClock} role="button" tabIndex={0} aria-label="Clock, calendar and notifications">
           <span className="tray-time">{time}</span>
           <span className="tray-date">{dateShort}</span>
           {unseen > 0 && <span className="tray-unseen">{unseen > 9 ? "9+" : unseen}</span>}
         </div>
+
+        {panel === "quick" && (
+          <div className="tray-flyout tray-flyout-quick">
+            <div className="tray-flyout-title"><SlidersHorizontal size={14} /> Quick settings</div>
+            <div className="tray-quick-grid">
+              <button className={"tray-quick-tile" + (doNotDisturb ? " active" : "")} aria-pressed={doNotDisturb} onClick={() => {
+                const next = !doNotDisturb; setDoNotDisturb(next);
+                try { localStorage.setItem("vertex-do-not-disturb", next ? "1" : "0"); } catch {}
+                window.dispatchEvent(new CustomEvent("vertex-dnd-change", { detail: next }));
+              }}><Moon size={18} /><span>Do Not Disturb</span><small>{doNotDisturb ? "On" : "Off"}</small></button>
+              <button className="tray-quick-tile" onClick={() => toggle("audio")}><Volume2 size={18} /><span>Sound</span><small>{sys.muted ? "Muted" : sys.vol + "%"}</small></button>
+              <button className="tray-quick-tile" onClick={() => toggle("battery")}><BatIcon size={18} /><span>Battery</span><small>{battery.supported ? batPct + "%" : "Unavailable"}</small></button>
+              <button className="tray-quick-tile" onClick={() => { setPanel(null); onOpenSettings?.(); }}><Settings2 size={18} /><span>Settings</span><small>System</small></button>
+            </div>
+            <div className="tray-quick-volume"><Volume2 size={16} />
+              <input className="tray-range" type="range" min={0} max={100} value={sys.muted ? 0 : sys.vol} style={{ "--tray-fill": (sys.muted ? 0 : sys.vol) + "%" } as CSSProperties} onChange={(event) => updateSys((current) => ({ ...current, vol: Number(event.target.value), muted: false }))} aria-label="System volume" />
+              <span className="tray-vol-num">{sys.muted ? 0 : sys.vol}</span>
+            </div>
+          </div>
+        )}
 
         {panel === "audio" && (
           <div className="tray-flyout tray-flyout-audio">
