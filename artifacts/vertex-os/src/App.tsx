@@ -1955,6 +1955,7 @@ onSessionClose: (peerCode) => {
     setPinInput("");
     setPinError(false);
     setPendingSetupAccount(null);
+    setSetupStep("account");
     signInAs(account);
   }
 
@@ -1966,6 +1967,7 @@ onSessionClose: (peerCode) => {
       setActiveAccount(null);
       setSelectedAccount(null);
       setProfileEmail(""); setProfileUsername(""); setProfileCloudPass(""); setProfileCloudPass2("");
+      if (!guests.length) { setSetupStep("account"); setPendingSetupAccount(null); }
       setPhase(guests.length ? "lock" : "profile");
       addToast("Signed out", "Your McCrack account has been signed out of this device.");
     } catch (error) { addToast("Sign out failed", error instanceof Error ? error.message : "Could not sign out."); }
