@@ -1882,20 +1882,38 @@ onSessionClose: (peerCode) => {
     storage.write(ACCOUNTS_KEY, JSON.stringify(next));
   }
 
-  async function createProfile(skipCustomization = false) {
+  async function createProfile() {
     const name = profileName.trim();
     if (!name) { setProfileErr(t("lock.needName")); return; }
-    const selectedPass = skipCustomization || !profileAskPass ? "" : profilePass;
+    const selectedPass = profileAskPass ? profilePass : "";
     if (selectedPass && selectedPass !== profilePass2) { setProfileErr(t("lock.passMismatch")); return; }
-    const selectedWallpaper = skipCustomization ? "vertex-studio" : setupWallpaper;
-    const selectedAvatar = skipCustomization ? "" : profileAvatar;
-    let account: VertexAccount = { id: `a${Date.now().toString(36)}`, name, createdAt: Date.now(), pass: selectedPass, avatar: selectedAvatar || "" };
+
+    if (pendingSetupAccount) {
+      const updated: VertexAccount = {
+        ...pendingSetupAccount,
+        name,
+        avatar: profileAvatar || pendingSetupAccount.avatar || "",
+        pass: pendingSetupAccount.authUserId ? "" : selectedPass,
+      };
+      persistAccounts(accounts.map((item) => item.id === updated.id ? updated : item));
+      setPendingSetupAccount(updated);
+      if (updated.authUserId) {
+        void updateMcCrackCloudProfile({ name, avatar: profileAvatar || undefined }).catch((error) => {
+          addToast("Profile sync failed", error instanceof Error ? error.message : "Could not sync your profile.");
+        });
+      }
+      setProfileErr("");
+      setSetupStep("customize");
+      return;
+    }
+
+    let account: VertexAccount = { id: `a${Date.now().toString(36)}`, name, createdAt: Date.now(), pass: selectedPass, avatar: profileAvatar || "" };
     if (profileEmail.trim()) {
       if (!profileUsername.trim()) { setProfileErr("Choose a unique McCrack username for your account."); return; }
       if (profileCloudPass.length < 8 || profileCloudPass !== profileCloudPass2) { setProfileErr(profileCloudPass.length < 8 ? "Use a password with at least 8 characters." : "Your account passwords do not match."); return; }
       setCloudAccountBusy(true);
       try {
-        const result = await signUpMcCrackAccount({ email: profileEmail, password: profileCloudPass, username: profileUsername, name, avatar: selectedAvatar });
+        const result = await signUpMcCrackAccount({ email: profileEmail, password: profileCloudPass, username: profileUsername, name, avatar: profileAvatar });
         if (result.needsConfirmation || !result.account) {
           setProfileErr("Your account was created. Check your email to confirm it, then sign in from the account screen.");
           setCloudAccountBusy(false);
@@ -1912,15 +1930,30 @@ onSessionClose: (peerCode) => {
       setCloudAccountBusy(false);
     }
     persistAccounts([...accounts.filter((item) => item.authUserId !== account.authUserId), account]);
+    setPendingSetupAccount(account);
+    setProfileErr("");
+    setSetupStep("customize");
+  }
+
+  function finishSetup(skipCustomization = false) {
+    const account = pendingSetupAccount;
+    if (!account) { setSetupStep("account"); return; }
+    const selectedWallpaper = skipCustomization ? "vertex-studio" : setupWallpaper;
     setWallpaper(selectedWallpaper);
     setLockWallpaper(selectedWallpaper);
-    const nextSettings = { ...settings, colorMode: skipCustomization ? "dark" as ColorMode : setupColorMode, systemStyle: skipCustomization ? "vertex" as SystemStyle : setupSystemStyle, deviceName: skipCustomization ? "McCrack-PC" : (setupDeviceName.trim() || "McCrack-PC") };
+    const nextSettings = {
+      ...settings,
+      colorMode: skipCustomization ? "dark" as ColorMode : setupColorMode,
+      systemStyle: skipCustomization ? "vertex" as SystemStyle : setupSystemStyle,
+      deviceName: skipCustomization ? "McCrack-PC" : (setupDeviceName.trim() || "McCrack-PC"),
+    };
     setSettings(nextSettings);
     storage.write("vertex-settings", nextSettings);
     storage.write("vertex-wallpaper-v2", selectedWallpaper);
     storage.write("vertex-lock-wallpaper-v2", selectedWallpaper);
     setPinInput("");
     setPinError(false);
+    setPendingSetupAccount(null);
     signInAs(account);
   }
 
@@ -2326,101 +2359,108 @@ onSessionClose: (peerCode) => {
           <div className="profile-setup-heading">
             <div className="lock-avatar"><BrandMark /></div>
             <div className="profile-kicker">McCrackOS · v{VERTEX_VERSION}</div>
-            <h2 className="profile-title">Set up your desktop</h2>
-            <p className="profile-sub">Make it yours. Everything except your name is optional.</p>
+            <h2 className="profile-title">{setupStep === "account" ? "Create or sign in to your account" : "Customize your desktop"}</h2>
+            <p className="profile-sub">{setupStep === "account" ? "Start with your McCrack account or create a local profile. You can personalize everything next." : "Choose your wallpaper and desktop appearance. You can change these later in Settings."}</p>
           </div>
 
-          <div className="profile-setup-grid">
-            <section className="profile-setup-panel profile-identity-panel">
-              <div className="profile-setup-section-title">Your profile</div>
-              <div className="profile-avatar-row">
-                <span className={`profile-avatar-preview ${profileAvatar ? "has-img" : ""}`}>
-                  {profileAvatar ? <AvatarGlyph value={profileAvatar} name={profileName} size={52} /> : <span className="profile-avatar-glyph">{profileName.trim().slice(0, 1).toUpperCase() || "?"}</span>}
-                </span>
-                <label className="profile-avatar-upload">
-                  <Image size={14} /> Add profile picture
-                  <input type="file" accept="image/*,.gif" onChange={(event) => {
-                    const file = event.target.files?.[0];
-                    event.target.value = "";
-                    if (!file) return;
-                    setProfileErr("");
-                    void avatarFromFile(file).then(setProfileAvatar).catch((err: Error) => setProfileErr(err.message));
-                  }} />
-                </label>
-              </div>
-              <form className="profile-fields" onSubmit={(event) => { event.preventDefault(); createProfile(); }}>
-                <label>
-                  <span>Profile name <em>· required</em></span>
-                  <input autoFocus required value={profileName} onChange={(event) => { setProfileName(event.target.value); setProfileErr(""); }} placeholder="What should we call you?" autoComplete="off" data-testid="input-profile-name" />
-                </label>
-                <div className="profile-cloud-account">
-                  <div className="profile-setup-section-title">McCrack account <em>· recommended</em></div>
-                  <p>Use one email-based account to keep your name, username and profile picture with you across McCrackOS and McCrack Chat. You can skip this and use a local profile instead.</p>
-                  <label><span>Email address</span><input type="email" value={profileEmail} onChange={(event) => { setProfileEmail(event.target.value); setProfileErr(""); }} placeholder="you@example.com" autoComplete="email" /></label>
-                  <label><span>McCrack username</span><input value={profileUsername} onChange={(event) => { setProfileUsername(event.target.value.replace(/[^a-zA-Z0-9_-]/g, "")); setProfileErr(""); }} maxLength={24} placeholder="yourusername" autoComplete="username" /></label>
-                  <label><span>Account password</span><input type="password" value={profileCloudPass} onChange={(event) => { setProfileCloudPass(event.target.value); setProfileErr(""); }} placeholder="At least 8 characters" autoComplete="new-password" /></label>
-                  <label><span>Confirm account password</span><input type="password" value={profileCloudPass2} onChange={(event) => { setProfileCloudPass2(event.target.value); setProfileErr(""); }} placeholder="Confirm password" autoComplete="new-password" /></label>
+          <div className={`profile-setup-grid profile-wizard-step-${setupStep}`}>
+            {setupStep === "account" ? (
+              <section className="profile-setup-panel profile-identity-panel">
+                <div className="profile-setup-section-title">Your profile</div>
+                <div className="profile-avatar-row">
+                  <span className={`profile-avatar-preview ${profileAvatar ? "has-img" : ""}`}>
+                    {profileAvatar ? <AvatarGlyph value={profileAvatar} name={profileName} size={52} /> : <span className="profile-avatar-glyph">{profileName.trim().slice(0, 1).toUpperCase() || "?"}</span>}
+                  </span>
+                  <label className="profile-avatar-upload">
+                    <Image size={14} /> Add profile picture
+                    <input type="file" accept="image/*,.gif" onChange={(event) => {
+                      const file = event.target.files?.[0];
+                      event.target.value = "";
+                      if (!file) return;
+                      setProfileErr("");
+                      void avatarFromFile(file).then(setProfileAvatar).catch((err: Error) => setProfileErr(err.message));
+                    }} />
+                  </label>
                 </div>
-                <label>
-                  <span>Device name <em>· optional</em></span>
-                  <input value={setupDeviceName} onChange={(event) => setSetupDeviceName(event.target.value)} placeholder="McCrack-PC" autoComplete="off" />
-                </label>
-                <button type="button" className={`profile-pass-btn ${profileAskPass ? "on" : ""}`} onClick={() => setProfileAskPass((v) => !v)}>
-                  <LockKeyhole size={13} /> {profileAskPass ? "Password enabled · optional" : "Add a password (optional)"}
-                </button>
-                {profileAskPass && (
-                  <div className="profile-password-grid">
-                    <label>
-                      <span>Password</span>
-                      <input type="password" value={profilePass} onChange={(event) => { setProfilePass(event.target.value); setProfileErr(""); }} placeholder="Optional password" data-testid="input-profile-pass" />
-                    </label>
-                    <label>
-                      <span>Confirm password</span>
-                      <input type="password" value={profilePass2} onChange={(event) => { setProfilePass2(event.target.value); setProfileErr(""); }} placeholder="Confirm if used" data-testid="input-profile-pass2" />
-                    </label>
+                <form className="profile-fields" onSubmit={(event) => { event.preventDefault(); createProfile(); }}>
+                  <label>
+                    <span>Profile name <em>· required</em></span>
+                    <input autoFocus required value={profileName} onChange={(event) => { setProfileName(event.target.value); setProfileErr(""); }} placeholder="What should we call you?" autoComplete="off" data-testid="input-profile-name" />
+                  </label>
+                  <div className="profile-cloud-account">
+                    <div className="profile-setup-section-title">McCrack account <em>· recommended</em></div>
+                    <p>Use one email-based account to keep your name, username and profile picture with you across McCrackOS and McCrack Chat. You can skip this and use a local profile instead.</p>
+                    <label><span>Email address</span><input type="email" value={profileEmail} onChange={(event) => { setProfileEmail(event.target.value); setProfileErr(""); }} placeholder="you@example.com" autoComplete="email" /></label>
+                    <label><span>McCrack username</span><input value={profileUsername} onChange={(event) => { setProfileUsername(event.target.value.replace(/[^a-zA-Z0-9_-]/g, "")); setProfileErr(""); }} maxLength={24} placeholder="yourusername" autoComplete="username" /></label>
+                    <label><span>Account password</span><input type="password" value={profileCloudPass} onChange={(event) => { setProfileCloudPass(event.target.value); setProfileErr(""); }} placeholder="At least 8 characters" autoComplete="new-password" /></label>
+                    <label><span>Confirm account password</span><input type="password" value={profileCloudPass2} onChange={(event) => { setProfileCloudPass2(event.target.value); setProfileErr(""); }} placeholder="Confirm password" autoComplete="new-password" /></label>
                   </div>
-                )}
-                {profileErr ? <span className="lock-error">{profileErr}</span> : null}
-                <button type="submit" className="profile-create" disabled={cloudAccountBusy}>{cloudAccountBusy ? "Creating McCrack account…" : profileEmail.trim() ? "Create McCrack account & enter" : "Create local profile & enter"}</button>
-              </form>
-            </section>
-
-            <section className="profile-setup-panel profile-customize-panel">
-              <div className="profile-setup-section-title">Personalize your desktop</div>
-              <div className="setup-wallpaper-picker">
-                <strong>Wallpaper</strong>
-                <div className="setup-wallpaper-grid">
-                  {wallpapers.filter((wall) => ["vertex-studio", "singularity", "snow-fox", "cine55", "rainy-city", "macos-default"].includes(wall.id)).map((wall) => (
-                    <button type="button" key={wall.id} onClick={() => setSetupWallpaper(wall.id)} aria-pressed={setupWallpaper === wall.id} className={`setup-wallpaper-option ${setupWallpaper === wall.id ? "selected" : ""}`}>
-                      {wall.image ? <img src={wall.image} alt="" /> : <div className="setup-wallpaper-placeholder" />}
-                      <span>{wall.name}</span>
-                    </button>
-                  ))}
+                  <button type="button" className={`profile-pass-btn ${profileAskPass ? "on" : ""}`} onClick={() => setProfileAskPass((v) => !v)}>
+                    <LockKeyhole size={13} /> {profileAskPass ? "Password enabled · optional" : "Add a password (optional)"}
+                  </button>
+                  {profileAskPass && (
+                    <div className="profile-password-grid">
+                      <label>
+                        <span>Password</span>
+                        <input type="password" value={profilePass} onChange={(event) => { setProfilePass(event.target.value); setProfileErr(""); }} placeholder="Optional password" data-testid="input-profile-pass" />
+                      </label>
+                      <label>
+                        <span>Confirm password</span>
+                        <input type="password" value={profilePass2} onChange={(event) => { setProfilePass2(event.target.value); setProfileErr(""); }} placeholder="Confirm if used" data-testid="input-profile-pass2" />
+                      </label>
+                    </div>
+                  )}
+                  {profileErr ? <span className="lock-error">{profileErr}</span> : null}
+                  <button type="submit" className="profile-create" disabled={cloudAccountBusy}>{cloudAccountBusy ? "Creating McCrack account…" : profileEmail.trim() ? "Continue with McCrack account" : "Continue with local profile"}</button>
+                </form>
+              </section>
+            ) : (
+              <section className="profile-setup-panel profile-customize-panel">
+                <div className="profile-setup-section-title">Personalize your desktop</div>
+                <label className="setup-device-name"><span>Device name</span><input value={setupDeviceName} onChange={(event) => setSetupDeviceName(event.target.value)} placeholder="McCrack-PC" autoComplete="off" /></label>
+                <div className="setup-wallpaper-picker">
+                  <strong>Wallpaper</strong>
+                  <div className="setup-wallpaper-grid">
+                    {wallpapers.filter((wall) => ["vertex-studio", "singularity", "snow-fox", "cine55", "rainy-city", "macos-default"].includes(wall.id)).map((wall) => (
+                      <button type="button" key={wall.id} onClick={() => setSetupWallpaper(wall.id)} aria-pressed={setupWallpaper === wall.id} className={`setup-wallpaper-option ${setupWallpaper === wall.id ? "selected" : ""}`}>
+                        {wall.image ? <img src={wall.image} alt="" /> : <div className="setup-wallpaper-placeholder" />}
+                        <span>{wall.name}</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-              <div className="profile-choice-group">
-                <strong>Appearance</strong>
-                <div className="profile-choice-row">
-                  <button type="button" className={`profile-choice ${setupColorMode === "dark" ? "selected" : ""}`} onClick={() => setSetupColorMode("dark")}><Contrast size={15} /> Dark</button>
-                  <button type="button" className={`profile-choice ${setupColorMode === "light" ? "selected" : ""}`} onClick={() => setSetupColorMode("light")}><SunMoon size={15} /> Light</button>
+                <div className="profile-choice-group">
+                  <strong>Appearance</strong>
+                  <div className="profile-choice-row">
+                    <button type="button" className={`profile-choice ${setupColorMode === "dark" ? "selected" : ""}`} onClick={() => setSetupColorMode("dark")}><Contrast size={15} /> Dark</button>
+                    <button type="button" className={`profile-choice ${setupColorMode === "light" ? "selected" : ""}`} onClick={() => setSetupColorMode("light")}><SunMoon size={15} /> Light</button>
+                  </div>
                 </div>
-              </div>
-              <div className="profile-choice-group">
-                <strong>Desktop style</strong>
-                <div className="profile-choice-row">
-                  <button type="button" className={`profile-choice ${setupSystemStyle === "vertex" ? "selected" : ""}`} onClick={() => setSetupSystemStyle("vertex")}><Monitor size={15} /> McCrack</button>
-                  <button type="button" className={`profile-choice ${setupSystemStyle === "macos" ? "selected" : ""}`} onClick={() => setSetupSystemStyle("macos")}><MonitorCog size={15} /> macOS-style</button>
+                <div className="profile-choice-group">
+                  <strong>Desktop style</strong>
+                  <div className="profile-choice-row">
+                    <button type="button" className={`profile-choice ${setupSystemStyle === "vertex" ? "selected" : ""}`} onClick={() => setSetupSystemStyle("vertex")}><Monitor size={15} /> McCrack</button>
+                    <button type="button" className={`profile-choice ${setupSystemStyle === "macos" ? "selected" : ""}`} onClick={() => setSetupSystemStyle("macos")}><MonitorCog size={15} /> macOS-style</button>
+                  </div>
                 </div>
-              </div>
-              <p className="profile-optional-note">You can change all of these later in Settings.</p>
-            </section>
+                <p className="profile-optional-note">You can change all of these later in Settings.</p>
+              </section>
+            )}
           </div>
-          <div className="profile-setup-footer">
-            <span>Only your profile name is required. A McCrack account is recommended, not required.</span>
-            <button type="button" className="profile-skip" onClick={() => createProfile(true)}>Skip customization</button>
+          <div className="profile-setup-footer profile-wizard-footer">
+            {setupStep === "account" ? (
+              <>
+                <span>McCrack cloud accounts sync across supported McCrack apps. Local profiles stay on this device.</span>
+                <button type="button" className="signin-back" onClick={() => { setProfileErr(""); setLoginErr(""); setLoginName(""); setLoginPass(""); setSetupStep("account"); setPendingSetupAccount(null); setPhase("picker"); }}>Already have an account? Sign in</button>
+              </>
+            ) : (
+              <>
+                <button type="button" className="signin-back" onClick={() => setSetupStep("account")}>Back</button>
+                <button type="button" className="profile-skip" onClick={() => finishSetup(true)}>Use defaults</button>
+                <button type="button" className="profile-create" onClick={() => finishSetup(false)}>Finish setup <ArrowRight size={15} /></button>
+              </>
+            )}
           </div>
-          <div className="profile-setup-footer"><button type="button" className="signin-back" onClick={() => { setProfileErr(""); setLoginErr(""); setLoginName(""); setLoginPass(""); setPhase("picker"); }}>Already have a McCrack account? Sign in</button></div>
-          {accounts.length > 0 && <button className="signin-back" onClick={() => { setProfileErr(""); setPhase("picker"); }}>Back</button>}
         </div>
       </section>
 
