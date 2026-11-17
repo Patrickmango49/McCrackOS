@@ -7104,3 +7104,11 @@ to{opacity:1;transform:translateY(0)}
 @media (prefers-reduced-motion: reduce) {
   .music-widget, .music-widget * { transition-duration: .01ms !important; animation-duration: .01ms !important; }
 }
+
+
+/* Richer notification center */
+.tray-notif { align-items: flex-start; gap: 8px; }
+.tray-notif-time { display: block; margin-top: 5px; color: rgba(160,190,210,.58); font-size: 10px; }
+.tray-notif-actions { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
+.tray-notif-open { border: 1px solid rgba(96,205,239,.2); border-radius: 7px; padding: 5px 8px; background: rgba(65,190,230,.09); color: #a8eaff; font-size: 10px; cursor: pointer; }
+.tray-notif-open:hover { background: rgba(65,190,230,.17); }
