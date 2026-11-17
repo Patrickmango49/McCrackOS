@@ -253,3 +253,56 @@ create policy "DM participants can upload attachments" on storage.objects for in
 -- In Supabase Dashboard, open Database -> Publications -> supabase_realtime
 -- and enable these tables: public.dm_messages, public.friend_requests, public.profiles.
 -- This avoids SQL editor delimiter/parser issues and is safe to repeat.
+
+
+-- McCrackOS cross-device preferences and private DM enhancements.
+alter table public.dm_messages add column if not exists edited_at timestamptz;
+grant update (content, edited_at) on public.dm_messages to authenticated;
+drop policy if exists "Senders can edit their own DMs" on public.dm_messages;
+create policy "Senders can edit their own DMs" on public.dm_messages
+ for update to authenticated using (
+   auth.uid() = sender_id and exists (
+     select 1 from public.private_conversations c
+     where c.id = conversation_id and auth.uid() in (c.user_a,c.user_b)
+   )
+ ) with check (
+   auth.uid() = sender_id and exists (
+     select 1 from public.private_conversations c
+     where c.id = conversation_id and auth.uid() in (c.user_a,c.user_b)
+   )
+ );
+
+create table if not exists public.dm_message_reactions (
+  id uuid primary key default gen_random_uuid(),
+  message_id uuid not null references public.dm_messages(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  reaction text not null check (reaction in ('❤️','😂','👍','😮','😢','🔥')),
+  created_at timestamptz not null default now(),
+  constraint dm_message_reactions_unique unique (message_id,user_id,reaction)
+);
+alter table public.dm_message_reactions enable row level security;
+grant select, insert, delete on public.dm_message_reactions to authenticated;
+drop policy if exists "DM participants can view reactions" on public.dm_message_reactions;
+create policy "DM participants can view reactions" on public.dm_message_reactions
+ for select to authenticated using (exists (
+   select 1 from public.dm_messages m join public.private_conversations c on c.id=m.conversation_id
+   where m.id=message_id and auth.uid() in (c.user_a,c.user_b)
+ ));
+drop policy if exists "Users can add own DM reactions" on public.dm_message_reactions;
+create policy "Users can add own DM reactions" on public.dm_message_reactions
+ for insert to authenticated with check (
+   user_id=auth.uid() and exists (
+     select 1 from public.dm_messages m join public.private_conversations c on c.id=m.conversation_id
+     where m.id=message_id and auth.uid() in (c.user_a,c.user_b)
+   )
+ );
+drop policy if exists "Users can remove own DM reactions" on public.dm_message_reactions;
+create policy "Users can remove own DM reactions" on public.dm_message_reactions
+ for delete to authenticated using (
+   user_id=auth.uid() and exists (
+     select 1 from public.dm_messages m join public.private_conversations c on c.id=m.conversation_id
+     where m.id=message_id and auth.uid() in (c.user_a,c.user_b)
+   )
+ );
+
+-- Realtime: also enable public.dm_message_reactions in Database -> Publications -> supabase_realtime.
