@@ -19,6 +19,7 @@ export type MediaSession = {
   duration: number;
   volume?: number;
   muted?: boolean;
+  queue?: string[];
   onToggle?: () => void;
   onSeek?: (time: number) => void;
   onNext?: () => void;
