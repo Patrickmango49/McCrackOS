@@ -175,11 +175,11 @@ const DROP_CELL_H = 104;
 function defaultWindowRect(index: number): WindowRect {
   const vw = typeof window !== "undefined" ? window.innerWidth : 1280;
   const vh = typeof window !== "undefined" ? window.innerHeight : 800;
-  const w = Math.min(vw - 32, Math.max(420, Math.round(vw * 0.72)));
-  const h = Math.min(vh - 92, Math.max(320, Math.round(vh * 0.72)));
+  const w = Math.max(220, Math.min(vw - 16, Math.max(420, Math.round(vw * 0.72))));
+  const h = Math.max(180, Math.min(vh - 58, Math.max(320, Math.round(vh * 0.72))));
   const cascade = index % 6;
-  const x = Math.max(6, Math.round((vw - w) / 2) + cascade * 26);
-  const y = Math.max(6, Math.round((vh - h) / 2.3) + cascade * 20);
+  const x = Math.max(8, Math.min(Math.round((vw - w) / 2) + cascade * 26, vw - w - 8));
+  const y = Math.max(8, Math.min(Math.round((vh - h) / 2.3) + cascade * 20, vh - h - 58));
   return { x, y, w, h };
 }
 
@@ -1036,6 +1036,29 @@ function App() {
     window.addEventListener("resize", resize);
     return () => window.removeEventListener("resize", resize);
   }, []);
+
+  useEffect(() => {
+    const vw = Math.max(220, dockViewport.width);
+    const vh = Math.max(180, dockViewport.height);
+    const clampRect = (rect: WindowRect): WindowRect => {
+      const w = Math.min(rect.w, Math.max(220, vw - 16));
+      const h = Math.min(rect.h, Math.max(180, vh - 58));
+      return {
+        x: Math.max(8, Math.min(rect.x, Math.max(8, vw - w - 8))),
+        y: Math.max(8, Math.min(rect.y, Math.max(8, vh - h - 58))),
+        w,
+        h,
+      };
+    };
+    setWindows((items) => items.map((item) => {
+      const rect = item.maximized ? item.rect : clampRect(item.rect);
+      const prevRect = item.prevRect ? clampRect(item.prevRect) : null;
+      if (rect.x === item.rect.x && rect.y === item.rect.y && rect.w === item.rect.w && rect.h === item.rect.h
+        && prevRect?.x === item.prevRect?.x && prevRect?.y === item.prevRect?.y
+        && prevRect?.w === item.prevRect?.w && prevRect?.h === item.prevRect?.h) return item;
+      return { ...item, rect, prevRect };
+    }));
+  }, [dockViewport.width, dockViewport.height]);
   const rmCfg = readRainmeterConfig();
   const [, setRmTick] = useState(0);
   useEffect(() => {
@@ -2104,6 +2127,10 @@ onSessionClose: (peerCode) => {
     addToast(t("toast.wallpaperTitle"), tf("toast.wallpaperCopy", { name: wallpapers.find((item) => item.id === id)?.name ?? customWallpapers.find((item) => item.id === id)?.name ?? "" }));
   }
 
+  function nextVisibleWindow(exceptId: AppId): AppId | null {
+    return [...gvWindowsRef.current].reverse().find((item) => item.id !== exceptId && !item.minimized && !item.closingAt)?.id ?? null;
+  }
+
   function toggleApp(id: AppId) {
     if (id === "ghostview") return;
     setStartOpen(false);
@@ -2132,7 +2159,7 @@ onSessionClose: (peerCode) => {
     }
     if (activeWindow === id && !existing.minimized) {
       setWindows((items) => items.map((item) => item.id === id ? { ...item, minimized: true } : item));
-      setActiveWindow(null);
+      setActiveWindow(nextVisibleWindow(id));
       return;
     }
     setWindows((items) => items.map((item) => item.id === id ? { ...item, minimized: false } : item));
@@ -2163,14 +2190,14 @@ onSessionClose: (peerCode) => {
     const timer = window.setTimeout(() => {
       closeTimersRef.current.delete(id);
       setWindows((items) => items.filter((item) => item.id !== id || item.closingAt !== closingAt));
-      setActiveWindow((active) => active === id ? null : active);
+      setActiveWindow((active) => active === id ? nextVisibleWindow(id) : active);
     }, 200);
     closeTimersRef.current.set(id, timer);
   }
 
   function minimizeWindow(id: AppId) {
     setWindows((items) => items.map((item) => item.id === id ? { ...item, minimized: true } : item));
-    setActiveWindow((active) => active === id ? null : active);
+    setActiveWindow((active) => active === id ? nextVisibleWindow(id) : active);
   }
 
   function toggleMaximize(id: AppId) {
@@ -2188,9 +2215,11 @@ onSessionClose: (peerCode) => {
       if (item.id !== id || item.maximized) return item;
       const vw = typeof window !== "undefined" ? window.innerWidth : 1280;
       const vh = typeof window !== "undefined" ? window.innerHeight : 800;
-      const x = Math.max(-item.rect.w + 96, Math.min(Math.round(clientX), vw - 60));
-      const y = Math.max(0, Math.min(Math.round(clientY), vh - 34));
-      return { ...item, rect: { ...item.rect, x, y } };
+      const w = Math.min(item.rect.w, Math.max(220, vw - 16));
+      const h = Math.min(item.rect.h, Math.max(180, vh - 58));
+      const x = Math.max(8, Math.min(Math.round(clientX), Math.max(8, vw - w - 8)));
+      const y = Math.max(8, Math.min(Math.round(clientY), Math.max(8, vh - h - 58)));
+      return { ...item, rect: { ...item.rect, x, y, w, h } };
     }));
   }
 
@@ -2964,7 +2993,7 @@ function WindowLayer({ onSignOut, windows, activeWindow, onFocus, onClose, onMin
     ].filter(Boolean).join(" ");
     const rectStyle = win.maximized ? {} : { left: win.rect.x, top: win.rect.y, width: win.rect.w, height: win.rect.h };
     const mac = settings.systemStyle === "macos";
-    return <article key={win.id} className={classNames} onMouseDown={() => onFocus(win.id)} style={{ ...rectStyle, zIndex: activeWindow === win.id ? 40 : 30 }}>
+    return <article key={win.id} className={classNames} onMouseDown={() => onFocus(win.id)} onFocusCapture={() => onFocus(win.id)} style={{ ...rectStyle, zIndex: activeWindow === win.id ? 40 : 30 }}>
       <header className="window-bar" onPointerDown={(event) => startDrag(event, win)} onDoubleClick={() => onMaximize(win.id)}>
         {mac ? <>
           <div className="window-controls mac-traffic">
