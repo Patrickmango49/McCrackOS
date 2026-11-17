@@ -7133,3 +7133,138 @@ to{opacity:1;transform:translateY(0)}
 .tray-notif-quick-reply { display:flex; gap:6px; margin:7px 24px 2px 0; }
 .tray-notif-quick-reply input { width:100%; min-width:0; border:1px solid rgba(120,190,220,.2); border-radius:9px; padding:7px 9px; outline:none; background:rgba(4,12,22,.52); color:#e8f7ff; font-size:11px; }
 .tray-notif-quick-reply input:focus { border-color:rgba(90,205,240,.65); box-shadow:0 0 0 2px rgba(80,190,230,.1); }
+
+
+/* McCrackOS desktop refresh: setup flow, app windows, and crash isolation */
+.profile-wizard-step-account,
+.profile-wizard-step-customize {
+  grid-template-columns: minmax(0, 1fr);
+  width: min(100%, 720px);
+  margin-inline: auto;
+}
+.profile-wizard-step-account .profile-identity-panel,
+.profile-wizard-step-customize .profile-customize-panel {
+  width: 100%;
+  min-width: 0;
+}
+.profile-wizard-step-account .profile-identity-panel {
+  max-width: 620px;
+  margin-inline: auto;
+}
+.profile-wizard-step-customize .profile-customize-panel {
+  max-width: 720px;
+  margin-inline: auto;
+}
+.setup-device-name {
+  display: grid;
+  gap: 7px;
+  margin: 12px 0 18px;
+  color: var(--text, #f4fbfc);
+  font-size: 12px;
+  font-weight: 650;
+}
+.setup-device-name input {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid rgba(115, 220, 232, .16);
+  border-radius: 11px;
+  outline: 0;
+  background: rgba(6, 17, 23, .68);
+  color: inherit;
+}
+.setup-device-name input:focus {
+  border-color: rgba(65, 213, 226, .65);
+  box-shadow: 0 0 0 3px rgba(49, 203, 216, .1);
+}
+.profile-wizard-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.profile-wizard-footer > span {
+  max-width: 460px;
+  line-height: 1.55;
+}
+.profile-wizard-footer .profile-create {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.app-window {
+  border: 1px solid rgba(108, 221, 232, .16);
+  border-radius: 17px;
+  background: rgba(7, 15, 21, .96);
+  box-shadow: 0 28px 90px rgba(0, 0, 0, .48), 0 0 0 1px rgba(255, 255, 255, .025), inset 0 1px rgba(255, 255, 255, .04);
+  overflow: hidden;
+}
+.app-window.active {
+  border-color: rgba(88, 219, 232, .3);
+  box-shadow: 0 30px 100px rgba(0, 0, 0, .52), 0 0 0 1px rgba(56, 202, 217, .08), 0 0 36px rgba(32, 174, 190, .08);
+}
+.app-window .window-bar {
+  min-height: 42px;
+  border-bottom: 1px solid rgba(111, 218, 229, .11);
+  background: linear-gradient(180deg, rgba(18, 34, 42, .98), rgba(10, 22, 29, .96));
+  user-select: none;
+}
+.app-window .window-title {
+  color: #e8f8fa;
+  font-weight: 650;
+}
+.app-window .window-control {
+  border-radius: 8px;
+}
+.app-window .window-body {
+  background: #080f14;
+}
+.app-error-state {
+  min-height: 100%;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 10px;
+  padding: 34px 24px;
+  text-align: center;
+  color: #eaf7f8;
+  background: radial-gradient(ellipse at 50% 0%, rgba(34, 190, 205, .1), transparent 58%), #080f14;
+}
+.app-error-icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(105, 222, 232, .22);
+  border-radius: 14px;
+  color: #79e1e8;
+  background: rgba(33, 139, 153, .12);
+}
+.app-error-state h3 {
+  margin: 2px 0 0;
+  font-size: 17px;
+}
+.app-error-state p {
+  max-width: 360px;
+  margin: 0;
+  color: #9ab2b8;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.app-error-state button {
+  margin-top: 5px;
+  padding: 9px 16px;
+  border: 1px solid rgba(103, 222, 232, .25);
+  border-radius: 10px;
+  background: rgba(39, 154, 167, .18);
+  color: #dffcff;
+  cursor: pointer;
+}
+@media (max-width: 760px) {
+  .profile-wizard-step-account,
+  .profile-wizard-step-customize { width: 100%; }
+  .profile-wizard-footer { justify-content: center; }
+  .profile-wizard-footer > span { width: 100%; text-align: center; }
+}
