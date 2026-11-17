@@ -1626,7 +1626,9 @@ onSessionClose: (peerCode) => {
 
   useEffect(() => {
     const onMessagesBridge = (event: MessageEvent) => {
-      if (event.origin !== window.location.origin) return;
+      const sourceFrame = Array.from(document.querySelectorAll<HTMLIFrameElement>("iframe")).find((frame) => frame.contentWindow === event.source);
+      const trustedChild = sourceFrame?.title === "McCrack Chat" || sourceFrame?.title === "McCrackify";
+      if (event.origin !== window.location.origin && !trustedChild) return;
       const data = event.data;
       if (data?.type === "mccrack-os-notification") {
         const title = String(data.title || "McCrack Chat").slice(0, 90);
@@ -1637,11 +1639,38 @@ onSessionClose: (peerCode) => {
         const next = data.call;
         if (!next || typeof next.id !== "string") setIncomingCall(null);
         else setIncomingCall({ id: next.id, mode: next.mode === "voice" ? "voice" : "video", name: String(next.name || "Incoming call").slice(0, 80), subtitle: String(next.subtitle || "McCrack Chat").slice(0, 100) });
+      } else if (data?.type === "mccrack-music-state" && sourceFrame?.title === "McCrackify") {
+        const song = data.song;
+        if (!song || typeof song !== "object") {
+          if (getMediaSession()?.source === "music") setMediaSession(null);
+          return;
+        }
+        const sendControl = (action: string, value?: number) => {
+          try { sourceFrame.contentWindow?.postMessage({ type: "mccrack-music-control", action, value }, "*"); } catch { /* ignore */ }
+        };
+        const session: MediaSession = {
+          source: "music",
+          title: String(song.title || "Unknown track"),
+          artist: String(song.artist || "Unknown artist"),
+          artwork: String(song.artwork || ""),
+          playing: Boolean(data.playing),
+          progress: Number.isFinite(Number(data.progress)) ? Math.max(0, Number(data.progress)) : 0,
+          duration: Number.isFinite(Number(data.duration)) ? Math.max(0, Number(data.duration)) : 0,
+          onToggle: () => sendControl("toggle"),
+          onSeek: (time) => sendControl("seek", time),
+          onNext: () => sendControl("next"),
+          onPrev: () => sendControl("previous"),
+        };
+        setMediaSession(session);
       }
     };
     window.addEventListener("message", onMessagesBridge);
     return () => window.removeEventListener("message", onMessagesBridge);
   }, []);
+
+  useEffect(() => {
+    if (!windows.some((item) => item.id === "spicetify") && getMediaSession()?.source === "music") setMediaSession(null);
+  }, [windows]);
 
   function respondToIncomingCall(action: "accept" | "decline") {
     setIncomingCall(null);
@@ -5807,13 +5836,7 @@ function useMediaSession(): MediaSession | null {
 
 function NowPlayingCard() {
   const session = useMediaSession();
-  const [, tick] = useState(0);
   const [hidden, setHidden] = useState(() => { try { return localStorage.getItem("vertex-music-widget-hidden") === "1"; } catch { return false; } });
-  useEffect(() => {
-    if (!session) return;
-    const id = window.setInterval(() => tick((n) => (n + 1) % 1000), 500);
-    return () => window.clearInterval(id);
-  }, [session]);
   if (!session || session.source !== "music") return null;
   const dur = Number.isFinite(session.duration) && session.duration > 0 ? session.duration : 0;
   const prog = Number.isFinite(session.progress) && session.progress > 0 ? Math.min(session.progress, dur || session.progress) : 0;
