@@ -997,7 +997,7 @@ function AppIcon({ app, size = 21 }: { app: { icon: LucideIcon; iconImg?: string
 
 function App() {
   const [accounts, setAccounts] = useState<VertexAccount[]>(() => readAccounts());
-  const [phase, setPhase] = useState<"profile" | "lock" | "picker" | "signin" | "desktop">(() => accounts.length ? "picker" : "profile");
+  const [phase, setPhase] = useState<"start" | "profile" | "lock" | "picker" | "signin" | "desktop">("start");
   const [activeAccount, setActiveAccount] = useState<VertexAccount | null>(null);
   const [selectedAccount, setSelectedAccount] = useState<VertexAccount | null>(null);
   const [profileName, setProfileName] = useState("");
@@ -1566,7 +1566,7 @@ onSessionClose: (peerCode) => {
         setContextMenu(null);
         setStartOpen(false);
         setDrawerOpen(false);
-        if (phase === "signin" || phase === "picker") { setPhase("lock"); setPinError(false); setPinInput(""); }
+        if (phase === "signin") { setPhase("picker"); setPinError(false); setPinInput(""); }
       }
       const target = event.target as HTMLElement | null;
       const isEditing = target && ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName);
@@ -1882,7 +1882,7 @@ onSessionClose: (peerCode) => {
       setSelectedAccount(null);
       setPinInput("");
       setPinError(false);
-      setPhase(guestAccounts.length ? "picker" : "profile");
+      setPhase("start");
     };
     void restoreSession();
     return () => { cancelled = true; };
@@ -2398,7 +2398,7 @@ onSessionClose: (peerCode) => {
               : null}
       </div>
 
-      <section className={`profile-screen ${phase === "profile" ? "active" : ""}`} aria-label="Create McCrackOS profile">
+      <section className={`start-screen ${phase === "start" ? "active" : ""}`} aria-label="Welcome to McCrackOS">\n        <div className="start-screen-glow" />\n        <div className="start-screen-card">\n          <div className="start-screen-mark"><BrandMark /></div>\n          <div className="start-screen-kicker">YOUR SPACE. YOUR WAY.</div>\n          <h1>Welcome to <span>McCrack</span></h1>\n          <p>Your apps, games, entertainment, and workspace — all in one place.</p>\n          <button type="button" className="start-screen-enter" onClick={() => { setSelectedAccount(null); setPinInput(""); setPinError(false); setLoginName(""); setLoginPass(""); setLoginErr(""); setPhase(accounts.length ? "picker" : "profile"); }}>Enter McCrack <ArrowRight size={18} /></button>\n          <div className="start-screen-foot">McCrackOS · v{VERTEX_VERSION}</div>\n        </div>\n      </section>\n\n      <section className={`profile-screen ${phase === "profile" ? "active" : ""}`} aria-label="Create McCrackOS profile">
         {activeLockWallpaper.image
           ? <img className="signin-bg" src={activeLockWallpaper.image} alt="" />
           : phase === "profile"
@@ -2533,7 +2533,7 @@ onSessionClose: (peerCode) => {
         </div>
       </section>
 
-      <section className={`signin-screen ${phase === "picker" ? "active" : ""}`} aria-label="Pick an account" onClick={(event) => { if (event.target === event.currentTarget) setPhase("lock"); }}>
+      <section className={`signin-screen ${phase === "picker" ? "active" : ""}`} aria-label="Pick an account">
         {activeLockWallpaper.image
           ? <img className="signin-bg" src={activeLockWallpaper.image} alt="" />
           : phase === "picker"
@@ -2563,7 +2563,7 @@ onSessionClose: (peerCode) => {
             {loginErr ? <span className="lock-error">{loginErr}</span> : null}
           </form>
           <button className="account-add" onClick={() => { setProfileName(""); setProfilePass(""); setProfilePass2(""); setProfileAvatar(""); setProfileEmail(""); setProfileUsername(""); setProfileCloudPass(""); setProfileCloudPass2(""); setProfileAskPass(false); setProfileErr(""); setSetupStep("account"); setPendingSetupAccount(null); setPhase("profile"); }}><Plus size={15} /> Create new account</button>
-          <button className="signin-back" onClick={() => setPhase("lock")}>Back</button>
+          <div className="account-chooser-hint">Choose an account or create a new one to continue.</div>
         </div>
       </section>
 
