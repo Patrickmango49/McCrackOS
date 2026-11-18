@@ -7570,3 +7570,25 @@ html[data-theme="light"] .app-error-state button { color: #14313a; background: r
 @media(prefers-reduced-motion:reduce) {
   .start-screen,.start-screen-card,.start-screen-enter { animation:none; transition:none; }
 }
+
+
+/* Final layout corrections for welcome and account onboarding */
+.start-screen-card { width:min(480px,100%); gap:18px; padding:clamp(30px,5vw,50px) clamp(24px,5vw,44px); }
+.start-screen-card h1 { font-size:clamp(32px,5.5vw,46px); }
+.start-screen-card p { max-width:340px; }
+.start-screen-glow { width:min(62vw,620px); opacity:.65; }
+.profile-wizard-footer {
+  display:flex !important; flex-direction:column !important; align-items:stretch !important;
+  justify-content:flex-start !important; flex-wrap:nowrap !important; gap:10px !important;
+  width:100%; padding-top:12px !important; border-top:1px solid rgba(255,255,255,.08);
+}
+.profile-wizard-footer > span {
+  display:block; width:100%; max-width:none !important; flex:none !important;
+  margin:0; text-align:center; line-height:1.55;
+}
+.profile-wizard-footer .profile-login-cta {
+  position:static !important; display:flex !important; width:100% !important; min-width:0;
+  min-height:48px; flex:0 0 auto !important; align-items:center; justify-content:center;
+  box-sizing:border-box; margin:0 !important; padding:12px 16px !important;
+  white-space:normal; text-align:center; line-height:1.35;
+}
