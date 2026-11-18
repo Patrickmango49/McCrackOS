@@ -21,6 +21,7 @@ import { LockAppsLayer, recordRecentApp } from "./components/lock-apps";
 import { AdminSurface } from "./components/admin-app";
 import { startAnalytics, trackEvent } from "./analytics";
 import { MC_REALMS, type McRealm } from "./mcrealms";
+import { PS5_GAMES, type Ps5Game } from "./ps5-games";
 import { LANG, LANGS, t, tf, tp, readLang, saveLang, localeOf, type Lang } from "./i18n";
 import { WallpaperPicker, type PickerWallpaper, loadCustomWallpapers, persistCustomWallpaper, removeCustomWallpaper, readCustomWallpapersLocal } from "./components/wallpaper-picker";
 import { SystemTray } from "./components/system-tray";
@@ -1258,6 +1259,9 @@ storage.read("vertex-jarvis-installed", false));
   const [dockOrder, setDockOrder] = useState<AppId[]>(() => storage.read<AppId[]>("vertex-dock-order", []));
   const [dockDragId, setDockDragId] = useState<AppId | null>(null);
   const [placedCells, setPlacedCells] = useState<Record<string, number>>(() => storage.read<Record<string, number>>("vertex-desktop-cells", {}));
+  const [desktopFreePositions, setDesktopFreePositions] = useState<Record<string, { x: number; y: number }>>(() => storage.read("vertex-desktop-free-positions", {}));
+  const desktopDragRef = useRef<{ id: string; pointerId: number; offsetX: number; offsetY: number; moved: boolean } | null>(null);
+  const suppressDesktopClickRef = useRef<string | null>(null);
   const desktopGridRef = useRef<HTMLDivElement>(null);
   const [translucentTB, setTranslucentTB] = useState<boolean>(() => storage.read("vertex-translucenttb", false) !== false);
   const [windows, setWindows] = useState<WindowState[]>([]);
@@ -1546,6 +1550,9 @@ onSessionClose: (peerCode) => {
   useEffect(() => {
     storage.write("vertex-desktop-cells", placedCells);
   }, [placedCells]);
+  useEffect(() => {
+    storage.write("vertex-desktop-free-positions", desktopFreePositions);
+  }, [desktopFreePositions]);
 
   useEffect(() => {
     storage.write("vertex-translucenttb", translucentTB);
@@ -2409,6 +2416,8 @@ onSessionClose: (peerCode) => {
           <div className="start-screen-foot">McCrackOS · v{VERTEX_VERSION}</div>
         </div>
       </section>
+
+      <section className={`profile-screen ${phase === "profile" ? "active" : ""}`} aria-label="Create McCrackOS profile">
         {activeLockWallpaper.image
           ? <img className="signin-bg" src={activeLockWallpaper.image} alt="" />
           : phase === "profile"
@@ -6065,12 +6074,13 @@ const MC_TRAILER = "https://cdn.eaglercraft.ru/Official_Minecraft_Trailer.webm";
 const MC_LOGO_SVG = "https://www.minecraft.net/content/dam/minecraftnet/games/minecraft/logos/Global-Header_MCCB-Logo_300x51.svg";
 const MC_EAGTEK_ART = "https://store-images.s-microsoft.com/image/apps.29741.13774133678237924.b2fb64a6-d8b2-4e05-a188-b727d48563ed.f5bc1582-f67e-4ef4-8d8a-7aac86b324f9?w=562";
 
-interface McInstall { id: number; name: string; version: "modpack" | "eagler112" | "eagler152"; variant: "ultimate-wasm" | "hd-sounds" | "release"; }
+interface McInstall { id: number; name: string; version: string; variant: "ultimate-wasm" | "hd-sounds" | "release"; }
+const MC_CATALOG_GAMES: readonly Ps5Game[] = PS5_GAMES.filter((game) => /minecraft/i.test(game.name));
 
 const MC_ARCH_REALM: McRealm = { name: "ArchMC", addr: "wss://mc.arch.lol/", verified: true, online: true, players: 731, votes: 0, tags: ["Multiplayer", "EaglercraftX"] };
 
 function MinecraftLauncherSurface() {
-  const [mode, setMode] = useState<"menu" | "eagler" | "archmc" | "modpack" | "eagler112" | "eagler152">("menu");
+  const [mode, setMode] = useState<"menu" | "eagler" | "archmc" | "modpack" | "eagler112" | "eagler152" | "catalog">("menu");
   const [modTitle, setModTitle] = useState("Modded");
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState<"play" | "installations" | "newinstall">("play");
@@ -6083,7 +6093,8 @@ function MinecraftLauncherSurface() {
   const [installs, setInstalls] = useState<McInstall[]>(() => storage.read<McInstall[]>("vertex-mc-installs", []));
   const [installName, setInstallName] = useState("");
   const [installError, setInstallError] = useState(false);
-  const [installVersion, setInstallVersion] = useState<"modpack" | "eagler112" | "eagler152">("modpack");
+  const [installVersion, setInstallVersion] = useState<string>("modpack");
+  const [catalogGame, setCatalogGame] = useState<Ps5Game | null>(null);
   const [serverName, setServerName] = useState("ArchMC");
   const [serverAddr, setServerAddr] = useState<string | null>(null);
   const [realmQuery, setRealmQuery] = useState("");
@@ -6155,16 +6166,16 @@ function MinecraftLauncherSurface() {
     if (document.fullscreenElement) { void document.exitFullscreen(); } else { void el.requestFullscreen?.(); }
   };
 
-  if (mode === "eagler" || mode === "archmc" || mode === "modpack" || mode === "eagler112" || mode === "eagler152") {
-    const title = mode === "eagler" ? "Eaglercraft 1.8.8 — Singleplayer" : mode === "eagler112" ? t("minecraft.eagler112Edition") : mode === "eagler152" ? t("minecraft.eagler152Edition") : mode === "modpack" ? `${modTitle} — Eaglercraft 1.6.4` : `${serverName} — Eaglercraft 1.8`;
-    const src = mode === "eagler" ? EAGLER_SINGLE : mode === "eagler112" ? EAGLER_112 : mode === "eagler152" ? EAGLER_152 : mode === "modpack" ? MODPACK_WASM : serverAddr ? `${base}eaglercraft/index.html?server=${encodeURIComponent(serverAddr)}` : EAGLER_ARCHMC;
+  if (mode === "eagler" || mode === "archmc" || mode === "modpack" || mode === "eagler112" || mode === "eagler152" || mode === "catalog") {
+    const title = mode === "catalog" ? (catalogGame?.name ?? "Minecraft edition") : mode === "eagler" ? "Eaglercraft 1.8.8 — Singleplayer" : mode === "eagler112" ? t("minecraft.eagler112Edition") : mode === "eagler152" ? t("minecraft.eagler152Edition") : mode === "modpack" ? `${modTitle} — Eaglercraft 1.6.4` : `${serverName} — Eaglercraft 1.8`;
+    const src = mode === "catalog" ? (catalogGame?.play ?? EAGLER_SINGLE) : mode === "eagler" ? EAGLER_SINGLE : mode === "eagler112" ? EAGLER_112 : mode === "eagler152" ? EAGLER_152 : mode === "modpack" ? MODPACK_WASM : serverAddr ? `${base}eaglercraft/index.html?server=${encodeURIComponent(serverAddr)}` : EAGLER_ARCHMC;
     return <div className="window-surface we-app-surface" ref={gameFrameRef}><div className="mc-bar">
       <button className="mc-back" onClick={() => { setLoading(true); setMode("menu"); }}>{t("minecraft.back")}</button>
       <span>{title}</span>
       <button className="mc-fs-btn" onClick={toggleGameFullscreen} aria-label={t("minecraft.fullscreen")}><Maximize size={14} /></button>
     </div>
       {loading ? <div className="mc-loading">{t("minecraft.loading")}</div> : null}
-      <iframe className="browser-frame" src={src} key={`${mode}-${serverAddr ?? "default"}`} title={title} allow="autoplay; clipboard-write; camera; microphone; fullscreen; cross-origin-isolated" onLoad={() => setLoading(false)} />
+      <iframe className="browser-frame" src={src} key={`${mode}-${serverAddr ?? catalogGame?.id ?? "default"}`} title={title} allow="autoplay; clipboard-write; camera; microphone; fullscreen; cross-origin-isolated" onLoad={() => setLoading(false)} />
     </div>;
   }
 
@@ -6241,8 +6252,8 @@ function MinecraftLauncherSurface() {
           {installs.length === 0 ? <div className="mc-empty"><Package size={26} /><span>{t("minecraft.emptyInstalls")}</span></div> : <div className="mc-install-list">
             {installs.map((install) => <div className="mc-install-row" key={install.id}>
               <img className="mc-install-icon" src={MC_STORE_ICON} alt="" />
-              <div className="mc-install-meta"><strong>{install.name}</strong><span>{install.version === "eagler112" ? t("minecraft.v112Version") : install.version === "eagler152" ? t("minecraft.v152Version") : t("minecraft.modpackVersion")} · {install.version === "eagler112" ? t("minecraft.variantHdSounds") : install.version === "eagler152" ? t("minecraft.variantRelease") : t("minecraft.variantUltimate")}</span></div>
-              <button className="mc-row-play" onClick={() => { if (install.version === "eagler112") { setLoading(true); setMode("eagler112"); } else if (install.version === "eagler152") { setLoading(true); setMode("eagler152"); } else { setModTitle(install.name); setLoading(true); setMode("modpack"); } }}><Play size={13} /> {t("minecraft.play")}</button>
+              <div className="mc-install-meta"><strong>{install.name}</strong><span>{install.version.startsWith("catalog:") ? (MC_CATALOG_GAMES.find((game) => game.id === install.version.slice(8))?.name ?? "Minecraft catalog edition") : install.version === "eagler112" ? t("minecraft.v112Version") : install.version === "eagler152" ? t("minecraft.v152Version") : t("minecraft.modpackVersion")} · {install.version.startsWith("catalog:") ? "PS5 emulator edition" : install.version === "eagler112" ? t("minecraft.variantHdSounds") : install.version === "eagler152" ? t("minecraft.variantRelease") : t("minecraft.variantUltimate")}</span></div>
+              <button className="mc-row-play" onClick={() => { if (install.version.startsWith("catalog:")) { const game = MC_CATALOG_GAMES.find((item) => item.id === install.version.slice(8)); if (game) { setCatalogGame(game); setLoading(true); setMode("catalog"); } } else if (install.version === "eagler112") { setLoading(true); setMode("eagler112"); } else if (install.version === "eagler152") { setLoading(true); setMode("eagler152"); } else { setModTitle(install.name); setLoading(true); setMode("modpack"); } }}><Play size={13} /> {t("minecraft.play")}</button>
             </div>)}
           </div>}
         </div> : <div className="mc-new-install">
@@ -6254,10 +6265,13 @@ function MinecraftLauncherSurface() {
           </div>
           <div className="mc-field">
             <label>{t("minecraft.installVersion")}</label>
-            <select className="mc-select" value={installVersion} onChange={(event) => setInstallVersion(event.target.value as "modpack" | "eagler112" | "eagler152")}>
+            <select className="mc-select" value={installVersion} onChange={(event) => setInstallVersion(event.target.value)}>
               <option value="modpack">{t("minecraft.modpackVersion")}</option>
               <option value="eagler112">{t("minecraft.v112Version")}</option>
               <option value="eagler152">{t("minecraft.v152Version")}</option>
+              <optgroup label="Minecraft versions from PS5 emulator">
+                {MC_CATALOG_GAMES.map((game) => <option key={game.id} value={`catalog:${game.id}`}>{game.name}</option>)}
+              </optgroup>
             </select>
           </div>
           <div className="mc-field">
