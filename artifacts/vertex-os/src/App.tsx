@@ -2398,7 +2398,17 @@ onSessionClose: (peerCode) => {
               : null}
       </div>
 
-      <section className={`start-screen ${phase === "start" ? "active" : ""}`} aria-label="Welcome to McCrackOS">\n        <div className="start-screen-glow" />\n        <div className="start-screen-card">\n          <div className="start-screen-mark"><BrandMark /></div>\n          <div className="start-screen-kicker">YOUR SPACE. YOUR WAY.</div>\n          <h1>Welcome to <span>McCrack</span></h1>\n          <p>Your apps, games, entertainment, and workspace — all in one place.</p>\n          <button type="button" className="start-screen-enter" onClick={() => { setSelectedAccount(null); setPinInput(""); setPinError(false); setLoginName(""); setLoginPass(""); setLoginErr(""); setPhase(accounts.length ? "picker" : "profile"); }}>Enter McCrack <ArrowRight size={18} /></button>\n          <div className="start-screen-foot">McCrackOS · v{VERTEX_VERSION}</div>\n        </div>\n      </section>\n\n      <section className={`profile-screen ${phase === "profile" ? "active" : ""}`} aria-label="Create McCrackOS profile">
+      <section className={`start-screen ${phase === "start" ? "active" : ""}`} aria-label="Welcome to McCrackOS">
+        <div className="start-screen-glow" />
+        <div className="start-screen-card">
+          <div className="start-screen-mark"><BrandMark /></div>
+          <div className="start-screen-kicker">YOUR SPACE. YOUR WAY.</div>
+          <h1>Welcome to <span>McCrack</span></h1>
+          <p>Your apps, games, entertainment, and workspace — all in one place.</p>
+          <button type="button" className="start-screen-enter" onClick={() => { setSelectedAccount(null); setPinInput(""); setPinError(false); setLoginName(""); setLoginPass(""); setLoginErr(""); setPhase(accounts.length ? "picker" : "profile"); }}>Enter McCrack <ArrowRight size={18} /></button>
+          <div className="start-screen-foot">McCrackOS · v{VERTEX_VERSION}</div>
+        </div>
+      </section>
         {activeLockWallpaper.image
           ? <img className="signin-bg" src={activeLockWallpaper.image} alt="" />
           : phase === "profile"
