@@ -2652,23 +2652,48 @@ onSessionClose: (peerCode) => {
         {HALLOWEEN_ACTIVE && <HalloweenDecor />}
 
 
-        <div className={`desktop-grid ${showDesktopIcons ? "" : "hidden"}`} ref={desktopGridRef} aria-label="Desktop applications" onDragOver={(event) => {
-          event.preventDefault();
-          if (dragId && desktopApps.includes(dragId)) placeAt(dragId, dropCell(event.clientX, event.clientY));
-        }} onDrop={(event) => {
+        <div className={`desktop-grid ${showDesktopIcons ? "" : "hidden"}`} ref={desktopGridRef} aria-label="Desktop applications" onDragOver={(event) => { event.preventDefault(); }} onDrop={(event) => {
           const id = event.dataTransfer.getData("text/plain");
           if (id && apps.some((app) => app.id === id)) addToDesktop(id as AppId);
           setDragId(null);
         }}>
-          {desktopApps.map((appId) => {
+          {desktopApps.map((appId, index) => {
             const app = getApp(appId, appOverrides);
-            const cell = desktopPlacements[appId] ?? 0;
-            const col = (cell % DROP_GRID_COLS) + 1;
-            const row = Math.floor(cell / DROP_GRID_COLS) + 1;
-            return <button key={appId} className={`desktop-icon ${dragId === appId ? "dragging" : ""}`} draggable onClick={() => toggleApp(appId)} style={{ gridColumnStart: col, gridRowStart: row }}
-              onDragStart={(event) => { setDragId(appId); event.dataTransfer.setData("text/plain", appId); event.dataTransfer.effectAllowed = "move"; }}
-              onDragOver={(event) => { event.preventDefault(); event.stopPropagation(); if (dragId && dragId !== appId) placeAt(dragId, dropCell(event.clientX, event.clientY)); }}
-              onDragEnd={() => setDragId(null)}
+            const cell = desktopPlacements[appId] ?? index;
+            const key = appId as string;
+            const point = desktopFreePositions[key] ?? { x: 12 + (cell % 6) * 116, y: 12 + Math.floor(cell / 6) * 124 };
+            return <button key={appId} className="desktop-icon" draggable={false} onClick={() => {
+                if (suppressDesktopClickRef.current === key) { suppressDesktopClickRef.current = null; return; }
+                toggleApp(appId);
+              }} style={{ left: point.x, top: point.y, position: "absolute" }}
+              onPointerDown={(event) => {
+                if (event.button !== 0) return;
+                const rect = desktopGridRef.current?.getBoundingClientRect();
+                if (!rect) return;
+                desktopDragRef.current = { id: key, pointerId: event.pointerId, offsetX: event.clientX - rect.left - point.x, offsetY: event.clientY - rect.top - point.y, moved: false };
+                event.currentTarget.setPointerCapture(event.pointerId);
+                event.preventDefault();
+              }}
+              onPointerMove={(event) => {
+                const drag = desktopDragRef.current;
+                if (!drag || drag.id !== key || drag.pointerId !== event.pointerId) return;
+                const rect = desktopGridRef.current?.getBoundingClientRect();
+                if (!rect) return;
+                const dx = event.clientX - rect.left - drag.offsetX;
+                const dy = event.clientY - rect.top - drag.offsetY;
+                if (Math.abs(dx - point.x) + Math.abs(dy - point.y) > 5) drag.moved = true;
+                const maxX = Math.max(0, rect.width - 108);
+                const maxY = Math.max(0, rect.height - 116);
+                setDesktopFreePositions((prev) => ({ ...prev, [key]: { x: Math.max(0, Math.min(maxX, dx)), y: Math.max(0, Math.min(maxY, dy)) } }));
+              }}
+              onPointerUp={(event) => {
+                const drag = desktopDragRef.current;
+                if (drag?.id === key && drag.pointerId === event.pointerId) {
+                  if (drag.moved) suppressDesktopClickRef.current = key;
+                  desktopDragRef.current = null;
+                }
+              }}
+              onPointerCancel={() => { if (desktopDragRef.current?.id === key) desktopDragRef.current = null; }}
               onContextMenu={(event) => { event.preventDefault(); event.stopPropagation(); openAppMenu(appId, event.clientX, event.clientY); }}
               data-testid={`button-desktop-${appId}`}>
               <span className="icon-tile"><AppIcon app={app} size={22} /></span>
@@ -2676,7 +2701,9 @@ onSessionClose: (peerCode) => {
             </button>;
           })}
           {ps5Shortcuts.map((shortcut, index) => {
-            const cell = Math.max(desktopApps.length, ...Object.values(desktopPlacements).map((placed) => placed + 1)) + index;
+            const key = `ps5:${shortcut.id}`;
+            const fallback = { x: 12 + ((desktopApps.length + index) % 6) * 116, y: 12 + Math.floor((desktopApps.length + index) / 6) * 124 };
+            const point = desktopFreePositions[key] ?? fallback;
             const openShortcutGame = () => {
               localStorage.setItem("vertex-ps5-launch-request", shortcut.id);
               window.dispatchEvent(new CustomEvent("vertex-ps5-launch-game", { detail: { id: shortcut.id } }));
@@ -2687,15 +2714,43 @@ onSessionClose: (peerCode) => {
                 toggleApp("games");
               }
             };
-            return <button key={shortcut.id} className="desktop-icon ps5-game-desktop-icon" onClick={openShortcutGame}
+            return <button key={shortcut.id} className="desktop-icon ps5-game-desktop-icon" draggable={false} onClick={() => {
+                if (suppressDesktopClickRef.current === key) { suppressDesktopClickRef.current = null; return; }
+                openShortcutGame();
+              }}
+              onPointerDown={(event) => {
+                if (event.button !== 0) return;
+                const rect = desktopGridRef.current?.getBoundingClientRect();
+                if (!rect) return;
+                desktopDragRef.current = { id: key, pointerId: event.pointerId, offsetX: event.clientX - rect.left - point.x, offsetY: event.clientY - rect.top - point.y, moved: false };
+                event.currentTarget.setPointerCapture(event.pointerId);
+                event.preventDefault();
+              }}
+              onPointerMove={(event) => {
+                const drag = desktopDragRef.current;
+                if (!drag || drag.id !== key || drag.pointerId !== event.pointerId) return;
+                const rect = desktopGridRef.current?.getBoundingClientRect();
+                if (!rect) return;
+                const dx = event.clientX - rect.left - drag.offsetX;
+                const dy = event.clientY - rect.top - drag.offsetY;
+                if (Math.abs(dx - point.x) + Math.abs(dy - point.y) > 5) drag.moved = true;
+                setDesktopFreePositions((prev) => ({ ...prev, [key]: { x: Math.max(0, Math.min(Math.max(0, rect.width - 108), dx)), y: Math.max(0, Math.min(Math.max(0, rect.height - 116), dy)) } }));
+              }}
+              onPointerUp={(event) => {
+                const drag = desktopDragRef.current;
+                if (drag?.id === key && drag.pointerId === event.pointerId) {
+                  if (drag.moved) suppressDesktopClickRef.current = key;
+                  desktopDragRef.current = null;
+                }
+              }}
+              onPointerCancel={() => { if (desktopDragRef.current?.id === key) desktopDragRef.current = null; }}
               onContextMenu={(event) => { event.preventDefault(); event.stopPropagation(); setPs5Shortcuts((previous) => { const next = previous.filter((item) => item.id !== shortcut.id); storage.write("vertex-ps5-desktop-shortcuts", next); return next; }); }}
-              style={{ gridColumnStart: (cell % DROP_GRID_COLS) + 1, gridRowStart: Math.floor(cell / DROP_GRID_COLS) + 1 }} title={`Play ${shortcut.name}`}>
+              style={{ left: point.x, top: point.y, position: "absolute" }} title={`Play ${shortcut.name}`}>
               <span className="icon-tile"><img className="ps5-desktop-shortcut-cover" src={shortcut.cover} alt="" /></span>
               <span>{shortcut.name}</span>
             </button>;
           })}
         </div>
-
         <WindowLayer onSignOut={handleMcCrackSignOut} windows={windows} activeWindow={activeWindow} onFocus={setActiveWindow} onClose={closeWindow} onMinimize={minimizeWindow} onMaximize={toggleMaximize} onMove={moveWindow} settings={settings} updateSetting={updateSetting} faqOpen={faqOpen} setFaqOpen={setFaqOpen} lang={chosenLang} onLanguagePick={pickLanguage} onPanic={redirectPanic} onTrackChange={setCurrentTrack} translucent={translucentTB} onTranslucent={setTranslucentTB} onApplyWallpaper={applyWallEngine} appliedWallpaper={wallpaper} appliedLockWallpaper={lockWallpaper} onNotify={addToast} wppInstalled={wppInstalled} onInstallPicker={() => { installWallpaperPicker(); setStartOpen(false); setDrawerOpen(false); addToast("Quick Wallpaper Picker", "Installed — press Alt+W to open it."); }} onJarvisInstall={() => setJarvisInstalled(true)} jarvisInstalled={jarvisInstalled} onFsociety={setFsocietyOverride} appOverrides={appOverrides} activeAccount={activeAccount} onAvatarChange={updateActiveAvatar} onAccountChange={updateActiveAccount} />
 
         <div className={`tb-hotzone tb-hotzone--${taskbarPos}`} aria-hidden="true" />
