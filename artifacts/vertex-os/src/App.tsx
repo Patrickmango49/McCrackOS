@@ -2672,7 +2672,6 @@ onSessionClose: (peerCode) => {
                 if (!rect) return;
                 desktopDragRef.current = { id: key, pointerId: event.pointerId, offsetX: event.clientX - rect.left - point.x, offsetY: event.clientY - rect.top - point.y, moved: false };
                 event.currentTarget.setPointerCapture(event.pointerId);
-                event.preventDefault();
               }}
               onPointerMove={(event) => {
                 const drag = desktopDragRef.current;
@@ -2724,7 +2723,6 @@ onSessionClose: (peerCode) => {
                 if (!rect) return;
                 desktopDragRef.current = { id: key, pointerId: event.pointerId, offsetX: event.clientX - rect.left - point.x, offsetY: event.clientY - rect.top - point.y, moved: false };
                 event.currentTarget.setPointerCapture(event.pointerId);
-                event.preventDefault();
               }}
               onPointerMove={(event) => {
                 const drag = desktopDragRef.current;
