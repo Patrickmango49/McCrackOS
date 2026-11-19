@@ -7846,6 +7846,7 @@ html[data-theme="light"] .app-error-state button { color: #14313a; background: r
   filter: blur(2px);
 }
 .dock-peek-toggle {
+  display: none;
   position: fixed;
   z-index: 90;
   left: 50%;
@@ -7918,4 +7919,13 @@ html[data-theme="light"] .app-error-state button { color: #14313a; background: r
 @media (max-width: 620px) {
   .mc-nav button { min-width: 106px; padding: 8px; }
   .mc-nav .mc-catalog-nav { min-width: 118px; }
+}
+
+/* The standalone compiled desktop uses :has() to hide/show the dock around open windows. */
+.os-root:has(.app-window:not(.minimized):not(.closing)) .dock:not(.dock--manual-open) {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+.os-root:has(.app-window:not(.minimized):not(.closing)) .dock-peek-toggle {
+  display: flex;
 }
