@@ -7034,6 +7034,9 @@ to{opacity:1;transform:translateY(0)}
 /* Universal McCrack account setup and profile fields */
 .profile-cloud-account{display:flex;flex-direction:column;gap:11px;margin:4px 0 15px;padding:15px;border:1px solid rgba(75,190,230,.2);border-radius:16px;background:linear-gradient(135deg,rgba(34,190,230,.09),rgba(15,25,38,.16))}
 .profile-cloud-account>p{margin:0;color:var(--muted);font-size:11px;line-height:1.55}
+.profile-cloud-login{display:flex;flex-direction:column;align-items:stretch;gap:8px;margin-top:5px;padding-top:13px;border-top:1px solid rgba(75,190,230,.16)}
+.profile-cloud-login>span{color:var(--muted);font-size:11px;line-height:1.45;text-align:center}
+.profile-cloud-login .profile-login-cta{width:100%;min-height:44px;}
 .profile-cloud-account .profile-setup-section-title{margin:0;color:var(--ink);font-size:12px;font-weight:800}
 .profile-cloud-account .profile-setup-section-title em{color:#36b9df;font-style:normal;font-size:10px;letter-spacing:.04em;text-transform:uppercase}
 .profile-cloud-account label{display:flex;flex-direction:column;gap:6px}
