@@ -7929,3 +7929,95 @@ html[data-theme="light"] .app-error-state button { color: #14313a; background: r
 .os-root:has(.app-window:not(.minimized):not(.closing)) .dock-peek-toggle {
   display: flex;
 }
+
+
+/* McCrackOS desktop and wallpaper-engine interaction fixes */
+.we-apply {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw;
+  width: 100dvw;
+  height: 100vh;
+  height: 100dvh;
+  z-index: 100000 !important;
+  display: grid !important;
+  place-items: center !important;
+  box-sizing: border-box;
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  overflow: auto;
+  overscroll-behavior: contain;
+  pointer-events: auto !important;
+}
+.we-apply-card {
+  width: min(440px, 100%) !important;
+  max-height: min(780px, calc(100dvh - 32px));
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  overscroll-behavior: contain;
+  pointer-events: auto;
+}
+.we-apply-preview {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  min-height: 120px;
+  max-height: min(34dvh, 260px);
+  flex: 0 1 auto;
+  overflow: hidden;
+}
+.we-apply-preview video,
+.we-apply-preview img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  object-fit: cover;
+  object-position: center;
+}
+.we-apply-body { flex: 0 0 auto; }
+.we-apply-body .we-seg,
+.we-apply-actions,
+.we-apply-actions button { pointer-events: auto !important; }
+.we-apply-body .we-seg { display: flex; gap: 6px; }
+.we-apply-body .we-seg button { min-width: 0; }
+.we-showcase-preview,
+.we-card-media,
+.we-card-preview {
+  min-width: 0;
+  overflow: hidden;
+}
+.we-showcase-preview video,
+.we-showcase-preview img,
+.we-card-media video,
+.we-card-media img,
+.we-card-preview video,
+.we-card-preview img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+.desktop-grid .desktop-icon {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  touch-action: none !important;
+  cursor: grab;
+}
+.desktop-grid .desktop-icon:focus-visible {
+  outline: 2px solid rgba(141,230,255,.85);
+  outline-offset: 2px;
+}
+.ps-home-mark {
+  display: block;
+  width: 27px;
+  height: 27px;
+  object-fit: contain;
+  border-radius: 0;
+  background: transparent;
+}
+@media (max-width: 600px) {
+  .we-apply-card { width: min(440px, 100%) !important; }
+  .we-apply-preview { max-height: 28dvh; }
+}
