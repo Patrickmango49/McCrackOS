@@ -264,11 +264,11 @@ function MediaTile({ p, active }: { p: PickerWallpaper; active: boolean }) {
         ) : (
           <video
             className="wp-media"
-            src={active ? playSrc : `${playSrc}#t=0.1`}
+            src={playSrc}
             muted
             loop
             playsInline
-            autoPlay={active}
+            autoPlay
             preload="metadata"
             onLoadedData={markReady}
             onPlaying={markReady}
