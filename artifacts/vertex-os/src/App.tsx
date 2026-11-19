@@ -1489,10 +1489,10 @@ onSessionClose: (peerCode) => {
   useEffect(() => {
     const root = document.documentElement;
     root.dataset.theme = settings.colorMode === "light" ? "light" : "dark";
-    root.dataset.season = HALLOWEEN_ACTIVE ? "halloween" : "";
+    root.dataset.season = wallpaper === "halloween" || lockWallpaper === "halloween" ? "halloween" : "";
     root.dataset.style = settings.systemStyle === "macos" ? "macos" : "";
     root.dataset.font = settings.fontStyle || "vertex";
-  }, [settings.colorMode, settings.systemStyle, settings.fontStyle]);
+  }, [settings.colorMode, settings.systemStyle, settings.fontStyle, wallpaper, lockWallpaper]);
   const [faqOpen, setFaqOpen] = useState<number | null>(null);
   const [toasts, setToasts] = useState<{ id: number; title: string; copy: string; href?: string }[]>([]);
   const [notifications, setNotifications] = useState<{ id: number; title: string; copy: string; href?: string; at?: number; kind?: string; conversationId?: string; senderId?: string }[]>(() => storage.read("vertex-notifications", []));
