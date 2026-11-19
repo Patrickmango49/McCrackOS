@@ -1000,7 +1000,7 @@ function App() {
   const [cloudAccountBusy, setCloudAccountBusy] = useState(false);
   const [setupStep, setSetupStep] = useState<"account" | "customize">("account");
   const [pendingSetupAccount, setPendingSetupAccount] = useState<VertexAccount | null>(null);
-  const [setupWallpaper, setSetupWallpaper] = useState<WallpaperId>("vertex-studio");
+  const [setupWallpaper, setSetupWallpaper] = useState<WallpaperId>(SEASON_WALLPAPER);
   const [setupColorMode, setSetupColorMode] = useState<ColorMode>("dark");
   const [setupSystemStyle, setSetupSystemStyle] = useState<SystemStyle>("vertex");
   const [setupDeviceName, setSetupDeviceName] = useState("McCrack-PC");
