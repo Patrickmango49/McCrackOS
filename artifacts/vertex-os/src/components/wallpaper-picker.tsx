@@ -249,7 +249,7 @@ function keywordGroup(p: PickerWallpaper): ColorGroup {
   return "gray";
 }
 
-function MediaTile({ p }: { p: PickerWallpaper }) {
+function MediaTile({ p, active }: { p: PickerWallpaper; active: boolean }) {
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
   const showFail = () => { setReady(true); setFailed(true); };
@@ -814,7 +814,7 @@ export function WallpaperPicker({ entries, appliedId, onApply, onClose, onCustom
                     aria-label={p.name}
                     title={p.name}
                   >
-                    <MediaTile p={p} />
+                    <MediaTile p={p} active={live} />
                     {applied ? <span className="wp-badge" title={t("we.inUse")}><Check size={12} /></span> : null}
                   </button>
                   <button
