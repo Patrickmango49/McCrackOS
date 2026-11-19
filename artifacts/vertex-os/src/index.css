@@ -8023,34 +8023,3 @@ html[data-theme="light"] .app-error-state button { color: #14313a; background: r
 }
 
 
-/* Always-accessible desktop shortcut visibility control */
-.desktop-icons-toggle {
-  position: absolute;
-  top: 66px;
-  left: 16px;
-  z-index: 24;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  min-height: 30px;
-  padding: 6px 10px;
-  border: 1px solid rgba(141,230,255,.24);
-  border-radius: 999px;
-  color: rgba(239,249,255,.9);
-  background: rgba(5,14,24,.62);
-  box-shadow: 0 5px 18px rgba(0,0,0,.18), inset 0 1px rgba(255,255,255,.07);
-  backdrop-filter: blur(12px);
-  font: 600 11px/1.1 var(--font-ui, sans-serif);
-  cursor: pointer;
-}
-.desktop-icons-toggle:hover,
-.desktop-icons-toggle:focus-visible {
-  border-color: rgba(141,230,255,.62);
-  background: rgba(8,30,44,.88);
-  outline: none;
-}
-.desktop-icons-toggle svg { flex: 0 0 auto; }
-@media (max-width: 800px) {
-  .desktop-icons-toggle { top: 62px; left: 10px; min-height: 28px; padding: 5px 8px; }
-}
