@@ -2759,7 +2759,7 @@ onSessionClose: (peerCode) => {
 
         <nav
           ref={dockRef}
-          className={`dock ${taskbarPos === "bottom" ? "" : `dock--${taskbarPos}`}${dockOverflowOpen ? " dock--overflow-open" : ""}${!dockIsVisible ? " dock--auto-hidden" : ""}`}
+          className={`dock ${taskbarPos === "bottom" ? "" : `dock--${taskbarPos}`}${dockOverflowOpen ? " dock--overflow-open" : ""}${!dockIsVisible ? " dock--auto-hidden" : ""}${dockManuallyOpen ? " dock--manual-open" : ""}`}
           aria-label="System taskbar"
           onContextMenu={openDockMenu}
         >
