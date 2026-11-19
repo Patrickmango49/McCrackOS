@@ -249,7 +249,7 @@ function keywordGroup(p: PickerWallpaper): ColorGroup {
   return "gray";
 }
 
-function MediaTile({ p, active }: { p: PickerWallpaper; active: boolean }) {
+function MediaTile({ p }: { p: PickerWallpaper }) {
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
   const showFail = () => { setReady(true); setFailed(true); };
@@ -792,7 +792,6 @@ export function WallpaperPicker({ entries, appliedId, onApply, onClose, onCustom
             {visible.slice(winFrom, winTo).map((p, k) => {
               const fullIdx = winFrom + k;
               const live = fullIdx === roundSel;
-              const playing = preview === null && live;
               const applied = appliedId === p.id;
               return (
                 <div
@@ -815,7 +814,7 @@ export function WallpaperPicker({ entries, appliedId, onApply, onClose, onCustom
                     aria-label={p.name}
                     title={p.name}
                   >
-                    <MediaTile p={p} active={playing} />
+                    <MediaTile p={p} />
                     {applied ? <span className="wp-badge" title={t("we.inUse")}><Check size={12} /></span> : null}
                   </button>
                   <button
