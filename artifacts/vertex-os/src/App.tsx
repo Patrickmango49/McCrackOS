@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 
 
-import { Ps5EmulatorSurface } from "./components/ps5-emulator";
+import { GameFrame, Ps5EmulatorSurface } from "./components/ps5-emulator";
 import { BrowserSurface, ProxyUrlFrame } from "./components/browser-app";
 import { VertexStudioWallpaper } from "./components/vertex-wallpaper";
 
@@ -6188,7 +6188,7 @@ const MC_EAGTEK_ART = "https://store-images.s-microsoft.com/image/apps.29741.137
 
 interface McInstall { id: number; name: string; version: string; variant: "ultimate-wasm" | "hd-sounds" | "release"; }
 function minecraftVersionParts(name: string): number[] | null {
-  const match = name.match(/(?:minecraft\s*)?[v ]?(\d+(?:\.\d+){1,3})/i);
+  const match = name.match(/(\d+(?:\.\d+){1,3})/);
   return match ? match[1].split(".").map((part) => Number(part) || 0) : null;
 }
 const MC_CATALOG_GAMES: readonly Ps5Game[] = PS5_GAMES
@@ -6305,8 +6305,10 @@ function MinecraftLauncherSurface() {
       <span>{title}</span>
       <button className="mc-fs-btn" onClick={toggleGameFullscreen} aria-label={t("minecraft.fullscreen")}><Maximize size={14} /></button>
     </div>
-      {loading ? <div className="mc-loading">{t("minecraft.loading")}</div> : null}
-      <iframe className="browser-frame" src={src} key={`${mode}-${serverAddr ?? catalogGame?.id ?? "default"}`} title={title} allow="autoplay; clipboard-write; camera; microphone; fullscreen; cross-origin-isolated" onLoad={() => setLoading(false)} />
+      {loading && mode !== "catalog" ? <div className="mc-loading">{t("minecraft.loading")}</div> : null}
+      {mode === "catalog" && catalogGame
+        ? <GameFrame game={catalogGame} onLoad={() => setLoading(false)} />
+        : <iframe className="browser-frame" src={src} key={`${mode}-${serverAddr ?? catalogGame?.id ?? "default"}`} title={title} allow="autoplay; clipboard-write; camera; microphone; fullscreen; cross-origin-isolated" onLoad={() => setLoading(false)} />}
     </div>;
   }
 
