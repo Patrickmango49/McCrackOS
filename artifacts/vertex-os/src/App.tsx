@@ -1062,11 +1062,11 @@ function App() {
   const lockVideoRef = useRef<HTMLVideoElement>(null);
   const [wallpaper, setWallpaper] = useState<WallpaperId>(() => {
     const saved = storage.read<WallpaperId>("vertex-wallpaper-v2", SEASON_WALLPAPER);
-    return saved === "vertex-studio" || saved === "halloween" || saved === "singularity" ? SEASON_WALLPAPER : saved;
+    return saved === "vertex-studio" || saved === "halloween" || saved === "singularity" || (!saved.startsWith("custom-") && !wallpapers.some((item) => item.id === saved) && !wallEngineEntries.some((item) => item.id === saved)) ? SEASON_WALLPAPER : saved;
   });
   const [lockWallpaper, setLockWallpaper] = useState<WallpaperId>(() => {
     const saved = storage.read<WallpaperId>("vertex-lock-wallpaper-v2", SEASON_WALLPAPER);
-    return saved === "vertex-studio" || saved === "halloween" || saved === "singularity" ? SEASON_WALLPAPER : saved;
+    return saved === "vertex-studio" || saved === "halloween" || saved === "singularity" || (!saved.startsWith("custom-") && !wallpapers.some((item) => item.id === saved) && !wallEngineEntries.some((item) => item.id === saved)) ? SEASON_WALLPAPER : saved;
   });
   const [iconSize, setIconSize] = useState<"small" | "medium" | "large">(() => storage.read("vertex-icon-size", "medium"));
   const [showDesktopIcons, setShowDesktopIcons] = useState(() => storage.read("vertex-show-icons", false));
