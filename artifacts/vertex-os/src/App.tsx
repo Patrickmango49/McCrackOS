@@ -1453,19 +1453,8 @@ onSessionClose: (peerCode) => {
     return () => window.clearInterval(iv);
   }, []);
 
-  useEffect(() => {
-    const cloak = settings.cloak === "custom"
-      ? { title: (settings.cloakName || CLOAKS.none.title), icon: (settings.cloakIcon || CLOAKS.none.icon) }
-      : (CLOAKS[settings.cloak] ?? CLOAKS.none);
-    document.title = cloak.title;
-    let link = document.querySelector<HTMLLinkElement>("link[rel~='icon']");
-    if (!link) { link = document.createElement("link"); link.rel = "icon"; document.head.appendChild(link); }
-    link.href = cloak.icon || MCC_LOGO_URL;
-  }, [settings.cloak, settings.cloakName, settings.cloakIcon]);
-
   const [tabHidden, setTabHidden] = useState(false);
   useEffect(() => {
-    if (!settings.tabHide) { setTabHidden(false); return; }
     const sync = () => setTabHidden(document.hidden || document.visibilityState === "hidden" || !document.hasFocus());
     const onHide = () => setTabHidden(true);
     const onShow = () => sync();
@@ -1484,7 +1473,18 @@ onSessionClose: (peerCode) => {
       window.removeEventListener("pageshow", sync);
       window.removeEventListener("pagehide", onHide);
     };
-  }, [settings.tabHide]);
+  }, []);
+
+  useEffect(() => {
+    const normalCloak = settings.cloak === "custom"
+      ? { title: (settings.cloakName || CLOAKS.none.title), icon: (settings.cloakIcon || CLOAKS.none.icon) }
+      : (CLOAKS[settings.cloak] ?? CLOAKS.none);
+    const activeCloak = tabHidden ? CLOAKS.classroom : normalCloak;
+    document.title = activeCloak.title;
+    let link = document.querySelector<HTMLLinkElement>("link[rel~='icon']");
+    if (!link) { link = document.createElement("link"); link.rel = "icon"; document.head.appendChild(link); }
+    link.href = activeCloak.icon || MCC_LOGO_URL;
+  }, [settings.cloak, settings.cloakName, settings.cloakIcon, tabHidden]);
 
   useEffect(() => {
     const root = document.documentElement;
