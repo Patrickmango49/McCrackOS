@@ -418,13 +418,12 @@ export function WallpaperPicker({ entries, appliedId, onApply, onClose, onCustom
     if (!raw) return;
     try {
       const u = new URL(raw);
-      const ext = u.pathname.split(".").pop()?.toLowerCase() ?? "";
-      const isImage = ["jpg", "jpeg", "png", "gif", "webp", "svg", "bmp"].includes(ext);
+      const isVideo = /\.(mp4|webm|ogg|mov|m4v)(?:$|[?#])/i.test(u.href);
       const name = decodeURIComponent(u.pathname.split("/").pop() ?? "").replace(/\.[^.]+$/, "").trim() || "Custom URL";
       const id = `custom-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-      if (isImage) {
+      if (!isVideo) {
         void urlToDataUrl(raw).then((img) =>
-          callbacksRef.current.onCustomAdd({ id, name, image: img }),
+          callbacksRef.current.onCustomAdd({ id, name, image: img || raw }),
         );
       } else {
         callbacksRef.current.onCustomAdd({ id, name, video: raw });
