@@ -1965,7 +1965,7 @@ onSessionClose: (peerCode) => {
   function finishSetup(skipCustomization = false) {
     const account = pendingSetupAccount;
     if (!account) { setSetupStep("account"); return; }
-    const selectedWallpaper = skipCustomization ? "vertex-studio" : setupWallpaper;
+    const selectedWallpaper = skipCustomization ? SEASON_WALLPAPER : setupWallpaper;
     setWallpaper(selectedWallpaper);
     setLockWallpaper(selectedWallpaper);
     const nextSettings = {
@@ -2513,7 +2513,7 @@ onSessionClose: (peerCode) => {
                 <div className="setup-wallpaper-picker">
                   <strong>Wallpaper</strong>
                   <div className="setup-wallpaper-grid">
-                    {wallpapers.filter((wall) => ["vertex-studio", "singularity", "snow-fox", "cine55", "rainy-city", "macos-default"].includes(wall.id)).map((wall) => (
+                    {wallpapers.filter((wall) => ["vertex-studio", "macos-default", "macos-lock", "snake-skeleton", "we-black-silk-waves"].includes(wall.id)).map((wall) => (
                       <button type="button" key={wall.id} onClick={() => setSetupWallpaper(wall.id)} aria-pressed={setupWallpaper === wall.id} className={`setup-wallpaper-option ${setupWallpaper === wall.id ? "selected" : ""}`}>
                         {wall.image ? <img src={wall.image} alt="" /> : <div className="setup-wallpaper-placeholder" />}
                         <span>{wall.name}</span>
