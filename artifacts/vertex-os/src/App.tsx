@@ -15,7 +15,7 @@ import {
 import { Ps5EmulatorSurface } from "./components/ps5-emulator";
 import { BrowserSurface, ProxyUrlFrame } from "./components/browser-app";
 import { VertexStudioWallpaper } from "./components/vertex-wallpaper";
-import { HalloweenDecor, HalloweenWallpaper } from "./components/halloween";
+
 
 import { LockAppsLayer, recordRecentApp } from "./components/lock-apps";
 import { AdminSurface } from "./components/admin-app";
@@ -83,7 +83,7 @@ type AppId = "hub" | "spicetify" | "browser" | "roblox" | "messages" | "vertube"
 type Ps5DesktopShortcut = { id: string; name: string; cover: string };
 type TaskbarPos = "bottom" | "top" | "left" | "right";
 type WindowRect = { x: number; y: number; w: number; h: number };
-type WindowState = { id: AppId; minimized: boolean; maximized: boolean; rect: WindowRect; prevRect: WindowRect | null; closingAt?: number };
+type WindowState = { id: AppId; minimized: boolean; maximized: boolean; rect: WindowRect; prevRect: WindowRect | null; snapSide?: "left" | "right"; closingAt?: number };
 type Wallpaper = { id: WallpaperId; name: string; meta: string; video?: string; image?: string; videoLow?: string };
 type ColorMode = "dark" | "light";
 type SystemStyle = "vertex" | "macos";
@@ -96,8 +96,8 @@ const PASSWORD_KEY = "vertex-password";
 const PROFILE_KEY = "vertex-profile";
 const ACCOUNTS_KEY = "vertex-accounts";
 const VERTEX_VERSION = "4.1";
-const HALLOWEEN_ACTIVE = new Date().getMonth() === 9;
-const SEASON_WALLPAPER: WallpaperId = HALLOWEEN_ACTIVE ? "halloween" : "vertex-studio";
+const HALLOWEEN_ACTIVE = false;
+const SEASON_WALLPAPER: WallpaperId = "we-black-silk-waves";
 
 type VertexAccount = { id: string; name: string; createdAt: number; pass?: string; avatar?: string; email?: string; username?: string; banner?: string; bio?: string; authUserId?: string };
 
@@ -248,23 +248,11 @@ const CLOAKS: Record<string, { title: string; icon: string }> = {
 };
 
 const wallpapers: Wallpaper[] = [
-  { id: "vertex-studio", name: "McCrack", meta: "Animated · McCrackOS", image: asset("images/vertex-studios-thumb.svg") },
-  { id: "halloween", name: "Halloween Night", meta: "Animated · Spooky", image: asset("images/halloween-thumb.svg") },
-  { id: "macos-default", name: "macOS 27", meta: "macOS · Default", image: asset("images/macos-27-home.jpg") },
-  { id: "macos-lock", name: "macOS 27 Night", meta: "macOS · Lock screen", image: asset("images/macos-27-lock.jpg") },
-  { id: "singularity", name: "Singularity", meta: t("wpMeta.singularity"), video: asset("videos/BlackHole.mp4"), videoLow: asset("videos/low/BlackHole.mp4") },
-  { id: "snake-skeleton", name: "Snake Skeleton", meta: t("wpMeta.snake"), video: asset("videos/default.mp4"), videoLow: asset("videos/low/default.mp4") },
-  { id: "snow-fox", name: "Snow Fox", meta: t("wpMeta.snow"), video: asset("videos/SnowFox.mp4") },
-  { id: "cine55", name: "Cine 55", meta: t("wpMeta.cine55"), image: asset("wallpapers/Cine55.png") },
-  { id: "gojo", name: "Gojo", meta: t("wpMeta.gojo"), video: asset("videos/Gojo.mp4"), videoLow: asset("videos/low/Gojo.mp4") },
-  { id: "rainy-city", name: "Rainy City", meta: t("wpMeta.rainy"), video: asset("videos/RainyCity.mp4"), videoLow: asset("videos/low/RainyCity.mp4") },
-  { id: "green-anime", name: "Green Anime", meta: t("wpMeta.green"), video: asset("videos/green.mp4"), videoLow: asset("videos/low/green.mp4") },
-  { id: "brother", name: "Brother", meta: t("wpMeta.brother"), video: asset("videos/Brother.mp4"), videoLow: asset("videos/low/Brother.mp4") },
-  { id: "99-med", name: "99 Med", meta: t("wpMeta.med"), video: asset("videos/99Med.mp4") },
-  { id: "gojo-sukuna", name: "Gojo vs Sukuna", meta: t("wpMeta.gojoSukuna"), video: asset("videos/Gojo-Sukuna.mp4"), videoLow: asset("videos/low/Gojo-Sukuna.mp4") },
-  { id: "sukuna-fire", name: "Sukuna Fire", meta: t("wpMeta.sukuna"), video: asset("videos/sukuna-fire.mp4") },
-  { id: "desktop-lines", name: "Desktop Lines", meta: t("wpMeta.desktop"), video: asset("videos/Desktop.mp4"), videoLow: asset("videos/low/Desktop.mp4") },
-  { id: "skello", name: "Skello", meta: t("wpMeta.skello"), video: asset("videos/Skello.mp4") },
+  { id: "vertex-studio", name: "McCrack", meta: "McCrackOS", image: asset("images/vertex-studios-thumb.svg") },
+  { id: "macos-default", name: "macOS 27", meta: "macOS", image: asset("images/macos-27-home.jpg") },
+  { id: "macos-lock", name: "macOS 27 Night", meta: "macOS · Night", image: asset("images/macos-27-lock.jpg") },
+  { id: "snake-skeleton", name: "Snake Skeleton", meta: "Animated · McCrack", video: asset("videos/default.mp4"), videoLow: asset("videos/low/default.mp4") },
+  { id: "we-black-silk-waves", name: "Black Silk Waves", meta: "Animated · Abstract", video: "https://motionbgs.com/media/10046/black-silk-waves.1920x1080.mp4" },
 ];
 
 type WallEngineEntry = {
@@ -398,7 +386,7 @@ const wallEngineEntries: WallEngineEntry[] = [
 const WE_RECENT: WallpaperId[] = ["we-torii", "we-nissan-skyline-r33-mc", "we-frieren-blooming-stream", "we-frieren-blue-horizon", "we-gojo-six-eyes", "we-gojo-cursed-world", "we-gojo-vs-sukuna-2", "we-yuta-okkotsu", "we-quintuplets-sister", "we-gojo-hollow", "we-itachi-crow", "we-vagabond-miyamoto", "we-girl-behind-curtains", "we-silver-surfer", "we-mc-raindrops", "we-mc-cherry-blossom", "we-mc-panels", "we-mc-fireplace", "we-mc-holiday-heart", "we-mc-aquarium", "we-mc-falling-snow", "we-mc-northern-light", "we-luo-tianyi-christmas", "we-astra-yao", "we-blue-dragon-logo", "we-black-silk-waves", "we-snow-fox", "we-rainy-city", "we-cine-55", "we-green-anime", "we-gojo", "we-45e33", "we-f1-formula", "we-hunt-shadow-2", "we-minecraft-01", "we-minecraft-02", "we-minecraft-03", "we-monkey", "we-supra-drift", "we-yuji-52", "we-cozy-fox", "we-yuta", "we-bmw-car-driving", "we-eyes-toward-heaven", "we-goku-ultra", "we-galaxy-eyes", "we-celestial-battle", "we-tess-kotkin", "we-yuta-rika", "we-satoru-gojo", "we-dark-angel", "we-makima-devilish", "we-makima-burning", "we-haimiya-mio", "we-toji", "we-mamonir", "we-lantern-festival", "we-miyabi", "we-qingxiao", "we-megumin", "we-odette", "we-blue-sky", "we-frutiger", "we-synthwave-dmc", "we-zankou", "we-ghost-rider", "we-molala", "we-dark-king", "we-celestial-veil", "we-miku-nakano", "we-gotoubun", "we-quintuplets"];
 const WE_POPULAR: WallpaperId[] = ["we-nissan-skyline-r33-mc", "we-black-hole", "we-gojo-sukuna", "we-sukuna-fire", "we-snake", "we-brother"];
 
-wallpapers.push(...wallEngineEntries.map((e) => ({ id: e.id, name: e.name, meta: `${e.category} // ${e.resolution}`, video: e.video, image: e.image, videoLow: e.videoLow })));
+// Wallpaper Engine catalog entries stay inside the separate Wallpaper Engine app.
 
 const WALLPAPER_IMAGE: Record<string, string> = {};
 [...wallpapers, ...wallEngineEntries].forEach((w) => { if (w.image) WALLPAPER_IMAGE[w.id] = w.image; });
@@ -416,6 +404,7 @@ const baseApps: AppDef[] = [
   { id: "vertube", title: "McCrackTube", subtitle: "Video platform", icon: PlaySquare, iconImg: YOUTUBE_APP_ICON, pinned: true },
   { id: "movies", title: "McCrackFlix", subtitle: "Movies & TV discovery", icon: Film, iconImg: NETFLIX_APP_ICON, pinned: true },
   { id: "settings", title: "Config", subtitle: t("appSub.settings"), icon: Settings2, iconImg: asset("images/config-icon.png"), pinned: true },
+  { id: "wallpaper-engine", title: "Wallpaper Engine", subtitle: "Live wallpapers & workshop", icon: Image, iconImg: asset("images/wallpaper-engine.gif") },
   { id: "appmaker", title: "McCrack", subtitle: "build & publish your own", icon: Code2, iconImg: asset("images/v-studios-logo.svg"), squircle: true },
   { id: "webapps", title: "Proxy Apps", subtitle: "create standalone proxied apps", icon: Globe, iconImg: asset("images/links.svg") },
   { id: "spicetify", title: "McCrackify", subtitle: "Music player", icon: Music2, iconImg: MCC_CRACKIFY_ICON, pinned: true },
@@ -436,7 +425,7 @@ const APP_SECTIONS: { id: string; tone: string; all?: boolean; ids: AppId[] }[] 
   { id: "all", tone: "tone-all", all: true, ids: [] },
   { id: "watch", tone: "tone-watch", ids: ["vertube", "movies", "spicetify", "messages"] },
   { id: "play", tone: "tone-play", ids: ["roblox", "minecraft", "games"] },
-  { id: "create", tone: "tone-create", ids: ["terminal", "browser", "calculator", "appmaker", "webapps", "settings", "links"] },
+  { id: "create", tone: "tone-create", ids: ["terminal", "browser", "calculator", "appmaker", "webapps", "settings", "links", "wallpaper-engine"] },
 ];;
 
 const GV_APP: { id: AppId; title: string; subtitle: string; icon: LucideIcon; pinned: boolean; showName: boolean } = { id: "ghostview", title: "GhostView", subtitle: "remote view", icon: Eye, pinned: false, showName: false };
@@ -1072,8 +1061,14 @@ function App() {
   const [languageOpen, setLanguageOpen] = useState(false);
   const homeVideoRef = useRef<HTMLVideoElement>(null);
   const lockVideoRef = useRef<HTMLVideoElement>(null);
-  const [wallpaper, setWallpaper] = useState<WallpaperId>(() => storage.read("vertex-wallpaper-v2", SEASON_WALLPAPER));
-  const [lockWallpaper, setLockWallpaper] = useState<WallpaperId>(() => storage.read("vertex-lock-wallpaper-v2", SEASON_WALLPAPER));
+  const [wallpaper, setWallpaper] = useState<WallpaperId>(() => {
+    const saved = storage.read<WallpaperId>("vertex-wallpaper-v2", SEASON_WALLPAPER);
+    return saved === "vertex-studio" || saved === "halloween" || saved === "singularity" ? SEASON_WALLPAPER : saved;
+  });
+  const [lockWallpaper, setLockWallpaper] = useState<WallpaperId>(() => {
+    const saved = storage.read<WallpaperId>("vertex-lock-wallpaper-v2", SEASON_WALLPAPER);
+    return saved === "vertex-studio" || saved === "halloween" || saved === "singularity" ? SEASON_WALLPAPER : saved;
+  });
   const [iconSize, setIconSize] = useState<"small" | "medium" | "large">(() => storage.read("vertex-icon-size", "medium"));
   const [showDesktopIcons, setShowDesktopIcons] = useState(() => storage.read("vertex-show-icons", false));
   const [customCursor, setCustomCursor] = useState(() => storage.read("vertex-custom-cursor", false));
@@ -1090,6 +1085,7 @@ storage.read("vertex-jarvis-installed", false));
   const [startOpen, setStartOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [dockOverflowOpen, setDockOverflowOpen] = useState(false);
+  const [dockManuallyOpen, setDockManuallyOpen] = useState(false);
   const [drawerQuery, setDrawerQuery] = useState("");
   const [drawerSection, setDrawerSection] = useState<string>("all");
   const [startQuery, setStartQuery] = useState("");
@@ -1260,7 +1256,7 @@ storage.read("vertex-jarvis-installed", false));
   const [dockDragId, setDockDragId] = useState<AppId | null>(null);
   const [placedCells, setPlacedCells] = useState<Record<string, number>>(() => storage.read<Record<string, number>>("vertex-desktop-cells", {}));
   const [desktopFreePositions, setDesktopFreePositions] = useState<Record<string, { x: number; y: number }>>(() => storage.read("vertex-desktop-free-positions", {}));
-  const desktopDragRef = useRef<{ id: string; pointerId: number; offsetX: number; offsetY: number; moved: boolean } | null>(null);
+  const desktopDragRef = useRef<{ id: string; pointerId: number; startClientX: number; startClientY: number; startLeft: number; startTop: number; moved: boolean } | null>(null);
   const suppressDesktopClickRef = useRef<string | null>(null);
   const desktopGridRef = useRef<HTMLDivElement>(null);
   const [translucentTB, setTranslucentTB] = useState<boolean>(() => storage.read("vertex-translucenttb", false) !== false);
@@ -1292,7 +1288,7 @@ storage.read("vertex-jarvis-installed", false));
 
   const buildGvSnap = useCallback((): GvSnap | null => {
     const acc = (() => { try { return JSON.parse(localStorage.getItem("vertex-ps5-account") ?? "null") as { username?: string } | null; } catch { return null; } })();
-    const activeWp = [...wallpapers, ...customWallpapers].find((x) => x.id === wallpaper);
+    const activeWp = [...wallpapers, ...wallEngineEntries, ...customWallpapers].find((x) => x.id === wallpaper);
     let term: GvSnap["term"] = null;
     if (activeWindow === "terminal") {
       const el = document.querySelector<HTMLDivElement>(".term-output");
@@ -1489,12 +1485,11 @@ onSessionClose: (peerCode) => {
   const [currentTrack, setCurrentTrack] = useState<{ name: string; artist: string; artwork: string } | null>(null);
   const [incomingCall, setIncomingCall] = useState<{ id: string; mode: string; name: string; subtitle: string } | null>(null);
 
-  const activeWallpaper = wallpapers.find((item) => item.id === wallpaper) ?? customWallpapers.find((item) => item.id === wallpaper) ?? wallpapers[0];
-  const activeLockWallpaper = wallpapers.find((item) => item.id === lockWallpaper) ?? customWallpapers.find((item) => item.id === lockWallpaper) ?? wallpapers[1];
+  const activeWallpaper = wallpapers.find((item) => item.id === wallpaper) ?? wallEngineEntries.find((item) => item.id === wallpaper) ?? customWallpapers.find((item) => item.id === wallpaper) ?? wallpapers[0];
+  const activeLockWallpaper = wallpapers.find((item) => item.id === lockWallpaper) ?? wallEngineEntries.find((item) => item.id === lockWallpaper) ?? customWallpapers.find((item) => item.id === lockWallpaper) ?? wallpapers[1];
   const pickerWallpapers = useMemo<PickerWallpaper[]>(() => [
     ...customWallpapers,
-    ...wallpapers.map((w) => ({ id: w.id, name: w.name, image: w.image, video: w.video })),
-    ...wallEngineEntries.map((e) => ({ id: e.id, name: e.name, image: e.image, video: e.video, videoLow: e.videoLow, category: e.category })),
+    ...wallpapers.map((w) => ({ id: w.id, name: w.name, image: w.image, video: w.video, videoLow: w.videoLow })),
   ], [customWallpapers]);
 
   useEffect(() => {
@@ -2133,7 +2128,7 @@ onSessionClose: (peerCode) => {
       setLockWallpaper(id);
       storage.write("vertex-lock-wallpaper-v2", id);
     }
-    addToast(t("toast.wallpaperTitle"), tf("toast.wallpaperCopy", { name: wallpapers.find((item) => item.id === id)?.name ?? customWallpapers.find((item) => item.id === id)?.name ?? "" }));
+    addToast(t("toast.wallpaperTitle"), tf("toast.wallpaperCopy", { name: wallpapers.find((item) => item.id === id)?.name ?? wallEngineEntries.find((item) => item.id === id)?.name ?? customWallpapers.find((item) => item.id === id)?.name ?? "" }));
   }
 
   function nextVisibleWindow(exceptId: AppId): AppId | null {
@@ -2224,11 +2219,21 @@ onSessionClose: (peerCode) => {
       if (item.id !== id || item.maximized) return item;
       const vw = typeof window !== "undefined" ? window.innerWidth : 1280;
       const vh = typeof window !== "undefined" ? window.innerHeight : 800;
-      const w = Math.min(item.rect.w, Math.max(220, vw - 16));
-      const h = Math.min(item.rect.h, Math.max(180, vh - 58));
-      const x = Math.max(8, Math.min(Math.round(clientX), Math.max(8, vw - w - 8)));
+      const baseRect = item.snapSide ? (item.prevRect ?? item.rect) : item.rect;
+      const w = Math.min(baseRect.w, Math.max(220, vw - 16));
+      const h = Math.min(baseRect.h, Math.max(180, vh - 58));
+      const x = Math.round(clientX);
       const y = Math.max(8, Math.min(Math.round(clientY), Math.max(8, vh - h - 58)));
-      return { ...item, rect: { ...item.rect, x, y, w, h } };
+      const snapWidth = Math.max(220, Math.floor((vw - 24) / 2));
+      const snapHeight = Math.max(180, vh - 64);
+      if (x <= 16) {
+        return { ...item, snapSide: "left" as const, prevRect: item.snapSide ? item.prevRect : baseRect, rect: { x: 8, y: 8, w: snapWidth, h: snapHeight } };
+      }
+      if (x + w >= vw - 16) {
+        return { ...item, snapSide: "right" as const, prevRect: item.snapSide ? item.prevRect : baseRect, rect: { x: vw - snapWidth - 8, y: 8, w: snapWidth, h: snapHeight } };
+      }
+      const safeX = Math.max(8, Math.min(x, Math.max(8, vw - w - 8)));
+      return { ...item, snapSide: undefined, rect: { ...baseRect, x: safeX, y, w, h } };
     }));
   }
 
@@ -2387,6 +2392,8 @@ onSessionClose: (peerCode) => {
   });
   const dockOverflowed = dockEntries.length > dockCapacity;
   const visibleDockEntries = dockOverflowed ? dockEntries.slice(0, dockCapacity) : dockEntries;
+  const dockAutoHidden = windows.some((item) => !item.minimized && !item.closingAt);
+  const dockIsVisible = !dockAutoHidden || dockManuallyOpen;
 
   return (
         <main className={`os-root${PERF.low ? " perf-low" : ""}`} onClick={() => { setContextMenu(null); setAppMenu(null);  setDockMenu(null); setDockOverflowOpen(false); }} onContextMenu={(event) => {
@@ -2396,9 +2403,7 @@ onSessionClose: (peerCode) => {
       <div className={`wallpaper-layer ${phase === "desktop" ? "active" : ""}`} aria-hidden="true">
         {activeWallpaper.id === "vertex-studio"
           ? <VertexStudioWallpaper className="wallpaper-scene" />
-          : activeWallpaper.id === "halloween"
-            ? <HalloweenWallpaper className="wallpaper-scene" />
-            : activeWallpaper.image
+          : activeWallpaper.image
             ? <img className="wallpaper-image" src={activeWallpaper.image} alt={`${activeWallpaper.name} wallpaper`} />
             : phase === "desktop"
               ? <video key={activeWallpaper.id} ref={homeVideoRef} className="wallpaper-video" src={bgSrc(activeWallpaper.video, activeWallpaper.videoLow)} preload="metadata" autoPlay muted loop playsInline aria-label={`${activeWallpaper.name} wallpaper`} />
@@ -2649,7 +2654,7 @@ onSessionClose: (peerCode) => {
           onToggleIcons={() => setShowDesktopIcons((visible) => { const next = !visible; storage.write("vertex-show-icons", next); return next; })}
           onHint={(title, copy) => addToast(title, copy)}
         /> : null}
-        {HALLOWEEN_ACTIVE && <HalloweenDecor />}
+        
 
 
         <div className={`desktop-grid ${showDesktopIcons ? "" : "hidden"}`} ref={desktopGridRef} aria-label="Desktop applications" onDragOver={(event) => { event.preventDefault(); }} onDrop={(event) => {
@@ -2670,7 +2675,7 @@ onSessionClose: (peerCode) => {
                 if (event.button !== 0) return;
                 const rect = desktopGridRef.current?.getBoundingClientRect();
                 if (!rect) return;
-                desktopDragRef.current = { id: key, pointerId: event.pointerId, offsetX: event.clientX - rect.left - point.x, offsetY: event.clientY - rect.top - point.y, moved: false };
+                desktopDragRef.current = { id: key, pointerId: event.pointerId, startClientX: event.clientX, startClientY: event.clientY, startLeft: point.x, startTop: point.y, moved: false };
                 event.currentTarget.setPointerCapture(event.pointerId);
               }}
               onPointerMove={(event) => {
@@ -2678,11 +2683,12 @@ onSessionClose: (peerCode) => {
                 if (!drag || drag.id !== key || drag.pointerId !== event.pointerId) return;
                 const rect = desktopGridRef.current?.getBoundingClientRect();
                 if (!rect) return;
-                const dx = event.clientX - rect.left - drag.offsetX;
-                const dy = event.clientY - rect.top - drag.offsetY;
-                if (Math.abs(dx - point.x) + Math.abs(dy - point.y) > 5) drag.moved = true;
-                const maxX = Math.max(0, rect.width - 108);
-                const maxY = Math.max(0, rect.height - 116);
+                const dx = drag.startLeft + event.clientX - drag.startClientX;
+                const dy = drag.startTop + event.clientY - drag.startClientY;
+                if (!drag.moved && Math.hypot(event.clientX - drag.startClientX, event.clientY - drag.startClientY) > 4) drag.moved = true;
+                if (drag.moved) event.preventDefault();
+                const maxX = Math.max(0, rect.width - event.currentTarget.offsetWidth);
+                const maxY = Math.max(0, rect.height - event.currentTarget.offsetHeight);
                 setDesktopFreePositions((prev) => ({ ...prev, [key]: { x: Math.max(0, Math.min(maxX, dx)), y: Math.max(0, Math.min(maxY, dy)) } }));
               }}
               onPointerUp={(event) => {
@@ -2721,7 +2727,7 @@ onSessionClose: (peerCode) => {
                 if (event.button !== 0) return;
                 const rect = desktopGridRef.current?.getBoundingClientRect();
                 if (!rect) return;
-                desktopDragRef.current = { id: key, pointerId: event.pointerId, offsetX: event.clientX - rect.left - point.x, offsetY: event.clientY - rect.top - point.y, moved: false };
+                desktopDragRef.current = { id: key, pointerId: event.pointerId, startClientX: event.clientX, startClientY: event.clientY, startLeft: point.x, startTop: point.y, moved: false };
                 event.currentTarget.setPointerCapture(event.pointerId);
               }}
               onPointerMove={(event) => {
@@ -2729,10 +2735,11 @@ onSessionClose: (peerCode) => {
                 if (!drag || drag.id !== key || drag.pointerId !== event.pointerId) return;
                 const rect = desktopGridRef.current?.getBoundingClientRect();
                 if (!rect) return;
-                const dx = event.clientX - rect.left - drag.offsetX;
-                const dy = event.clientY - rect.top - drag.offsetY;
-                if (Math.abs(dx - point.x) + Math.abs(dy - point.y) > 5) drag.moved = true;
-                setDesktopFreePositions((prev) => ({ ...prev, [key]: { x: Math.max(0, Math.min(Math.max(0, rect.width - 108), dx)), y: Math.max(0, Math.min(Math.max(0, rect.height - 116), dy)) } }));
+                const dx = drag.startLeft + event.clientX - drag.startClientX;
+                const dy = drag.startTop + event.clientY - drag.startClientY;
+                if (!drag.moved && Math.hypot(event.clientX - drag.startClientX, event.clientY - drag.startClientY) > 4) drag.moved = true;
+                if (drag.moved) event.preventDefault();
+                setDesktopFreePositions((prev) => ({ ...prev, [key]: { x: Math.max(0, Math.min(Math.max(0, rect.width - event.currentTarget.offsetWidth), dx)), y: Math.max(0, Math.min(Math.max(0, rect.height - event.currentTarget.offsetHeight), dy)) } }));
               }}
               onPointerUp={(event) => {
                 const drag = desktopDragRef.current;
@@ -2755,7 +2762,7 @@ onSessionClose: (peerCode) => {
 
         <nav
           ref={dockRef}
-          className={`dock ${taskbarPos === "bottom" ? "" : `dock--${taskbarPos}`}${dockOverflowOpen ? " dock--overflow-open" : ""}`}
+          className={`dock ${taskbarPos === "bottom" ? "" : `dock--${taskbarPos}`}${dockOverflowOpen ? " dock--overflow-open" : ""}${!dockIsVisible ? " dock--auto-hidden" : ""}`}
           aria-label="System taskbar"
           onContextMenu={openDockMenu}
         >
@@ -2779,6 +2786,7 @@ onSessionClose: (peerCode) => {
             })}</div>
           </div>}
         </nav>
+        {dockAutoHidden && <button type="button" className={`dock-peek-toggle${dockManuallyOpen ? " is-open" : ""}`} aria-label={dockManuallyOpen ? "Hide dock" : "Show dock"} title={dockManuallyOpen ? "Hide dock" : "Show dock"} onClick={(event) => { event.stopPropagation(); setDockManuallyOpen((open) => !open); }}><span /><span /><span /></button>}
 
         <SystemTray now={now} lang={chosenLang} notifications={notifications} unseen={unseenNotifications} onOpenClock={markNotificationsRead} onDismiss={dismissNotification} onClear={clearNotifications} onActivate={openNotificationTarget} onQuickReply={handleQuickReply} onOpenSettings={() => toggleApp("settings")} />
 
@@ -5988,6 +5996,7 @@ function VerTubeSurface() {
 
 function renderWindowBody(id: AppId, settings: SystemSettings, updateSetting: (key: keyof SystemSettings | Partial<SystemSettings>, value?: boolean | string | TabHideImage[]) => void, faqOpen: number | null, setFaqOpen: (value: number | null) => void, lang: Lang, onLanguagePick: (language: Lang) => void, onPanic: () => void, onClose: (() => void) | null = null, onMinimize: (() => void) | null = null, onTrackChange: ((track: { name: string; artist: string; artwork: string } | null) => void) | null = null, translucent: boolean = false, onTranslucent: ((value: boolean) => void) | null = null, onApplyWallpaper: ((id: WallpaperId, target: "both" | "home" | "lock") => void) | null = null, appliedWallpaper: WallpaperId = "singularity", appliedLockWallpaper: WallpaperId = "singularity", onNotify: ((title: string, copy: string) => void) | null = null, wppInstalled: boolean = false, onInstallPicker: (() => void) | null = null, jarvisInstalled: boolean = false, onJarvisInstall: (() => void) | null = null, onFsociety: ((active: boolean) => void) | null = null, activeAccount: VertexAccount | null = null, onAvatarChange: ((avatar: string) => void) | null = null, onAccountChange: ((patch: { name?: string; email?: string; username?: string; bio?: string; banner?: string }) => void) | null = null, onSignOut: (() => void) | null = null) {
   if (id === "settings") return <SettingsSurface settings={settings} updateSetting={updateSetting} faqOpen={faqOpen} setFaqOpen={setFaqOpen} lang={lang} onLanguagePick={onLanguagePick} onPanic={onPanic} avatar={activeAccount?.avatar} accountName={activeAccount?.name} accountEmail={activeAccount?.email} accountUsername={activeAccount?.username} accountBio={activeAccount?.bio} accountBanner={activeAccount?.banner} onAvatarChange={onAvatarChange ?? undefined} onAccountChange={onAccountChange ?? undefined} onSignOut={onSignOut ?? undefined} appliedWallpaper={appliedWallpaper} appliedLockWallpaper={appliedLockWallpaper} onApplyWallpaper={onApplyWallpaper ?? undefined} onNotify={onNotify ?? undefined} translucent={translucent} onTranslucent={onTranslucent ?? undefined} />;
+  if (id === "wallpaper-engine") return <WallEngineApp appliedHome={appliedWallpaper} appliedLock={appliedLockWallpaper} onApplyWallpaper={onApplyWallpaper ?? (() => {})} notify={onNotify ?? undefined} />;
   if (id === "terminal") return <div className="window-surface term-app-surface">          <TerminalSurface installed={wppInstalled} onInstalled={onInstallPicker ?? (() => {})} onFsociety={onFsociety ?? (() => {})} jarvisInstalled={jarvisInstalled} setJarvisInstalled={onJarvisInstall ?? (() => {})} onJarvisInstall={onJarvisInstall ?? (() => {})} toggleApp={undefined} /></div>;
   if (id === "translucenttb") return <div className="window-surface"><div className="surface-kicker">{t("surf.translucent.kicker")}</div><h2 className="surface-title">{t("surf.translucent.title")}</h2><p className="surface-copy">{t("surf.translucent.body")}</p><div className="settings-list"><SettingToggle label={t("surf.translucent.enable")} help={t("surf.translucent.help")} value={translucent} onChange={(value) => onTranslucent?.(value)} /></div></div>;
   if (id === "spicetify") return <iframe className="browser-frame" src={appFallbackSrc("apps/music/web/index.html", "https://raw.githack.com/Patrickmango49/McCrackOS/main/apps/music/web/index.html")} srcDoc={embeddedAppDocument("apps/music/web/index.html", "https://raw.githack.com/Patrickmango49/McCrackOS/main/apps/music/web/")} title="McCrackify" allow="autoplay; clipboard-write; fullscreen; encrypted-media; picture-in-picture" allowFullScreen />;
@@ -6260,6 +6269,7 @@ function MinecraftLauncherSurface() {
             <button className={view === "home" ? "active" : ""} onClick={() => { setView("home"); setPage("play"); }}><House size={22} strokeWidth={1.8} className="mc-nav-icon" />{t("minecraft.home")}</button>
             <button className={view === "eagler" ? "active" : ""} onClick={() => setView("eagler")}><img className="mc-nav-icon" src={MC_STORE_ICON} alt="" /><span className="mc-edition-name"><em>{t("minecraft.brandLine")}</em><b>{t("minecraft.eaglerLine")}</b></span></button>
             <button className={view === "archmc" ? "active" : ""} onClick={() => { setView("archmc"); setPage("play"); }}><img className="mc-nav-icon" src={MC_STORE_ICON} alt="" /><span className="mc-edition-name"><em>{t("minecraft.brandLine")}</em><b>{t("minecraft.archLine")}</b></span></button>
+            {MC_CATALOG_GAMES.map((game) => <button key={game.id} className="mc-catalog-nav" title={game.name} onClick={() => { setCatalogGame(game); setLoading(true); setMode("catalog"); }}><img className="mc-nav-icon" src={game.cover} alt="" /><span className="mc-edition-name"><em>Minecraft</em><b>{game.name}</b></span></button>)}
           </nav>
           <div className="mc-pane">
             {view === "home" ? <div className="mc-pane-home">
@@ -6766,11 +6776,7 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
               ))}
             </div>
           </section>
-          <section className="win-settings-card settings-wall-engine-card">
-            <div className="setting-group"><Image size={13} /> Wallpaper Engine</div>
-            <p className="win-settings-sub">Browse animated scenes, manage your installed wallpapers, and apply a background to your desktop or lock screen.</p>
-            <WallEngineApp appliedHome={appliedWallpaper} appliedLock={appliedLockWallpaper} onApplyWallpaper={onApplyWallpaper ?? (() => {})} notify={onNotify ?? undefined} embedded />
-          </section>
+          
         </>;
       case "account":
         return <>
@@ -8200,14 +8206,10 @@ const WE_CARD_GRADS: Record<string, string> = {
 };
 
 function WeCard({ entry, applied, onOpen, installed, onDownload, onApply, onUninstall }: { entry: WallEngineEntry; applied: boolean; onOpen: () => void; installed: boolean; onDownload?: () => void; onApply?: () => void; onUninstall?: () => void }) {
-  const [hover, setHover] = useState(false);
-  const showVideo = Boolean(entry.video) && !PERF.low && hover;
-  return <div className="we-card" onClick={onOpen} role="button" tabIndex={0} onKeyDown={(event) => { if (event.key === "Enter") onOpen(); }} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} data-testid={`we-card-${entry.id}`}>
-    <div className={`we-card-thumb ${applied ? "applied" : ""}`}>{showVideo
+  return <div className="we-card" onClick={onOpen} role="button" tabIndex={0} onKeyDown={(event) => { if (event.key === "Enter") onOpen(); }} data-testid={`we-card-${entry.id}`}>
+    <div className={`we-card-thumb ${applied ? "applied" : ""}`}>{entry.video
       ? <video src={pvSrc(entry.video, entry.videoLow)} muted loop playsInline preload="metadata" autoPlay />
-      : entry.video
-        ? <div className="we-card-thumb placeholder" style={{ background: WE_CARD_GRADS[entry.category] ?? WE_CARD_GRADS.Dark }}><span>{CATEGORY_ICONS[entry.category] ?? "·"}</span></div>
-        : <img src={entry.image} alt={entry.name} />}{applied ? <span className="we-applied-badge">{t("we.inUse")}</span> : null}</div>
+      : <img src={entry.image} alt={entry.name} />}{applied ? <span className="we-applied-badge">{t("we.inUse")}</span> : null}</div>
     <div className="we-card-info"><strong>{entry.name}</strong><span>{entry.category} · {entry.resolution}</span><span className="we-card-author"><BadgeCheck size={11} /> {WE_AUTHOR.name}</span></div>
     <div className="we-card-actions">{installed
       ? <><button className="we-btn mini" onClick={(event) => { event.stopPropagation(); onApply?.(); }}>{applied ? t("we.inUse") : t("we.apply")}</button>{onUninstall ? <button className="we-btn mini danger" onClick={(event) => { event.stopPropagation(); onUninstall(); }}>{t("we.uninstall")}</button> : null}</>
