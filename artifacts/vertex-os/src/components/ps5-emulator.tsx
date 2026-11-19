@@ -892,7 +892,7 @@ export function Ps5EmulatorSurface({ surfaces }: { surfaces?: Ps5EmbeddedSurface
             <div className="game-exit-dock">
               <div className="game-dock-zone game-home-zone">
                 <button type="button" className="ps-home-button" onClick={() => { sfx("back"); setMediaApp(null); }} aria-label="Go to console home">
-                  <span className="game-dock-icon ps-home-mark">VS</span>
+                  <img className="game-dock-icon ps-home-mark" src={`${import.meta.env.BASE_URL}assets/favicon.png`} alt="McCrack" />
                   <span style={{ fontSize: 12 }}>Home</span>
                 </button>
               </div>
