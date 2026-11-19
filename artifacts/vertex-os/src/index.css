@@ -7924,6 +7924,30 @@ html[data-theme="light"] .app-error-state button { color: #14313a; background: r
   .mc-nav .mc-catalog-nav { min-width: 118px; }
 }
 
+/* Keep the dock reveal control above maximized/fullscreen app windows. */
+.os-root .dock-peek-toggle {
+  position: fixed !important;
+  z-index: 100002 !important;
+  display: flex;
+  pointer-events: auto !important;
+  opacity: .9;
+  visibility: visible;
+  isolation: isolate;
+}
+.os-root .dock-peek-toggle:hover,
+.os-root .dock-peek-toggle:focus-visible,
+.os-root .dock-peek-toggle.is-open {
+  opacity: 1;
+  z-index: 100003 !important;
+}
+.os-root .dock.dock--manual-open {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  filter: none !important;
+  visibility: visible !important;
+  z-index: 100001 !important;
+}
+
 /* The standalone compiled desktop uses :has() to hide/show the dock around open windows. */
 .os-root:has(.app-window:not(.minimized):not(.closing)) .dock:not(.dock--manual-open) {
   opacity: 0 !important;
