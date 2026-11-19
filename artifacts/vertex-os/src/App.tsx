@@ -6266,6 +6266,8 @@ function MinecraftLauncherSurface() {
             <button className={view === "home" ? "active" : ""} onClick={() => { setView("home"); setPage("play"); }}><House size={22} strokeWidth={1.8} className="mc-nav-icon" />{t("minecraft.home")}</button>
             <button className={view === "eagler" ? "active" : ""} onClick={() => setView("eagler")}><img className="mc-nav-icon" src={MC_STORE_ICON} alt="" /><span className="mc-edition-name"><em>{t("minecraft.brandLine")}</em><b>{t("minecraft.eaglerLine")}</b></span></button>
             <button className={view === "archmc" ? "active" : ""} onClick={() => { setView("archmc"); setPage("play"); }}><img className="mc-nav-icon" src={MC_STORE_ICON} alt="" /><span className="mc-edition-name"><em>{t("minecraft.brandLine")}</em><b>{t("minecraft.archLine")}</b></span></button>
+            <button className="mc-catalog-nav" onClick={() => { setLoading(true); setMode("eagler112"); }}><img className="mc-nav-icon" src={MC_STORE_ICON} alt="" /><span className="mc-edition-name"><em>Minecraft</em><b>1.12.2 HD Sounds</b></span></button>
+            <button className="mc-catalog-nav" onClick={() => { setLoading(true); setMode("eagler152"); }}><img className="mc-nav-icon" src={MC_STORE_ICON} alt="" /><span className="mc-edition-name"><em>Minecraft</em><b>Release 1.5.2</b></span></button>
             {MC_CATALOG_GAMES.map((game) => <button key={game.id} className="mc-catalog-nav" title={game.name} onClick={() => { setCatalogGame(game); setLoading(true); setMode("catalog"); }}><img className="mc-nav-icon" src={game.cover} alt="" /><span className="mc-edition-name"><em>Minecraft</em><b>{game.name}</b></span></button>)}
           </nav>
           <div className="mc-pane">
