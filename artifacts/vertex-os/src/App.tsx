@@ -172,6 +172,21 @@ const DROP_GRID_COLS = 8;
 const DROP_CELL_W = 94;
 const DROP_CELL_H = 104;
 
+// Keep desktop shortcuts aligned to a predictable grid while allowing free placement.
+function snapDesktopPoint(x: number, y: number, maxX: number, maxY: number) {
+  const mobile = typeof window !== "undefined" && window.innerWidth <= 800;
+  const stepX = mobile ? 104 : 116;
+  const stepY = mobile ? 112 : 124;
+  const originX = 12;
+  const originY = 12;
+  const snappedX = originX + Math.round((Math.max(0, x) - originX) / stepX) * stepX;
+  const snappedY = originY + Math.round((Math.max(0, y) - originY) / stepY) * stepY;
+  return {
+    x: Math.max(0, Math.min(Math.max(0, maxX), snappedX)),
+    y: Math.max(0, Math.min(Math.max(0, maxY), snappedY)),
+  };
+}
+
 function defaultWindowRect(index: number): WindowRect {
   const vw = typeof window !== "undefined" ? window.innerWidth : 1280;
   const vh = typeof window !== "undefined" ? window.innerHeight : 800;
@@ -2691,7 +2706,18 @@ onSessionClose: (peerCode) => {
               onPointerUp={(event) => {
                 const drag = desktopDragRef.current;
                 if (drag?.id === key && drag.pointerId === event.pointerId) {
-                  if (drag.moved) suppressDesktopClickRef.current = key;
+                  if (drag.moved) {
+                    suppressDesktopClickRef.current = key;
+                    const rect = desktopGridRef.current?.getBoundingClientRect();
+                    if (rect) {
+                      const finalX = drag.startLeft + event.clientX - drag.startClientX;
+                      const finalY = drag.startTop + event.clientY - drag.startClientY;
+                      const snapped = snapDesktopPoint(finalX, finalY,
+                        Math.max(0, rect.width - event.currentTarget.offsetWidth),
+                        Math.max(0, rect.height - event.currentTarget.offsetHeight));
+                      setDesktopFreePositions((prev) => ({ ...prev, [key]: snapped }));
+                    }
+                  }
                   desktopDragRef.current = null;
                 }
               }}
@@ -2741,7 +2767,18 @@ onSessionClose: (peerCode) => {
               onPointerUp={(event) => {
                 const drag = desktopDragRef.current;
                 if (drag?.id === key && drag.pointerId === event.pointerId) {
-                  if (drag.moved) suppressDesktopClickRef.current = key;
+                  if (drag.moved) {
+                    suppressDesktopClickRef.current = key;
+                    const rect = desktopGridRef.current?.getBoundingClientRect();
+                    if (rect) {
+                      const finalX = drag.startLeft + event.clientX - drag.startClientX;
+                      const finalY = drag.startTop + event.clientY - drag.startClientY;
+                      const snapped = snapDesktopPoint(finalX, finalY,
+                        Math.max(0, rect.width - event.currentTarget.offsetWidth),
+                        Math.max(0, rect.height - event.currentTarget.offsetHeight));
+                      setDesktopFreePositions((prev) => ({ ...prev, [key]: snapped }));
+                    }
+                  }
                   desktopDragRef.current = null;
                 }
               }}
@@ -6134,7 +6171,26 @@ const MC_LOGO_SVG = "https://www.minecraft.net/content/dam/minecraftnet/games/mi
 const MC_EAGTEK_ART = "https://store-images.s-microsoft.com/image/apps.29741.13774133678237924.b2fb64a6-d8b2-4e05-a188-b727d48563ed.f5bc1582-f67e-4ef4-8d8a-7aac86b324f9?w=562";
 
 interface McInstall { id: number; name: string; version: string; variant: "ultimate-wasm" | "hd-sounds" | "release"; }
-const MC_CATALOG_GAMES: readonly Ps5Game[] = PS5_GAMES.filter((game) => /minecraft/i.test(game.name));
+function minecraftVersionParts(name: string): number[] | null {
+  const match = name.match(/(?:minecraft\s*)?[v ]?(\d+(?:\.\d+){1,3})/i);
+  return match ? match[1].split(".").map((part) => Number(part) || 0) : null;
+}
+const MC_CATALOG_GAMES: readonly Ps5Game[] = PS5_GAMES
+  .filter((game) => /minecraft/i.test(game.name))
+  .slice()
+  .sort((a, b) => {
+    const av = minecraftVersionParts(a.name);
+    const bv = minecraftVersionParts(b.name);
+    if (av && bv) {
+      for (let i = 0; i < Math.max(av.length, bv.length); i += 1) {
+        const delta = (bv[i] ?? 0) - (av[i] ?? 0);
+        if (delta) return delta;
+      }
+    }
+    if (av) return -1;
+    if (bv) return 1;
+    return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" });
+  });
 
 const MC_ARCH_REALM: McRealm = { name: "ArchMC", addr: "wss://mc.arch.lol/", verified: true, online: true, players: 731, votes: 0, tags: ["Multiplayer", "EaglercraftX"] };
 
