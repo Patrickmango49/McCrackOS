@@ -2503,6 +2503,10 @@ onSessionClose: (peerCode) => {
                       <label><span>McCrack username</span><input required value={profileUsername} onChange={(event) => { setProfileUsername(event.target.value.replace(/[^a-zA-Z0-9_-]/g, "")); setProfileErr(""); }} maxLength={24} placeholder="yourusername" autoComplete="username" /></label>
                       <label><span>Password · 8 characters minimum</span><input required minLength={8} type="password" value={profileCloudPass} onChange={(event) => { setProfileCloudPass(event.target.value); setProfileErr(""); }} placeholder="Create a password" autoComplete="new-password" /></label>
                       <label><span>Confirm password</span><input required minLength={8} type="password" value={profileCloudPass2} onChange={(event) => { setProfileCloudPass2(event.target.value); setProfileErr(""); }} placeholder="Re-enter your password" autoComplete="new-password" /></label>
+                      <div className="profile-cloud-login">
+                        <span>Already have a McCrack account?</span>
+                        <button type="button" className="signin-back profile-login-cta" onClick={() => { setProfileErr(""); setLoginErr(""); setLoginName(""); setLoginPass(""); setProfileLocalMode(false); setSetupStep("account"); setPendingSetupAccount(null); setPhase("picker"); }}>I already have an account · Log in</button>
+                      </div>
                     </div>
                   )}
                   {profileErr ? <span className="lock-error">{profileErr}</span> : null}
@@ -2555,20 +2559,13 @@ onSessionClose: (peerCode) => {
               </section>
             )}
           </div>
-          <div className="profile-setup-footer profile-wizard-footer">
-            {setupStep === "account" ? (
-              <>
-                <span>Already have a McCrack account? Sign in to continue with your existing profile.</span>
-                <button type="button" className="signin-back profile-login-cta" onClick={() => { setProfileErr(""); setLoginErr(""); setLoginName(""); setLoginPass(""); setProfileLocalMode(false); setSetupStep("account"); setPendingSetupAccount(null); setPhase("picker"); }}>I already have an account · Log in</button>
-              </>
-            ) : (
-              <>
-                <button type="button" className="signin-back" onClick={() => setSetupStep("account")}>Back</button>
-                <button type="button" className="profile-skip" onClick={() => finishSetup(true)}>Use defaults</button>
-                <button type="button" className="profile-create" onClick={() => finishSetup(false)}>Finish setup <ArrowRight size={15} /></button>
-              </>
-            )}
-          </div>
+          {setupStep !== "account" && (
+            <div className="profile-setup-footer profile-wizard-footer">
+              <button type="button" className="signin-back" onClick={() => setSetupStep("account")}>Back</button>
+              <button type="button" className="profile-skip" onClick={() => finishSetup(true)}>Use defaults</button>
+              <button type="button" className="profile-create" onClick={() => finishSetup(false)}>Finish setup <ArrowRight size={15} /></button>
+            </div>
+          )}
         </div>
       </section>
 
