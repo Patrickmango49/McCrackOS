@@ -403,7 +403,7 @@ const baseApps: AppDef[] = [
   { id: "vertube", title: "McCrackTube", subtitle: "Video platform", icon: PlaySquare, iconImg: YOUTUBE_APP_ICON, pinned: true },
   { id: "movies", title: "McCrackFlix", subtitle: "Movies & TV discovery", icon: Film, iconImg: NETFLIX_APP_ICON, pinned: true },
   { id: "settings", title: "Config", subtitle: t("appSub.settings"), icon: Settings2, iconImg: asset("images/config-icon.png"), pinned: true },
-  { id: "wallpaper-engine", title: "Wallpaper Engine", subtitle: "Live wallpapers & workshop", icon: Image, iconImg: asset("images/wallpaper-engine.gif") },
+  { id: "wallpaper-engine", title: "Wallpaper Engine", subtitle: "Live wallpapers & workshop", icon: Image },
   { id: "appmaker", title: "McCrack", subtitle: "build & publish your own", icon: Code2, iconImg: asset("images/v-studios-logo.svg"), squircle: true },
   { id: "webapps", title: "Proxy Apps", subtitle: "create standalone proxied apps", icon: Globe, iconImg: asset("images/links.svg") },
   { id: "spicetify", title: "McCrackify", subtitle: "Music player", icon: Music2, iconImg: MCC_CRACKIFY_ICON, pinned: true },
