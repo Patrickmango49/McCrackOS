@@ -96,7 +96,6 @@ const PASSWORD_KEY = "vertex-password";
 const PROFILE_KEY = "vertex-profile";
 const ACCOUNTS_KEY = "vertex-accounts";
 const VERTEX_VERSION = "4.1";
-const HALLOWEEN_ACTIVE = false;
 const SEASON_WALLPAPER: WallpaperId = "we-black-silk-waves";
 
 type VertexAccount = { id: string; name: string; createdAt: number; pass?: string; avatar?: string; email?: string; username?: string; banner?: string; bio?: string; authUserId?: string };
@@ -2594,9 +2593,7 @@ onSessionClose: (peerCode) => {
       <section className={`lock-screen ${phase === "lock" ? "active" : ""}`} onClick={openSignIn} aria-label="McCrackOS lock screen">
          {activeLockWallpaper.id === "vertex-studio"
           ? <VertexStudioWallpaper className="lock-wallpaper-scene" />
-          : activeLockWallpaper.id === "halloween"
-            ? <HalloweenWallpaper className="lock-wallpaper-scene" />
-            : activeLockWallpaper.image
+          : activeLockWallpaper.image
             ? <img className="lock-wallpaper" src={activeLockWallpaper.image} alt={`${activeLockWallpaper.name} lock wallpaper`} />
             : phase === "lock"
               ? <video key={activeLockWallpaper.id} ref={lockVideoRef} className="lock-wallpaper-video" src={bgSrc(activeLockWallpaper.video, activeLockWallpaper.videoLow)} preload="metadata" autoPlay muted loop playsInline aria-label={`${activeLockWallpaper.name} lock wallpaper`} />
