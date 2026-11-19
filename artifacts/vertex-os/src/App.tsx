@@ -1,5 +1,6 @@
 import { Component, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ReactNode, MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent, WheelEvent as ReactWheelEvent } from "react";
+import { createPortal } from "react-dom";
 import type { LucideIcon } from "lucide-react";
 import {
   ArrowLeft, ArrowRight, BadgeCheck, Globe, CalendarClock, Check, ChevronDown, ChevronRight, ChevronUp, CircleHelp,
@@ -2669,6 +2670,21 @@ onSessionClose: (peerCode) => {
         
 
 
+        <button
+          type="button"
+          className="desktop-icons-toggle"
+          onClick={() => setShowDesktopIcons((visible) => {
+            const next = !visible;
+            storage.write("vertex-show-icons", next);
+            return next;
+          })}
+          aria-pressed={showDesktopIcons}
+          aria-label={showDesktopIcons ? "Hide desktop icons" : "Show desktop icons"}
+          title={showDesktopIcons ? "Hide desktop icons" : "Show desktop icons"}
+        >
+          {showDesktopIcons ? <EyeOff size={15} /> : <Eye size={15} />}
+          <span>{showDesktopIcons ? "Hide icons" : "Show icons"}</span>
+        </button>
         <div className={`desktop-grid ${showDesktopIcons ? "" : "hidden"}`} ref={desktopGridRef} aria-label="Desktop applications" onDragOver={(event) => { event.preventDefault(); }} onDrop={(event) => {
           const id = event.dataTransfer.getData("text/plain");
           if (id && apps.some((app) => app.id === id)) addToDesktop(id as AppId);
@@ -8397,7 +8413,7 @@ function AppMakerSurface() {
 
 function WeApplyModal({ entry, onClose, onConfirm }: { entry: WallEngineEntry; onClose: () => void; onConfirm: (target: ApplyTarget) => void }) {
   const [target, setTarget] = useState<ApplyTarget>("both");
-  return <div className="we-apply" data-testid="we-apply-modal" onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+  return createPortal(<div className="we-apply" data-testid="we-apply-modal" onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}>
     <div className="we-apply-card">
       <button className="we-showcase-close" onClick={onClose} aria-label="Close"><X size={16} /></button>
       <div className="we-apply-preview">{entry.video ? <video src={pvSrc(entry.video, entry.videoLow)} autoPlay muted loop playsInline preload="metadata" /> : <img src={entry.image} alt={entry.name} />}</div>
@@ -8411,7 +8427,7 @@ function WeApplyModal({ entry, onClose, onConfirm }: { entry: WallEngineEntry; o
         </div>
       </div>
     </div>
-  </div>;
+  </div>, document.body);
 }
 
 function WallEngineApp({ appliedHome, appliedLock, onApplyWallpaper, notify, embedded = false }: { appliedHome: WallpaperId; appliedLock: WallpaperId; onApplyWallpaper: (id: WallpaperId, target: "both" | "home" | "lock") => void; notify?: (title: string, copy: string) => void; embedded?: boolean }) {
