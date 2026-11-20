@@ -1,6 +1,12 @@
 name: Deploy McCrackOS to Neocities
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "artifacts/vertex-os/**"
+      - "apps/**"
+      - ".github/workflows/deploy-neocities.yml"
   workflow_run:
     workflows:
       - McCrackOS browser build check
@@ -18,7 +24,7 @@ permissions:
 jobs:
   deploy:
     # Only deploy after the browser build succeeds. Manual runs are also allowed.
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
 
     steps:
