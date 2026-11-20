@@ -6,7 +6,7 @@ import { ErrorBoundary } from '@/components/error-boundary';
 
 import './index.css';
 
-// Register the OS service worker on hosted origins. Local one-file exports intentionally
+// Register the PWA and Scramjet service worker on hosted origins. Local one-file exports intentionally
 // skip service workers because browsers do not allow them from file:// URLs.
 if (typeof window !== 'undefined' && 'serviceWorker' in navigator && location.protocol !== 'file:') {
   window.addEventListener('load', () => {
