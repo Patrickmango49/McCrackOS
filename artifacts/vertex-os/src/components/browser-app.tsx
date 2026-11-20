@@ -519,7 +519,7 @@ function StandaloneFileBrowser() {
   return (
     <iframe
       className="browser-file-frame"
-      src="https://mccrackos12.neocities.org/?mccrack-browser=1"
+      src="https://patrickmango49.github.io/McCrackOS/?mccrack-browser=1"
       title="McCrack Browser"
       allow="autoplay; clipboard-read; clipboard-write; fullscreen; camera; microphone; encrypted-media; picture-in-picture"
       allowFullScreen
