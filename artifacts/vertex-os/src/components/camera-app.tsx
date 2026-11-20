@@ -93,7 +93,7 @@ export function CameraSurface() {
 
   const saveCapture = (blob: Blob, kind: Capture["kind"]) => {
     const url = URL.createObjectURL(blob);
-    const extension = kind === "photo" ? "jpg" : "webm";
+    const extension = kind === "photo" ? "jpg" : (blob.type.includes("mp4") ? "mp4" : "webm");
     setCaptures((items) => [{ id: crypto.randomUUID?.() ?? String(Date.now()), url, kind, name: `McCrack-${kind}-${new Date().toISOString().replace(/[:.]/g, "-")}.${extension}`, createdAt: Date.now() }, ...items]);
     setGalleryOpen(true);
   };
@@ -112,7 +112,11 @@ export function CameraSurface() {
       context.scale(-1, 1);
     }
     context.filter = FILTERS[filter].css;
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const sourceWidth = video.videoWidth || canvas.width;
+    const sourceHeight = video.videoHeight || canvas.height;
+    const cropWidth = sourceWidth / Math.max(1, zoom);
+    const cropHeight = sourceHeight / Math.max(1, zoom);
+    context.drawImage(video, (sourceWidth - cropWidth) / 2, (sourceHeight - cropHeight) / 2, cropWidth, cropHeight, 0, 0, canvas.width, canvas.height);
     canvas.toBlob((blob) => { if (blob) saveCapture(blob, "photo"); }, "image/jpeg", quality === "high" ? .94 : .82);
   };
 
@@ -127,7 +131,7 @@ export function CameraSurface() {
       return;
     }
     try {
-      const mime = ["video/webm;codecs=vp9", "video/webm;codecs=vp8", "video/webm"].find((type) => MediaRecorder.isTypeSupported(type));
+      const mime = ["video/webm;codecs=vp9", "video/webm;codecs=vp8", "video/webm", "video/mp4"].find((type) => MediaRecorder.isTypeSupported(type));
       const recorder = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
       chunksRef.current = [];
       recorder.ondataavailable = (event) => { if (event.data.size) chunksRef.current.push(event.data); };
@@ -203,6 +207,7 @@ export function CameraSurface() {
         <div className="camera-top-actions">
           <button className="camera-icon-btn" title="Open gallery" onClick={() => setGalleryOpen(true)}><ImageIcon size={17}/></button>
           <button className="camera-icon-btn" title="Camera settings" onClick={() => setSettingsOpen(true)}><Settings2 size={17}/></button>
+          <button className="camera-icon-btn" title={streaming ? "Stop camera" : "Start camera"} onClick={() => streaming ? stopCamera() : void startCamera()}>{streaming ? <CameraOff size={17}/> : <Camera size={17}/>}</button>
           <button className="camera-icon-btn" title="Restart camera" onClick={() => void startCamera()}><RotateCcw size={17}/></button>
         </div>
       </div>
@@ -233,7 +238,7 @@ export function CameraSurface() {
         <div className="camera-shutter-row">
           <button className="camera-side-btn" title="Gallery" onClick={() => setGalleryOpen(true)}><ImageIcon size={18}/></button>
           <button className="camera-shutter" title="Take photo" onClick={() => void takePhoto()} disabled={!streaming}><Camera size={27} color="#111827"/></button>
-          <button className={"camera-record"+(recording?" active":"")} title={recording?"Stop recording":"Record video"} onClick={toggleRecording}><span style={{width:recording?17:20,height:recording?17:20,borderRadius:recording?4:"50%",background:"white"}}/></button>
+          <button className={"camera-record"+(recording?" active":"")} title={recording?"Stop recording":"Record video"} onClick={toggleRecording} disabled={!streaming}><span style={{width:recording?17:20,height:recording?17:20,borderRadius:recording?4:"50%",background:"white"}}/></button>
         </div>
         <div style={{textAlign:"center",fontSize:10,color:"#8996a8",marginTop:12}}>{recording ? "Recording video · "+elapsed+" seconds" : "Tap the shutter for a photo · Red button for video"}</div>
       </div>
