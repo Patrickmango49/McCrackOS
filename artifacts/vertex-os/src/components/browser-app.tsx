@@ -513,76 +513,17 @@ function standaloneProxyUrl(target: string): string {
 }
 
 function StandaloneFileBrowser() {
-  const [input, setInput] = useState("");
-  const [currentUrl, setCurrentUrl] = useState("");
-  const [history, setHistory] = useState<string[]>([]);
-  const [historyIndex, setHistoryIndex] = useState(-1);
-
-  const navigate = useCallback((raw: string, record = true) => {
-    const value = raw.trim();
-    if (!value) return;
-    let target: string;
-    if (/^https?:\/\//i.test(value)) target = value;
-    else if (/^[a-z0-9-]+(\.[a-z0-9-]+)+([/?#]\S*)?$/i.test(value)) target = "https://" + value;
-    else target = "https://search.brave.com/search?q=" + encodeURIComponent(value);
-    setInput(target);
-    setCurrentUrl(target);
-    if (record) {
-      const next = [...history.slice(0, historyIndex + 1), target];
-      setHistory(next);
-      setHistoryIndex(next.length - 1);
-    }
-  }, [history, historyIndex]);
-
-  const back = () => {
-    if (historyIndex <= 0) return;
-    const next = historyIndex - 1;
-    setHistoryIndex(next);
-    setCurrentUrl(history[next]);
-    setInput(history[next]);
-  };
-  const forward = () => {
-    if (historyIndex >= history.length - 1) return;
-    const next = historyIndex + 1;
-    setHistoryIndex(next);
-    setCurrentUrl(history[next]);
-    setInput(history[next]);
-  };
-
+  // file:// pages cannot register a service worker, which Scramjet requires.
+  // Use the hosted browser-only route (not the desktop home page) so the full
+  // browser remains functional in the downloadable one-file OS.
   return (
-    <div className="browser-file-mode">
-      <div className="browser-file-toolbar">
-        <div className="browser-file-brand"><Globe size={18} /> McCrack Browser</div>
-        <div className="browser-file-controls">
-          <button type="button" onClick={back} disabled={historyIndex <= 0} aria-label="Back"><ArrowLeft size={16} /></button>
-          <button type="button" onClick={forward} disabled={historyIndex < 0 || historyIndex >= history.length - 1} aria-label="Forward"><ArrowRight size={16} /></button>
-          <button type="button" onClick={() => { if (currentUrl) setCurrentUrl(currentUrl + (currentUrl.includes("?") ? "&" : "?") + "mcReload=" + Date.now()); }} disabled={!currentUrl} aria-label="Reload"><RotateCcw size={16} /></button>
-        </div>
-        <form className="browser-file-address" onSubmit={(event) => { event.preventDefault(); navigate(input); }}>
-          <input value={input} onChange={(event) => setInput(event.target.value)} placeholder="Search or enter a website address" aria-label="Search or enter a website address" />
-          <button type="submit" disabled={!input.trim()}>Go</button>
-        </form>
-      </div>
-      {currentUrl ? (
-        <iframe key={currentUrl} className="browser-file-frame" src={standaloneProxyUrl(currentUrl)} title="McCrack Browser page" allow="fullscreen; autoplay; clipboard-read; clipboard-write" />
-      ) : (
-        <div className="browser-file-home">
-          <div className="browser-file-orb"><Globe size={34} /></div>
-          <h2>Browse the web</h2>
-          <p>Enter a website or search term above to get started.</p>
-          <div className="browser-file-shortcuts">
-            {[
-              ["Google", "https://www.google.com"],
-              ["YouTube", "https://www.youtube.com"],
-              ["Wikipedia", "https://www.wikipedia.org"],
-            ].map(([name, url]) => (
-              <button type="button" key={name} onClick={() => navigate(url)}>{name}</button>
-            ))}
-          </div>
-          <span className="browser-file-note">Standalone mode uses the McCrack web proxy because local HTML files cannot run the OS service worker.</span>
-        </div>
-      )}
-    </div>
+    <iframe
+      className="browser-file-frame"
+      src="https://mccrackos12.neocities.org/?mccrack-browser=1"
+      title="McCrack Browser"
+      allow="autoplay; clipboard-read; clipboard-write; fullscreen; camera; microphone; encrypted-media; picture-in-picture"
+      allowFullScreen
+    />
   );
 }
 
