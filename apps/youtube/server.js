@@ -46,6 +46,26 @@ function parseDuration(value) {
   return parts.reduce((total, part) => total * 60 + part, 0);
 }
 
+async function searchVideos(yt, query, maxPages = 3) {
+  const collected = [];
+  let page = await yt.search(query);
+
+  for (let index = 0; page && index < maxPages; index += 1) {
+    collected.push(...Array.from(page.videos || []));
+    if (index + 1 >= maxPages || !page.has_continuation) break;
+
+    try {
+      page = await page.getContinuation();
+    } catch (err) {
+      console.warn("SEARCH CONTINUATION ERROR:", err);
+      break;
+    }
+  }
+
+  // Continuation pages can overlap; return each video only once.
+  return [...new Map(collected.filter(video => video && video.id).map(video => [video.id, video])).values()];
+}
+
 function normalizeVideo(video) {
   const durationSeconds =
     parseDuration(video.duration?.seconds) ??
@@ -78,7 +98,7 @@ app.get("/search", async (req, res) => {
     }
 
     const yt = await getYT();
-    const results = await yt.search(query);
+    const results = await searchVideos(yt, query);
 
     const videos = (results.videos || [])
       .filter(v => v && v.id)
@@ -105,7 +125,7 @@ app.get("/shorts", async (req, res) => {
     if (!query) return res.json([]);
 
     const yt = await getYT();
-    const results = await yt.search(query);
+    const results = await searchVideos(yt, query);
     const shorts = (results.videos || [])
       .filter(video => video && video.id)
       .map(normalizeVideo)
