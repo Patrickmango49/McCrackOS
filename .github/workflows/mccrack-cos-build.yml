@@ -82,6 +82,7 @@ jobs:
           cp -a dist/public/controller/. ../../controller/
           cp -a dist/public/utils/. ../../utils/
           cp dist/public/sw.js ../../sw.js
+          cp dist/public/manifest.webmanifest ../../manifest.webmanifest
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
           const livePath = '../../index.html';
