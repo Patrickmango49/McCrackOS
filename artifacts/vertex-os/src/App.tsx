@@ -7011,6 +7011,10 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
             {settings.adblock && <div className="setting-row setting-stack"><div><strong>{t("set.adblockTargetLabel")}</strong><small>{t("set.adblockTargetHelp")}</small></div><input className="setting-input setting-url" type="url" value={settings.adblockUrl} placeholder="https://hideout-now.lovable.app/" onChange={(event) => updateSetting("adblockUrl", event.target.value)} aria-label={t("set.adblockTargetLabel")} /></div>}
           </section>
           <section className="win-settings-card">
+            <div className="setting-group"><Download size={13} /> Install McCrackOS</div>
+            <div className="setting-action-row"><button className="outline-button" onClick={() => { window.dispatchEvent(new Event("mccrack-install-pwa")); onNotify?.("Install McCrackOS", "If your browser supports app installation, confirm its install prompt. On iPhone or iPad, use Share → Add to Home Screen."); }}>Install / Add to Home Screen</button><span>Install McCrackOS as an app for a standalone window and a home-screen icon. On iOS, use Safari's Share menu.</span></div>
+          </section>
+          <section className="win-settings-card">
             <div className="setting-group"><FileDown size={13} /> Portable HTML copy</div>
             <div className="setting-action-row"><button className="outline-button" onClick={() => void downloadOfflineHtml()} disabled={offlineBusy}>{offlineBusy ? "Working…" : "Download as HTML file"}</button><span>Saves McCrackOS into one HTML file you can open directly. It uses the internet for online games, images, streaming, APIs and cloud services.</span></div>
             {offlineNote && <p className="term-error">{offlineNote}</p>}
