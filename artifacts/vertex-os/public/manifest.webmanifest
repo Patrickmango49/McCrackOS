@@ -15,16 +15,16 @@
   ],
   "icons": [
     {
-      "src": "https://raw.githubusercontent.com/Patrickmango49/McCrack/refs/heads/main/assets/icons/favicon.png",
-      "sizes": "any",
+      "src": "./images/config-icon.png",
+      "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://raw.githubusercontent.com/Patrickmango49/McCrack/refs/heads/main/assets/icons/favicon.png",
-      "sizes": "any",
+      "src": "./images/config-icon.png",
+      "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     }
   ]
 }
