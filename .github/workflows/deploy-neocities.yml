@@ -7,11 +7,6 @@ on:
       - "artifacts/vertex-os/**"
       - "apps/**"
       - ".github/workflows/deploy-neocities.yml"
-  workflow_run:
-    workflows:
-      - McCrackOS browser build check
-    types:
-      - completed
   workflow_dispatch:
 
 concurrency:
@@ -23,8 +18,8 @@ permissions:
 
 jobs:
   deploy:
-    # Only deploy after the browser build succeeds. Manual runs are also allowed.
-    if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    # Deploy source pushes and manual requests. This workflow builds both hosted and single-file exports itself.
+    if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
 
     steps:
