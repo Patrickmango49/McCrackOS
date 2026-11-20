@@ -6760,7 +6760,7 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
         // Fetch probes all failed (blocked network / CORS). Fall back to the browser's own download
         // of the same-origin copy, which is not subject to fetch/CORS rules.
         const a = document.createElement("a");
-        a.href = new URL("single/index.html", location.origin + bases[0]).href;
+        a.href = new URL(`single/index.html${bust}`, location.origin + bases[0]).href;
         a.download = "McCrackOS.html";
         document.body.appendChild(a);
         a.click();
