@@ -17,6 +17,20 @@ if (typeof window !== 'undefined' && 'serviceWorker' in navigator && location.pr
   }, { once: true });
 }
 
+type McCrackInstallPrompt = Event & { prompt?: () => Promise<void>; userChoice?: Promise<{ outcome: string }> };
+let pendingInstallPrompt: McCrackInstallPrompt | null = null;
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeinstallprompt', (event) => {
+    event.preventDefault();
+    pendingInstallPrompt = event as McCrackInstallPrompt;
+  });
+  window.addEventListener('mccrack-install-pwa', async () => {
+    if (!pendingInstallPrompt?.prompt) return;
+    await pendingInstallPrompt.prompt();
+    pendingInstallPrompt = null;
+  });
+}
+
 // The standalone HTML file opens this lightweight hosted route for its browser.
 // It keeps the full Scramjet browser UI without nesting another copy of the desktop OS.
 const browserOnly = new URLSearchParams(location.search).get('mccrack-browser') === '1';
