@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import { Camera, CameraOff, Circle, Download, FlipHorizontal, Grid3X3, Image as ImageIcon, RotateCcw, Settings2, Timer, Video, X, Zap } from "lucide-react";
 
 type Capture = { id: string; url: string; kind: "photo" | "video"; name: string; createdAt: number };
@@ -45,7 +46,7 @@ export function CameraSurface() {
     setStreaming(false);
   }, []);
 
-  const startCamera = useCallback(async (nextFacing = facing) => {
+  const startCamera = useCallback(async (nextFacing = facing, nextQuality = quality) => {
     setError("");
     stopCamera();
     if (!navigator.mediaDevices?.getUserMedia) {
@@ -57,8 +58,8 @@ export function CameraSurface() {
         audio: false,
         video: {
           facingMode: { ideal: nextFacing },
-          width: { ideal: quality === "high" ? 1920 : 1280 },
-          height: { ideal: quality === "high" ? 1080 : 720 },
+          width: { ideal: nextQuality === "high" ? 1920 : 1280 },
+          height: { ideal: nextQuality === "high" ? 1080 : 720 },
         },
       });
       streamRef.current = stream;
@@ -157,12 +158,25 @@ export function CameraSurface() {
     } catch { /* digital zoom remains available through the preview */ }
   };
 
+  const toggleFlash = async () => {
+    const next = !flash;
+    setFlash(next);
+    const track = streamRef.current?.getVideoTracks()[0];
+    try {
+      const capabilities = track?.getCapabilities?.() as MediaTrackCapabilities & { torch?: boolean };
+      if (track && capabilities?.torch) await track.applyConstraints({ advanced: [{ torch: next } as MediaTrackConstraintSet] });
+      else setError("This camera does not support a hardware flash. The preview controls still work normally.");
+    } catch { setError("The camera could not enable its flash on this device."); }
+  };
+
   const downloadCapture = (item: Capture) => {
     const link = document.createElement("a");
     link.href = item.url;
     link.download = item.name;
     link.click();
   };
+
+  const stageStyle = { "--camera-zoom": String(zoom), "--camera-mirror": mirror ? "-1" : "1", "--camera-filter": FILTERS[filter].css } as CSSProperties;
 
   return (
     <div className="camera-app">
@@ -192,7 +206,7 @@ export function CameraSurface() {
           <button className="camera-icon-btn" title="Restart camera" onClick={() => void startCamera()}><RotateCcw size={17}/></button>
         </div>
       </div>
-      <div className="camera-stage" style={{ ["--camera-zoom" as string]: String(zoom), ["--camera-mirror" as string]: mirror ? "-1" : "1", ["--camera-filter" as string]: FILTERS[filter].css }}>
+      <div className="camera-stage" style={stageStyle}>
         <video ref={videoRef} playsInline muted autoPlay />
         <canvas ref={canvasRef} hidden />
         {grid && streaming ? <div className="camera-grid"/> : null}
@@ -201,7 +215,7 @@ export function CameraSurface() {
         {error ? <div className="camera-error">{error}<button className="camera-tool" style={{marginLeft:10}} onClick={() => void startCamera()}>Retry</button></div> : null}
         {galleryOpen ? <div className="camera-panel"><div className="camera-panel-head"><span>Recent captures · {captures.length}</span><button className="camera-icon-btn" onClick={() => setGalleryOpen(false)}><X size={16}/></button></div>{captures.length ? <div className="camera-gallery-grid">{captures.map((item) => <div className="camera-gallery-item" key={item.id}>{item.kind === "photo" ? <img src={item.url} alt={item.name}/> : <video src={item.url} controls/>}<button onClick={() => downloadCapture(item)}><Download size={13} style={{verticalAlign:"middle"}}/> Save {item.kind}</button></div>)}</div> : <p style={{fontSize:12,color:"#aab6c5"}}>Your photos and videos will appear here. Captures stay in this session until you close the Camera app.</p>}</div> : null}
         {settingsOpen ? <div className="camera-panel"><div className="camera-panel-head"><span>Camera settings</span><button className="camera-icon-btn" onClick={() => setSettingsOpen(false)}><X size={16}/></button></div>
-          <div className="camera-setting-row"><span>Capture quality</span><select value={quality} onChange={(e) => {setQuality(e.target.value as "high"|"medium");void startCamera();}}><option value="high">High · 1080p</option><option value="medium">Balanced · 720p</option></select></div>
+          <div className="camera-setting-row"><span>Capture quality</span><select value={quality} onChange={(e) => {const next=e.target.value as "high"|"medium";setQuality(next);void startCamera(facing,next);}}><option value="high">High · 1080p</option><option value="medium">Balanced · 720p</option></select></div>
           <div className="camera-setting-row"><span>Timer</span><select value={timer} onChange={(e) => setTimer(Number(e.target.value))}><option value={0}>Off</option><option value={3}>3 seconds</option><option value={5}>5 seconds</option><option value={10}>10 seconds</option></select></div>
           <div className="camera-setting-row"><span>Digital zoom · {zoom.toFixed(1)}×</span><input aria-label="Zoom" type="range" min="1" max="3" step=".1" value={zoom} onChange={(e) => void setCameraZoom(Number(e.target.value))}/></div>
           <div className="camera-setting-row"><span>Mirror preview</span><input type="checkbox" checked={mirror} onChange={(e) => setMirror(e.target.checked)}/></div>
@@ -212,7 +226,7 @@ export function CameraSurface() {
         <div className="camera-filters">{FILTERS.map((item, index) => <button className={"camera-filter"+(filter===index?" active":"")} key={item.name} onClick={() => setFilter(index)}>{item.name}</button>)}</div>
         <div className="camera-tools">
           <button className={"camera-tool"+(grid?" active":"")} onClick={() => setGrid((v)=>!v)}><Grid3X3 size={14}/> Grid</button>
-          <button className={"camera-tool"+(flash?" active":"")} onClick={() => setFlash((v)=>!v)}><Zap size={14}/> Flash {flash?"On":"Off"}</button>
+          <button className={"camera-tool"+(flash?" active":"")} onClick={() => void toggleFlash()}><Zap size={14}/> Flash {flash?"On":"Off"}</button>
           <button className="camera-tool" onClick={() => {const next=facing==="user"?"environment":"user";setFacing(next);void startCamera(next);}}><FlipHorizontal size={14}/> Flip camera</button>
           <button className="camera-tool" onClick={() => setSettingsOpen(true)}><Timer size={14}/> Timer {timer?timer+"s":"Off"}</button>
         </div>
