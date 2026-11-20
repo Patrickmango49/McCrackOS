@@ -9,7 +9,7 @@ import {
   Palette, Pin, PinOff, Play, Power, Puzzle, Radio, Rocket, RotateCcw,
   Settings2, ShieldBan, SlidersHorizontal, Search, Sparkles, Terminal, Volume2, VolumeX, Waves, X, Pause, Maximize, Maximize2, Minimize2, House, Plus, Package, EyeOff, ExternalLink, Contrast, Calculator, ImagePlus,
   Shuffle, Repeat, Clock, ListVideo, Trash2, Link2, User, Languages, Info, Monitor, Paintbrush, SunMoon, Cloud, FileDown, Clapperboard,
-  Bot, PlaySquare, Film,
+  Bot, PlaySquare, Film, Camera as CameraIcon,
 } from "lucide-react";
 
 
@@ -27,6 +27,7 @@ import { LANG, LANGS, t, tf, tp, readLang, saveLang, localeOf, type Lang } from 
 import { WallpaperPicker, type PickerWallpaper, loadCustomWallpapers, persistCustomWallpaper, removeCustomWallpaper, readCustomWallpapersLocal } from "./components/wallpaper-picker";
 import { SystemTray } from "./components/system-tray";
 import { MacMenuBar } from "./components/mac-menubar";
+import { CameraSurface } from "./components/camera-app";
 
 import { LinksApp } from "./components/links-app";
 import { assetUrl } from "./asset-map";
@@ -80,7 +81,7 @@ const YOUTUBE_APP_ICON = "https://cdn.simpleicons.org/youtube/FF0033";
 const NETFLIX_APP_ICON = "https://cdn.simpleicons.org/netflix/E50914";
 const isGitHubPages = import.meta.env.BASE_URL.startsWith("/vertexosweb");
 type WallpaperId = "vertex-studio" | "halloween" | "macos-default" | "macos-lock" | "singularity" | "snake-skeleton" | "snow-fox" | "cine55" | "gojo" | "rainy-city" | "green-anime" | "brother" | "99-med" | "gojo-sukuna" | "sukuna-fire" | "desktop-lines" | "skello" | "we-black-hole" | "we-snow-fox" | "we-gojo-sukuna" | "we-sukuna-fire" | "we-cine-55" | "we-snake" | "we-green-anime" | "we-brother" | "we-gojo" | "we-rainy-city" | "we-desktop-lines" | "we-skello" | "we-99-med" | "we-45e33" | "we-f1-formula" | "we-hunt-shadow-2" | "we-minecraft-01" | "we-minecraft-02" | "we-minecraft-03" | "we-monkey" | "we-supra-drift" | "we-yuji-52" | "we-cozy-fox" | "we-yuta" | "we-bmw-car-driving" | "we-eyes-toward-heaven" | "we-goku-ultra" | "we-galaxy-eyes" | "we-celestial-battle" | "we-tess-kotkin" | "we-yuta-rika" | "we-satoru-gojo" | "we-dark-angel" | "we-makima-devilish" | "we-makima-burning" | "we-haimiya-mio" | "we-toji" | "we-mamonir" | "we-lantern-festival" | "we-miyabi" | "we-qingxiao" | "we-megumin" | "we-odette" | "we-blue-sky" | "we-frutiger" | "we-synthwave-dmc" | "we-zankou" | "we-ghost-rider" | "we-molala" | "we-dark-king" | "we-celestial-veil" | "we-miku-nakano" | "we-gotoubun" | "we-quintuplets" | "we-black-silk-waves" | "we-blue-dragon-logo" | "we-astra-yao" | "we-luo-tianyi-christmas" | "we-mc-northern-light" | "we-mc-falling-snow" | "we-mc-aquarium" | "we-mc-holiday-heart" | "we-mc-fireplace" | "we-mc-panels" | "we-mc-cherry-blossom" | "we-mc-raindrops" | "we-silver-surfer" | "we-girl-behind-curtains" | "we-vagabond-miyamoto" | "we-itachi-crow" | "we-gojo-hollow" | "we-quintuplets-sister" | "we-yuta-okkotsu" | "we-gojo-vs-sukuna-2" | "we-gojo-cursed-world" | "we-gojo-six-eyes" | "we-frieren-blue-horizon" | "we-frieren-blooming-stream" | "we-nissan-skyline-r33-mc" | "we-torii";
-type AppId = "hub" | "spicetify" | "browser" | "roblox" | "messages" | "vertube" | "movies" | "settings" | "games" | "translucenttb" | "wallpaper-engine" | "minecraft" | "rainmeter" | "terminal" | "calculator" | "ghostview" | "links" | "discord" | "vcloud" | "admin" | "appmaker" | string & {};
+type AppId = "hub" | "spicetify" | "browser" | "roblox" | "messages" | "vertube" | "movies" | "settings" | "games" | "translucenttb" | "wallpaper-engine" | "minecraft" | "rainmeter" | "terminal" | "calculator" | "camera" | "ghostview" | "links" | "discord" | "vcloud" | "admin" | "appmaker" | string & {};
 type Ps5DesktopShortcut = { id: string; name: string; cover: string };
 type TaskbarPos = "bottom" | "top" | "left" | "right";
 type WindowRect = { x: number; y: number; w: number; h: number };
@@ -427,6 +428,7 @@ const baseApps: AppDef[] = [
   { id: "games", title: "PS5 Emu", subtitle: t("appSub.games"), icon: Gamepad2, iconImg: asset("images/ps5-emu.png"), squircle: true },
   { id: "minecraft", title: "Minecraft Launcher", subtitle: t("appSub.minecraft"), icon: Gamepad2, iconImg: MC_ICON, squircle: true },
   { id: "calculator", title: "Calculator", subtitle: t("appSub.calculator"), icon: Calculator, iconImg: asset("images/calculator-logo.svg") },
+  { id: "camera", title: "Camera", subtitle: "Photo & video studio", icon: CameraIcon },
   { id: "terminal", title: "Terminal", subtitle: t("appSub.terminal"), icon: Terminal, iconImg: ARCH_ICON },
   { id: "links", title: "Links", subtitle: t("appSub.links"), icon: Link2, iconImg: asset("images/links.svg") },
 ];;
@@ -440,7 +442,7 @@ const APP_SECTIONS: { id: string; tone: string; all?: boolean; ids: AppId[] }[] 
   { id: "all", tone: "tone-all", all: true, ids: [] },
   { id: "watch", tone: "tone-watch", ids: ["vertube", "movies", "spicetify", "messages"] },
   { id: "play", tone: "tone-play", ids: ["roblox", "minecraft", "games"] },
-  { id: "create", tone: "tone-create", ids: ["terminal", "browser", "calculator", "appmaker", "webapps", "settings", "links", "wallpaper-engine"] },
+  { id: "create", tone: "tone-create", ids: ["camera", "terminal", "browser", "calculator", "appmaker", "webapps", "settings", "links", "wallpaper-engine"] },
 ];;
 
 const GV_APP: { id: AppId; title: string; subtitle: string; icon: LucideIcon; pinned: boolean; showName: boolean } = { id: "ghostview", title: "GhostView", subtitle: "remote view", icon: Eye, pinned: false, showName: false };
@@ -467,16 +469,21 @@ const storage = {
   read<T>(key: string, fallback: T): T {
     try {
       const saved = localStorage.getItem(key);
-      return saved ? JSON.parse(saved) as T : fallback;
-    } catch {
-      return fallback;
-    }
+      if (saved !== null) return JSON.parse(saved) as T;
+    } catch { /* try the per-tab fallback below */ }
+    try {
+      const saved = sessionStorage.getItem(key);
+      return saved !== null ? JSON.parse(saved) as T : fallback;
+    } catch { return fallback; }
   },
   write(key: string, value: unknown) {
-    try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* session still works */ }
+    const serialized = JSON.stringify(value);
+    try { localStorage.setItem(key, serialized); } catch { /* fall back to session storage for restricted file origins */ }
+    try { sessionStorage.setItem(key, serialized); } catch { /* storage can be disabled by the browser */ }
   },
   remove(key: string) {
     try { localStorage.removeItem(key); } catch { /* ignore */ }
+    try { sessionStorage.removeItem(key); } catch { /* ignore */ }
   },
 };
 
@@ -1001,6 +1008,18 @@ function AppIcon({ app, size = 21 }: { app: { icon: LucideIcon; iconImg?: string
 }
 
 function App() {
+  // Fullscreen must be requested directly from a user gesture. Attempt it on the first site click where supported.
+  useEffect(() => {
+    const enterFullscreenOnFirstClick = () => {
+      document.removeEventListener("pointerdown", enterFullscreenOnFirstClick, true);
+      const root = document.documentElement;
+      if (!document.fullscreenElement && typeof root.requestFullscreen === "function") {
+        void root.requestFullscreen().catch(() => { /* Safari/iOS and embedded browsers may not allow page fullscreen. */ });
+      }
+    };
+    document.addEventListener("pointerdown", enterFullscreenOnFirstClick, true);
+    return () => document.removeEventListener("pointerdown", enterFullscreenOnFirstClick, true);
+  }, []);
   const [accounts, setAccounts] = useState<VertexAccount[]>(() => readAccounts());
   const [phase, setPhase] = useState<"start" | "profile" | "lock" | "picker" | "signin" | "desktop">("start");
   const [activeAccount, setActiveAccount] = useState<VertexAccount | null>(null);
@@ -1086,6 +1105,7 @@ function App() {
   });
   const [iconSize, setIconSize] = useState<"small" | "medium" | "large">(() => storage.read("vertex-icon-size", "medium"));
   const [showDesktopIcons, setShowDesktopIcons] = useState(() => storage.read("vertex-show-icons", false));
+  useEffect(() => { storage.write("vertex-show-icons", showDesktopIcons); }, [showDesktopIcons]);
   const [customCursor, setCustomCursor] = useState(() => storage.read("vertex-custom-cursor", false));
   const [pressFx, setPressFx] = useState(() => storage.read("vertex-press-fx", false));
   const [personalizeOpen, setPersonalizeOpen] = useState(false);
@@ -6038,6 +6058,7 @@ function renderWindowBody(id: AppId, settings: SystemSettings, updateSetting: (k
     ? <iframe className="browser-frame" src={adRedir} title="Browser redirect" allow="autoplay; clipboard-write; fullscreen" />
     : <BrowserSurface lang={lang} />;
   if (id === "calculator") return <div className="window-surface calc-app-surface"><CalculatorSurface /></div>;
+  if (id === "camera") return <CameraSurface />;
   if (id === "roblox") return <ProxyUrlFrame url={adRedir ?? "https://73.ip.nowgg.fun/apps/a/19900/b.html"} title="Roblox" />;
   if (id === "messages") return <iframe className="browser-frame" src={appFallbackSrc("apps/messages/index.html", "https://raw.githack.com/Patrickmango49/McCrackOS/main/apps/messages/index.html")} srcDoc={embeddedAppDocument("apps/messages/index.html", "https://raw.githack.com/Patrickmango49/McCrackOS/main/apps/messages/")} title="McCrack Chat" allow="autoplay; clipboard-write; camera; microphone; fullscreen; display-capture" allowFullScreen />;
 
