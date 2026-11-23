@@ -1034,7 +1034,7 @@ function App() {
   const [profileCloudPass, setProfileCloudPass] = useState("");
   const [profileCloudPass2, setProfileCloudPass2] = useState("");
   const [cloudAccountBusy, setCloudAccountBusy] = useState(false);
-  const [setupStep, setSetupStep] = useState<"account" | "customize">("account");
+  const [setupStep, setSetupStep] = useState<"choice" | "account" | "customize">("choice");
   const [pendingSetupAccount, setPendingSetupAccount] = useState<VertexAccount | null>(null);
   const [setupWallpaper, setSetupWallpaper] = useState<WallpaperId>(SEASON_WALLPAPER);
   const [setupColorMode, setSetupColorMode] = useState<ColorMode>("dark");
@@ -2044,7 +2044,7 @@ onSessionClose: (peerCode) => {
       setActiveAccount(null);
       setSelectedAccount(null);
       setProfileEmail(""); setProfileUsername(""); setProfileCloudPass(""); setProfileCloudPass2("");
-      if (!guests.length) { setSetupStep("account"); setPendingSetupAccount(null); }
+      if (!guests.length) { setSetupStep("choice"); setPendingSetupAccount(null); }
       setPhase(guests.length ? "lock" : "profile");
       addToast("Signed out", "Your McCrack account has been signed out of this device.");
     } catch (error) { addToast("Sign out failed", error instanceof Error ? error.message : "Could not sign out."); }
@@ -2068,7 +2068,7 @@ onSessionClose: (peerCode) => {
 
   function openSignIn() {
     if (phase !== "lock") return;
-    if (accounts.length === 0) { setProfileErr(""); setLoginErr(""); setSetupStep("account"); setPendingSetupAccount(null); setPhase("profile"); return; }
+    if (accounts.length === 0) { setProfileErr(""); setLoginErr(""); setSetupStep("choice"); setPendingSetupAccount(null); setPhase("profile"); return; }
     setSelectedAccount(null);
     setPinInput("");
     setPinError(false);
@@ -2484,12 +2484,12 @@ onSessionClose: (peerCode) => {
           <div className="profile-setup-heading">
             <div className="lock-avatar"><BrandMark /></div>
             <div className="profile-kicker">McCrackOS · v{VERTEX_VERSION}</div>
-            <h2 className="profile-title">{setupStep === "account" ? "Create or sign in to your account" : "Customize your desktop"}</h2>
-            <p className="profile-sub">{setupStep === "account" ? "Create one McCrack account to sign in across supported apps and devices. You can personalize your desktop next." : "Choose your wallpaper and desktop appearance. You can change these later in Settings."}</p>
+            <h2 className="profile-title">{setupStep === "choice" ? "Your McCrack account" : setupStep === "account" ? "Create your McCrack account" : "Customize your desktop"}</h2>
+            <p className="profile-sub">{setupStep === "choice" ? "Do you already have an account, or are you creating one for the first time?" : setupStep === "account" ? "Create your official Universal McCrack account to use across supported devices and apps." : "Choose your wallpaper and desktop appearance. You can change these later in Settings."}</p>
           </div>
 
           <div className={`profile-setup-grid profile-wizard-step-${setupStep}`}>
-            {setupStep === "account" ? (
+            {setupStep === "choice" ? (\n              <section className="profile-setup-panel profile-identity-panel profile-account-choice">\n                <div className="profile-setup-section-title">Choose how to continue</div>\n                <p>This is your official Universal McCrack account—not just a profile saved on this device. Use the same account on other devices or after signing out to restore supported profile details, customizations, and progress.</p>\n                <button type="button" className="profile-create" onClick={() => { setLoginErr(""); setLoginName(""); setLoginPass(""); setPhase("picker"); }}>I already have an account · Log in</button>\n                <button type="button" className="profile-create profile-choice-create" onClick={() => { setProfileLocalMode(false); setProfileAskPass(false); setProfileErr(""); setSetupStep("account"); }}>Create New McCrack Account</button>\n                <p className="profile-optional-note">Some individual apps may keep data locally if they do not support cloud sync.</p>\n              </section>\n            ) : setupStep === "account" ? (
               <section className="profile-setup-panel profile-identity-panel">
                 <div className="profile-setup-section-title">Your profile</div>
                 <div className="profile-avatar-row">
@@ -2535,7 +2535,7 @@ onSessionClose: (peerCode) => {
                   ) : (
                     <div className="profile-cloud-account">
                       <div className="profile-setup-section-title">Universal McCrack account <em>· recommended</em></div>
-                      <p>Use one account to sign in across McCrackOS, McCrack Chat, and supported McCrack apps. Your profile can follow you between devices.</p>
+                      <p>This is your official Universal McCrack account, not a local-only device profile. Sign in with it on other devices or after signing out to restore supported profile details, customizations, and progress.</p>
                       <label><span>Email address</span><input required type="email" value={profileEmail} onChange={(event) => { setProfileEmail(event.target.value); setProfileErr(""); }} placeholder="you@example.com" autoComplete="email" /></label>
                       <label><span>McCrack username</span><input required value={profileUsername} onChange={(event) => { setProfileUsername(event.target.value.replace(/[^a-zA-Z0-9_-]/g, "")); setProfileErr(""); }} maxLength={24} placeholder="yourusername" autoComplete="username" /></label>
                       <label><span>Password · 8 characters minimum</span><input required minLength={8} type="password" value={profileCloudPass} onChange={(event) => { setProfileCloudPass(event.target.value); setProfileErr(""); }} placeholder="Create a password" autoComplete="new-password" /></label>
@@ -2596,7 +2596,7 @@ onSessionClose: (peerCode) => {
               </section>
             )}
           </div>
-          {setupStep !== "account" && (
+          {setupStep === "customize" && (
             <div className="profile-setup-footer profile-wizard-footer">
               <button type="button" className="signin-back" onClick={() => setSetupStep("account")}>Back</button>
               <button type="button" className="profile-skip" onClick={() => finishSetup(true)}>Use defaults</button>
@@ -2621,7 +2621,7 @@ onSessionClose: (peerCode) => {
                 <span className="checker-name">{account.name}</span>
               </button>
             ))}
-            <button className="checker-tile checker-add" onClick={() => { setProfileName(""); setProfilePass(""); setProfilePass2(""); setProfileAvatar(""); setProfileEmail(""); setProfileUsername(""); setProfileCloudPass(""); setProfileCloudPass2(""); setProfileAskPass(false); setProfileErr(""); setSetupStep("account"); setPendingSetupAccount(null); setPhase("profile"); }} data-testid="button-add-account">
+            <button className="checker-tile checker-add" onClick={() => { setProfileName(""); setProfilePass(""); setProfilePass2(""); setProfileAvatar(""); setProfileEmail(""); setProfileUsername(""); setProfileCloudPass(""); setProfileCloudPass2(""); setProfileAskPass(false); setProfileErr(""); setSetupStep("choice"); setPendingSetupAccount(null); setPhase("profile"); }} data-testid="button-add-account">
               <span className="checker-avatar checker-add-avatar"><Plus size={30} /></span>
               <span className="checker-name">Add profile</span>
             </button>
