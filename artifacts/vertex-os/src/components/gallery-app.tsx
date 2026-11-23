@@ -73,11 +73,12 @@ export function GallerySurface() {
   };
   useEffect(() => {
     void refresh();
-    return () => { items.forEach((item) => URL.revokeObjectURL(item.url)); };
-    // The gallery owns object URLs for the current loaded set.
+    const onUpdated = () => { void refresh(); };
+    window.addEventListener("mccrack-gallery-updated", onUpdated);
+    return () => window.removeEventListener("mccrack-gallery-updated", onUpdated);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  useEffect(() => () => { items.forEach((item) => URL.revokeObjectURL(item.url)); }, [items]);
+  useEffect(() => () => { itemsRef.current.forEach((item) => URL.revokeObjectURL(item.url)); }, []);
 
   const visible = useMemo(() => items.filter((item) => {
     const matches = filter === "all" || (filter === "favorites" ? item.favorite : item.kind === filter);
