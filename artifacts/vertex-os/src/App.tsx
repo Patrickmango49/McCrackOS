@@ -6419,7 +6419,7 @@ function MinecraftLauncherSurface() {
               <option value="modpack">{t("minecraft.modpackVersion")}</option>
               <option value="eagler112">{t("minecraft.v112Version")}</option>
               <option value="eagler152">{t("minecraft.v152Version")}</option>
-              <optgroup label="Minecraft versions from PS5 emulator">
+              <optgroup label="Minecraft versions from PS5">
                 {MC_CATALOG_GAMES.map((game) => <option key={game.id} value={`catalog:${game.id}`}>{game.name}</option>)}
               </optgroup>
             </select>
