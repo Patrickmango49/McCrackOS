@@ -8112,3 +8112,8 @@ html[data-style="macos"][data-theme="light"] .mac-menu-volume { color: #10131a; 
 .profile-account-choice > p { margin:0; color:var(--muted); font-size:13px; line-height:1.65; }
 .profile-account-choice .profile-create { width:100%; min-height:46px; justify-content:center; }
 .profile-account-choice .profile-choice-create { color:#eafaff; background:linear-gradient(135deg,#168db5,#1764a7); border:1px solid rgba(110,225,255,.35); }
+
+html:not([data-style="macos"]) .desktop-icon .app-icon-img,
+html:not([data-style="macos"]) .pinned-item .app-icon-img { border-radius: 19px; }
+.profile-wizard-step-choice { grid-template-columns: minmax(0, 1fr); }
+.profile-account-choice { width:100%; max-width:520px; margin:0 auto; }
