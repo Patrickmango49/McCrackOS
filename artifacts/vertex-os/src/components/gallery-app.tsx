@@ -36,10 +36,21 @@ async function galleryRequest<T>(mode: IDBTransactionMode, action: (store: IDBOb
 const formatSize = (size: number) => size < 1024 * 1024 ? `${(size / 1024).toFixed(0)} KB` : `${(size / 1024 / 1024).toFixed(1)} MB`;
 const safeName = (name: string) => name.replace(/[\\/:*?"<>|]+/g, "-");
 
+export async function saveGalleryBlob(blob: Blob, kind: MediaKind, name?: string) {
+  const ext = kind === "photo" ? (blob.type.includes("png") ? "png" : "jpg") : (blob.type.includes("mp4") ? "mp4" : "webm");
+  const record: MediaRecord = {
+    id: crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    name: name || `McCrack-${kind}-${new Date().toISOString().replace(/[:.]/g, "-")}.${ext}`,
+    kind, type: blob.type || "application/octet-stream", size: blob.size, createdAt: Date.now(), blob,
+  };
+  await galleryRequest<IDBValidKey>("readwrite", (store) => store.put(record));
+  window.dispatchEvent(new CustomEvent("mccrack-gallery-updated"));
+}
+
 export function GallerySurface() {
   const inputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [items, setItems] = useState<GalleryItem[]>([]);
+  const [items, setItems] = useState<GalleryItem[]>([]);\n  const itemsRef = useRef<GalleryItem[]>([]);\n  useEffect(() => { itemsRef.current = items; }, [items]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | MediaKind | "favorites">("all");
   const [query, setQuery] = useState("");
@@ -54,7 +65,7 @@ export function GallerySurface() {
   const refresh = async () => {
     try {
       const records = await galleryRequest<MediaRecord[]>("readonly", (store) => store.getAll());
-      setItems(records.sort((a,b) => b.createdAt-a.createdAt).map((item) => ({ ...item, url: URL.createObjectURL(item.blob) })));
+      itemsRef.current.forEach((item) => URL.revokeObjectURL(item.url));\n      setItems(records.sort((a,b) => b.createdAt-a.createdAt).map((item) => ({ ...item, url: URL.createObjectURL(item.blob) })));
     } catch (e) { setError(e instanceof Error ? e.message : "Could not load your gallery."); }
   };
   useEffect(() => {
