@@ -541,9 +541,9 @@ function adBlockPurge(doc: Document): void {
     doc
       .querySelectorAll(
         'ins.adsbygoogle, .adsbygoogle, [id^="google_ads"], [id^="aswift"], [id^="ad_"], ' +
-          '[id*="banner-ad"], [class*="adsbygoogle"], [class*="advert"], [data-ad-slot], ' +
+          '[id*="banner-ad"], [class*="adsbygoogle"], [class*="advert"], [data-ad-slot], [data-ad-unit], [data-ad], [class*="ad-container"], [id*="ad-container"], [class*="ad-wrapper"], [id*="ad-wrapper"], [class*="ad-overlay"], [id*="ad-overlay"], [class*="sponsor"], [id*="sponsor"], ' +
           'iframe[src*="doubleclick.net"], iframe[src*="googlesyndication.com"], ' +
-          'iframe[src*="adservice"], iframe[src*="googleadservices"], iframe[src*="/ads/"]',
+          'iframe[src*="adservice"], iframe[src*="googleadservices"], iframe[src*="/ads/"], iframe[src*="popads"], iframe[src*="adsterra"], iframe[src*="taboola"], iframe[src*="outbrain"], iframe[src*="criteo"], iframe[src*="adnxs"], iframe[src*="adsrvr"]',
       )
       .forEach((node) => node.remove());
   } catch {
