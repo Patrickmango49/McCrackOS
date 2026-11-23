@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
+import { saveGalleryBlob } from "./gallery-app";
 import { Camera, CameraOff, Circle, Download, FlipHorizontal, Grid3X3, Image as ImageIcon, RotateCcw, Settings2, Timer, Video, X, Zap } from "lucide-react";
 
 type Capture = { id: string; url: string; kind: "photo" | "video"; name: string; createdAt: number };
@@ -89,7 +90,9 @@ export function CameraSurface() {
   const saveCapture = (blob: Blob, kind: Capture["kind"]) => {
     const url = URL.createObjectURL(blob);
     const extension = kind === "photo" ? "jpg" : (blob.type.includes("mp4") ? "mp4" : "webm");
-    setCaptures((items) => [{ id: crypto.randomUUID?.() ?? String(Date.now()), url, kind, name: `McCrack-${kind}-${new Date().toISOString().replace(/[:.]/g, "-")}.${extension}`, createdAt: Date.now() }, ...items]);
+    const name = `McCrack-${kind}-${new Date().toISOString().replace(/[:.]/g, "-")}.${extension}`;
+    setCaptures((items) => [{ id: crypto.randomUUID?.() ?? String(Date.now()), url, kind, name, createdAt: Date.now() }, ...items]);
+    void saveGalleryBlob(blob, kind, name).catch(() => setError("Capture saved in Camera, but could not be added to Gallery storage."));
     setGalleryOpen(true);
   };
 
