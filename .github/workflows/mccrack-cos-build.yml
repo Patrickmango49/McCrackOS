@@ -25,12 +25,6 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-      - name: Sync main before build
-        shell: bash
-        run: |
-          set -euo pipefail
-          git fetch origin main
-          git rebase origin/main
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
