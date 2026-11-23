@@ -28,6 +28,7 @@ import { WallpaperPicker, type PickerWallpaper, loadCustomWallpapers, persistCus
 import { SystemTray } from "./components/system-tray";
 import { MacMenuBar } from "./components/mac-menubar";
 import { CameraSurface } from "./components/camera-app";
+import { GallerySurface } from "./components/gallery-app";
 
 import { LinksApp } from "./components/links-app";
 import { assetUrl } from "./asset-map";
@@ -429,7 +430,7 @@ const baseApps: AppDef[] = [
   { id: "minecraft", title: "Minecraft Launcher", subtitle: t("appSub.minecraft"), icon: Gamepad2, iconImg: MC_ICON, squircle: true },
   { id: "calculator", title: "Calculator", subtitle: t("appSub.calculator"), icon: Calculator, iconImg: asset("images/calculator-logo.svg") },
   { id: "camera", title: "Camera", subtitle: "Photo & video studio", icon: CameraIcon },
-  { id: "terminal", title: "Terminal", subtitle: t("appSub.terminal"), icon: Terminal, iconImg: ARCH_ICON },
+  { id: "gallery", title: "Gallery", subtitle: "Photos & videos", icon: ImagePlus },
   { id: "links", title: "Links", subtitle: t("appSub.links"), icon: Link2, iconImg: asset("images/links.svg") },
 ];;
 
@@ -442,7 +443,7 @@ const APP_SECTIONS: { id: string; tone: string; all?: boolean; ids: AppId[] }[] 
   { id: "all", tone: "tone-all", all: true, ids: [] },
   { id: "watch", tone: "tone-watch", ids: ["vertube", "movies", "spicetify", "messages"] },
   { id: "play", tone: "tone-play", ids: ["roblox", "minecraft", "games"] },
-  { id: "create", tone: "tone-create", ids: ["camera", "terminal", "browser", "calculator", "appmaker", "webapps", "settings", "links", "wallpaper-engine"] },
+  { id: "create", tone: "tone-create", ids: ["camera", "gallery", "browser", "calculator", "appmaker", "webapps", "settings", "links", "wallpaper-engine"] },
 ];;
 
 const GV_APP: { id: AppId; title: string; subtitle: string; icon: LucideIcon; pinned: boolean; showName: boolean } = { id: "ghostview", title: "GhostView", subtitle: "remote view", icon: Eye, pinned: false, showName: false };
@@ -1215,10 +1216,16 @@ storage.read("vertex-jarvis-installed", false));
     ...customApps.map((item) => ({ id: item.id as AppId, title: item.name, subtitle: item.folder?.trim() || "Custom proxied app", icon: Globe, iconImg: item.icon || asset("images/links.svg"), pinned: Boolean(item.pinned), squircle: true })),
   ], [customApps]);
   const [desktopApps, setDesktopApps] = useState<AppId[]>(() => {
-    const saved = storage.read<AppId[]>("vertex-desktop-apps", []);
-    const valid = Array.isArray(saved) ? saved.filter((id) => apps.some((app) => app.id === id)) : [];
-    return valid.length ? valid : apps.slice(0, 6).map((app) => app.id);
+    try {
+      const raw = localStorage.getItem("vertex-desktop-apps");
+      if (raw !== null) {
+        const saved = JSON.parse(raw) as AppId[];
+        return Array.isArray(saved) ? saved.filter((id) => apps.some((app) => app.id === id)) : [];
+      }
+    } catch { /* use the first-run defaults if the saved list is unreadable */ }
+    return apps.slice(0, 6).map((app) => app.id);
   });
+  useEffect(() => { storage.write("vertex-desktop-apps", desktopApps); }, [desktopApps]);
   const [ps5Shortcuts, setPs5Shortcuts] = useState<Ps5DesktopShortcut[]>(() => storage.read("vertex-ps5-desktop-shortcuts", []));
   useEffect(() => {
     const addShortcut = (event: Event) => {
@@ -1610,7 +1617,7 @@ onSessionClose: (peerCode) => {
       if (phase === "desktop" && event.altKey && !event.ctrlKey && !event.shiftKey && event.key.toLowerCase() === "w") {
         event.preventDefault();
         if (wppInstalled) setWpPickerOpen((open) => !open);
-        else toggleApp("terminal");
+        else toggleApp("wallpaper-engine");
       }
       if (phase === "desktop" && !isEditing && settings.panicKey && event.key.toLowerCase() === settings.panicKey.toLowerCase()) {
         redirectPanic();
@@ -1931,7 +1938,6 @@ onSessionClose: (peerCode) => {
 
   function enterDesktop() {
     setPhase("desktop");
-    addToast(t("toast.welcomeTitle"), t("toast.welcomeCopy"));
   }
 
   function signInAs(account: VertexAccount) {
@@ -2429,6 +2435,8 @@ onSessionClose: (peerCode) => {
   const visibleDockEntries = dockOverflowed ? dockEntries.slice(0, dockCapacity) : dockEntries;
   const dockAutoHidden = windows.some((item) => !item.minimized && !item.closingAt);
   const dockIsVisible = !dockAutoHidden || dockManuallyOpen;
+  const browserOnlyRoute = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("mccrack-browser") === "1";
+  if (browserOnlyRoute) return <main className="os-root browser-only-route"><BrowserSurface lang={chosenLang} /></main>;
 
   return (
         <main className={`os-root${PERF.low ? " perf-low" : ""}`} onClick={() => { setContextMenu(null); setAppMenu(null);  setDockMenu(null); setDockOverflowOpen(false); }} onContextMenu={(event) => {
@@ -2659,7 +2667,7 @@ onSessionClose: (peerCode) => {
         </div>
       </section>
 
-      <section className={`desktop-shell ${phase === "desktop" ? "active" : ""} ${iconSize === "large" ? "large-icons" : iconSize === "small" ? "icon-small" : ""} ${translucentTB ? "translucent-tb" : ""} ${taskbarPos !== "bottom" ? `tb-${taskbarPos}` : ""} ${customCursor ? "custom-cursor" : ""} ${pressFx ? "press-fx" : ""} ${chromeHidden ? "chrome-hidden" : ""}`}>
+      <section className={`desktop-shell ${phase === "desktop" ? "active" : ""} ${settings.systemStyle === "macos" ? "macos-style" : ""} ${iconSize === "large" ? "large-icons" : iconSize === "small" ? "icon-small" : ""} ${translucentTB ? "translucent-tb" : ""} ${taskbarPos !== "bottom" ? `tb-${taskbarPos}` : ""} ${customCursor ? "custom-cursor" : ""} ${pressFx ? "press-fx" : ""} ${chromeHidden ? "chrome-hidden" : ""}`}>
         {rmCfg.showClock ? <RainmeterWidget cfg={rmCfg} date={now} tone="home" onAlternative={() => toggleApp("settings")} /> : null}
         {settings.systemStyle === "macos" ? <MacMenuBar
           now={now}
@@ -6049,7 +6057,7 @@ function VerTubeSurface() {
 function renderWindowBody(id: AppId, settings: SystemSettings, updateSetting: (key: keyof SystemSettings | Partial<SystemSettings>, value?: boolean | string | TabHideImage[]) => void, faqOpen: number | null, setFaqOpen: (value: number | null) => void, lang: Lang, onLanguagePick: (language: Lang) => void, onPanic: () => void, onClose: (() => void) | null = null, onMinimize: (() => void) | null = null, onTrackChange: ((track: { name: string; artist: string; artwork: string } | null) => void) | null = null, translucent: boolean = false, onTranslucent: ((value: boolean) => void) | null = null, onApplyWallpaper: ((id: WallpaperId, target: "both" | "home" | "lock") => void) | null = null, appliedWallpaper: WallpaperId = "singularity", appliedLockWallpaper: WallpaperId = "singularity", onNotify: ((title: string, copy: string) => void) | null = null, wppInstalled: boolean = false, onInstallPicker: (() => void) | null = null, jarvisInstalled: boolean = false, onJarvisInstall: (() => void) | null = null, onFsociety: ((active: boolean) => void) | null = null, activeAccount: VertexAccount | null = null, onAvatarChange: ((avatar: string) => void) | null = null, onAccountChange: ((patch: { name?: string; email?: string; username?: string; bio?: string; banner?: string }) => void) | null = null, onSignOut: (() => void) | null = null) {
   if (id === "settings") return <SettingsSurface settings={settings} updateSetting={updateSetting} faqOpen={faqOpen} setFaqOpen={setFaqOpen} lang={lang} onLanguagePick={onLanguagePick} onPanic={onPanic} avatar={activeAccount?.avatar} accountName={activeAccount?.name} accountEmail={activeAccount?.email} accountUsername={activeAccount?.username} accountBio={activeAccount?.bio} accountBanner={activeAccount?.banner} onAvatarChange={onAvatarChange ?? undefined} onAccountChange={onAccountChange ?? undefined} onSignOut={onSignOut ?? undefined} appliedWallpaper={appliedWallpaper} appliedLockWallpaper={appliedLockWallpaper} onApplyWallpaper={onApplyWallpaper ?? undefined} onNotify={onNotify ?? undefined} translucent={translucent} onTranslucent={onTranslucent ?? undefined} />;
   if (id === "wallpaper-engine") return <WallEngineApp appliedHome={appliedWallpaper} appliedLock={appliedLockWallpaper} onApplyWallpaper={onApplyWallpaper ?? (() => {})} notify={onNotify ?? undefined} />;
-  if (id === "terminal") return <div className="window-surface term-app-surface">          <TerminalSurface installed={wppInstalled} onInstalled={onInstallPicker ?? (() => {})} onFsociety={onFsociety ?? (() => {})} jarvisInstalled={jarvisInstalled} setJarvisInstalled={onJarvisInstall ?? (() => {})} onJarvisInstall={onJarvisInstall ?? (() => {})} toggleApp={undefined} /></div>;
+  if (id === "gallery") return <GallerySurface />;
   if (id === "translucenttb") return <div className="window-surface"><div className="surface-kicker">{t("surf.translucent.kicker")}</div><h2 className="surface-title">{t("surf.translucent.title")}</h2><p className="surface-copy">{t("surf.translucent.body")}</p><div className="settings-list"><SettingToggle label={t("surf.translucent.enable")} help={t("surf.translucent.help")} value={translucent} onChange={(value) => onTranslucent?.(value)} /></div></div>;
   if (id === "spicetify") return <iframe className="browser-frame" src={appFallbackSrc("apps/music/web/index.html", "https://raw.githack.com/Patrickmango49/McCrackOS/main/apps/music/web/index.html")} srcDoc={embeddedAppDocument("apps/music/web/index.html", "https://raw.githack.com/Patrickmango49/McCrackOS/main/apps/music/web/")} title="McCrackify" allow="autoplay; clipboard-write; fullscreen; encrypted-media; picture-in-picture" allowFullScreen />;
   const adRedir = settings.adblock && settings.adblockUrl.trim() ? settings.adblockUrl : null;
