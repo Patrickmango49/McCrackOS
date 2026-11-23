@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
-  Battery, Check, Info, Languages, LockKeyhole, Monitor,
+  Battery, Check, Info, LockKeyhole, Monitor,
   RotateCcw, Search, Settings2, Sparkles, Volume2,
 } from "lucide-react";
-import { LANGS, localeOf, type Lang } from "../i18n";
+import { localeOf, type Lang } from "../i18n";
 
 export type MacWindowRef = { id: string; title: string };
 
@@ -89,14 +89,6 @@ function AppleGlyph({ size = 15 }: { size?: number }) {
   );
 }
 
-function WifiGlyph() {
-  return (
-    <svg viewBox="0 0 24 24" width={16} height={16} aria-hidden="true" focusable="false" className="mac-bar-glyph">
-      <path fill="currentColor" d="M12 18.6a1.6 1.6 0 1 0 0 3.2 1.6 1.6 0 0 0 0-3.2zM12 12.3c1.9 0 3.6.7 4.8 1.9l1.5-1.5A8.9 8.9 0 0 0 12 9.9c-2.4 0-4.6 1-6.3 2.8l1.5 1.5a6.6 6.6 0 0 1 4.8-1.9zM12 6.6c3.1 0 6 1.2 8.2 3.4l1.5-1.5A14.4 14.4 0 0 0 12 4.2c-4 0-7.6 1.6-9.7 4.3l1.5 1.5A11.9 11.9 0 0 1 12 6.6z" />
-    </svg>
-  );
-}
-
 function ControlGlyph() {
   return (
     <svg viewBox="0 0 24 24" width={16} height={16} aria-hidden="true" focusable="false" className="mac-bar-glyph">
@@ -126,7 +118,7 @@ function BatteryGlyph({ level, charging }: { level: number; charging: boolean })
 export function MacMenuBar(props: MacMenuBarProps) {
   const {
     now, lang, appName, accountName, windows, activeWindowId, unseen, showIcons,
-    onPickLanguage, onOpenApp, onFocusApp, onMinimizeApp, onCloseApp,
+    onOpenApp, onFocusApp, onMinimizeApp, onCloseApp,
     onAbout, onSettings, onLaunchpad, onNotifications, onRestart, onLock,
     onToggleIcons, onHint,
   } = props;
@@ -138,7 +130,7 @@ export function MacMenuBar(props: MacMenuBarProps) {
   const loc = useMemo(() => localeOf(lang), [lang]);
 
   useEffect(() => {
-    if (!open || open === "lang" || open === "clock") { setPanelX(null); return; }
+    if (!open || open === "clock") { setPanelX(null); return; }
     const el = leftRefs.current[open];
     const bar = barRef.current;
     if (!el || !bar) { setPanelX(null); return; }
@@ -169,14 +161,6 @@ export function MacMenuBar(props: MacMenuBarProps) {
     { kind: "item", label: "Lock Screen", icon: LockKeyhole, onSelect: onLock },
     { kind: "item", label: "Restart…", icon: RotateCcw, onSelect: onRestart },
   ];
-
-  const langItems: MenuItem[] = LANGS.map((entry) => ({
-    kind: "item" as const,
-    label: entry.native,
-    hint: entry.label,
-    checked: entry.code === lang,
-    onSelect: () => { onPickLanguage(entry.code as Lang); setOpen(null); },
-  }));
 
   const app: MenuItem[] = [
     { kind: "item", label: `About ${appName}`, icon: Info, onSelect: onAbout },
