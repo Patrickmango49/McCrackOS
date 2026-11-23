@@ -528,7 +528,8 @@ function StandaloneFileBrowser() {
 }
 
 export function BrowserSurface(_props: { lang?: Lang }) {
-  if (typeof window !== "undefined" && window.location.protocol === "file:") {
+  const standaloneBundle = Boolean((globalThis as { __VERTEX_ASSETS__?: Record<string, string> }).__VERTEX_ASSETS__);
+  if (typeof window !== "undefined" && (window.location.protocol === "file:" || standaloneBundle)) {
     return <StandaloneFileBrowser />;
   }
   return <ProxyBrowser home />;
