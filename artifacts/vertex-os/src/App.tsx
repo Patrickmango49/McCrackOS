@@ -2695,7 +2695,6 @@ onSessionClose: (peerCode) => {
           activeWindowId={activeWindow}
           unseen={unseenNotifications}
           showIcons={showDesktopIcons}
-          onPickLanguage={pickLanguage}
           onOpenApp={(id) => toggleApp(id as AppId)}
           onFocusApp={(id) => setActiveWindow(id as AppId)}
           onMinimizeApp={(id) => minimizeWindow(id as AppId)}
