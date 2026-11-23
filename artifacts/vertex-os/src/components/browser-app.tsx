@@ -400,6 +400,7 @@ function ProxyBrowser(_props: { home?: boolean }) {
         if (cancelled) return;
         setError(cause instanceof Error ? cause.message : String(cause));
         setStatus("ready");
+        onErrorRef.current?.();
       }
     })();
 
@@ -554,12 +555,14 @@ function adBlockPurge(doc: Document): void {
 /** Full-bleed proxied site with no chrome. Used when a page refuses to be
  *  framed (X-Frame-Options / CSP) — the scramjet proxy loads it anyway.
  *  Set `blockAds` to strip common ad slots from the (same-origin) proxied page. */
-export function ProxyUrlFrame({ url, title = "Proxied page", blockAds = false }: { url: string; title?: string; blockAds?: boolean }) {
+export function ProxyUrlFrame({ url, title = "Proxied page", blockAds = false, onError }: { url: string; title?: string; blockAds?: boolean; onError?: () => void }) {
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const [status, setStatus] = useState<"booting" | "ready">("booting");
   const [error, setError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
   const urlRef = useRef(url);
+  const onErrorRef = useRef(onError);
+  useEffect(() => { onErrorRef.current = onError; }, [onError]);
 
   useEffect(() => {
     const el = iframeRef.current;
