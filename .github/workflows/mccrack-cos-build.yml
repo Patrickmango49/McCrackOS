@@ -41,6 +41,10 @@ jobs:
           npm run build:single
           mkdir -p ../../single
           cp public/single/index.html ../../single/index.html
+          cp public/manifest.webmanifest ../../single/manifest.webmanifest
+          cp public/mccrack-pwa-sw.js ../../single/mccrack-pwa-sw.js
+          mkdir -p ../../single/images
+          cp public/images/config-icon.png ../../single/images/config-icon.png
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
           const html = fs.readFileSync('../../single/index.html', 'utf8');
