@@ -1415,7 +1415,7 @@ onSessionClose: (peerCode) => {
       onControl: (ctrl) => {
         if (ctrl.cmd === "open") {
           const id = ctrl.app as AppId | undefined;
-          if (!id || id === "ghostview") return;
+          if (!id || id === "ghostview" || id === "terminal") return;
           setStartOpen(false); setDrawerOpen(false);
           if (id === "translucenttb") {
             setTranslucentOpen(true);
@@ -1438,20 +1438,7 @@ onSessionClose: (peerCode) => {
           setWindows((items) => items.map((w) => (w.id === id ? { ...w, minimized: true } : w)));
           setActiveWindow((a) => (a === id ? null : a));
         } else if (ctrl.cmd === "run") {
-          const text = ctrl.text ?? "";
-          if (!text) return;
-          const hasTerm = gvWindowsRef.current.some((w) => w.id === "terminal");
-          if (!hasTerm) {
-            setStartOpen(false); setDrawerOpen(false);
-            setWindows((items) => items.some((w) => w.id === "terminal")
-              ? items.map((w) => (w.id === "terminal" ? { ...w, minimized: false } : w))
-              : [...items, { id: "terminal", minimized: false, maximized: false, rect: defaultWindowRect(items.length), prevRect: null }]);
-            setActiveWindow("terminal");
-          }
-          window.setTimeout(() => {
-            ghostTypeCtrl(text);
-            ghostEnterCtrl();
-          }, 420);
+          addToast("Terminal removed", "Remote terminal commands are no longer available in McCrackOS.");
         } else if (ctrl.cmd === "click") {
           const x = ctrl.x ?? 0;
           const y = ctrl.y ?? 0;
