@@ -8107,3 +8107,8 @@ html[data-style="macos"][data-theme="light"] .mac-menu-volume { color: #10131a; 
   html:not([data-style="macos"]) .system-tray { right: 10px; bottom: 12px; }
   html:not([data-style="macos"]) .dock { border-radius: 22px; }
 }
+
+.profile-account-choice { display:flex; flex-direction:column; align-items:stretch; gap:14px; }
+.profile-account-choice > p { margin:0; color:var(--muted); font-size:13px; line-height:1.65; }
+.profile-account-choice .profile-create { width:100%; min-height:46px; justify-content:center; }
+.profile-account-choice .profile-choice-create { color:#eafaff; background:linear-gradient(135deg,#168db5,#1764a7); border:1px solid rgba(110,225,255,.35); }
