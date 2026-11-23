@@ -50,7 +50,9 @@ export async function saveGalleryBlob(blob: Blob, kind: MediaKind, name?: string
 export function GallerySurface() {
   const inputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [items, setItems] = useState<GalleryItem[]>([]);\n  const itemsRef = useRef<GalleryItem[]>([]);\n  useEffect(() => { itemsRef.current = items; }, [items]);
+  const [items, setItems] = useState<GalleryItem[]>([]);
+  const itemsRef = useRef<GalleryItem[]>([]);
+  useEffect(() => { itemsRef.current = items; }, [items]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | MediaKind | "favorites">("all");
   const [query, setQuery] = useState("");
@@ -65,7 +67,8 @@ export function GallerySurface() {
   const refresh = async () => {
     try {
       const records = await galleryRequest<MediaRecord[]>("readonly", (store) => store.getAll());
-      itemsRef.current.forEach((item) => URL.revokeObjectURL(item.url));\n      setItems(records.sort((a,b) => b.createdAt-a.createdAt).map((item) => ({ ...item, url: URL.createObjectURL(item.blob) })));
+      itemsRef.current.forEach((item) => URL.revokeObjectURL(item.url));
+      setItems(records.sort((a,b) => b.createdAt-a.createdAt).map((item) => ({ ...item, url: URL.createObjectURL(item.blob) })));
     } catch (e) { setError(e instanceof Error ? e.message : "Could not load your gallery."); }
   };
   useEffect(() => {
