@@ -835,10 +835,7 @@ export function LinksApp() {
       </div>
 
       <div className="lnk-body">
-        <FeaturedSection compact={Boolean(q)} />
-
-        <PartnershipSection onOpen={() => setHzOpen(true)} />
-
+ 
         {direct && (
           <button className="lnk-direct" onClick={() => ctx.open(direct)}>
             <span className="lnk-direct-icon"><ArrowUpRight size={16} /></span>
@@ -859,7 +856,6 @@ export function LinksApp() {
           </div>
         )}
       </div>
-      <HzModal open={hzOpen} onClose={() => setHzOpen(false)} />
     </div>
     </MethodContext.Provider>
   );
