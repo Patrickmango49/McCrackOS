@@ -264,6 +264,38 @@ function NowPlayingCard() {
 
 export function Ps5EmulatorSurface({ surfaces }: { surfaces?: Ps5EmbeddedSurfaces } = {}) {
   const [stage, setStage] = useState<"boot" | "account" | "ready">("boot");
+  useEffect(() => {
+    let frame = 0;
+    const previous = new Map<string, boolean>();
+    const sendKey = (key: string) => window.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true }));
+    const poll = () => {
+      const pad = Array.from(navigator.getGamepads?.() ?? []).find((item): item is Gamepad => Boolean(item));
+      const active = document.activeElement;
+      const typing = active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement || active instanceof HTMLSelectElement || Boolean((active as HTMLElement | null)?.isContentEditable);
+      const inGame = active instanceof HTMLIFrameElement;
+      if (pad && !typing && !inGame) {
+        const buttons: Array<[string, boolean, string]> = [
+          ["up", Boolean(pad.buttons[12]?.pressed), "ArrowUp"],
+          ["down", Boolean(pad.buttons[13]?.pressed), "ArrowDown"],
+          ["left", Boolean(pad.buttons[14]?.pressed), "ArrowLeft"],
+          ["right", Boolean(pad.buttons[15]?.pressed), "ArrowRight"],
+          ["accept", Boolean(pad.buttons[0]?.pressed), "Enter"],
+          ["back", Boolean(pad.buttons[1]?.pressed), "Escape"],
+          ["stick-up", (pad.axes[1] ?? 0) < -0.65, "ArrowUp"],
+          ["stick-down", (pad.axes[1] ?? 0) > 0.65, "ArrowDown"],
+          ["stick-left", (pad.axes[0] ?? 0) < -0.65, "ArrowLeft"],
+          ["stick-right", (pad.axes[0] ?? 0) > 0.65, "ArrowRight"],
+        ];
+        for (const [id, pressed, key] of buttons) {
+          if (pressed && !previous.get(id)) sendKey(key);
+          previous.set(id, pressed);
+        }
+      } else { previous.clear(); }
+      frame = requestAnimationFrame(poll);
+    };
+    frame = requestAnimationFrame(poll);
+    return () => cancelAnimationFrame(frame);
+  }, []);
   const [tab, setTab] = useState<Tab>("home");
   const [account, setAccount] = useState<Ps5Account | null>(() => readAccount());
   const [owned, setOwned] = useState<string[]>(() => readSet(OWNED_KEY, []));
