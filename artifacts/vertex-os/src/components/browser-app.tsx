@@ -400,7 +400,6 @@ function ProxyBrowser(_props: { home?: boolean }) {
         if (cancelled) return;
         setError(cause instanceof Error ? cause.message : String(cause));
         setStatus("ready");
-        onErrorRef.current?.();
       }
     })();
 
@@ -601,6 +600,7 @@ export function ProxyUrlFrame({ url, title = "Proxied page", blockAds = false, o
         if (cancelled) return;
         setError(cause instanceof Error ? cause.message : String(cause));
         setStatus("ready");
+        onErrorRef.current?.();
       }
     })();
 
