@@ -72,6 +72,7 @@ jobs:
           BASE_PATH: /McCrackOS/
         run: npm run build
       - name: Publish built COS assets to GitHub Pages root
+        if: github.ref == 'refs/heads/main'
         shell: bash
         run: |
           set -euo pipefail
