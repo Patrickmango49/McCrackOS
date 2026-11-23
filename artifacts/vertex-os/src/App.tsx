@@ -1644,6 +1644,15 @@ onSessionClose: (peerCode) => {
   }, []);
 
   useEffect(() => {
+    if (typeof window === "undefined" || location.protocol === "file:" || !("serviceWorker" in navigator)) return;
+    const standaloneBundle = Boolean((globalThis as { __VERTEX_ASSETS__?: Record<string, string> }).__VERTEX_ASSETS__);
+    const worker = standaloneBundle ? base + "mccrack-pwa-sw.js" : base + "sw.js";
+    navigator.serviceWorker.register(worker, { scope: base }).catch((error) => {
+      console.warn("McCrackOS offline/PWA setup:", error);
+    });
+  }, []);
+
+  useEffect(() => {
     if (phase !== "desktop" || !settings.idleLock) return;
     let timer = 0;
     const reset = () => { window.clearTimeout(timer); timer = window.setTimeout(() => setPhase("lock"), 180000); };
