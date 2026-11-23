@@ -6322,7 +6322,7 @@ function MinecraftLauncherSurface() {
       {loading && mode !== "catalog" ? <div className="mc-loading">{t("minecraft.loading")}</div> : null}
       {mode === "catalog" && catalogGame
         ? <GameFrame game={catalogGame} onLoad={() => setLoading(false)} />
-        : <iframe className="browser-frame" src={src} key={`${mode}-${serverAddr ?? catalogGame?.id ?? "default"}`} title={title} allow="autoplay; clipboard-write; camera; microphone; fullscreen; cross-origin-isolated" onLoad={() => setLoading(false)} />}
+        : <iframe className="browser-frame" src={src} key={`${mode}-${serverAddr ?? catalogGame?.id ?? "default"}`} title={title} allow="autoplay; clipboard-write; camera; microphone; fullscreen; gamepad; cross-origin-isolated" onLoad={() => setLoading(false)} />}
     </div>;
   }
 
