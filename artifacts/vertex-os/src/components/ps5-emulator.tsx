@@ -7,10 +7,10 @@ import { getMediaSession, publishNowPlaying, subscribeMediaSession } from "../no
 import { MessagesSurface } from "../messages";
 import { BrowserSurface, ProxyUrlFrame } from "./browser-app";
 import { VerAiSurface } from "./ver-ai";
+import { GallerySurface } from "./gallery-app";
 import { getAudioSettings, sfx, subscribeAudio, unlockAudio, setAudioSettings, setMusicEnabled, bindAudioVisibility, stopMusic, type AudioSettings } from "../ps5-audio";
 
 type Tab = "home" | "media";
-type DeviceMode = "pc" | "controller";
 type MediaApp = {
   id: string;
   name: string;
@@ -31,11 +31,13 @@ export type Ps5EmbeddedSurfaces = {
 };
 
 const MEDIA_APPS: MediaApp[] = [
-  { id: "browser", name: "Browser", publisher: "McCrack OS", kind: "app", icon: `${import.meta.env.BASE_URL}images/browser-icon.svg`, cover: `${import.meta.env.BASE_URL}images/browser-icon.svg`, description: "Browse the web with the built-in McCrack browser." },
-  { id: "spotify", name: "Spotify", publisher: "Spicetify", kind: "app", icon: `${import.meta.env.BASE_URL}images/spicetify.ico`, cover: `${import.meta.env.BASE_URL}images/spicetify.ico`, description: "Your music and playlists, running inside the console." },
-  { id: "vertube", name: "YouTube", publisher: "McCrack OS", kind: "app", icon: `${import.meta.env.BASE_URL}images/vertube.svg`, cover: `${import.meta.env.BASE_URL}images/vertube.svg`, description: "YouTube, streaming from inside the console." },
-  { id: "messages", name: "Messages", publisher: "McCrack OS", kind: "app", icon: `${import.meta.env.BASE_URL}images/messages-icon.webp`, cover: `${import.meta.env.BASE_URL}images/messages-icon.webp`, description: "Your Messages chats, already signed in." },
-  { id: "verai", name: "McCrack AI", publisher: "McCrack OS", kind: "app", icon: `${import.meta.env.BASE_URL}images/ver-ai.ico`, cover: `${import.meta.env.BASE_URL}images/ver-ai.ico`, description: "A free AI assistant that lives on your console. No key, no sign-in, daily limit." },
+  { id: "browser", name: "Browser", publisher: "McCrackOS", kind: "app", icon: `${import.meta.env.BASE_URL}images/browser-icon.svg`, cover: `${import.meta.env.BASE_URL}images/browser-icon.svg`, description: "Browse the web with the built-in McCrack Browser." },
+  { id: "spotify", name: "McCrackify", publisher: "McCrack", kind: "app", icon: `${import.meta.env.BASE_URL}images/spicetify.ico`, cover: `${import.meta.env.BASE_URL}images/spicetify.ico`, description: "Music, playlists and now playing from McCrackify." },
+  { id: "vertube", name: "McCrackTube", publisher: "McCrack", kind: "app", icon: `${import.meta.env.BASE_URL}images/vertube.svg`, cover: `${import.meta.env.BASE_URL}images/vertube.svg`, description: "Watch videos and Shorts with McCrackTube." },
+  { id: "movies", name: "McCrackFlix", publisher: "McCrack", kind: "app", icon: `${import.meta.env.BASE_URL}assets/favicon.png`, cover: `${import.meta.env.BASE_URL}assets/favicon.png`, description: "Browse movies and TV shows with McCrackFlix." },
+  { id: "messages", name: "McCrack Chat", publisher: "McCrack", kind: "app", icon: `${import.meta.env.BASE_URL}images/messages-icon.webp`, cover: `${import.meta.env.BASE_URL}images/messages-icon.webp`, description: "Rooms, friends and private messages." },
+  { id: "gallery", name: "Gallery", publisher: "McCrack", kind: "app", icon: "https://cdn.simpleicons.org/googlephotos/4285F4", cover: "https://cdn.simpleicons.org/googlephotos/4285F4", description: "View, edit and download your photos and videos." },
+  { id: "verai", name: "McCrack AI", publisher: "McCrack", kind: "app", icon: `${import.meta.env.BASE_URL}images/ver-ai.ico`, cover: `${import.meta.env.BASE_URL}images/ver-ai.ico`, description: "Your AI assistant inside the console." },
 ];
 
 const OWNED_KEY = "vertex-ps5-owned";
@@ -261,9 +263,8 @@ function NowPlayingCard() {
 }
 
 export function Ps5EmulatorSurface({ surfaces }: { surfaces?: Ps5EmbeddedSurfaces } = {}) {
-  const [stage, setStage] = useState<"boot" | "device" | "account" | "ready">("boot");
+  const [stage, setStage] = useState<"boot" | "account" | "ready">("boot");
   const [tab, setTab] = useState<Tab>("home");
-  const [deviceMode, setDeviceMode] = useState<DeviceMode>("pc");
   const [account, setAccount] = useState<Ps5Account | null>(() => readAccount());
   const [owned, setOwned] = useState<string[]>(() => readSet(OWNED_KEY, []));
   const [recent, setRecent] = useState<string[]>(() => readSet(RECENT_KEY, []));
@@ -622,31 +623,12 @@ export function Ps5EmulatorSurface({ surfaces }: { surfaces?: Ps5EmbeddedSurface
   if (stage === "boot") {
     return (
       <div className="ps5-surface">
-        <Ps5BootSurface account={account} onDone={() => setStage("device")} />
-      </div>
-    );
-  }
-
-  if (stage === "device") {
-    return (
-      <div className="ps5-surface">
-        <Ps5DeviceSurface
-          onSelect={(mode) => {
-            setDeviceMode(mode);
-            if (account?.cloudUserId || readAccount() || account) {
-              setStage("ready");
-              return;
-            }
-            const linked = accountFromMessages();
-            if (linked) {
-              saveAccount(linked);
-              setAccount(linked);
-              setStage("ready");
-              return;
-            }
-            setStage("account");
-          }}
-        />
+        <Ps5BootSurface account={account} onDone={() => {
+          if (account?.cloudUserId || account) { setStage("ready"); return; }
+          const linked = accountFromMessages();
+          if (linked) { saveAccount(linked); setAccount(linked); setStage("ready"); return; }
+          setStage("account");
+        }} />
       </div>
     );
   }
@@ -767,7 +749,7 @@ export function Ps5EmulatorSurface({ surfaces }: { surfaces?: Ps5EmbeddedSurface
             </button>
           )}
           <button type="button" className="control-trigger" aria-label="Open Control Center" onClick={() => { sfx("controlOpen"); setControlOpen(true); }}>
-            <span className="ps-mark" style={{ filter: "none", color: "#438cff", fontWeight: 700, fontSize: 13 }}>VS</span>
+            <img className="ps-mark" src={`${import.meta.env.BASE_URL}assets/favicon.png`} alt="McCrack" />
             <span>Control Center</span><kbd>Home</kbd>
           </button>
           <NowPlayingCard />
@@ -776,7 +758,6 @@ export function Ps5EmulatorSurface({ surfaces }: { surfaces?: Ps5EmbeddedSurface
         {settingsOpen ? (
           <Ps5SettingsPanel
             account={account}
-            deviceMode={deviceMode}
             installedCount={collected.length}
             recentCount={recentGames.length}
             sound={sound}
@@ -787,7 +768,6 @@ export function Ps5EmulatorSurface({ surfaces }: { surfaces?: Ps5EmbeddedSurface
             onTab={setSettingsTab}
             onSound={setAudioSettings}
             onTheme={setTheme}
-            onDeviceMode={setDeviceMode}
             onUpdate={updateAccount}
             onPower={() => { sfx("controlClose"); setSettingsOpen(false); setPowerMenu(true); }}
             onClose={() => { sfx("controlClose"); setSettingsOpen(false); }}
@@ -1139,7 +1119,7 @@ function WelcomePanel({ account, onClose }: { account: Ps5Account | null; onClos
             <button type="button" className="icon-button close-button" onClick={onClose} aria-label="Close"><X size={24} /></button>
           </div>
           <div className="console-introduction">
-            <span className="intro-mark" style={{ filter: "none", color: "#438cff", fontWeight: 700, display: "grid", placeItems: "center" }}>VS</span>
+            <img className="intro-mark" src={`${import.meta.env.BASE_URL}assets/favicon.png`} alt="McCrack" />
             <p className="intro-eyebrow">YOUR GAMES. YOUR MEDIA. ONE HOME.</p>
             <h3>Welcome to your console{account ? `, ${account.displayName}` : ""}.</h3>
             <p className="intro-summary">McCrack Station brings your HTML5 games and media together. Browse the carousel with the arrow keys, open the Game Library to install more, and press Home for the Control Center.</p>
@@ -1235,7 +1215,7 @@ function VsGamePlayer({ game, sessionSec, sound, onVolume, onMute, onClose }: {
         </div>
         <div className="game-dock-zone game-home-zone">
           <button type="button" className="ps-home-button" onClick={onClose} aria-label="Go to console home">
-            <span className="game-dock-icon ps-home-mark">VS</span>
+            <img className="game-dock-icon ps-home-mark" src={`${import.meta.env.BASE_URL}assets/favicon.png`} alt="McCrack" />
             <span style={{ fontSize: 12 }}>Home</span>
           </button>
         </div>
@@ -1303,7 +1283,7 @@ function Ps5BootSurface({ account, onDone }: { account: Ps5Account | null; onDon
       <div className="ps5-boot-orbit ps5-boot-orbit-one" aria-hidden="true" />
       <div className="ps5-boot-orbit ps5-boot-orbit-two" aria-hidden="true" />
       <div className="ps5-boot-inner">
-        <div className="ps5-boot-logo" aria-hidden="true"><span>VS</span></div>
+        <div className="ps5-boot-logo" aria-hidden="true"><img src={`${import.meta.env.BASE_URL}assets/favicon.png`} alt="McCrack" /></div>
         <div className="ps5-boot-returning">
           <span>{account ? "Welcome back" : "Welcome to McCrack Station"}</span>
           {account ? <strong>{account.displayName}</strong> : <strong>McCrack Player</strong>}
@@ -1313,30 +1293,6 @@ function Ps5BootSurface({ account, onDone }: { account: Ps5Account | null; onDon
         <div className="ps5-boot-caption">Your games. Your station.</div>
       </div>
       <button type="button" className="ps5-boot-skip" onClick={skipIntro}>Skip intro <ChevronRight size={14} /></button>
-    </div>
-  );
-}
-
-function Ps5DeviceSurface({ onSelect }: { onSelect: (mode: DeviceMode) => void }) {
-  return (
-    <div className="ps5-device-screen">
-      <div className="ps5-device-card">
-        <span className="ps5-home-kicker">QUICK SETUP</span>
-        <h1>What are you playing on?</h1>
-        <p>Choose how you want to control games this session.</p>
-        <div className="ps5-device-options">
-          <button type="button" onClick={() => onSelect("pc")}>
-            <span className="ps5-device-icon"><PanelsTopLeft size={28} /></span>
-            <strong>PC / Normal</strong>
-            <small>Keyboard and mouse</small>
-          </button>
-          <button type="button" onClick={() => onSelect("controller")}>
-            <span className="ps5-device-icon"><Gamepad2 size={29} /></span>
-            <strong>Controller</strong>
-            <small>Use a connected gamepad</small>
-          </button>
-        </div>
-      </div>
     </div>
   );
 }
@@ -1630,6 +1586,12 @@ function MediaAppStage({ app, surfaces, onExit }: { app: MediaApp; surfaces?: Ps
       </div>
     );
   }
+  if (app.id === "movies") {
+    return <div className="ps5-media-app"><iframe src={`${import.meta.env.BASE_URL}apps/movies/index.html`} title="McCrackFlix" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowFullScreen /></div>;
+  }
+  if (app.id === "gallery") {
+    return <div className="ps5-media-app"><GallerySurface /></div>;
+  }
   if (app.id === "verai") {
     return (
       <div className="ps5-media-app">
@@ -1651,7 +1613,6 @@ function MediaAppMissing({ name }: { name: string }) {
 
 function Ps5SettingsPanel({
   account,
-  deviceMode,
   installedCount,
   recentCount,
   sound,
@@ -1662,13 +1623,11 @@ function Ps5SettingsPanel({
   onTab,
   onSound,
   onTheme,
-  onDeviceMode,
   onUpdate,
   onPower,
   onClose,
 }: {
   account: Ps5Account | null;
-  deviceMode: DeviceMode;
   installedCount: number;
   recentCount: number;
   sound: AudioSettings;
@@ -1679,7 +1638,6 @@ function Ps5SettingsPanel({
   onTab: (next: "profile" | "sound" | "theme" | "library") => void;
   onSound: (patch: Partial<AudioSettings>) => void;
   onTheme: (theme: string) => void;
-  onDeviceMode: (mode: DeviceMode) => void;
   onUpdate: (next: Ps5Account) => Promise<void>;
   onPower: () => void;
   onClose: () => void;
@@ -1829,16 +1787,7 @@ function Ps5SettingsPanel({
                     <button key={option} type="button" className={hue === option && !avatar ? "on" : ""} style={avatarStyle(option)} onClick={() => setHue(option)} aria-label={`Avatar colour ${option}`} aria-pressed={hue === option && !avatar} />
                   ))}
                 </div>
-                <div className="ps5-settings-modes">
-                  <label className="list-row">
-                    <Monitor size={22} />
-                    <span>Controller mode</span>
-                    <div className="mode-choice">
-                      <button type="button" className={deviceMode === "pc" ? "on" : ""} onClick={() => onDeviceMode("pc")}>PC / Normal</button>
-                      <button type="button" className={deviceMode === "controller" ? "on" : ""} onClick={() => onDeviceMode("controller")}>Controller</button>
-                    </div>
-                  </label>
-                </div>
+                <p className="ps5-settings-static">Controller support is enabled automatically when a compatible gamepad is connected. Keyboard and mouse remain available as well.</p>
                 {account?.dob ? (
                   <label className="form-field">
                     <span>Date of birth</span>
