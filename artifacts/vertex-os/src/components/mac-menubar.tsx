@@ -29,7 +29,6 @@ export type MacMenuBarProps = {
   activeWindowId: string | null;
   unseen: number;
   showIcons: boolean;
-  onPickLanguage: (lang: Lang) => void;
   onOpenApp: (id: string) => void;
   onFocusApp: (id: string) => void;
   onMinimizeApp: (id: string) => void;
@@ -125,6 +124,8 @@ export function MacMenuBar(props: MacMenuBarProps) {
   const battery = useBattery();
   const [open, setOpen] = useState<string | null>(null);
   const [panelX, setPanelX] = useState<number | null>(null);
+  const [volume, setVolume] = useState(() => { try { const saved = JSON.parse(localStorage.getItem("vertex-sys-audio") || "{}"); return Math.max(0, Math.min(100, Number(saved.vol ?? 40))); } catch { return 40; } });
+  useEffect(() => { const sync = (event: Event) => { const detail = (event as CustomEvent<{ vol?: number }>).detail; if (typeof detail?.vol === "number") setVolume(Math.max(0, Math.min(100, detail.vol))); }; window.addEventListener("vertex-sys-audio-change", sync); return () => window.removeEventListener("vertex-sys-audio-change", sync); }, []);
   const barRef = useRef<HTMLDivElement | null>(null);
   const leftRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const loc = useMemo(() => localeOf(lang), [lang]);
@@ -308,7 +309,7 @@ export function MacMenuBar(props: MacMenuBarProps) {
         {open === "control" ? <div className="mac-menu mac-menu--right mac-menu--status" role="dialog" aria-label="Control Centre">
           <div className="mac-menu-head"><ControlGlyph /><strong>Control Centre</strong></div>
           <button type="button" className="mac-menu-row" onClick={() => setOpen("battery")}><span className="mac-menu-check"><Battery size={14} /></span><span className="mac-menu-text"><span>Battery</span></span><span className="mac-menu-hint">{battery.supported ? Math.round(battery.level * 100) + "%" : "Unavailable"}</span></button>
-          <div className="mac-menu-volume"><span><Volume2 size={14}/> Volume</span><input type="range" min="0" max="100" defaultValue="40" aria-label="System volume" onChange={(event) => { try { const current = JSON.parse(localStorage.getItem("vertex-sys-audio") || "{}"); const next = { on: Boolean(current.on), vol: Number(event.target.value), muted: false, output: current.output === "headphones" ? "headphones" : "speakers" }; localStorage.setItem("vertex-sys-audio", JSON.stringify(next)); window.dispatchEvent(new CustomEvent("vertex-sys-audio-change", { detail: next })); } catch {} }} /></div>
+          <div className="mac-menu-volume"><span><Volume2 size={14}/> Volume</span><input type="range" min="0" max="100" value={volume} aria-label="System volume" onChange={(event) => { const vol = Number(event.target.value); setVolume(vol); try { const current = JSON.parse(localStorage.getItem("vertex-sys-audio") || "{}"); const next = { on: Boolean(current.on), vol, muted: vol === 0, output: current.output === "headphones" ? "headphones" : "speakers" }; localStorage.setItem("vertex-sys-audio", JSON.stringify(next)); window.dispatchEvent(new CustomEvent("vertex-sys-audio-change", { detail: next })); } catch {} }} /></div>
           <button type="button" className="mac-menu-row" onClick={run(onSettings)}><span className="mac-menu-check"><Settings2 size={14} /></span><span className="mac-menu-text"><span>System Settings…</span></span></button>
           <button type="button" className="mac-menu-row" onClick={run(onNotifications)}><span className="mac-menu-check"><Sparkles size={14} /></span><span className="mac-menu-text"><span>Notifications</span></span>{unseen > 0 ? <span className="mac-menu-hint">{unseen} new</span> : null}</button>
         </div> : null}
