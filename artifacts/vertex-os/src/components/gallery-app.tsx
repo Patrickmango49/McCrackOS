@@ -171,7 +171,7 @@ export function GallerySurface() {
 
   return <div className="mc-gallery">
     <style>{`
-      .mc-gallery{height:100%;min-height:0;display:flex;flex-direction:column;background:#090d14;color:#edf5ff;font:13px Inter,system-ui,sans-serif;overflow:hidden}
+      .mc-gallery{position:relative;height:100%;min-height:0;display:flex;flex-direction:column;background:#090d14;color:#edf5ff;font:13px Inter,system-ui,sans-serif;overflow:hidden}
       .mcg-head{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid #ffffff12;background:#101722}
       .mcg-mark{width:40px;height:40px;border-radius:14px;background:linear-gradient(145deg,#2dd9ec,#1682c7);display:grid;place-items:center;color:#03131c}
       .mcg-head h2{margin:0;font-size:19px;letter-spacing:-.5px}.mcg-head p{margin:3px 0 0;color:#8fa4b9;font-size:11px}
