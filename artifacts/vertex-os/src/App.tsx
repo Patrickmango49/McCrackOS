@@ -2015,7 +2015,7 @@ onSessionClose: (peerCode) => {
 
   function finishSetup(skipCustomization = false) {
     const account = pendingSetupAccount;
-    if (!account) { setSetupStep("account"); return; }
+    if (!account) { setSetupStep("choice"); return; }
     const selectedWallpaper = skipCustomization ? SEASON_WALLPAPER : setupWallpaper;
     setWallpaper(selectedWallpaper);
     setLockWallpaper(selectedWallpaper);
@@ -2032,7 +2032,7 @@ onSessionClose: (peerCode) => {
     setPinInput("");
     setPinError(false);
     setPendingSetupAccount(null);
-    setSetupStep("account");
+    setSetupStep("choice");
     signInAs(account);
   }
 
@@ -2550,7 +2550,7 @@ onSessionClose: (peerCode) => {
                       <label><span>Confirm password</span><input required minLength={8} type="password" value={profileCloudPass2} onChange={(event) => { setProfileCloudPass2(event.target.value); setProfileErr(""); }} placeholder="Re-enter your password" autoComplete="new-password" /></label>
                       <div className="profile-cloud-login">
                         <span>Already have a McCrack account?</span>
-                        <button type="button" className="signin-back profile-login-cta" onClick={() => { setProfileErr(""); setLoginErr(""); setLoginName(""); setLoginPass(""); setProfileLocalMode(false); setSetupStep("account"); setPendingSetupAccount(null); setPhase("picker"); }}>I already have an account · Log in</button>
+                        <button type="button" className="signin-back profile-login-cta" onClick={() => { setProfileErr(""); setLoginErr(""); setLoginName(""); setLoginPass(""); setProfileLocalMode(false); setSetupStep("choice"); setPendingSetupAccount(null); setPhase("picker"); }}>I already have an account · Log in</button>
                       </div>
                     </div>
                   )}
@@ -2643,7 +2643,7 @@ onSessionClose: (peerCode) => {
             </div>
             {loginErr ? <span className="lock-error">{loginErr}</span> : null}
           </form>
-          <button className="account-add" onClick={() => { setProfileName(""); setProfilePass(""); setProfilePass2(""); setProfileAvatar(""); setProfileEmail(""); setProfileUsername(""); setProfileCloudPass(""); setProfileCloudPass2(""); setProfileAskPass(false); setProfileErr(""); setSetupStep("account"); setPendingSetupAccount(null); setPhase("profile"); }}><Plus size={15} /> Create new account</button>
+          <button className="account-add" onClick={() => { setProfileName(""); setProfilePass(""); setProfilePass2(""); setProfileAvatar(""); setProfileEmail(""); setProfileUsername(""); setProfileCloudPass(""); setProfileCloudPass2(""); setProfileAskPass(false); setProfileErr(""); setSetupStep("choice"); setPendingSetupAccount(null); setPhase("profile"); }}><Plus size={15} /> Create new account</button>
           <div className="account-chooser-hint">Choose an account or create a new one to continue.</div>
         </div>
       </section>
