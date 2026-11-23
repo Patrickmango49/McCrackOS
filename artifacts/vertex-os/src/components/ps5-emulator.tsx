@@ -1443,6 +1443,8 @@ function embeddedGameAsset(src: string): string | null {
 
 const GAME_URL_SHIM = `(function(){var B={genizy:1,"web-ports":1,waycrosspublicmedia:1,"gn-math":1,Stinkalistic:1,"67-Factory":1,slqntdevss:1,aukak:1,Pixelsuft:1,NotRexed:1,WhoIsEv:1,R74nCom:1,New25Said:1,faralong:1};function fix(u){if(typeof u!="string")return u;var m=/^(https?:)\\/\\/(?:cdn|fastly|gcore|testingcf)\\.jsdelivr\\.net\\/gh\\/([^\\/@]+)\\/([^\\/@]+)(?:@([^\\/]+))?(\\/[^?#]*)?(\\?[^#]*)?/i.exec(u);if(m&&B[m[2]]){return "https://raw.githack.com/"+m[2]+"/"+m[3]+"/"+(m[4]||"HEAD")+(m[5]||"")+(m[6]||"");}return u;}window.__fix=fix;try{var of=window.fetch;if(of){window.fetch=function(i,init){if(typeof i==="string")i=fix(i);return of.call(this,i,init);};}}catch(e){}try{var xo=XMLHttpRequest.prototype.open;XMLHttpRequest.prototype.open=function(){var a=[].slice.call(arguments);if(a.length>1)a[1]=fix(a[1]);return xo.apply(this,a);};}catch(e){}function sp2(proto,prop){try{var d=Object.getOwnPropertyDescriptor(proto,prop);if(!d||!d.set||!d.get)return;Object.defineProperty(proto,prop,{configurable:true,enumerable:d.enumerable,get:d.get,set:function(v){return d.set.call(this,fix(v));}});}catch(e){}}sp2(HTMLScriptElement.prototype,"src");sp2(HTMLImageElement.prototype,"src");sp2(HTMLLinkElement.prototype,"href");sp2(HTMLIFrameElement.prototype,"src");sp2(HTMLSourceElement.prototype,"src");sp2(HTMLVideoElement.prototype,"src");sp2(HTMLAudioElement.prototype,"src");})();`;
 
+const GAME_AD_CLEANER = "(function(){var bad=/doubleclick|googlesyndication|googleadservices|adservice|popads|adsterra|taboola|outbrain|criteo|adnxs|adsrvr|exoclick|trafficjunky/i;var names=/(^|[-_\\s])(ad|ads|advert|advertisement|sponsor|sponsored)([-_\\s]|$)/i;function clean(root){try{root.querySelectorAll(\"iframe[src],ins.adsbygoogle,.adsbygoogle,[data-ad-slot],[data-ad-unit],[data-ad],[aria-label*=advertisement i]\").forEach(function(el){var src=el.getAttribute(\"src\")||\"\";var id=el.id||\"\";var cls=typeof el.className===\"string\"?el.className:\"\";if(bad.test(src)||names.test(id)||names.test(cls)||el.matches(\"ins.adsbygoogle,.adsbygoogle,[data-ad-slot],[data-ad-unit],[data-ad]\")){var box=el.closest(\"[class*=ad-container],[id*=ad-container],[class*=ad-wrapper],[id*=ad-wrapper],[class*=ad-overlay],[id*=ad-overlay]\");(box||el).remove();}});root.querySelectorAll(\"[class*=ad-container],[id*=ad-container],[class*=ad-wrapper],[id*=ad-wrapper],[class*=ad-overlay],[id*=ad-overlay],[class*=advertisement],[id*=advertisement],[class*=sponsored],[id*=sponsored]\").forEach(function(el){el.remove();});}catch(e){}}function start(){clean(document);new MutationObserver(function(records){records.forEach(function(r){r.addedNodes.forEach(function(n){if(n.nodeType===1){clean(n);if(n.querySelectorAll)clean(n);}});});}).observe(document.documentElement,{childList:true,subtree:true});}if(document.documentElement)start();else document.addEventListener(\"DOMContentLoaded\",start,{once:true});})();";
+
 export function GameFrame({ game, onLoad }: { game: Ps5Game; onLoad?: () => void }) {
   const [state, setState] = useState<"loading" | "error" | "ready">("loading");
   const [src, setSrc] = useState<string | null>(null);
@@ -1482,7 +1484,7 @@ export function GameFrame({ game, onLoad }: { game: Ps5Game; onLoad?: () => void
             html = `<head><base href="${baseUrl}" /></head>` + html;
           }
         }
-        const shimTag = `<script>${GAME_URL_SHIM}</script>`;
+        const shimTag = `<script>${GAME_URL_SHIM}${GAME_AD_CLEANER}</script>`;
         if (/<head[^>]*>/i.test(html)) {
           html = html.replace(/<head[^>]*>/i, (m) => m + shimTag);
         } else {
@@ -1521,16 +1523,16 @@ export function GameFrame({ game, onLoad }: { game: Ps5Game; onLoad?: () => void
 
   return (
     <div className="ps5-game-wrap">
-      {!src ? (
+      {!src && !direct ? (
         <div className="ps5-game-msg">
           <div className="ps5-spinner" />
           <div className="ps5-game-msg-title">Booting {game.name}...</div>
         </div>
       ) : null}
-      {src || direct ? (
+      {direct ? <ProxyUrlFrame url={game.play} title={game.name} blockAds /> : src ? (
         <iframe
           className="ps5-game-frame"
-          src={direct ? game.play : src ?? undefined}
+          src={src}
           title={game.name}
           allow="autoplay; clipboard-write; camera; microphone; fullscreen; gamepad; encrypted-media"
           allowFullScreen
