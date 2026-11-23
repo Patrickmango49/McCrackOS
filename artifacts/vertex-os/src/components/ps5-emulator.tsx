@@ -1481,6 +1481,7 @@ export function GameFrame({ game, onLoad }: { game: Ps5Game; onLoad?: () => void
   const [state, setState] = useState<"loading" | "error" | "ready">("loading");
   const [src, setSrc] = useState<string | null>(null);
   const [direct, setDirect] = useState(false);
+  const [directFallback, setDirectFallback] = useState(false);
   const [attempt, setAttempt] = useState(0);
 
   const embeddedSrc = embeddedGameAsset(game.play);
@@ -1489,6 +1490,7 @@ export function GameFrame({ game, onLoad }: { game: Ps5Game; onLoad?: () => void
     if (!embeddedSrc && !canInlineGame(game.play)) {
       setState("ready");
       setDirect(true);
+      setDirectFallback(false);
       setSrc(null);
       return;
     }
@@ -1561,7 +1563,7 @@ export function GameFrame({ game, onLoad }: { game: Ps5Game; onLoad?: () => void
           <div className="ps5-game-msg-title">Booting {game.name}...</div>
         </div>
       ) : null}
-      {direct ? <ProxyUrlFrame url={game.play} title={game.name} blockAds /> : src ? (
+      {direct ? (directFallback ? <iframe className="ps5-game-frame" src={game.play} title={game.name} allow="autoplay; clipboard-write; camera; microphone; fullscreen; gamepad; encrypted-media" allowFullScreen referrerPolicy="no-referrer" onLoad={() => onLoad?.()} /> : <ProxyUrlFrame url={game.play} title={game.name} blockAds onError={() => setDirectFallback(true)} />) : src ? (
         <iframe
           className="ps5-game-frame"
           src={src}
