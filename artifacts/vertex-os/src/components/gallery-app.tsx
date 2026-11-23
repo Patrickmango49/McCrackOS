@@ -193,7 +193,7 @@ export function GallerySurface() {
         <div className="mcg-preview">{selected.kind==="photo" ? <img src={selected.url} alt={selected.name}/> : <video src={selected.url} controls playsInline/>}</div>
         <div className="mcg-viewfoot"><span>{selected.kind==="photo"?"Photo":"Video"} · {formatSize(selected.size)} · {new Date(selected.createdAt).toLocaleDateString()}</span><div className="mcg-actions">
           <button className="mcg-btn" onClick={()=>void toggleFavorite(selected)}><Heart size={15} fill={selected.favorite?"currentColor":"none"}/></button>
-          {selected.kind==="photo" && <button className="mcg-btn" onClick={()=>openEditor(selected)}><Edit3 size={15}/> Edit</button>}
+          <button className="mcg-btn" onClick={()=>openEditor(selected)}><Edit3 size={15}/> Edit</button>
           <button className="mcg-btn" onClick={()=>download(selected)}><Download size={15}/> Download</button>
           <button className="mcg-btn" onClick={()=>void remove(selected)}><Trash2 size={15}/></button>
         </div></div>
@@ -204,12 +204,13 @@ export function GallerySurface() {
       </button>)}</div> : <div className="mcg-empty"><ImagePlus size={34}/><strong>{items.length?"No matching items":"Your gallery is empty"}</strong><span>Import photos and videos to keep them together here.</span><button className="mcg-btn primary" onClick={()=>inputRef.current?.click()}><Upload size={15}/> Import files</button></div>}
     </div>
     {editOpen && selected && <div className="mcg-editor">
-      <div className="mcg-edit-preview"><img src={selected.url} alt="Edit preview" style={{transform:`rotate(${rotation}deg)`,filter:imageFilter==="vivid"?"saturate(1.45) contrast(1.08)":imageFilter==="mono"?"grayscale(1)":imageFilter==="warm"?"sepia(.22) saturate(1.15)":"none"}}/></div>
-      <div className="mcg-edit-panel"><div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><h3>Edit photo</h3><button className="mcg-btn" onClick={()=>setEditOpen(false)}><X size={15}/></button></div>
+      <div className="mcg-edit-preview">{selected.kind==="photo" ? <img src={selected.url} alt="Edit preview" style={{transform:`rotate(${rotation}deg)`,filter:imageFilter==="vivid"?"saturate(1.45) contrast(1.08)":imageFilter==="mono"?"grayscale(1)":imageFilter==="warm"?"sepia(.22) saturate(1.15)":"none"}}/> : <video src={selected.url} controls playsInline style={{maxWidth:"100%",maxHeight:"100%"}}/>}</div>
+      <div className="mcg-edit-panel"><div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><h3>{selected.kind==="photo"?"Edit photo":"Edit video details"}</h3><button className="mcg-btn" onClick={()=>setEditOpen(false)}><X size={15}/></button></div>
         <label>File name<input value={editName} onChange={(e)=>setEditName(e.target.value)}/></label>
-        <label>Filter<select value={imageFilter} onChange={(e)=>setImageFilter(e.target.value as typeof imageFilter)}><option value="none">Original</option><option value="vivid">Vivid</option><option value="mono">Mono</option><option value="warm">Warm</option></select></label>
+        {selected.kind==="photo" && <><label>Filter<select value={imageFilter} onChange={(e)=>setImageFilter(e.target.value as typeof imageFilter)}><option value="none">Original</option><option value="vivid">Vivid</option><option value="mono">Mono</option><option value="warm">Warm</option></select></label>
         <div className="mcg-edit-actions"><button className="mcg-btn" onClick={()=>setRotation((v)=>v-90)}><RotateCcw size={15}/> Rotate left</button><button className="mcg-btn" onClick={()=>setRotation((v)=>v+90)}><RotateCw size={15}/> Rotate right</button></div>
-        <p style={{color:"#8295aa",fontSize:11,lineHeight:1.5}}>Edits create a new saved version in your local Gallery. Your original is replaced only when you save.</p>
+        <p style={{color:"#8295aa",fontSize:11,lineHeight:1.5}}>Photo edits are rendered and saved as a new version in your local Gallery.</p></>}
+        {selected.kind==="video" && <p style={{color:"#8295aa",fontSize:11,lineHeight:1.5}}>You can rename the video here, preview it, and download the original video file. Video trimming and effects are not available in this version.</p>}
         <button className="mcg-btn primary" onClick={()=>void saveEdits()}><Check size={15}/> Save changes</button>
         <button className="mcg-btn" onClick={()=>{setRotation(0);setImageFilter("none");}}>Reset edits</button>
       </div>
