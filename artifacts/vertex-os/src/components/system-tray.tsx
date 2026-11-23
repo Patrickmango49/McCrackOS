@@ -167,7 +167,6 @@ export function SystemTray({ now, lang, notifications, unseen, onOpenClock, onDi
   const dateLong = fmtDateLong.format(now);
   const weekdaySamples = [0, 1, 2, 3, 4, 5, 6].map((i) => new Date(2026, 0, 4 + i));
 
-  const audible = sys.on && sys.vol > 0 && !sys.muted;
 
   const batPct = Math.round(battery.level * 100);
   const batLow = !battery.charging && batPct <= 20;
