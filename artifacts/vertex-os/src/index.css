@@ -8117,3 +8117,6 @@ html:not([data-style="macos"]) .desktop-icon .app-icon-img,
 html:not([data-style="macos"]) .pinned-item .app-icon-img { border-radius: 19px; }
 .profile-wizard-step-choice { grid-template-columns: minmax(0, 1fr); }
 .profile-account-choice { width:100%; max-width:520px; margin:0 auto; }
+
+.ps5-boot-logo img { width:58px; height:58px; object-fit:contain; border-radius:14px; display:block; }
+.vs-console img.game-dock-icon { object-fit:contain; }
