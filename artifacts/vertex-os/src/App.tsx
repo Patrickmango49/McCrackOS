@@ -2489,7 +2489,15 @@ onSessionClose: (peerCode) => {
           </div>
 
           <div className={`profile-setup-grid profile-wizard-step-${setupStep}`}>
-            {setupStep === "choice" ? (\n              <section className="profile-setup-panel profile-identity-panel profile-account-choice">\n                <div className="profile-setup-section-title">Choose how to continue</div>\n                <p>This is your official Universal McCrack account—not just a profile saved on this device. Use the same account on other devices or after signing out to restore supported profile details, customizations, and progress.</p>\n                <button type="button" className="profile-create" onClick={() => { setLoginErr(""); setLoginName(""); setLoginPass(""); setPhase("picker"); }}>I already have an account · Log in</button>\n                <button type="button" className="profile-create profile-choice-create" onClick={() => { setProfileLocalMode(false); setProfileAskPass(false); setProfileErr(""); setSetupStep("account"); }}>Create New McCrack Account</button>\n                <p className="profile-optional-note">Some individual apps may keep data locally if they do not support cloud sync.</p>\n              </section>\n            ) : setupStep === "account" ? (
+            {setupStep === "choice" ? (
+              <section className="profile-setup-panel profile-identity-panel profile-account-choice">
+                <div className="profile-setup-section-title">Choose how to continue</div>
+                <p>This is your official Universal McCrack account—not just a profile saved on this device. Use the same account on other devices or after signing out to restore supported profile details, customizations, and progress.</p>
+                <button type="button" className="profile-create" onClick={() => { setLoginErr(""); setLoginName(""); setLoginPass(""); setPhase("picker"); }}>I already have an account · Log in</button>
+                <button type="button" className="profile-create profile-choice-create" onClick={() => { setProfileLocalMode(false); setProfileAskPass(false); setProfileErr(""); setSetupStep("account"); }}>Create New McCrack Account</button>
+                <p className="profile-optional-note">Some individual apps may keep data locally if they do not support cloud sync.</p>
+              </section>
+            ) : setupStep === "account" ? (
               <section className="profile-setup-panel profile-identity-panel">
                 <div className="profile-setup-section-title">Your profile</div>
                 <div className="profile-avatar-row">
