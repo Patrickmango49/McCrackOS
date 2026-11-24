@@ -167,7 +167,6 @@ export function SystemTray({ now, lang, notifications, unseen, onOpenClock, onDi
   const dateLong = fmtDateLong.format(now);
   const weekdaySamples = [0, 1, 2, 3, 4, 5, 6].map((i) => new Date(2026, 0, 4 + i));
 
-  const audible = sys.on && sys.vol > 0 && !sys.muted;
 
   const batPct = Math.round(battery.level * 100);
   const batLow = !battery.charging && batPct <= 20;
@@ -178,12 +177,6 @@ export function SystemTray({ now, lang, notifications, unseen, onOpenClock, onDi
     <>
       {panel && <div className="tray-scrim" onClick={() => setPanel(null)} />}
       <div className="system-tray" onClick={(event) => event.stopPropagation()}>
-        <div className={`tray-seg tray-seg-sound${panel === "audio" ? " is-open" : ""}`} onClick={() => toggle("audio")} role="button" tabIndex={0} aria-label="System audio">
-          {sys.muted || sys.vol === 0 ? <VolumeX size={17} /> : <Volume2 size={17} />}
-          <span className={`tray-eq${audible ? " playing" : ""}`} aria-hidden="true">
-            <i /><i /><i /><i /><i />
-          </span>
-        </div>
         {battery.supported && (
           <div className={`tray-seg tray-seg-battery${panel === "battery" ? " is-open" : ""}`} onClick={() => toggle("battery")} role="button" tabIndex={0} aria-label="Battery status">
             <BatIcon size={17} />

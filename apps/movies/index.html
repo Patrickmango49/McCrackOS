@@ -249,6 +249,7 @@
   @media(max-width:760px){.alpha-heading{margin-left:18px;margin-right:18px}.alpha-grid{padding:8px 18px;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:11px}.drive-library-head{padding:20px 18px 8px}.drive-grid{padding:12px 18px 24px;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:11px}.drive-library-count{margin-left:18px}.drive-tab{gap:4px}.drive-tab small{font-size:8px;padding:2px 5px}.drive-player-bar{gap:8px;padding:9px}}
   @media(hover:none){.drive-play-mark{opacity:1;transform:none}}
 
+.refresh-source-btn{width:38px;height:38px;flex:0 0 auto;display:grid;place-items:center;border:1px solid rgba(255,255,255,.16);border-radius:50%;background:rgba(255,255,255,.07);color:var(--ink);font-size:22px;line-height:1;cursor:pointer;transition:transform .18s ease,background .18s ease,border-color .18s ease}.refresh-source-btn:hover{transform:rotate(35deg);background:rgba(34,211,238,.14);border-color:rgba(34,211,238,.5)}.refresh-source-btn:active{transform:rotate(90deg) scale(.94)}
 </style>
 </head>
 <body>
@@ -279,6 +280,7 @@
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
     <input id="q" type="search" placeholder="Search movies & shows…" autocomplete="off" />
   </label>
+  <button id="refreshSource" class="refresh-source-btn" type="button" title="Refresh movie sources" aria-label="Refresh movie sources">↻</button>
 </header>
 
 <main id="view"></main>
@@ -338,6 +340,7 @@
   var pEpisode = document.getElementById("pEpisode");
   var pHint = document.getElementById("pHint");
   var qEl = document.getElementById("q");
+  var refreshSourceBtn = document.getElementById("refreshSource");
   var current = null;
   var cache = {};
   var driveMovies = null, driveMoviesLoading = null;
@@ -368,6 +371,16 @@
 
   function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];}); }
   function get(u){ if(cache[u]) return Promise.resolve(cache[u]); return fetch(CN+u,{cache:"no-store"}).then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); }).then(function(j){ cache[u]=j; return j; }); }
+  function refreshSource(){
+    cache = {};
+    var activeTab = document.querySelector(".tab.on");
+    var tab = activeTab ? activeTab.getAttribute("data-tab") : "home";
+    toast("Refreshing movie sources…");
+    if(tab === "home") renderHome();
+    else if(tab === "mylist") renderMylist();
+    else if(tab === "drive") { driveMovies = null; driveMoviesLoading = null; renderDriveMovies(qEl.value); }
+    else renderList(tab);
+  }
   function posterOf(m,size){ return m.poster || ("https://images.metahub.space/poster/"+(size||"small")+"/"+m.imdb_id+"/img"); }
   function bgOf(m){ return m.background || ("https://images.metahub.space/background/medium/"+m.imdb_id+"/img"); }
 
@@ -666,6 +679,7 @@
   document.getElementById("closeDetail").onclick = function(){ overlay.classList.remove("on"); };
   overlay.addEventListener("click", function(e){ if(e.target===overlay) overlay.classList.remove("on"); });
   document.getElementById("closePlayer").onclick = function(){ player.classList.remove("on"); pFrame.src="about:blank"; };
+  if(refreshSourceBtn) refreshSourceBtn.onclick = refreshSource;
   pServer.onchange = function(){ loadStream(); };
   pSeason.onchange = function(){ fillEps(pSeason.value); loadStream(); };
   pEpisode.onchange = function(){ loadStream(); };

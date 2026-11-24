@@ -25,12 +25,6 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-      - name: Sync main before build
-        shell: bash
-        run: |
-          set -euo pipefail
-          git fetch origin main
-          git rebase origin/main
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -47,6 +41,10 @@ jobs:
           npm run build:single
           mkdir -p ../../single
           cp public/single/index.html ../../single/index.html
+          cp public/manifest.webmanifest ../../single/manifest.webmanifest
+          cp public/mccrack-pwa-sw.js ../../single/mccrack-pwa-sw.js
+          mkdir -p ../../single/images
+          cp public/images/config-icon.png ../../single/images/config-icon.png
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
           const html = fs.readFileSync('../../single/index.html', 'utf8');
@@ -72,6 +70,7 @@ jobs:
           BASE_PATH: /McCrackOS/
         run: npm run build
       - name: Publish built COS assets to GitHub Pages root
+        if: github.ref == 'refs/heads/main'
         shell: bash
         run: |
           set -euo pipefail

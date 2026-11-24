@@ -1,17 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
+import { saveGalleryBlob } from "./gallery-app";
 import { Camera, CameraOff, Circle, Download, FlipHorizontal, Grid3X3, Image as ImageIcon, RotateCcw, Settings2, Timer, Video, X, Zap } from "lucide-react";
 
 type Capture = { id: string; url: string; kind: "photo" | "video"; name: string; createdAt: number };
 
 const FILTERS = [
-  { name: "Natural", css: "none" },
-  { name: "Mono", css: "grayscale(1)" },
-  { name: "Warm", css: "sepia(.32) saturate(1.25)" },
-  { name: "Cool", css: "saturate(.9) hue-rotate(15deg)" },
   { name: "Vivid", css: "saturate(1.65) contrast(1.08)" },
-  { name: "Soft", css: "brightness(1.08) saturate(.82)" },
-  { name: "Dream", css: "contrast(.9) brightness(1.08) saturate(1.2)" },
+  { name: "Mono", css: "grayscale(1)" },
 ];
 
 export function CameraSurface() {
@@ -26,7 +22,7 @@ export function CameraSurface() {
   const [facing, setFacing] = useState<"user" | "environment">("environment");
   const [filter, setFilter] = useState(0);
   const [grid, setGrid] = useState(true);
-  const [mirror, setMirror] = useState(false);
+  const [mirror, setMirror] = useState(true);
   const [flash, setFlash] = useState(false);
   const [timer, setTimer] = useState(0);
   const [zoom, setZoom] = useState(1);
@@ -94,7 +90,9 @@ export function CameraSurface() {
   const saveCapture = (blob: Blob, kind: Capture["kind"]) => {
     const url = URL.createObjectURL(blob);
     const extension = kind === "photo" ? "jpg" : (blob.type.includes("mp4") ? "mp4" : "webm");
-    setCaptures((items) => [{ id: crypto.randomUUID?.() ?? String(Date.now()), url, kind, name: `McCrack-${kind}-${new Date().toISOString().replace(/[:.]/g, "-")}.${extension}`, createdAt: Date.now() }, ...items]);
+    const name = `McCrack-${kind}-${new Date().toISOString().replace(/[:.]/g, "-")}.${extension}`;
+    setCaptures((items) => [{ id: crypto.randomUUID?.() ?? String(Date.now()), url, kind, name, createdAt: Date.now() }, ...items]);
+    void saveGalleryBlob(blob, kind, name).catch(() => setError("Capture saved in Camera, but could not be added to Gallery storage."));
     setGalleryOpen(true);
   };
 
@@ -185,32 +183,21 @@ export function CameraSurface() {
   return (
     <div className="camera-app">
       <style>{`
-        .camera-app{height:100%;min-height:420px;display:flex;flex-direction:column;background:#090b11;color:#f7f9ff;font-family:Inter,system-ui,sans-serif;overflow:hidden}
-        .camera-top{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;gap:10px;border-bottom:1px solid #ffffff14;background:#10141d}
-        .camera-brand{display:flex;align-items:center;gap:10px;font-weight:750;letter-spacing:-.3px}.camera-brand-mark{width:34px;height:34px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(145deg,#23d9ed,#1686c9);color:#04111b}
-        .camera-top-actions{display:flex;gap:7px}.camera-icon-btn{width:36px;height:36px;border-radius:12px;border:1px solid #ffffff18;background:#ffffff0b;color:#eaf5ff;display:grid;place-items:center;cursor:pointer}.camera-icon-btn:hover{background:#ffffff18}
-        .camera-stage{position:relative;flex:1;min-height:250px;background:#030508;display:grid;place-items:center;overflow:hidden}.camera-stage video{width:100%;height:100%;max-height:100%;object-fit:contain;transform:scale(var(--camera-zoom,1)) scaleX(var(--camera-mirror,1));filter:var(--camera-filter,none);transition:filter .2s}
+        .camera-app{height:100%;min-height:360px;display:flex;flex-direction:column;background:#07090e;color:#f7f9ff;font-family:Inter,system-ui,sans-serif;overflow:hidden}
+        .camera-icon-btn{width:36px;height:36px;border-radius:50%;border:1px solid #ffffff18;background:#ffffff0b;color:#eaf5ff;display:grid;place-items:center;cursor:pointer}.camera-icon-btn:hover{background:#ffffff18}
+        .camera-stage{position:relative;flex:1 1 auto;min-height:0;background:#030508;display:grid;place-items:center;overflow:hidden}.camera-stage video{width:100%;height:100%;max-height:100%;object-fit:cover;transform:scale(var(--camera-zoom,1)) scaleX(var(--camera-mirror,1));filter:var(--camera-filter,none);transition:filter .2s}
         .camera-grid{position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(90deg,transparent 33.1%,#ffffff44 33.3%,transparent 33.6%,transparent 66.4%,#ffffff44 66.6%,transparent 66.9%),linear-gradient(0deg,transparent 33.1%,#ffffff44 33.3%,transparent 33.6%,transparent 66.4%,#ffffff44 66.6%,transparent 66.9%)}
         .camera-hud{position:absolute;top:14px;left:14px;right:14px;display:flex;justify-content:space-between;pointer-events:none}.camera-pill{padding:7px 10px;border-radius:99px;background:#05080caa;border:1px solid #ffffff1c;font-size:11px;backdrop-filter:blur(12px)}
         .camera-error{position:absolute;inset:auto 16px 18px;padding:12px 14px;border-radius:14px;background:#321c25ed;border:1px solid #ff7c9638;color:#ffdbe3;font-size:12px;line-height:1.5;max-width:520px}
-        .camera-controls{padding:14px 16px 18px;background:linear-gradient(180deg,#10141d,#0b0e15);border-top:1px solid #ffffff12}
-        .camera-tools{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:15px}.camera-tool{display:flex;align-items:center;gap:7px;border:1px solid #ffffff16;background:#ffffff08;color:#dce7f4;border-radius:12px;padding:8px 11px;font-size:11px;cursor:pointer}.camera-tool.active{border-color:#21c8dc88;background:#13bfd51b;color:#7cecff}
+        .camera-controls{flex:0 0 auto;padding:7px 12px max(9px,env(safe-area-inset-bottom));background:linear-gradient(180deg,#10141d,#090b11);border-top:1px solid #ffffff12}
+        .camera-tools{display:flex;justify-content:center;gap:7px;flex-wrap:wrap;margin:5px 0 8px}.camera-tool{display:flex;align-items:center;gap:6px;border:1px solid #ffffff16;background:#ffffff08;color:#dce7f4;border-radius:999px;padding:7px 10px;font-size:11px;cursor:pointer}.camera-tool.active{border-color:#21c8dc88;background:#13bfd51b;color:#7cecff}
         .camera-shutter-row{display:flex;align-items:center;justify-content:center;gap:22px}.camera-side-btn{width:43px;height:43px;border-radius:50%;border:1px solid #ffffff22;background:#ffffff0c;color:#fff;display:grid;place-items:center;cursor:pointer}.camera-shutter{width:68px;height:68px;border-radius:50%;border:5px solid #fff;background:#f8fbff;box-shadow:0 0 0 5px #ffffff25;cursor:pointer;display:grid;place-items:center}.camera-shutter:active{transform:scale(.94)}.camera-record{width:54px;height:54px;border-radius:50%;border:2px solid #ff6b76;background:#ff4759;display:grid;place-items:center;cursor:pointer;color:#fff}.camera-record.active{background:#a92334}
         .camera-filters{display:flex;gap:7px;overflow:auto;padding:4px 2px 10px}.camera-filter{flex:0 0 auto;border:1px solid #ffffff1c;border-radius:10px;padding:7px 11px;background:#ffffff08;color:#cdd6e4;font-size:11px;cursor:pointer}.camera-filter.active{border-color:#21d6eb;background:#10b9d31c;color:#7cecff}
         .camera-panel{position:absolute;inset:12px 12px 12px auto;width:min(320px,calc(100% - 24px));overflow:auto;border:1px solid #ffffff24;border-radius:18px;background:#101722f2;backdrop-filter:blur(22px);padding:13px;box-shadow:0 18px 60px #0009}
         .camera-panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-weight:700}.camera-gallery-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.camera-gallery-item{background:#ffffff0c;border:1px solid #ffffff16;border-radius:12px;overflow:hidden}.camera-gallery-item img,.camera-gallery-item video{width:100%;aspect-ratio:4/3;object-fit:cover;background:#05070b}.camera-gallery-item button{border:0;background:transparent;color:#dff6ff;font-size:11px;padding:8px;width:100%;cursor:pointer}
         .camera-setting-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid #ffffff13;font-size:12px}.camera-setting-row select,.camera-setting-row input{accent-color:#20cde2}
-        @media(max-width:600px){.camera-top{padding:10px 12px}.camera-tool{padding:7px 9px}.camera-stage{min-height:220px}.camera-controls{padding:10px 10px 14px}}
+        @media(max-width:600px){.camera-tool{padding:6px 8px}.camera-stage{min-height:0}.camera-controls{padding:6px 8px max(8px,env(safe-area-inset-bottom))}.camera-filters{padding:2px 2px 5px}.camera-shutter{width:58px;height:58px}.camera-record{width:48px;height:48px}}
       `}</style>
-      <div className="camera-top">
-        <div className="camera-brand"><span className="camera-brand-mark"><Camera size={19}/></span><span>McCrack Camera</span></div>
-        <div className="camera-top-actions">
-          <button className="camera-icon-btn" title="Open gallery" onClick={() => setGalleryOpen(true)}><ImageIcon size={17}/></button>
-          <button className="camera-icon-btn" title="Camera settings" onClick={() => setSettingsOpen(true)}><Settings2 size={17}/></button>
-          <button className="camera-icon-btn" title={streaming ? "Stop camera" : "Start camera"} onClick={() => streaming ? stopCamera() : void startCamera()}>{streaming ? <CameraOff size={17}/> : <Camera size={17}/>}</button>
-          <button className="camera-icon-btn" title="Restart camera" onClick={() => void startCamera()}><RotateCcw size={17}/></button>
-        </div>
-      </div>
       <div className="camera-stage" style={stageStyle}>
         <video ref={videoRef} playsInline muted autoPlay />
         <canvas ref={canvasRef} hidden />
@@ -223,7 +210,7 @@ export function CameraSurface() {
           <div className="camera-setting-row"><span>Capture quality</span><select value={quality} onChange={(e) => {const next=e.target.value as "high"|"medium";setQuality(next);void startCamera(facing,next);}}><option value="high">High · 1080p</option><option value="medium">Balanced · 720p</option></select></div>
           <div className="camera-setting-row"><span>Timer</span><select value={timer} onChange={(e) => setTimer(Number(e.target.value))}><option value={0}>Off</option><option value={3}>3 seconds</option><option value={5}>5 seconds</option><option value={10}>10 seconds</option></select></div>
           <div className="camera-setting-row"><span>Digital zoom · {zoom.toFixed(1)}×</span><input aria-label="Zoom" type="range" min="1" max="3" step=".1" value={zoom} onChange={(e) => void setCameraZoom(Number(e.target.value))}/></div>
-          <div className="camera-setting-row"><span>Mirror preview</span><input type="checkbox" checked={mirror} onChange={(e) => setMirror(e.target.checked)}/></div>
+          <div className="camera-setting-row"><span>Mirrored preview</span><input type="checkbox" checked={mirror} onChange={(e) => setMirror(e.target.checked)}/></div>
           <div className="camera-setting-row"><span>Composition grid</span><input type="checkbox" checked={grid} onChange={(e) => setGrid(e.target.checked)}/></div>
         </div> : null}
       </div>
@@ -234,6 +221,10 @@ export function CameraSurface() {
           <button className={"camera-tool"+(flash?" active":"")} onClick={() => void toggleFlash()}><Zap size={14}/> Flash {flash?"On":"Off"}</button>
           <button className="camera-tool" onClick={() => {const next=facing==="user"?"environment":"user";setFacing(next);void startCamera(next);}}><FlipHorizontal size={14}/> Flip camera</button>
           <button className="camera-tool" onClick={() => setSettingsOpen(true)}><Timer size={14}/> Timer {timer?timer+"s":"Off"}</button>
+          <button className="camera-tool" title="Open gallery" onClick={() => setGalleryOpen(true)}><ImageIcon size={14}/> Gallery</button>
+          <button className="camera-tool" title="Camera settings" onClick={() => setSettingsOpen(true)}><Settings2 size={14}/> Settings</button>
+          <button className="camera-tool" title={streaming ? "Stop camera" : "Start camera"} onClick={() => streaming ? stopCamera() : void startCamera()}>{streaming ? <CameraOff size={14}/> : <Camera size={14}/>} {streaming ? "Stop" : "Start"}</button>
+          <button className="camera-tool" title="Restart camera" onClick={() => void startCamera()}><RotateCcw size={14}/> Restart</button>
         </div>
         <div className="camera-shutter-row">
           <button className="camera-side-btn" title="Gallery" onClick={() => setGalleryOpen(true)}><ImageIcon size={18}/></button>

@@ -528,7 +528,8 @@ function StandaloneFileBrowser() {
 }
 
 export function BrowserSurface(_props: { lang?: Lang }) {
-  if (typeof window !== "undefined" && window.location.protocol === "file:") {
+  const standaloneBundle = Boolean((globalThis as { __VERTEX_ASSETS__?: Record<string, string> }).__VERTEX_ASSETS__);
+  if (typeof window !== "undefined" && (window.location.protocol === "file:" || standaloneBundle)) {
     return <StandaloneFileBrowser />;
   }
   return <ProxyBrowser home />;
@@ -540,9 +541,9 @@ function adBlockPurge(doc: Document): void {
     doc
       .querySelectorAll(
         'ins.adsbygoogle, .adsbygoogle, [id^="google_ads"], [id^="aswift"], [id^="ad_"], ' +
-          '[id*="banner-ad"], [class*="adsbygoogle"], [class*="advert"], [data-ad-slot], ' +
+          '[id*="banner-ad"], [class*="adsbygoogle"], [class*="advert"], [data-ad-slot], [data-ad-unit], [data-ad], [class*="ad-container"], [id*="ad-container"], [class*="ad-wrapper"], [id*="ad-wrapper"], [class*="ad-overlay"], [id*="ad-overlay"], [class*="sponsor"], [id*="sponsor"], ' +
           'iframe[src*="doubleclick.net"], iframe[src*="googlesyndication.com"], ' +
-          'iframe[src*="adservice"], iframe[src*="googleadservices"], iframe[src*="/ads/"]',
+          'iframe[src*="adservice"], iframe[src*="googleadservices"], iframe[src*="/ads/"], iframe[src*="popads"], iframe[src*="adsterra"], iframe[src*="taboola"], iframe[src*="outbrain"], iframe[src*="criteo"], iframe[src*="adnxs"], iframe[src*="adsrvr"]',
       )
       .forEach((node) => node.remove());
   } catch {
@@ -553,12 +554,14 @@ function adBlockPurge(doc: Document): void {
 /** Full-bleed proxied site with no chrome. Used when a page refuses to be
  *  framed (X-Frame-Options / CSP) — the scramjet proxy loads it anyway.
  *  Set `blockAds` to strip common ad slots from the (same-origin) proxied page. */
-export function ProxyUrlFrame({ url, title = "Proxied page", blockAds = false }: { url: string; title?: string; blockAds?: boolean }) {
+export function ProxyUrlFrame({ url, title = "Proxied page", blockAds = false, onError }: { url: string; title?: string; blockAds?: boolean; onError?: () => void }) {
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const [status, setStatus] = useState<"booting" | "ready">("booting");
   const [error, setError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
   const urlRef = useRef(url);
+  const onErrorRef = useRef(onError);
+  useEffect(() => { onErrorRef.current = onError; }, [onError]);
 
   useEffect(() => {
     const el = iframeRef.current;
@@ -597,6 +600,7 @@ export function ProxyUrlFrame({ url, title = "Proxied page", blockAds = false }:
         if (cancelled) return;
         setError(cause instanceof Error ? cause.message : String(cause));
         setStatus("ready");
+        onErrorRef.current?.();
       }
     })();
 

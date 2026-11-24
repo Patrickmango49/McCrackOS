@@ -7,10 +7,10 @@ import { getMediaSession, publishNowPlaying, subscribeMediaSession } from "../no
 import { MessagesSurface } from "../messages";
 import { BrowserSurface, ProxyUrlFrame } from "./browser-app";
 import { VerAiSurface } from "./ver-ai";
+import { GallerySurface } from "./gallery-app";
 import { getAudioSettings, sfx, subscribeAudio, unlockAudio, setAudioSettings, setMusicEnabled, bindAudioVisibility, stopMusic, type AudioSettings } from "../ps5-audio";
 
 type Tab = "home" | "media";
-type DeviceMode = "pc" | "controller";
 type MediaApp = {
   id: string;
   name: string;
@@ -31,11 +31,13 @@ export type Ps5EmbeddedSurfaces = {
 };
 
 const MEDIA_APPS: MediaApp[] = [
-  { id: "browser", name: "Browser", publisher: "McCrack OS", kind: "app", icon: `${import.meta.env.BASE_URL}images/browser-icon.svg`, cover: `${import.meta.env.BASE_URL}images/browser-icon.svg`, description: "Browse the web with the built-in McCrack browser." },
-  { id: "spotify", name: "Spotify", publisher: "Spicetify", kind: "app", icon: `${import.meta.env.BASE_URL}images/spicetify.ico`, cover: `${import.meta.env.BASE_URL}images/spicetify.ico`, description: "Your music and playlists, running inside the console." },
-  { id: "vertube", name: "YouTube", publisher: "McCrack OS", kind: "app", icon: `${import.meta.env.BASE_URL}images/vertube.svg`, cover: `${import.meta.env.BASE_URL}images/vertube.svg`, description: "YouTube, streaming from inside the console." },
-  { id: "messages", name: "Messages", publisher: "McCrack OS", kind: "app", icon: `${import.meta.env.BASE_URL}images/messages-icon.webp`, cover: `${import.meta.env.BASE_URL}images/messages-icon.webp`, description: "Your Messages chats, already signed in." },
-  { id: "verai", name: "McCrack AI", publisher: "McCrack OS", kind: "app", icon: `${import.meta.env.BASE_URL}images/ver-ai.ico`, cover: `${import.meta.env.BASE_URL}images/ver-ai.ico`, description: "A free AI assistant that lives on your console. No key, no sign-in, daily limit." },
+  { id: "browser", name: "Browser", publisher: "McCrackOS", kind: "app", icon: `${import.meta.env.BASE_URL}images/browser-icon.svg`, cover: `${import.meta.env.BASE_URL}images/browser-icon.svg`, description: "Browse the web with the built-in McCrack Browser." },
+  { id: "spotify", name: "McCrackify", publisher: "McCrack", kind: "app", icon: `${import.meta.env.BASE_URL}images/spicetify.ico`, cover: `${import.meta.env.BASE_URL}images/spicetify.ico`, description: "Music, playlists and now playing from McCrackify." },
+  { id: "vertube", name: "McCrackTube", publisher: "McCrack", kind: "app", icon: `${import.meta.env.BASE_URL}images/vertube.svg`, cover: `${import.meta.env.BASE_URL}images/vertube.svg`, description: "Watch videos and Shorts with McCrackTube." },
+  { id: "movies", name: "McCrackFlix", publisher: "McCrack", kind: "app", icon: `${import.meta.env.BASE_URL}assets/favicon.png`, cover: `${import.meta.env.BASE_URL}assets/favicon.png`, description: "Browse movies and TV shows with McCrackFlix." },
+  { id: "messages", name: "McCrack Chat", publisher: "McCrack", kind: "app", icon: `${import.meta.env.BASE_URL}images/messages-icon.webp`, cover: `${import.meta.env.BASE_URL}images/messages-icon.webp`, description: "Rooms, friends and private messages." },
+  { id: "gallery", name: "Gallery", publisher: "McCrack", kind: "app", icon: "https://cdn.simpleicons.org/googlephotos/4285F4", cover: "https://cdn.simpleicons.org/googlephotos/4285F4", description: "View, edit and download your photos and videos." },
+  { id: "verai", name: "McCrack AI", publisher: "McCrack", kind: "app", icon: `${import.meta.env.BASE_URL}images/ver-ai.ico`, cover: `${import.meta.env.BASE_URL}images/ver-ai.ico`, description: "Your AI assistant inside the console." },
 ];
 
 const OWNED_KEY = "vertex-ps5-owned";
@@ -261,9 +263,40 @@ function NowPlayingCard() {
 }
 
 export function Ps5EmulatorSurface({ surfaces }: { surfaces?: Ps5EmbeddedSurfaces } = {}) {
-  const [stage, setStage] = useState<"boot" | "device" | "account" | "ready">("boot");
+  const [stage, setStage] = useState<"boot" | "account" | "ready">("boot");
+  useEffect(() => {
+    let frame = 0;
+    const previous = new Map<string, boolean>();
+    const sendKey = (key: string) => window.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true }));
+    const poll = () => {
+      const pad = Array.from(navigator.getGamepads?.() ?? []).find((item): item is Gamepad => Boolean(item));
+      const active = document.activeElement;
+      const typing = active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement || active instanceof HTMLSelectElement || Boolean((active as HTMLElement | null)?.isContentEditable);
+      const inGame = active instanceof HTMLIFrameElement;
+      if (pad && !typing && !inGame) {
+        const buttons: Array<[string, boolean, string]> = [
+          ["up", Boolean(pad.buttons[12]?.pressed), "ArrowUp"],
+          ["down", Boolean(pad.buttons[13]?.pressed), "ArrowDown"],
+          ["left", Boolean(pad.buttons[14]?.pressed), "ArrowLeft"],
+          ["right", Boolean(pad.buttons[15]?.pressed), "ArrowRight"],
+          ["accept", Boolean(pad.buttons[0]?.pressed), "Enter"],
+          ["back", Boolean(pad.buttons[1]?.pressed), "Escape"],
+          ["stick-up", (pad.axes[1] ?? 0) < -0.65, "ArrowUp"],
+          ["stick-down", (pad.axes[1] ?? 0) > 0.65, "ArrowDown"],
+          ["stick-left", (pad.axes[0] ?? 0) < -0.65, "ArrowLeft"],
+          ["stick-right", (pad.axes[0] ?? 0) > 0.65, "ArrowRight"],
+        ];
+        for (const [id, pressed, key] of buttons) {
+          if (pressed && !previous.get(id)) sendKey(key);
+          previous.set(id, pressed);
+        }
+      } else { previous.clear(); }
+      frame = requestAnimationFrame(poll);
+    };
+    frame = requestAnimationFrame(poll);
+    return () => cancelAnimationFrame(frame);
+  }, []);
   const [tab, setTab] = useState<Tab>("home");
-  const [deviceMode, setDeviceMode] = useState<DeviceMode>("pc");
   const [account, setAccount] = useState<Ps5Account | null>(() => readAccount());
   const [owned, setOwned] = useState<string[]>(() => readSet(OWNED_KEY, []));
   const [recent, setRecent] = useState<string[]>(() => readSet(RECENT_KEY, []));
@@ -622,31 +655,12 @@ export function Ps5EmulatorSurface({ surfaces }: { surfaces?: Ps5EmbeddedSurface
   if (stage === "boot") {
     return (
       <div className="ps5-surface">
-        <Ps5BootSurface account={account} onDone={() => setStage("device")} />
-      </div>
-    );
-  }
-
-  if (stage === "device") {
-    return (
-      <div className="ps5-surface">
-        <Ps5DeviceSurface
-          onSelect={(mode) => {
-            setDeviceMode(mode);
-            if (account?.cloudUserId || readAccount() || account) {
-              setStage("ready");
-              return;
-            }
-            const linked = accountFromMessages();
-            if (linked) {
-              saveAccount(linked);
-              setAccount(linked);
-              setStage("ready");
-              return;
-            }
-            setStage("account");
-          }}
-        />
+        <Ps5BootSurface account={account} onDone={() => {
+          if (account?.cloudUserId || account) { setStage("ready"); return; }
+          const linked = accountFromMessages();
+          if (linked) { saveAccount(linked); setAccount(linked); setStage("ready"); return; }
+          setStage("account");
+        }} />
       </div>
     );
   }
@@ -767,7 +781,7 @@ export function Ps5EmulatorSurface({ surfaces }: { surfaces?: Ps5EmbeddedSurface
             </button>
           )}
           <button type="button" className="control-trigger" aria-label="Open Control Center" onClick={() => { sfx("controlOpen"); setControlOpen(true); }}>
-            <span className="ps-mark" style={{ filter: "none", color: "#438cff", fontWeight: 700, fontSize: 13 }}>VS</span>
+            <img className="ps-mark" src={`${import.meta.env.BASE_URL}assets/favicon.png`} alt="McCrack" />
             <span>Control Center</span><kbd>Home</kbd>
           </button>
           <NowPlayingCard />
@@ -776,7 +790,6 @@ export function Ps5EmulatorSurface({ surfaces }: { surfaces?: Ps5EmbeddedSurface
         {settingsOpen ? (
           <Ps5SettingsPanel
             account={account}
-            deviceMode={deviceMode}
             installedCount={collected.length}
             recentCount={recentGames.length}
             sound={sound}
@@ -787,7 +800,6 @@ export function Ps5EmulatorSurface({ surfaces }: { surfaces?: Ps5EmbeddedSurface
             onTab={setSettingsTab}
             onSound={setAudioSettings}
             onTheme={setTheme}
-            onDeviceMode={setDeviceMode}
             onUpdate={updateAccount}
             onPower={() => { sfx("controlClose"); setSettingsOpen(false); setPowerMenu(true); }}
             onClose={() => { sfx("controlClose"); setSettingsOpen(false); }}
@@ -1139,7 +1151,7 @@ function WelcomePanel({ account, onClose }: { account: Ps5Account | null; onClos
             <button type="button" className="icon-button close-button" onClick={onClose} aria-label="Close"><X size={24} /></button>
           </div>
           <div className="console-introduction">
-            <span className="intro-mark" style={{ filter: "none", color: "#438cff", fontWeight: 700, display: "grid", placeItems: "center" }}>VS</span>
+            <img className="intro-mark" src={`${import.meta.env.BASE_URL}assets/favicon.png`} alt="McCrack" />
             <p className="intro-eyebrow">YOUR GAMES. YOUR MEDIA. ONE HOME.</p>
             <h3>Welcome to your console{account ? `, ${account.displayName}` : ""}.</h3>
             <p className="intro-summary">McCrack Station brings your HTML5 games and media together. Browse the carousel with the arrow keys, open the Game Library to install more, and press Home for the Control Center.</p>
@@ -1235,7 +1247,7 @@ function VsGamePlayer({ game, sessionSec, sound, onVolume, onMute, onClose }: {
         </div>
         <div className="game-dock-zone game-home-zone">
           <button type="button" className="ps-home-button" onClick={onClose} aria-label="Go to console home">
-            <span className="game-dock-icon ps-home-mark">VS</span>
+            <img className="game-dock-icon ps-home-mark" src={`${import.meta.env.BASE_URL}assets/favicon.png`} alt="McCrack" />
             <span style={{ fontSize: 12 }}>Home</span>
           </button>
         </div>
@@ -1303,7 +1315,7 @@ function Ps5BootSurface({ account, onDone }: { account: Ps5Account | null; onDon
       <div className="ps5-boot-orbit ps5-boot-orbit-one" aria-hidden="true" />
       <div className="ps5-boot-orbit ps5-boot-orbit-two" aria-hidden="true" />
       <div className="ps5-boot-inner">
-        <div className="ps5-boot-logo" aria-hidden="true"><span>VS</span></div>
+        <div className="ps5-boot-logo" aria-hidden="true"><img src={`${import.meta.env.BASE_URL}assets/favicon.png`} alt="McCrack" /></div>
         <div className="ps5-boot-returning">
           <span>{account ? "Welcome back" : "Welcome to McCrack Station"}</span>
           {account ? <strong>{account.displayName}</strong> : <strong>McCrack Player</strong>}
@@ -1313,30 +1325,6 @@ function Ps5BootSurface({ account, onDone }: { account: Ps5Account | null; onDon
         <div className="ps5-boot-caption">Your games. Your station.</div>
       </div>
       <button type="button" className="ps5-boot-skip" onClick={skipIntro}>Skip intro <ChevronRight size={14} /></button>
-    </div>
-  );
-}
-
-function Ps5DeviceSurface({ onSelect }: { onSelect: (mode: DeviceMode) => void }) {
-  return (
-    <div className="ps5-device-screen">
-      <div className="ps5-device-card">
-        <span className="ps5-home-kicker">QUICK SETUP</span>
-        <h1>What are you playing on?</h1>
-        <p>Choose how you want to control games this session.</p>
-        <div className="ps5-device-options">
-          <button type="button" onClick={() => onSelect("pc")}>
-            <span className="ps5-device-icon"><PanelsTopLeft size={28} /></span>
-            <strong>PC / Normal</strong>
-            <small>Keyboard and mouse</small>
-          </button>
-          <button type="button" onClick={() => onSelect("controller")}>
-            <span className="ps5-device-icon"><Gamepad2 size={29} /></span>
-            <strong>Controller</strong>
-            <small>Use a connected gamepad</small>
-          </button>
-        </div>
-      </div>
     </div>
   );
 }
@@ -1487,10 +1475,13 @@ function embeddedGameAsset(src: string): string | null {
 
 const GAME_URL_SHIM = `(function(){var B={genizy:1,"web-ports":1,waycrosspublicmedia:1,"gn-math":1,Stinkalistic:1,"67-Factory":1,slqntdevss:1,aukak:1,Pixelsuft:1,NotRexed:1,WhoIsEv:1,R74nCom:1,New25Said:1,faralong:1};function fix(u){if(typeof u!="string")return u;var m=/^(https?:)\\/\\/(?:cdn|fastly|gcore|testingcf)\\.jsdelivr\\.net\\/gh\\/([^\\/@]+)\\/([^\\/@]+)(?:@([^\\/]+))?(\\/[^?#]*)?(\\?[^#]*)?/i.exec(u);if(m&&B[m[2]]){return "https://raw.githack.com/"+m[2]+"/"+m[3]+"/"+(m[4]||"HEAD")+(m[5]||"")+(m[6]||"");}return u;}window.__fix=fix;try{var of=window.fetch;if(of){window.fetch=function(i,init){if(typeof i==="string")i=fix(i);return of.call(this,i,init);};}}catch(e){}try{var xo=XMLHttpRequest.prototype.open;XMLHttpRequest.prototype.open=function(){var a=[].slice.call(arguments);if(a.length>1)a[1]=fix(a[1]);return xo.apply(this,a);};}catch(e){}function sp2(proto,prop){try{var d=Object.getOwnPropertyDescriptor(proto,prop);if(!d||!d.set||!d.get)return;Object.defineProperty(proto,prop,{configurable:true,enumerable:d.enumerable,get:d.get,set:function(v){return d.set.call(this,fix(v));}});}catch(e){}}sp2(HTMLScriptElement.prototype,"src");sp2(HTMLImageElement.prototype,"src");sp2(HTMLLinkElement.prototype,"href");sp2(HTMLIFrameElement.prototype,"src");sp2(HTMLSourceElement.prototype,"src");sp2(HTMLVideoElement.prototype,"src");sp2(HTMLAudioElement.prototype,"src");})();`;
 
+const GAME_AD_CLEANER = "(function(){var bad=/doubleclick|googlesyndication|googleadservices|adservice|popads|adsterra|taboola|outbrain|criteo|adnxs|adsrvr|exoclick|trafficjunky/i;var names=/(^|[-_\\s])(ad|ads|advert|advertisement|sponsor|sponsored)([-_\\s]|$)/i;function clean(root){try{root.querySelectorAll(\"iframe[src],ins.adsbygoogle,.adsbygoogle,[data-ad-slot],[data-ad-unit],[data-ad],[class],[id],[aria-label*=advertisement i]\").forEach(function(el){var src=el.getAttribute(\"src\")||\"\";var id=el.id||\"\";var cls=typeof el.className===\"string\"?el.className:\"\";if(bad.test(src)||names.test(id)||names.test(cls)||el.matches(\"ins.adsbygoogle,.adsbygoogle,[data-ad-slot],[data-ad-unit],[data-ad]\")){var box=el.closest(\"[class*=ad-container],[id*=ad-container],[class*=ad-wrapper],[id*=ad-wrapper],[class*=ad-overlay],[id*=ad-overlay]\");(box||el).remove();}});root.querySelectorAll(\"[class*=ad-container],[id*=ad-container],[class*=ad-wrapper],[id*=ad-wrapper],[class*=ad-overlay],[id*=ad-overlay],[class*=advert],[id*=advert],[class*=sponsored],[id*=sponsored],[class*=ad-banner],[id*=ad-banner],[class*=ad-slot],[id*=ad-slot],[class*=ad-unit],[id*=ad-unit]\").forEach(function(el){el.remove();});}catch(e){}}function start(){clean(document);new MutationObserver(function(records){records.forEach(function(r){r.addedNodes.forEach(function(n){if(n.nodeType===1){clean(n);if(n.querySelectorAll)clean(n);}});});}).observe(document.documentElement,{childList:true,subtree:true});}if(document.documentElement)start();else document.addEventListener(\"DOMContentLoaded\",start,{once:true});})();";
+
 export function GameFrame({ game, onLoad }: { game: Ps5Game; onLoad?: () => void }) {
   const [state, setState] = useState<"loading" | "error" | "ready">("loading");
   const [src, setSrc] = useState<string | null>(null);
   const [direct, setDirect] = useState(false);
+  const [directFallback, setDirectFallback] = useState(false);
   const [attempt, setAttempt] = useState(0);
 
   const embeddedSrc = embeddedGameAsset(game.play);
@@ -1499,6 +1490,7 @@ export function GameFrame({ game, onLoad }: { game: Ps5Game; onLoad?: () => void
     if (!embeddedSrc && !canInlineGame(game.play)) {
       setState("ready");
       setDirect(true);
+      setDirectFallback(false);
       setSrc(null);
       return;
     }
@@ -1526,7 +1518,7 @@ export function GameFrame({ game, onLoad }: { game: Ps5Game; onLoad?: () => void
             html = `<head><base href="${baseUrl}" /></head>` + html;
           }
         }
-        const shimTag = `<script>${GAME_URL_SHIM}</script>`;
+        const shimTag = `<script>${GAME_URL_SHIM}${GAME_AD_CLEANER}</script>`;
         if (/<head[^>]*>/i.test(html)) {
           html = html.replace(/<head[^>]*>/i, (m) => m + shimTag);
         } else {
@@ -1565,16 +1557,16 @@ export function GameFrame({ game, onLoad }: { game: Ps5Game; onLoad?: () => void
 
   return (
     <div className="ps5-game-wrap">
-      {!src ? (
+      {!src && !direct ? (
         <div className="ps5-game-msg">
           <div className="ps5-spinner" />
           <div className="ps5-game-msg-title">Booting {game.name}...</div>
         </div>
       ) : null}
-      {src || direct ? (
+      {direct ? (directFallback ? <iframe className="ps5-game-frame" src={game.play} title={game.name} allow="autoplay; clipboard-write; camera; microphone; fullscreen; gamepad; encrypted-media" allowFullScreen referrerPolicy="no-referrer" onLoad={() => onLoad?.()} /> : <ProxyUrlFrame url={game.play} title={game.name} blockAds onError={() => setDirectFallback(true)} />) : src ? (
         <iframe
           className="ps5-game-frame"
-          src={direct ? game.play : src ?? undefined}
+          src={src}
           title={game.name}
           allow="autoplay; clipboard-write; camera; microphone; fullscreen; gamepad; encrypted-media"
           allowFullScreen
@@ -1630,6 +1622,12 @@ function MediaAppStage({ app, surfaces, onExit }: { app: MediaApp; surfaces?: Ps
       </div>
     );
   }
+  if (app.id === "movies") {
+    return <div className="ps5-media-app"><iframe src={`${import.meta.env.BASE_URL}apps/movies/index.html`} title="McCrackFlix" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowFullScreen /></div>;
+  }
+  if (app.id === "gallery") {
+    return <div className="ps5-media-app"><GallerySurface /></div>;
+  }
   if (app.id === "verai") {
     return (
       <div className="ps5-media-app">
@@ -1651,7 +1649,6 @@ function MediaAppMissing({ name }: { name: string }) {
 
 function Ps5SettingsPanel({
   account,
-  deviceMode,
   installedCount,
   recentCount,
   sound,
@@ -1662,13 +1659,11 @@ function Ps5SettingsPanel({
   onTab,
   onSound,
   onTheme,
-  onDeviceMode,
   onUpdate,
   onPower,
   onClose,
 }: {
   account: Ps5Account | null;
-  deviceMode: DeviceMode;
   installedCount: number;
   recentCount: number;
   sound: AudioSettings;
@@ -1679,7 +1674,6 @@ function Ps5SettingsPanel({
   onTab: (next: "profile" | "sound" | "theme" | "library") => void;
   onSound: (patch: Partial<AudioSettings>) => void;
   onTheme: (theme: string) => void;
-  onDeviceMode: (mode: DeviceMode) => void;
   onUpdate: (next: Ps5Account) => Promise<void>;
   onPower: () => void;
   onClose: () => void;
@@ -1829,16 +1823,7 @@ function Ps5SettingsPanel({
                     <button key={option} type="button" className={hue === option && !avatar ? "on" : ""} style={avatarStyle(option)} onClick={() => setHue(option)} aria-label={`Avatar colour ${option}`} aria-pressed={hue === option && !avatar} />
                   ))}
                 </div>
-                <div className="ps5-settings-modes">
-                  <label className="list-row">
-                    <Monitor size={22} />
-                    <span>Controller mode</span>
-                    <div className="mode-choice">
-                      <button type="button" className={deviceMode === "pc" ? "on" : ""} onClick={() => onDeviceMode("pc")}>PC / Normal</button>
-                      <button type="button" className={deviceMode === "controller" ? "on" : ""} onClick={() => onDeviceMode("controller")}>Controller</button>
-                    </div>
-                  </label>
-                </div>
+                <p className="ps5-settings-static">Controller support is enabled automatically when a compatible gamepad is connected. Keyboard and mouse remain available as well.</p>
                 {account?.dob ? (
                   <label className="form-field">
                     <span>Date of birth</span>

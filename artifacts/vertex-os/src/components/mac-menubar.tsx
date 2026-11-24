@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
-  Battery, Check, Info, Languages, LockKeyhole, Monitor,
+  Battery, Check, Info, LockKeyhole, Monitor,
   RotateCcw, Search, Settings2, Sparkles, Volume2,
 } from "lucide-react";
-import { LANGS, localeOf, type Lang } from "../i18n";
+import { localeOf, type Lang } from "../i18n";
 
 export type MacWindowRef = { id: string; title: string };
 
@@ -29,7 +29,6 @@ export type MacMenuBarProps = {
   activeWindowId: string | null;
   unseen: number;
   showIcons: boolean;
-  onPickLanguage: (lang: Lang) => void;
   onOpenApp: (id: string) => void;
   onFocusApp: (id: string) => void;
   onMinimizeApp: (id: string) => void;
@@ -89,14 +88,6 @@ function AppleGlyph({ size = 15 }: { size?: number }) {
   );
 }
 
-function WifiGlyph() {
-  return (
-    <svg viewBox="0 0 24 24" width={16} height={16} aria-hidden="true" focusable="false" className="mac-bar-glyph">
-      <path fill="currentColor" d="M12 18.6a1.6 1.6 0 1 0 0 3.2 1.6 1.6 0 0 0 0-3.2zM12 12.3c1.9 0 3.6.7 4.8 1.9l1.5-1.5A8.9 8.9 0 0 0 12 9.9c-2.4 0-4.6 1-6.3 2.8l1.5 1.5a6.6 6.6 0 0 1 4.8-1.9zM12 6.6c3.1 0 6 1.2 8.2 3.4l1.5-1.5A14.4 14.4 0 0 0 12 4.2c-4 0-7.6 1.6-9.7 4.3l1.5 1.5A11.9 11.9 0 0 1 12 6.6z" />
-    </svg>
-  );
-}
-
 function ControlGlyph() {
   return (
     <svg viewBox="0 0 24 24" width={16} height={16} aria-hidden="true" focusable="false" className="mac-bar-glyph">
@@ -126,19 +117,21 @@ function BatteryGlyph({ level, charging }: { level: number; charging: boolean })
 export function MacMenuBar(props: MacMenuBarProps) {
   const {
     now, lang, appName, accountName, windows, activeWindowId, unseen, showIcons,
-    onPickLanguage, onOpenApp, onFocusApp, onMinimizeApp, onCloseApp,
+    onOpenApp, onFocusApp, onMinimizeApp, onCloseApp,
     onAbout, onSettings, onLaunchpad, onNotifications, onRestart, onLock,
     onToggleIcons, onHint,
   } = props;
   const battery = useBattery();
   const [open, setOpen] = useState<string | null>(null);
   const [panelX, setPanelX] = useState<number | null>(null);
+  const [volume, setVolume] = useState(() => { try { const saved = JSON.parse(localStorage.getItem("vertex-sys-audio") || "{}"); return Math.max(0, Math.min(100, Number(saved.vol ?? 40))); } catch { return 40; } });
+  useEffect(() => { const sync = (event: Event) => { const detail = (event as CustomEvent<{ vol?: number }>).detail; if (typeof detail?.vol === "number") setVolume(Math.max(0, Math.min(100, detail.vol))); }; window.addEventListener("vertex-sys-audio-change", sync); return () => window.removeEventListener("vertex-sys-audio-change", sync); }, []);
   const barRef = useRef<HTMLDivElement | null>(null);
   const leftRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const loc = useMemo(() => localeOf(lang), [lang]);
 
   useEffect(() => {
-    if (!open || open === "lang" || open === "clock") { setPanelX(null); return; }
+    if (!open || open === "clock") { setPanelX(null); return; }
     const el = leftRefs.current[open];
     const bar = barRef.current;
     if (!el || !bar) { setPanelX(null); return; }
@@ -160,25 +153,15 @@ export function MacMenuBar(props: MacMenuBarProps) {
   const nope = (what: string) => () => onHint(what, `${what} is not available in the web build yet.`);
 
   const apple: MenuItem[] = [
-    { kind: "item", label: `About ${appName === "Finder" ? "Vertex-OS" : appName}`, icon: Info, onSelect: onAbout },
+    { kind: "item", label: `About ${appName === "Finder" ? "McCrackOS" : appName}`, icon: Info, onSelect: onAbout },
     { kind: "sep" },
     { kind: "item", label: "System Settings…", icon: Settings2, onSelect: onSettings },
-    { kind: "item", label: "Vertex Store…", icon: Sparkles, onSelect: () => onOpenApp("hub") },
+    { kind: "item", label: "McCrack Store…", icon: Sparkles, onSelect: () => onOpenApp("hub") },
     { kind: "item", label: "Launchpad", icon: Monitor, onSelect: onLaunchpad },
-    { kind: "sep" },
-    { kind: "item", label: "Language", icon: Languages, onSelect: () => setOpen("lang") },
     { kind: "sep" },
     { kind: "item", label: "Lock Screen", icon: LockKeyhole, onSelect: onLock },
     { kind: "item", label: "Restart…", icon: RotateCcw, onSelect: onRestart },
   ];
-
-  const langItems: MenuItem[] = LANGS.map((entry) => ({
-    kind: "item" as const,
-    label: entry.native,
-    hint: entry.label,
-    checked: entry.code === lang,
-    onSelect: () => { onPickLanguage(entry.code as Lang); setOpen(null); },
-  }));
 
   const app: MenuItem[] = [
     { kind: "item", label: `About ${appName}`, icon: Info, onSelect: onAbout },
@@ -223,7 +206,7 @@ export function MacMenuBar(props: MacMenuBarProps) {
     : [{ kind: "item" as const, label: "No open windows", onSelect: onLaunchpad }];
 
   const help: MenuItem[] = [
-    { kind: "item", label: "Vertex-OS Help", icon: Info, onSelect: onLaunchpad },
+    { kind: "item", label: "McCrackOS Help", icon: Info, onSelect: onLaunchpad },
   ];
 
   const menus: { id: string; label: string; items: MenuItem[]; bold?: boolean }[] = [
@@ -264,10 +247,6 @@ export function MacMenuBar(props: MacMenuBarProps) {
         </div>
 
         <div className="mac-bar-right">
-          <button type="button" className={"mac-bar-status mac-bar-language" + (open === "lang" ? " is-open" : "")} onClick={() => toggle("lang")} aria-label="Choose language" aria-expanded={open === "lang"}>{lang.toUpperCase()}</button>
-          <button type="button" className={"mac-bar-status" + (open === "internet" ? " is-open" : "")} onClick={() => toggle("internet")} aria-label="Internet settings" aria-expanded={open === "internet"}>
-            <WifiGlyph />
-          </button>
           <button type="button" className={"mac-bar-status" + (open === "control" ? " is-open" : "")} onClick={() => toggle("control")} aria-label="Control Centre" aria-expanded={open === "control"}>
             <ControlGlyph />
           </button>
@@ -288,7 +267,7 @@ export function MacMenuBar(props: MacMenuBarProps) {
           <div key={`panel-${menu.id}`} className={`mac-menu mac-menu--${menu.id}`} role="menu" style={panelX === null ? undefined : { left: panelX }}>
             <div className="mac-menu-head">
               {menu.id === "apple" ? <AppleGlyph size={17} /> : <span className="mac-menu-head-dot" aria-hidden="true" />}
-              <strong>{menu.id === "apple" ? "Vertex-OS" : menu.label}</strong>
+              <strong>{menu.id === "apple" ? "McCrackOS" : menu.label}</strong>
               {menu.id === "apple" ? <span className="mac-menu-head-user">{accountName}</span> : null}
             </div>
             {menu.items.map((item, index) => item.kind === "sep"
@@ -319,11 +298,6 @@ export function MacMenuBar(props: MacMenuBarProps) {
           </div>
         ) : null))}
 
-        {open === "internet" ? <div className="mac-menu mac-menu--right mac-menu--status" role="dialog" aria-label="Internet settings">
-          <div className="mac-menu-head"><WifiGlyph /><strong>Internet</strong></div>
-          <button type="button" className="mac-menu-row" onClick={run(onSettings)}><span className="mac-menu-check"><Settings2 size={14} /></span><span className="mac-menu-text"><span>Network settings…</span></span></button>
-        </div> : null}
-
         {open === "battery" ? <div className="mac-menu mac-menu--right mac-menu--status" role="dialog" aria-label="Battery status">
           <div className="mac-menu-head"><Battery size={16} /><strong>Battery</strong></div>
           {battery.supported ? <>
@@ -334,25 +308,11 @@ export function MacMenuBar(props: MacMenuBarProps) {
 
         {open === "control" ? <div className="mac-menu mac-menu--right mac-menu--status" role="dialog" aria-label="Control Centre">
           <div className="mac-menu-head"><ControlGlyph /><strong>Control Centre</strong></div>
-          <button type="button" className="mac-menu-row" onClick={() => setOpen("internet")}><span className="mac-menu-check"><WifiGlyph /></span><span className="mac-menu-text"><span>Internet</span></span></button>
           <button type="button" className="mac-menu-row" onClick={() => setOpen("battery")}><span className="mac-menu-check"><Battery size={14} /></span><span className="mac-menu-text"><span>Battery</span></span><span className="mac-menu-hint">{battery.supported ? Math.round(battery.level * 100) + "%" : "Unavailable"}</span></button>
-          <button type="button" className="mac-menu-row" onClick={() => setOpen("lang")}><span className="mac-menu-check"><Languages size={14} /></span><span className="mac-menu-text"><span>Language</span></span><span className="mac-menu-hint">{lang.toUpperCase()}</span></button>
+          <div className="mac-menu-volume"><span><Volume2 size={14}/> Volume</span><input type="range" min="0" max="100" value={volume} aria-label="System volume" onChange={(event) => { const vol = Number(event.target.value); setVolume(vol); try { const current = JSON.parse(localStorage.getItem("vertex-sys-audio") || "{}"); const next = { on: Boolean(current.on), vol, muted: vol === 0, output: current.output === "headphones" ? "headphones" : "speakers" }; localStorage.setItem("vertex-sys-audio", JSON.stringify(next)); window.dispatchEvent(new CustomEvent("vertex-sys-audio-change", { detail: next })); } catch {} }} /></div>
           <button type="button" className="mac-menu-row" onClick={run(onSettings)}><span className="mac-menu-check"><Settings2 size={14} /></span><span className="mac-menu-text"><span>System Settings…</span></span></button>
           <button type="button" className="mac-menu-row" onClick={run(onNotifications)}><span className="mac-menu-check"><Sparkles size={14} /></span><span className="mac-menu-text"><span>Notifications</span></span>{unseen > 0 ? <span className="mac-menu-hint">{unseen} new</span> : null}</button>
         </div> : null}
-
-        {open === "lang" ? (
-          <div className="mac-menu mac-menu--right" role="menu">
-            <div className="mac-menu-head"><Languages size={17} /><strong>Language</strong></div>
-            {langItems.map((item) => item.kind === "item" && (
-              <button key={item.label} type="button" role="menuitem" className="mac-menu-row" onClick={item.onSelect}>
-                <span className="mac-menu-check">{item.checked ? <Check size={13} /> : null}</span>
-                <span className="mac-menu-text"><span>{item.label}</span></span>
-                {item.hint ? <span className="mac-menu-hint">{item.hint}</span> : null}
-              </button>
-            ))}
-          </div>
-        ) : null}
 
         {open === "clock" ? (
           <div className="mac-menu mac-menu--right mac-menu--clock" role="menu">

@@ -28,6 +28,7 @@ import { WallpaperPicker, type PickerWallpaper, loadCustomWallpapers, persistCus
 import { SystemTray } from "./components/system-tray";
 import { MacMenuBar } from "./components/mac-menubar";
 import { CameraSurface } from "./components/camera-app";
+import { GallerySurface } from "./components/gallery-app";
 
 import { LinksApp } from "./components/links-app";
 import { assetUrl } from "./asset-map";
@@ -81,7 +82,7 @@ const YOUTUBE_APP_ICON = "https://cdn.simpleicons.org/youtube/FF0033";
 const NETFLIX_APP_ICON = "https://cdn.simpleicons.org/netflix/E50914";
 const isGitHubPages = import.meta.env.BASE_URL.startsWith("/vertexosweb");
 type WallpaperId = "vertex-studio" | "halloween" | "macos-default" | "macos-lock" | "singularity" | "snake-skeleton" | "snow-fox" | "cine55" | "gojo" | "rainy-city" | "green-anime" | "brother" | "99-med" | "gojo-sukuna" | "sukuna-fire" | "desktop-lines" | "skello" | "we-black-hole" | "we-snow-fox" | "we-gojo-sukuna" | "we-sukuna-fire" | "we-cine-55" | "we-snake" | "we-green-anime" | "we-brother" | "we-gojo" | "we-rainy-city" | "we-desktop-lines" | "we-skello" | "we-99-med" | "we-45e33" | "we-f1-formula" | "we-hunt-shadow-2" | "we-minecraft-01" | "we-minecraft-02" | "we-minecraft-03" | "we-monkey" | "we-supra-drift" | "we-yuji-52" | "we-cozy-fox" | "we-yuta" | "we-bmw-car-driving" | "we-eyes-toward-heaven" | "we-goku-ultra" | "we-galaxy-eyes" | "we-celestial-battle" | "we-tess-kotkin" | "we-yuta-rika" | "we-satoru-gojo" | "we-dark-angel" | "we-makima-devilish" | "we-makima-burning" | "we-haimiya-mio" | "we-toji" | "we-mamonir" | "we-lantern-festival" | "we-miyabi" | "we-qingxiao" | "we-megumin" | "we-odette" | "we-blue-sky" | "we-frutiger" | "we-synthwave-dmc" | "we-zankou" | "we-ghost-rider" | "we-molala" | "we-dark-king" | "we-celestial-veil" | "we-miku-nakano" | "we-gotoubun" | "we-quintuplets" | "we-black-silk-waves" | "we-blue-dragon-logo" | "we-astra-yao" | "we-luo-tianyi-christmas" | "we-mc-northern-light" | "we-mc-falling-snow" | "we-mc-aquarium" | "we-mc-holiday-heart" | "we-mc-fireplace" | "we-mc-panels" | "we-mc-cherry-blossom" | "we-mc-raindrops" | "we-silver-surfer" | "we-girl-behind-curtains" | "we-vagabond-miyamoto" | "we-itachi-crow" | "we-gojo-hollow" | "we-quintuplets-sister" | "we-yuta-okkotsu" | "we-gojo-vs-sukuna-2" | "we-gojo-cursed-world" | "we-gojo-six-eyes" | "we-frieren-blue-horizon" | "we-frieren-blooming-stream" | "we-nissan-skyline-r33-mc" | "we-torii";
-type AppId = "hub" | "spicetify" | "browser" | "roblox" | "messages" | "vertube" | "movies" | "settings" | "games" | "translucenttb" | "wallpaper-engine" | "minecraft" | "rainmeter" | "terminal" | "calculator" | "camera" | "ghostview" | "links" | "discord" | "vcloud" | "admin" | "appmaker" | string & {};
+type AppId = "hub" | "spicetify" | "browser" | "roblox" | "messages" | "vertube" | "movies" | "settings" | "games" | "translucenttb" | "wallpaper-engine" | "minecraft" | "rainmeter" | "terminal" | "calculator" | "camera" | "gallery" | "ghostview" | "links" | "discord" | "vcloud" | "admin" | "appmaker" | string & {};
 type Ps5DesktopShortcut = { id: string; name: string; cover: string };
 type TaskbarPos = "bottom" | "top" | "left" | "right";
 type WindowRect = { x: number; y: number; w: number; h: number };
@@ -91,7 +92,7 @@ type ColorMode = "dark" | "light";
 type SystemStyle = "vertex" | "macos";
 type TabHideImage = { id: string; name: string; src: string };
 type SystemSettings = { optimized: boolean; idleLock: boolean; confirm: boolean; cloak: string; cloakName: string; cloakIcon: string; panicKey: string; panicUrl: string; adblock: boolean; adblockUrl: string; deviceName: string; colorMode: ColorMode; systemStyle: SystemStyle; fontStyle: string; tabHide: boolean; tabHideImage: string; tabHideImages: TabHideImage[] };
-const defaultSettings: SystemSettings = { optimized: false, idleLock: false, confirm: false, cloak: "none", cloakName: "McCrackOS", cloakIcon: "", panicKey: "`", panicUrl: "", adblock: false, adblockUrl: "", deviceName: "McCrack-PC", colorMode: "dark", systemStyle: "vertex", fontStyle: "quicksand", tabHide: false, tabHideImage: "iready", tabHideImages: [{ id: "black", name: "Black screen", src: "black" }, { id: "white", name: "White screen", src: "white" }, { id: "iready", name: "I-Ready", src: asset("images/tabhide-iready.png") }, { id: "classroom", name: "Google Classroom", src: asset("images/tabhide-classroom.png") }] };
+const defaultSettings: SystemSettings = { optimized: false, idleLock: false, confirm: false, cloak: "none", cloakName: "McCrackOS", cloakIcon: "", panicKey: "`", panicUrl: "", adblock: false, adblockUrl: "", deviceName: "McCrack-PC", colorMode: "dark", systemStyle: "vertex", fontStyle: "quicksand", tabHide: false, tabHideImage: "iready", tabHideImages: [{ id: "black", name: "Black screen", src: "black" }, { id: "white", name: "White screen", src: "white" }, { id: "iready", name: "I-Ready", src: asset("images/tabhide-iready.png") }, { id: "classroom", name: "Home - Google Classroom", src: asset("images/tabhide-classroom.png") }] };
 const AVATAR_MAX_GIF = 2 * 1024 * 1024;
 const AVATAR_MAX_PIX = 512;
 const PASSWORD_KEY = "vertex-password";
@@ -260,7 +261,7 @@ const CLOAKS: Record<string, { title: string; icon: string }> = {
     title: "Google",
     icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAA5FBMVEVHcEz9SlD/TkL/RUH/RUD/RkP4gyr/SUX/Rj//SE3/Yjb/UDn/Szz9TFb/Yi7/WTT8TVn/cyf/Zi7/iRz/fSL/lRb/SEjeuwX/qQ7/nhP/tgv9TFX6yQj/wwn/zAffugr8zgb+zwnzzQb4ywkvhv82qo79zgQek+ApjurzzAPlywIvhv0qifjRyQEth/y5yAKnxwAoivaMxQUak94fj+hzxAtawxdawhgLpa4OncYVltc8wCobvFIMuWgHqp0KorWaxQEnvz4bvUwPumUNumQMumgIr4wIqaIRvFoNu2MKtnRJwh6BPIl6AAAATHRSTlMAWZDK7P8Orf//Gv///+b/5P7////4dor///8qmP/9K0j/tu7/DeYwRP//HWr/rv///v/b///+HMT///+XTvD/5f//yGzw///////mXfQ9oAAAAWBJREFUeAF0z1UCgCAQRdEZ7O7u/W9STPr93oMCcENi2Y5jWwRBM9fz7zl0QeCFcidRHLMeJAkRj6dZdom/0+Uu62FRlpcQQILsfFVfIrqE/wPWoWleEXstYutdgO9dP9wi++/VCt0dx0dwL5u4DvNyiaFywbB1WS6ymfp+rJSMM5g2H7fYjOCsi5wOIAiCKNhRnG1bazv/fG7erFW/VcNezFEsKWVVZk2bOVi0BVuawE9GbcGOJrxoD3DEZD5ZtAcLdsX9vvWSW/ZM5g+H7JnHhFMcsI+CPpwXVOGSBsT8+Xy9VX5qfQerC77yDP94rEvB8/VCscO4z1f49+db8D9BFJEQ6N64/0hyqhVV03hxIo7+eMNLhmnZimLLjut6msCKZ3qhR+wN0/f9IAjD0PV4kV3rW/QoXF5sC4+KcEAShMkWzBeQ+QaFLX5rKrOWzcQjsHbUgCJbThA4lmwXVv8BPaBVEHC66TMAAAAASUVORK5CYII=",
   },
-  classroom: { title: "Google Classroom", icon: "https://www.gstatic.com/classroom/logo_square_rounded.svg" },
+  classroom: { title: "Home - Google Classroom", icon: "https://www.gstatic.com/classroom/logo_square_rounded.svg" },
 };
 
 const wallpapers: Wallpaper[] = [
@@ -425,11 +426,11 @@ const baseApps: AppDef[] = [
   { id: "webapps", title: "Proxy Apps", subtitle: "create standalone proxied apps", icon: Globe, iconImg: asset("images/links.svg") },
   { id: "spicetify", title: "McCrackify", subtitle: "Music player", icon: Music2, iconImg: MCC_CRACKIFY_ICON, pinned: true },
   { id: "roblox", title: "Roblox", subtitle: t("appSub.roblox"), icon: Gamepad2, iconImg: asset("images/roblox.ico") },
-  { id: "games", title: "PS5 Emu", subtitle: t("appSub.games"), icon: Gamepad2, iconImg: asset("images/ps5-emu.png"), squircle: true },
+  { id: "games", title: "PS5", subtitle: t("appSub.games"), icon: Gamepad2, iconImg: asset("images/ps5-emu.png"), squircle: true },
   { id: "minecraft", title: "Minecraft Launcher", subtitle: t("appSub.minecraft"), icon: Gamepad2, iconImg: MC_ICON, squircle: true },
   { id: "calculator", title: "Calculator", subtitle: t("appSub.calculator"), icon: Calculator, iconImg: asset("images/calculator-logo.svg") },
   { id: "camera", title: "Camera", subtitle: "Photo & video studio", icon: CameraIcon },
-  { id: "terminal", title: "Terminal", subtitle: t("appSub.terminal"), icon: Terminal, iconImg: ARCH_ICON },
+  { id: "gallery", title: "Gallery", subtitle: "Photos & videos", icon: ImagePlus },
   { id: "links", title: "Links", subtitle: t("appSub.links"), icon: Link2, iconImg: asset("images/links.svg") },
 ];;
 
@@ -440,9 +441,9 @@ type AppOverride = { name?: string; showName?: boolean; iconUrl?: string; pinned
 
 const APP_SECTIONS: { id: string; tone: string; all?: boolean; ids: AppId[] }[] = [
   { id: "all", tone: "tone-all", all: true, ids: [] },
-  { id: "watch", tone: "tone-watch", ids: ["vertube", "movies", "spicetify", "messages"] },
+  { id: "watch", tone: "tone-watch", ids: ["vertube", "movies", "spicetify", "messages", "gallery"] },
   { id: "play", tone: "tone-play", ids: ["roblox", "minecraft", "games"] },
-  { id: "create", tone: "tone-create", ids: ["camera", "terminal", "browser", "calculator", "appmaker", "webapps", "settings", "links", "wallpaper-engine"] },
+  { id: "create", tone: "tone-create", ids: ["camera", "browser", "calculator", "appmaker", "webapps", "settings", "links", "wallpaper-engine"] },
 ];;
 
 const GV_APP: { id: AppId; title: string; subtitle: string; icon: LucideIcon; pinned: boolean; showName: boolean } = { id: "ghostview", title: "GhostView", subtitle: "remote view", icon: Eye, pinned: false, showName: false };
@@ -1033,7 +1034,7 @@ function App() {
   const [profileCloudPass, setProfileCloudPass] = useState("");
   const [profileCloudPass2, setProfileCloudPass2] = useState("");
   const [cloudAccountBusy, setCloudAccountBusy] = useState(false);
-  const [setupStep, setSetupStep] = useState<"account" | "customize">("account");
+  const [setupStep, setSetupStep] = useState<"choice" | "account" | "customize">("choice");
   const [pendingSetupAccount, setPendingSetupAccount] = useState<VertexAccount | null>(null);
   const [setupWallpaper, setSetupWallpaper] = useState<WallpaperId>(SEASON_WALLPAPER);
   const [setupColorMode, setSetupColorMode] = useState<ColorMode>("dark");
@@ -1215,10 +1216,16 @@ storage.read("vertex-jarvis-installed", false));
     ...customApps.map((item) => ({ id: item.id as AppId, title: item.name, subtitle: item.folder?.trim() || "Custom proxied app", icon: Globe, iconImg: item.icon || asset("images/links.svg"), pinned: Boolean(item.pinned), squircle: true })),
   ], [customApps]);
   const [desktopApps, setDesktopApps] = useState<AppId[]>(() => {
-    const saved = storage.read<AppId[]>("vertex-desktop-apps", []);
-    const valid = Array.isArray(saved) ? saved.filter((id) => apps.some((app) => app.id === id)) : [];
-    return valid.length ? valid : apps.slice(0, 6).map((app) => app.id);
+    try {
+      const raw = localStorage.getItem("vertex-desktop-apps");
+      if (raw !== null) {
+        const saved = JSON.parse(raw) as AppId[];
+        return Array.isArray(saved) ? saved.filter((id) => apps.some((app) => app.id === id)) : [];
+      }
+    } catch { /* use the first-run defaults if the saved list is unreadable */ }
+    return apps.slice(0, 6).map((app) => app.id);
   });
+  useEffect(() => { storage.write("vertex-desktop-apps", desktopApps); }, [desktopApps]);
   const [ps5Shortcuts, setPs5Shortcuts] = useState<Ps5DesktopShortcut[]>(() => storage.read("vertex-ps5-desktop-shortcuts", []));
   useEffect(() => {
     const addShortcut = (event: Event) => {
@@ -1408,7 +1415,7 @@ onSessionClose: (peerCode) => {
       onControl: (ctrl) => {
         if (ctrl.cmd === "open") {
           const id = ctrl.app as AppId | undefined;
-          if (!id || id === "ghostview") return;
+          if (!id || id === "ghostview" || id === "terminal") return;
           setStartOpen(false); setDrawerOpen(false);
           if (id === "translucenttb") {
             setTranslucentOpen(true);
@@ -1431,20 +1438,7 @@ onSessionClose: (peerCode) => {
           setWindows((items) => items.map((w) => (w.id === id ? { ...w, minimized: true } : w)));
           setActiveWindow((a) => (a === id ? null : a));
         } else if (ctrl.cmd === "run") {
-          const text = ctrl.text ?? "";
-          if (!text) return;
-          const hasTerm = gvWindowsRef.current.some((w) => w.id === "terminal");
-          if (!hasTerm) {
-            setStartOpen(false); setDrawerOpen(false);
-            setWindows((items) => items.some((w) => w.id === "terminal")
-              ? items.map((w) => (w.id === "terminal" ? { ...w, minimized: false } : w))
-              : [...items, { id: "terminal", minimized: false, maximized: false, rect: defaultWindowRect(items.length), prevRect: null }]);
-            setActiveWindow("terminal");
-          }
-          window.setTimeout(() => {
-            ghostTypeCtrl(text);
-            ghostEnterCtrl();
-          }, 420);
+          addToast("Terminal removed", "Remote terminal commands are no longer available in McCrackOS.");
         } else if (ctrl.cmd === "click") {
           const x = ctrl.x ?? 0;
           const y = ctrl.y ?? 0;
@@ -1515,7 +1509,7 @@ onSessionClose: (peerCode) => {
   }, [settings.colorMode, settings.systemStyle, settings.fontStyle, wallpaper, lockWallpaper]);
   const [faqOpen, setFaqOpen] = useState<number | null>(null);
   const [toasts, setToasts] = useState<{ id: number; title: string; copy: string; href?: string }[]>([]);
-  const [notifications, setNotifications] = useState<{ id: number; title: string; copy: string; href?: string; at?: number; kind?: string; conversationId?: string; senderId?: string }[]>(() => storage.read("vertex-notifications", []));
+  const [notifications, setNotifications] = useState<{ id: number; title: string; copy: string; href?: string; at?: number; kind?: string; conversationId?: string; senderId?: string }[]>(() => { const saved = storage.read<{ id: number; title: string; copy: string; href?: string; at?: number; kind?: string; conversationId?: string; senderId?: string }[]>("vertex-notifications", []); const clean = saved.filter((item) => !/welcome.*mccrack/i.test(`${item.title} ${item.copy}`)); if (clean.length !== saved.length) storage.write("vertex-notifications", clean); return clean; });
   const [notifReadCut, setNotifReadCut] = useState(0);
   const [currentTrack, setCurrentTrack] = useState<{ name: string; artist: string; artwork: string } | null>(null);
   const [incomingCall, setIncomingCall] = useState<{ id: string; mode: string; name: string; subtitle: string } | null>(null);
@@ -1610,7 +1604,7 @@ onSessionClose: (peerCode) => {
       if (phase === "desktop" && event.altKey && !event.ctrlKey && !event.shiftKey && event.key.toLowerCase() === "w") {
         event.preventDefault();
         if (wppInstalled) setWpPickerOpen((open) => !open);
-        else toggleApp("terminal");
+        else toggleApp("wallpaper-engine");
       }
       if (phase === "desktop" && !isEditing && settings.panicKey && event.key.toLowerCase() === settings.panicKey.toLowerCase()) {
         redirectPanic();
@@ -1634,6 +1628,15 @@ onSessionClose: (peerCode) => {
   useEffect(() => {
     const stop = startAnalytics();
     return stop;
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || location.protocol === "file:" || !("serviceWorker" in navigator)) return;
+    const standaloneBundle = Boolean((globalThis as { __VERTEX_ASSETS__?: Record<string, string> }).__VERTEX_ASSETS__);
+    const worker = standaloneBundle ? base + "mccrack-pwa-sw.js" : base + "sw.js";
+    navigator.serviceWorker.register(worker, { scope: base }).catch((error) => {
+      console.warn("McCrackOS offline/PWA setup:", error);
+    });
   }, []);
 
   useEffect(() => {
@@ -1931,7 +1934,6 @@ onSessionClose: (peerCode) => {
 
   function enterDesktop() {
     setPhase("desktop");
-    addToast(t("toast.welcomeTitle"), t("toast.welcomeCopy"));
   }
 
   function signInAs(account: VertexAccount) {
@@ -2000,7 +2002,7 @@ onSessionClose: (peerCode) => {
 
   function finishSetup(skipCustomization = false) {
     const account = pendingSetupAccount;
-    if (!account) { setSetupStep("account"); return; }
+    if (!account) { setSetupStep("choice"); return; }
     const selectedWallpaper = skipCustomization ? SEASON_WALLPAPER : setupWallpaper;
     setWallpaper(selectedWallpaper);
     setLockWallpaper(selectedWallpaper);
@@ -2017,7 +2019,7 @@ onSessionClose: (peerCode) => {
     setPinInput("");
     setPinError(false);
     setPendingSetupAccount(null);
-    setSetupStep("account");
+    setSetupStep("choice");
     signInAs(account);
   }
 
@@ -2029,7 +2031,7 @@ onSessionClose: (peerCode) => {
       setActiveAccount(null);
       setSelectedAccount(null);
       setProfileEmail(""); setProfileUsername(""); setProfileCloudPass(""); setProfileCloudPass2("");
-      if (!guests.length) { setSetupStep("account"); setPendingSetupAccount(null); }
+      if (!guests.length) { setSetupStep("choice"); setPendingSetupAccount(null); }
       setPhase(guests.length ? "lock" : "profile");
       addToast("Signed out", "Your McCrack account has been signed out of this device.");
     } catch (error) { addToast("Sign out failed", error instanceof Error ? error.message : "Could not sign out."); }
@@ -2053,7 +2055,7 @@ onSessionClose: (peerCode) => {
 
   function openSignIn() {
     if (phase !== "lock") return;
-    if (accounts.length === 0) { setProfileErr(""); setLoginErr(""); setSetupStep("account"); setPendingSetupAccount(null); setPhase("profile"); return; }
+    if (accounts.length === 0) { setProfileErr(""); setLoginErr(""); setSetupStep("choice"); setPendingSetupAccount(null); setPhase("profile"); return; }
     setSelectedAccount(null);
     setPinInput("");
     setPinError(false);
@@ -2429,6 +2431,8 @@ onSessionClose: (peerCode) => {
   const visibleDockEntries = dockOverflowed ? dockEntries.slice(0, dockCapacity) : dockEntries;
   const dockAutoHidden = windows.some((item) => !item.minimized && !item.closingAt);
   const dockIsVisible = !dockAutoHidden || dockManuallyOpen;
+  const browserOnlyRoute = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("mccrack-browser") === "1";
+  if (browserOnlyRoute) return <main className="os-root browser-only-route"><BrowserSurface lang={chosenLang} /></main>;
 
   return (
         <main className={`os-root${PERF.low ? " perf-low" : ""}`} onClick={() => { setContextMenu(null); setAppMenu(null);  setDockMenu(null); setDockOverflowOpen(false); }} onContextMenu={(event) => {
@@ -2467,12 +2471,20 @@ onSessionClose: (peerCode) => {
           <div className="profile-setup-heading">
             <div className="lock-avatar"><BrandMark /></div>
             <div className="profile-kicker">McCrackOS · v{VERTEX_VERSION}</div>
-            <h2 className="profile-title">{setupStep === "account" ? "Create or sign in to your account" : "Customize your desktop"}</h2>
-            <p className="profile-sub">{setupStep === "account" ? "Create one McCrack account to sign in across supported apps and devices. You can personalize your desktop next." : "Choose your wallpaper and desktop appearance. You can change these later in Settings."}</p>
+            <h2 className="profile-title">{setupStep === "choice" ? "Your McCrack account" : setupStep === "account" ? "Create your McCrack account" : "Customize your desktop"}</h2>
+            <p className="profile-sub">{setupStep === "choice" ? "Do you already have an account, or are you creating one for the first time?" : setupStep === "account" ? "Create your official Universal McCrack account to use across supported devices and apps." : "Choose your wallpaper and desktop appearance. You can change these later in Settings."}</p>
           </div>
 
           <div className={`profile-setup-grid profile-wizard-step-${setupStep}`}>
-            {setupStep === "account" ? (
+            {setupStep === "choice" ? (
+              <section className="profile-setup-panel profile-identity-panel profile-account-choice">
+                <div className="profile-setup-section-title">Choose how to continue</div>
+                <p>This is your official Universal McCrack account—not just a profile saved on this device. Use the same account on other devices or after signing out to restore supported profile details, customizations, and progress.</p>
+                <button type="button" className="profile-create" onClick={() => { setLoginErr(""); setLoginName(""); setLoginPass(""); setPhase("picker"); }}>I already have an account · Log in</button>
+                <button type="button" className="profile-create profile-choice-create" onClick={() => { setProfileLocalMode(false); setProfileAskPass(false); setProfileErr(""); setSetupStep("account"); }}>Create New McCrack Account</button>
+                <p className="profile-optional-note">Some individual apps may keep data locally if they do not support cloud sync.</p>
+              </section>
+            ) : setupStep === "account" ? (
               <section className="profile-setup-panel profile-identity-panel">
                 <div className="profile-setup-section-title">Your profile</div>
                 <div className="profile-avatar-row">
@@ -2518,14 +2530,14 @@ onSessionClose: (peerCode) => {
                   ) : (
                     <div className="profile-cloud-account">
                       <div className="profile-setup-section-title">Universal McCrack account <em>· recommended</em></div>
-                      <p>Use one account to sign in across McCrackOS, McCrack Chat, and supported McCrack apps. Your profile can follow you between devices.</p>
+                      <p>This is your official Universal McCrack account, not a local-only device profile. Sign in with it on other devices or after signing out to restore supported profile details, customizations, and progress.</p>
                       <label><span>Email address</span><input required type="email" value={profileEmail} onChange={(event) => { setProfileEmail(event.target.value); setProfileErr(""); }} placeholder="you@example.com" autoComplete="email" /></label>
                       <label><span>McCrack username</span><input required value={profileUsername} onChange={(event) => { setProfileUsername(event.target.value.replace(/[^a-zA-Z0-9_-]/g, "")); setProfileErr(""); }} maxLength={24} placeholder="yourusername" autoComplete="username" /></label>
                       <label><span>Password · 8 characters minimum</span><input required minLength={8} type="password" value={profileCloudPass} onChange={(event) => { setProfileCloudPass(event.target.value); setProfileErr(""); }} placeholder="Create a password" autoComplete="new-password" /></label>
                       <label><span>Confirm password</span><input required minLength={8} type="password" value={profileCloudPass2} onChange={(event) => { setProfileCloudPass2(event.target.value); setProfileErr(""); }} placeholder="Re-enter your password" autoComplete="new-password" /></label>
                       <div className="profile-cloud-login">
                         <span>Already have a McCrack account?</span>
-                        <button type="button" className="signin-back profile-login-cta" onClick={() => { setProfileErr(""); setLoginErr(""); setLoginName(""); setLoginPass(""); setProfileLocalMode(false); setSetupStep("account"); setPendingSetupAccount(null); setPhase("picker"); }}>I already have an account · Log in</button>
+                        <button type="button" className="signin-back profile-login-cta" onClick={() => { setProfileErr(""); setLoginErr(""); setLoginName(""); setLoginPass(""); setProfileLocalMode(false); setSetupStep("choice"); setPendingSetupAccount(null); setPhase("picker"); }}>I already have an account · Log in</button>
                       </div>
                     </div>
                   )}
@@ -2579,7 +2591,7 @@ onSessionClose: (peerCode) => {
               </section>
             )}
           </div>
-          {setupStep !== "account" && (
+          {setupStep === "customize" && (
             <div className="profile-setup-footer profile-wizard-footer">
               <button type="button" className="signin-back" onClick={() => setSetupStep("account")}>Back</button>
               <button type="button" className="profile-skip" onClick={() => finishSetup(true)}>Use defaults</button>
@@ -2604,7 +2616,7 @@ onSessionClose: (peerCode) => {
                 <span className="checker-name">{account.name}</span>
               </button>
             ))}
-            <button className="checker-tile checker-add" onClick={() => { setProfileName(""); setProfilePass(""); setProfilePass2(""); setProfileAvatar(""); setProfileEmail(""); setProfileUsername(""); setProfileCloudPass(""); setProfileCloudPass2(""); setProfileAskPass(false); setProfileErr(""); setSetupStep("account"); setPendingSetupAccount(null); setPhase("profile"); }} data-testid="button-add-account">
+            <button className="checker-tile checker-add" onClick={() => { setProfileName(""); setProfilePass(""); setProfilePass2(""); setProfileAvatar(""); setProfileEmail(""); setProfileUsername(""); setProfileCloudPass(""); setProfileCloudPass2(""); setProfileAskPass(false); setProfileErr(""); setSetupStep("choice"); setPendingSetupAccount(null); setPhase("profile"); }} data-testid="button-add-account">
               <span className="checker-avatar checker-add-avatar"><Plus size={30} /></span>
               <span className="checker-name">Add profile</span>
             </button>
@@ -2618,7 +2630,7 @@ onSessionClose: (peerCode) => {
             </div>
             {loginErr ? <span className="lock-error">{loginErr}</span> : null}
           </form>
-          <button className="account-add" onClick={() => { setProfileName(""); setProfilePass(""); setProfilePass2(""); setProfileAvatar(""); setProfileEmail(""); setProfileUsername(""); setProfileCloudPass(""); setProfileCloudPass2(""); setProfileAskPass(false); setProfileErr(""); setSetupStep("account"); setPendingSetupAccount(null); setPhase("profile"); }}><Plus size={15} /> Create new account</button>
+          <button className="account-add" onClick={() => { setProfileName(""); setProfilePass(""); setProfilePass2(""); setProfileAvatar(""); setProfileEmail(""); setProfileUsername(""); setProfileCloudPass(""); setProfileCloudPass2(""); setProfileAskPass(false); setProfileErr(""); setSetupStep("choice"); setPendingSetupAccount(null); setPhase("profile"); }}><Plus size={15} /> Create new account</button>
           <div className="account-chooser-hint">Choose an account or create a new one to continue.</div>
         </div>
       </section>
@@ -2659,7 +2671,7 @@ onSessionClose: (peerCode) => {
         </div>
       </section>
 
-      <section className={`desktop-shell ${phase === "desktop" ? "active" : ""} ${iconSize === "large" ? "large-icons" : iconSize === "small" ? "icon-small" : ""} ${translucentTB ? "translucent-tb" : ""} ${taskbarPos !== "bottom" ? `tb-${taskbarPos}` : ""} ${customCursor ? "custom-cursor" : ""} ${pressFx ? "press-fx" : ""} ${chromeHidden ? "chrome-hidden" : ""}`}>
+      <section className={`desktop-shell ${phase === "desktop" ? "active" : ""} ${settings.systemStyle === "macos" ? "macos-style" : ""} ${iconSize === "large" ? "large-icons" : iconSize === "small" ? "icon-small" : ""} ${translucentTB ? "translucent-tb" : ""} ${taskbarPos !== "bottom" ? `tb-${taskbarPos}` : ""} ${customCursor ? "custom-cursor" : ""} ${pressFx ? "press-fx" : ""} ${chromeHidden ? "chrome-hidden" : ""}`}>
         {rmCfg.showClock ? <RainmeterWidget cfg={rmCfg} date={now} tone="home" onAlternative={() => toggleApp("settings")} /> : null}
         {settings.systemStyle === "macos" ? <MacMenuBar
           now={now}
@@ -2670,7 +2682,6 @@ onSessionClose: (peerCode) => {
           activeWindowId={activeWindow}
           unseen={unseenNotifications}
           showIcons={showDesktopIcons}
-          onPickLanguage={pickLanguage}
           onOpenApp={(id) => toggleApp(id as AppId)}
           onFocusApp={(id) => setActiveWindow(id as AppId)}
           onMinimizeApp={(id) => minimizeWindow(id as AppId)}
@@ -6049,7 +6060,7 @@ function VerTubeSurface() {
 function renderWindowBody(id: AppId, settings: SystemSettings, updateSetting: (key: keyof SystemSettings | Partial<SystemSettings>, value?: boolean | string | TabHideImage[]) => void, faqOpen: number | null, setFaqOpen: (value: number | null) => void, lang: Lang, onLanguagePick: (language: Lang) => void, onPanic: () => void, onClose: (() => void) | null = null, onMinimize: (() => void) | null = null, onTrackChange: ((track: { name: string; artist: string; artwork: string } | null) => void) | null = null, translucent: boolean = false, onTranslucent: ((value: boolean) => void) | null = null, onApplyWallpaper: ((id: WallpaperId, target: "both" | "home" | "lock") => void) | null = null, appliedWallpaper: WallpaperId = "singularity", appliedLockWallpaper: WallpaperId = "singularity", onNotify: ((title: string, copy: string) => void) | null = null, wppInstalled: boolean = false, onInstallPicker: (() => void) | null = null, jarvisInstalled: boolean = false, onJarvisInstall: (() => void) | null = null, onFsociety: ((active: boolean) => void) | null = null, activeAccount: VertexAccount | null = null, onAvatarChange: ((avatar: string) => void) | null = null, onAccountChange: ((patch: { name?: string; email?: string; username?: string; bio?: string; banner?: string }) => void) | null = null, onSignOut: (() => void) | null = null) {
   if (id === "settings") return <SettingsSurface settings={settings} updateSetting={updateSetting} faqOpen={faqOpen} setFaqOpen={setFaqOpen} lang={lang} onLanguagePick={onLanguagePick} onPanic={onPanic} avatar={activeAccount?.avatar} accountName={activeAccount?.name} accountEmail={activeAccount?.email} accountUsername={activeAccount?.username} accountBio={activeAccount?.bio} accountBanner={activeAccount?.banner} onAvatarChange={onAvatarChange ?? undefined} onAccountChange={onAccountChange ?? undefined} onSignOut={onSignOut ?? undefined} appliedWallpaper={appliedWallpaper} appliedLockWallpaper={appliedLockWallpaper} onApplyWallpaper={onApplyWallpaper ?? undefined} onNotify={onNotify ?? undefined} translucent={translucent} onTranslucent={onTranslucent ?? undefined} />;
   if (id === "wallpaper-engine") return <WallEngineApp appliedHome={appliedWallpaper} appliedLock={appliedLockWallpaper} onApplyWallpaper={onApplyWallpaper ?? (() => {})} notify={onNotify ?? undefined} />;
-  if (id === "terminal") return <div className="window-surface term-app-surface">          <TerminalSurface installed={wppInstalled} onInstalled={onInstallPicker ?? (() => {})} onFsociety={onFsociety ?? (() => {})} jarvisInstalled={jarvisInstalled} setJarvisInstalled={onJarvisInstall ?? (() => {})} onJarvisInstall={onJarvisInstall ?? (() => {})} toggleApp={undefined} /></div>;
+  if (id === "gallery") return <GallerySurface />;
   if (id === "translucenttb") return <div className="window-surface"><div className="surface-kicker">{t("surf.translucent.kicker")}</div><h2 className="surface-title">{t("surf.translucent.title")}</h2><p className="surface-copy">{t("surf.translucent.body")}</p><div className="settings-list"><SettingToggle label={t("surf.translucent.enable")} help={t("surf.translucent.help")} value={translucent} onChange={(value) => onTranslucent?.(value)} /></div></div>;
   if (id === "spicetify") return <iframe className="browser-frame" src={appFallbackSrc("apps/music/web/index.html", "https://raw.githack.com/Patrickmango49/McCrackOS/main/apps/music/web/index.html")} srcDoc={embeddedAppDocument("apps/music/web/index.html", "https://raw.githack.com/Patrickmango49/McCrackOS/main/apps/music/web/")} title="McCrackify" allow="autoplay; clipboard-write; fullscreen; encrypted-media; picture-in-picture" allowFullScreen />;
   const adRedir = settings.adblock && settings.adblockUrl.trim() ? settings.adblockUrl : null;
@@ -6311,7 +6322,7 @@ function MinecraftLauncherSurface() {
       {loading && mode !== "catalog" ? <div className="mc-loading">{t("minecraft.loading")}</div> : null}
       {mode === "catalog" && catalogGame
         ? <GameFrame game={catalogGame} onLoad={() => setLoading(false)} />
-        : <iframe className="browser-frame" src={src} key={`${mode}-${serverAddr ?? catalogGame?.id ?? "default"}`} title={title} allow="autoplay; clipboard-write; camera; microphone; fullscreen; cross-origin-isolated" onLoad={() => setLoading(false)} />}
+        : <iframe className="browser-frame" src={src} key={`${mode}-${serverAddr ?? catalogGame?.id ?? "default"}`} title={title} allow="autoplay; clipboard-write; camera; microphone; fullscreen; gamepad; cross-origin-isolated" onLoad={() => setLoading(false)} />}
     </div>;
   }
 
@@ -6408,7 +6419,7 @@ function MinecraftLauncherSurface() {
               <option value="modpack">{t("minecraft.modpackVersion")}</option>
               <option value="eagler112">{t("minecraft.v112Version")}</option>
               <option value="eagler152">{t("minecraft.v152Version")}</option>
-              <optgroup label="Minecraft versions from PS5 emulator">
+              <optgroup label="Minecraft versions from PS5">
                 {MC_CATALOG_GAMES.map((game) => <option key={game.id} value={`catalog:${game.id}`}>{game.name}</option>)}
               </optgroup>
             </select>

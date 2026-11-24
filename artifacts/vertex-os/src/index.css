@@ -8050,3 +8050,73 @@ html[data-theme="light"] .app-error-state button { color: #14313a; background: r
 }
 
 
+
+
+/* McCrackOS system polish: rounded iconography, dock, launchpad and quick controls. */
+html:not([data-style="macos"]) .desktop-icon .icon-tile {
+  border-radius: 18px;
+  background: linear-gradient(145deg, rgba(28,43,60,.92), rgba(8,15,26,.88));
+  border-color: rgba(174,220,255,.2);
+  box-shadow: 0 9px 24px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.12);
+}
+html:not([data-style="macos"]) .desktop-icon:hover .icon-tile {
+  border-color: rgba(81,218,255,.5);
+  box-shadow: 0 12px 28px rgba(0,0,0,.32), 0 0 0 3px rgba(49,198,237,.1), inset 0 1px 0 rgba(255,255,255,.16);
+}
+html:not([data-style="macos"]) .dock {
+  min-height: 68px;
+  padding: 9px 14px;
+  gap: 8px;
+  border-radius: 26px;
+  background: rgba(13,20,31,.52);
+  border-color: rgba(194,224,255,.2);
+}
+html:not([data-style="macos"]) .dock-button { border-radius: 16px; }
+html:not([data-style="macos"]) .dock-button:hover,
+html:not([data-style="macos"]) .dock-button.active { background: rgba(255,255,255,.13); }
+html:not([data-style="macos"]) .system-tray {
+  padding: 7px 9px;
+  gap: 4px;
+  border-radius: 22px;
+  background: rgba(13,20,31,.56);
+  border-color: rgba(194,224,255,.2);
+}
+html:not([data-style="macos"]) .tray-seg { border-radius: 15px; }
+html:not([data-style="macos"]) .tray-flyout { border-radius: 22px; }
+html:not([data-style="macos"]) .tray-quick-tile { border-radius: 18px; }
+html:not([data-style="macos"]) .start-panel { border-radius: 30px; }
+html:not([data-style="macos"]) .start-panel .pinned-item { border-radius: 21px; }
+html:not([data-style="macos"]) .start-avatar { border-radius: 18px; }
+
+.desktop-shell.macos-style .system-tray { display: none !important; }
+.desktop-shell.macos-style .dock { border-radius: 28px; }
+.desktop-shell.macos-style .dock-button { border-radius: 17px; }
+.mac-menu-volume {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 12px 12px 39px;
+  color: inherit;
+  font-size: 12px;
+}
+.mac-menu-volume > span { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
+.mac-menu-volume input { width: 112px; accent-color: #0a84ff; cursor: pointer; }
+html[data-style="macos"][data-theme="light"] .mac-menu-volume { color: #10131a; }
+
+@media (max-width: 720px) {
+  html:not([data-style="macos"]) .system-tray { right: 10px; bottom: 12px; }
+  html:not([data-style="macos"]) .dock { border-radius: 22px; }
+}
+
+.profile-account-choice { display:flex; flex-direction:column; align-items:stretch; gap:14px; }
+.profile-account-choice > p { margin:0; color:var(--muted); font-size:13px; line-height:1.65; }
+.profile-account-choice .profile-create { width:100%; min-height:46px; justify-content:center; }
+.profile-account-choice .profile-choice-create { color:#eafaff; background:linear-gradient(135deg,#168db5,#1764a7); border:1px solid rgba(110,225,255,.35); }
+
+html:not([data-style="macos"]) .desktop-icon .app-icon-img,
+html:not([data-style="macos"]) .pinned-item .app-icon-img { border-radius: 19px; }
+.profile-wizard-step-choice { grid-template-columns: minmax(0, 1fr); }
+.profile-account-choice { width:100%; max-width:520px; margin:0 auto; }
+
+.ps5-boot-logo img { width:58px; height:58px; object-fit:contain; border-radius:14px; display:block; }
+.vs-console img.game-dock-icon { object-fit:contain; }
