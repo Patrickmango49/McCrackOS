@@ -6668,8 +6668,8 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
   const applySystemStyle = (style: SystemStyle) => {
     if (settings.systemStyle === style) return;
     const prompt = style === "macos"
-      ? "Switch to the macOS style? McCrackOS will restart and return you to the sign-in screen."
-      : "Switch back to the default McCrackOS style? McCrackOS will restart and return you to the sign-in screen.";
+      ? "Switch to the macOS style? Your desktop will update immediately."
+      : "Switch back to the default McCrackOS style? Your desktop will update immediately.";
     if (typeof window !== "undefined" && !window.confirm(prompt)) return;
     updateSetting("systemStyle", style);
     if (style === "macos") {
@@ -6678,7 +6678,6 @@ function SettingsSurface({ settings, updateSetting, faqOpen, setFaqOpen, lang, o
     } else {
       onApplyWallpaper?.(SEASON_WALLPAPER, "both");
     }
-    window.setTimeout(() => window.location.reload(), 220);
   };
 
   useEffect(() => { setNameDraft(accountName ?? ""); }, [accountName]);
